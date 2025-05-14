@@ -1,0 +1,107 @@
+📄 PRD — Symera | Plataforma de Organização de Eventos com IA
+🧩 Visão Geral do Produto
+A Symera é uma plataforma web para planejamento e gestão de eventos sociais e corporativos, que centraliza tarefas, cronogramas, fornecedores e equipes. Seu principal diferencial é um checklist inteligente gerado por IA, adaptado automaticamente ao tipo, porte e data do evento.
+
+🎯 Objetivo
+Oferecer uma solução moderna e prática para que produtores de eventos tenham controle total de suas demandas em um só lugar — economizando tempo, evitando erros operacionais e profissionalizando a entrega.
+
+🧠 Funcionalidade Central
+Checklist inteligente com IA: Ao preencher dados básicos do evento (tipo, data, orçamento), o sistema gera automaticamente um checklist adaptado com base em boas práticas e dados de eventos similares.
+
+🔍 Principais Funcionalidades (MVP)
+1. Cadastro e Login
+E-mail e senha
+
+Google Auth (opcional no MVP)
+
+2. Criação de Evento
+Nome do evento
+
+Tipo (casamento, aniversário, corporativo etc.)
+
+Data e local
+
+Orçamento estimado
+
+Número de convidados
+
+3. Checklist Inteligente
+Geração automática de tarefas com IA
+
+Possibilidade de editar, excluir ou adicionar novas tarefas
+
+Tarefas com data, responsável e status
+
+4. Gestão de Tarefas
+Tarefas organizadas por status (a fazer, em andamento, concluída)
+
+Atribuição de responsáveis
+
+Datas de entrega
+
+5. Gestão de Equipe e Fornecedores
+Convidar membros com permissões diferentes (Organizador, Fornecedor, Equipe)
+
+Cada membro pode ver, editar ou ser notificado sobre tarefas específicas
+
+6. Painel do Evento
+Visão geral com progresso do checklist
+
+Orçamento vs. despesas (manual no MVP)
+
+Linha do tempo das próximas entregas
+
+💻 Stack Inicial
+Frontend: React + Tailwind CSS
+
+Backend: Node.js (Express)
+
+Banco de dados: PostgreSQL ou SQLite (no início)
+
+IA: Integração com OpenAI API para geração do checklist
+
+Hospedagem: Replit + Railway (opcional para banco)
+
+🧪 Testes e Qualidade
+Testes de unidade para geração de checklist
+
+Teste manual de fluxos principais (criar evento > gerar checklist > concluir tarefa)
+
+📱 Design e Estética
+Lucas vai enviar:
+
+Paleta de cores
+
+Logo
+
+Referências visuais
+
+Diretrizes desejadas:
+
+Interface moderna
+
+Dashboard minimalista
+
+UX fluida com microinterações (ex: loaders, feedback de ação)
+
+Tipografia limpa, foco em legibilidade
+
+🔜 Funcionalidades Futuras (Pós-MVP)
+Notificações automáticas (e-mail, WhatsApp)
+
+Controle de orçamento com gráficos
+
+Biblioteca de fornecedores integrados
+
+Integração com Google Calendar
+
+Modo cliente para visualização e aprovações
+
+📆 Timeline Sugerida
+Semana	Entrega
+1	Estrutura de projeto + Autenticação
+2	Criação de evento + banco
+3	Integração com OpenAI e checklist IA
+4	Gestão de tarefas e equipe
+5	Painel de resumo + testes finais
+6	Ajustes de UX/UI + deploy final
