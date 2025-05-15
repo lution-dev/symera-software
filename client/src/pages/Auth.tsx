@@ -102,7 +102,7 @@ const Auth: React.FC = () => {
       </div>
       
       {/* Right side with login form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-background relative">
+      <div className="flex-1 flex items-center justify-center p-6 bg-background relative z-10">
         {/* Subtle gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-purple-950/50 to-background opacity-50"></div>
         
@@ -113,9 +113,7 @@ const Auth: React.FC = () => {
         </div>
         
         {/* Form container */}
-        <div className="w-full max-w-md relative z-10 backdrop-blur-sm bg-card/60 p-8 rounded-2xl border border-border/50 shadow-xl animate-fadeIn">
-          {isLogin ? <LoginForm /> : <RegisterForm />}
-        </div>
+        {isLogin ? <LoginForm /> : <RegisterForm />}
       </div>
     </div>
   );
