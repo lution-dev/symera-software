@@ -15,32 +15,36 @@ const MobileNavbar: React.FC = () => {
   
   const isActivePath = (path: string) => {
     if (path === '/') return location === '/';
-    return location.startsWith(path);
+    // Para /events, verificar se é exatamente /events ou detalhes de evento, mas não /events/new
+    if (path === '/events') return location === '/events' || (location.startsWith('/events/') && location !== '/events/new');
+    return location === path;
   };
 
   return (
     <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-10 flex items-center justify-around shadow-lg">
       {navItems.map((item) => (
-        <Link key={item.path} href={item.path}>
-          <a className="flex flex-col items-center">
-            {item.highlight ? (
-              <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6">
-                <i className={`fas fa-${item.icon} text-white`}></i>
-              </div>
-            ) : (
-              <i className={cn(
-                `fas fa-${item.icon} h-6 w-6`,
+        <div key={item.path}>
+          <Link href={item.path}>
+            <div className="flex flex-col items-center cursor-pointer">
+              {item.highlight ? (
+                <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6">
+                  <i className={`fas fa-${item.icon} text-white`}></i>
+                </div>
+              ) : (
+                <i className={cn(
+                  `fas fa-${item.icon} h-6 w-6`,
+                  isActivePath(item.path) ? "text-primary" : "text-foreground"
+                )}></i>
+              )}
+              <span className={cn(
+                "text-xs mt-1",
                 isActivePath(item.path) ? "text-primary" : "text-foreground"
-              )}></i>
-            )}
-            <span className={cn(
-              "text-xs mt-1",
-              isActivePath(item.path) ? "text-primary" : "text-foreground"
-            )}>
-              {item.label}
-            </span>
-          </a>
-        </Link>
+              )}>
+                {item.label}
+              </span>
+            </div>
+          </Link>
+        </div>
       ))}
     </div>
   );

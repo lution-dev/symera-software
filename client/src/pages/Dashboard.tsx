@@ -92,10 +92,10 @@ const Dashboard: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Seus Eventos Ativos</h2>
           <Link href="/events">
-            <a className="text-primary hover:text-primary/80 flex items-center text-sm font-medium">
+            <div className="text-primary hover:text-primary/80 flex items-center text-sm font-medium cursor-pointer">
               Ver todos
               <i className="fas fa-chevron-right ml-2 text-xs"></i>
-            </a>
+            </div>
           </Link>
         </div>
 
