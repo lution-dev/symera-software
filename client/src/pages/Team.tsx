@@ -72,11 +72,18 @@ const Team: React.FC = () => {
     enabled: true,
   });
   
-  // Query para buscar membros da equipe quando um evento é selecionado
-  const { data: teamMembers = [], isLoading: isLoadingTeam } = useQuery({
-    queryKey: ["/api/events", selectedEventId, "team"],
-    enabled: !!selectedEventId,
-  });
+  // Buscar dados da equipe a partir dos eventos
+  const teamMembers = React.useMemo(() => {
+    if (!events || !Array.isArray(events) || !selectedEventId) return [];
+    
+    const selectedEvent = events.find((event: any) => event.id === selectedEventId);
+    if (!selectedEvent) return [];
+    
+    return selectedEvent.team || [];
+  }, [events, selectedEventId]);
+  
+  // Estado de carregamento
+  const isLoadingTeam = false;
   
   // Log de debug para verificar os dados da equipe
   React.useEffect(() => {
