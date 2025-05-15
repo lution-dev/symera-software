@@ -8,6 +8,7 @@ import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel } from "@/lib/utils";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EventProps {
   id?: string;
@@ -16,25 +17,27 @@ interface EventProps {
 const Event: React.FC<EventProps> = ({ id }) => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   
   const { data: event, isLoading } = useQuery({
     queryKey: [`/api/events/${id}`],
-    enabled: !!id,
+    enabled: !!id && isAuthenticated,
+    retry: 1
   });
   
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: [`/api/events/${id}/tasks`],
-    enabled: !!id,
+    enabled: !!id && !!event,
   });
   
   const { data: team, isLoading: teamLoading } = useQuery({
     queryKey: [`/api/events/${id}/team`],
-    enabled: !!id,
+    enabled: !!id && !!event,
   });
   
   const { data: activities, isLoading: activitiesLoading } = useQuery({
     queryKey: [`/api/events/${id}/activities`],
-    enabled: !!id,
+    enabled: !!id && !!event,
   });
   
   const regenerateChecklistMutation = useMutation({
