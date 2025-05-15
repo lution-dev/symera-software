@@ -1,10 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import Logo from "./ui/logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { 
   Home, 
   Calendar, 
@@ -29,6 +40,10 @@ interface User {
 const Sidebar: React.FC = () => {
   const [location] = useLocation();
   const { user } = useAuth() as { user: User | undefined | null };
+  
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
   
   const navItems = [
     { path: "/", label: "Dashboard", icon: Home },
@@ -95,13 +110,33 @@ const Sidebar: React.FC = () => {
             </p>
             <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
           </div>
-          <div
-            className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
-            title="Sair"
-            onClick={() => window.location.href = "/api/logout"}
-          >
-            <LogOut className="h-4 w-4" />
-          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <div
+                className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
+                title="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </div>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar saída</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja sair da sua conta?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleLogout}
+                  className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                >
+                  Sair
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </aside>
