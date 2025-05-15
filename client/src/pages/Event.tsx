@@ -19,6 +19,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   
+  // Saída de debug para identificar o problema
+  console.log("[Debug] ID do evento recebido:", id);
+  
   const { data: event, isLoading, error } = useQuery({
     queryKey: [`/api/events/${id}`],
     enabled: !!id && isAuthenticated,
