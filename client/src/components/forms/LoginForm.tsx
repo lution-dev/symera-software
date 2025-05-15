@@ -14,7 +14,8 @@ import Logo from "@/components/ui/logo";
 const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = (e: React.MouseEvent) => {
+    e.preventDefault();
     setIsLoading(true);
     window.location.href = "/api/login";
   };
@@ -31,17 +32,15 @@ const LoginForm: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <Button
-          variant="outline"
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className="w-full"
+        <a 
+          href="/api/login"
+          className="no-underline w-full"
         >
-          {isLoading ? (
-            <span className="animate-spin mr-2">
-              <i className="fas fa-spinner" />
-            </span>
-          ) : (
+          <Button
+            variant="outline"
+            type="button"
+            className="w-full cursor-pointer"
+          >
             <svg
               className="mr-2 h-4 w-4"
               viewBox="0 0 24 24"
@@ -52,9 +51,9 @@ const LoginForm: React.FC = () => {
                 fill="currentColor"
               />
             </svg>
-          )}
-          Continuar com Google
-        </Button>
+            Continuar com Google
+          </Button>
+        </a>
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-muted" />
