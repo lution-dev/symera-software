@@ -15,47 +15,48 @@ interface EventProps {
 }
 
 const Event: React.FC<EventProps> = ({ id }) => {
+  const [location] = useLocation();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   
-  // Saída de debug para identificar o problema
-  console.log("[Debug] ID do evento recebido:", id);
+  // Extrair o ID da URL se não recebido como prop
+  const eventId = id || location.split('/')[2];
+  
+  console.log("[Debug] ID do evento recebido como prop:", id);
+  console.log("[Debug] ID do evento extraído da URL:", eventId);
   
   const { data: event, isLoading, error } = useQuery({
-    queryKey: [`/api/events/${id}`],
-    enabled: !!id && isAuthenticated,
-    retry: 1,
-    onError: (err) => {
-      console.error("[Debug] Erro ao carregar evento:", err);
-    }
+    queryKey: [`/api/events/${eventId}`],
+    enabled: !!eventId && isAuthenticated,
+    retry: 1
   });
   
   const { data: tasks, isLoading: tasksLoading } = useQuery({
-    queryKey: [`/api/events/${id}/tasks`],
-    enabled: !!id && !!event,
+    queryKey: [`/api/events/${eventId}/tasks`],
+    enabled: !!eventId && !!event,
   });
   
   const { data: team, isLoading: teamLoading } = useQuery({
-    queryKey: [`/api/events/${id}/team`],
-    enabled: !!id && !!event,
+    queryKey: [`/api/events/${eventId}/team`],
+    enabled: !!eventId && !!event,
   });
   
   const { data: activities, isLoading: activitiesLoading } = useQuery({
-    queryKey: [`/api/events/${id}/activities`],
-    enabled: !!id && !!event,
+    queryKey: [`/api/events/${eventId}/activities`],
+    enabled: !!eventId && !!event,
   });
   
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/events/${id}/generate-checklist`);
+      return apiRequest("POST", `/api/events/${eventId}/generate-checklist`);
     },
     onSuccess: () => {
       toast({
         title: "Checklist regenerado",
         description: "O checklist foi regenerado com sucesso usando IA",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${id}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
     },
     onError: () => {
       toast({
@@ -68,7 +69,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
   
   const deleteEventMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("DELETE", `/api/events/${id}`);
+      return apiRequest("DELETE", `/api/events/${eventId}`);
     },
     onSuccess: () => {
       toast({
@@ -189,12 +190,12 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
         
         <div className="flex flex-wrap gap-2 mt-4 lg:mt-0">
-          <Link href={`/events/${id}/checklist`}>
+          <Link href={`/events/${eventId}/checklist`}>
             <Button variant="outline">
               <i className="fas fa-tasks mr-2"></i> Checklist
             </Button>
           </Link>
-          <Link href={`/events/${id}/edit`}>
+          <Link href={`/events/${eventId}/edit`}>
             <Button variant="outline">
               <i className="fas fa-edit mr-2"></i> Editar
             </Button>
@@ -385,7 +386,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                   </>
                 )}
               </Button>
-              <Link href={`/events/${id}/checklist`}>
+              <Link href={`/events/${eventId}/checklist`}>
                 <Button variant="outline">
                   <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
                 </Button>
