@@ -134,26 +134,37 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user) {
+    console.log("Não autenticado ou usuário não encontrado");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  if (!user.claims || !user.claims.sub) {
+    console.log("Claims do usuário não encontradas");
+    return res.status(401).json({ message: "Unauthorized - invalid user claims" });
+  }
+
+  // Se o token expirou, tente atualizar
   const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
-    return next();
-  }
+  if (user.expires_at && now > user.expires_at) {
+    console.log("Token expirado, tentando atualizar");
+    
+    const refreshToken = user.refresh_token;
+    if (!refreshToken) {
+      console.log("Refresh token não encontrado");
+      return res.redirect("/api/login");
+    }
 
-  const refreshToken = user.refresh_token;
-  if (!refreshToken) {
-    return res.redirect("/api/login");
+    try {
+      const config = await getOidcConfig();
+      const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
+      updateUserSession(user, tokenResponse);
+      console.log("Token atualizado com sucesso");
+    } catch (error) {
+      console.error("Erro ao atualizar token:", error);
+      return res.redirect("/api/login");
+    }
   }
-
-  try {
-    const config = await getOidcConfig();
-    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
-    return next();
-  } catch (error) {
-    return res.redirect("/api/login");
-  }
+  
+  return next();
 };

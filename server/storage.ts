@@ -287,17 +287,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async isUserTeamMember(userId: string, eventId: number): Promise<boolean> {
-    const teamMembers = await db
-      .select()
-      .from(eventTeamMembers)
-      .where(
-        and(
-          eq(eventTeamMembers.eventId, eventId),
-          eq(eventTeamMembers.userId, userId)
-        )
-      );
+    console.log(`Verificando se usuário ${userId} é membro da equipe do evento ${eventId}`);
     
-    return teamMembers.length > 0;
+    try {
+      const teamMembers = await db
+        .select()
+        .from(eventTeamMembers)
+        .where(
+          and(
+            eq(eventTeamMembers.eventId, eventId),
+            eq(eventTeamMembers.userId, userId)
+          )
+        );
+      
+      console.log(`Encontrados ${teamMembers.length} registros para o usuário na equipe`);
+      console.log('Registros:', JSON.stringify(teamMembers));
+      return teamMembers.length > 0;
+    } catch (error) {
+      console.error(`Erro ao verificar se usuário ${userId} é membro da equipe:`, error);
+      return false;
+    }
   }
 
   async hasUserAccessToEvent(userId: string, eventId: number): Promise<boolean> {

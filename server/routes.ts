@@ -36,26 +36,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
+      if (!req.user || !req.user.claims || !req.user.claims.sub) {
+        console.log("Erro na autenticação do usuário ao acessar evento:", req.params.id);
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.id, 10);
       
       if (isNaN(eventId)) {
+        console.log("ID de evento inválido:", req.params.id);
         return res.status(400).json({ message: "Invalid event ID" });
       }
       
+      console.log(`Buscando evento ${eventId} para usuário ${userId}`);
       const event = await storage.getEventById(eventId);
       
       if (!event) {
+        console.log(`Evento ${eventId} não encontrado`);
         return res.status(404).json({ message: "Event not found" });
       }
       
-      // Check if user has access to this event
-      const isTeamMember = await storage.isUserTeamMember(userId, eventId);
+      // Verificar se o usuário é o proprietário
+      const isOwner = event.ownerId === userId;
+      console.log(`O usuário é o proprietário do evento? ${isOwner}`);
       
-      if (event.ownerId !== userId && !isTeamMember) {
+      // Verificar se o usuário é membro da equipe
+      const isTeamMember = await storage.isUserTeamMember(userId, eventId);
+      console.log(`O usuário é membro da equipe do evento? ${isTeamMember}`);
+      
+      if (!isOwner && !isTeamMember) {
+        console.log(`Usuário ${userId} não tem acesso ao evento ${eventId}`);
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
+      console.log(`Retornando dados do evento ${eventId} para usuário ${userId}`);
       res.json(event);
     } catch (error) {
       console.error("Error fetching event:", error);
