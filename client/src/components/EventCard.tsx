@@ -64,99 +64,96 @@ const EventCard: React.FC<EventCardProps> = ({
   const pendingTasks = tasks.filter(task => task.status !== "completed").length;
   
   return (
-    <div className="bg-card rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow animate-fadeIn">
-      <div className="relative h-40 overflow-hidden">
-        <img 
-          src={coverImage || getDefaultCover()} 
-          alt={`${name} - ${getEventTypeLabel(type)}`} 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-background opacity-80"></div>
-        <div className={`absolute top-4 right-4 ${status === 'active' ? 'bg-green-500' : status === 'planning' ? 'bg-blue-500' : status === 'completed' ? 'bg-gray-500' : 'bg-red-500'} text-white text-xs font-bold px-2 py-1 rounded-full`}>
-          {status === 'active' ? 'Ativo' : status === 'planning' ? 'Planejamento' : status === 'completed' ? 'Concluído' : 'Cancelado'}
-        </div>
-      </div>
-      
-      <div className="p-5">
-        <div className="flex items-center mb-3">
-          <div className={`w-10 h-10 rounded-full ${type === 'wedding' ? 'bg-pink-100' : type === 'corporate' ? 'bg-blue-100' : type === 'birthday' ? 'bg-purple-100' : 'bg-green-100'} flex items-center justify-center mr-3`}>
-            <i className={`fas fa-${type === 'wedding' ? 'heart' : type === 'corporate' ? 'briefcase' : type === 'birthday' ? 'birthday-cake' : 'glass-cheers'} ${type === 'wedding' ? 'text-pink-500' : type === 'corporate' ? 'text-blue-500' : type === 'birthday' ? 'text-purple-500' : 'text-green-500'}`}></i>
-          </div>
-          <div>
-            <h3 className="font-semibold text-white">{name}</h3>
-            <p className="text-muted-foreground text-sm">{getEventTypeLabel(type)}</p>
+    <Link href={`/events/${id}`}>
+      <div className="bg-card rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow animate-fadeIn cursor-pointer">
+        <div className="relative h-40 overflow-hidden">
+          <img 
+            src={coverImage || getDefaultCover()} 
+            alt={`${name} - ${getEventTypeLabel(type)}`} 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-background opacity-80"></div>
+          <div className={`absolute top-4 right-4 ${status === 'active' ? 'bg-green-500' : status === 'planning' ? 'bg-blue-500' : status === 'completed' ? 'bg-gray-500' : 'bg-red-500'} text-white text-xs font-bold px-2 py-1 rounded-full`}>
+            {status === 'active' ? 'Ativo' : status === 'planning' ? 'Planejamento' : status === 'completed' ? 'Concluído' : 'Cancelado'}
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-y-3">
-          <div className="w-1/2 flex items-center">
-            <i className="fas fa-calendar-day text-primary mr-2"></i>
-            <span className="text-sm text-gray-300">{formatDate(date)}</span>
-          </div>
-          {location && (
-            <div className="w-1/2 flex items-center">
-              <i className="fas fa-map-marker-alt text-primary mr-2"></i>
-              <span className="text-sm text-gray-300 truncate">{location}</span>
+        <div className="p-5">
+          <div className="flex items-center mb-3">
+            <div className={`w-10 h-10 rounded-full ${type === 'wedding' ? 'bg-pink-100' : type === 'corporate' ? 'bg-blue-100' : type === 'birthday' ? 'bg-purple-100' : 'bg-green-100'} flex items-center justify-center mr-3`}>
+              <i className={`fas fa-${type === 'wedding' ? 'heart' : type === 'corporate' ? 'briefcase' : type === 'birthday' ? 'birthday-cake' : 'glass-cheers'} ${type === 'wedding' ? 'text-pink-500' : type === 'corporate' ? 'text-blue-500' : type === 'birthday' ? 'text-purple-500' : 'text-green-500'}`}></i>
             </div>
-          )}
-          {attendees && (
-            <div className="w-1/2 flex items-center">
-              <i className="fas fa-user-friends text-primary mr-2"></i>
-              <span className="text-sm text-gray-300">{attendees} convidados</span>
+            <div>
+              <h3 className="font-semibold text-white">{name}</h3>
+              <p className="text-muted-foreground text-sm">{getEventTypeLabel(type)}</p>
             </div>
-          )}
-          <div className="w-1/2 flex items-center">
-            <i className="fas fa-tasks text-primary mr-2"></i>
-            <div className="flex items-center">
-              <span className="text-sm text-gray-300 mr-2">{progressPercentage}%</span>
-              <div className="w-16 h-2 bg-muted rounded-full">
-                <div className="h-full gradient-primary rounded-full" style={{ width: `${progressPercentage}%` }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-4 flex justify-between items-center">
-          <div className="flex">
-            {team.slice(0, 3).map((member, idx) => (
-              <div
-                key={member.id}
-                className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card -ml-2 first:ml-0"
-                style={{ zIndex: 10 - idx }}
-              >
-                {member.profileImageUrl ? (
-                  <img 
-                    src={member.profileImageUrl} 
-                    alt={`${member.firstName} ${member.lastName}`}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-xs font-medium">
-                    {getInitials(`${member.firstName || ''} ${member.lastName || ''}`)}
-                  </span>
-                )}
-              </div>
-            ))}
-            {team.length > 3 && (
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card -ml-2">
-                <span className="text-xs font-medium">+{team.length - 3}</span>
-              </div>
-            )}
           </div>
           
-          <div className="flex items-center">
-            {lastUpdated && (
-              <span className="text-xs text-muted-foreground mr-3">Atualizado: {lastUpdated}</span>
+          <div className="flex flex-wrap gap-y-3">
+            <div className="w-1/2 flex items-center">
+              <i className="fas fa-calendar-day text-primary mr-2"></i>
+              <span className="text-sm text-gray-300">{formatDate(date)}</span>
+            </div>
+            {location && (
+              <div className="w-1/2 flex items-center">
+                <i className="fas fa-map-marker-alt text-primary mr-2"></i>
+                <span className="text-sm text-gray-300 truncate">{location}</span>
+              </div>
             )}
-            <Link href={`/events/${id}`}>
-              <a className="text-primary hover:text-white transition-colors">
-                <i className="fas fa-arrow-right"></i>
-              </a>
-            </Link>
+            {attendees && (
+              <div className="w-1/2 flex items-center">
+                <i className="fas fa-user-friends text-primary mr-2"></i>
+                <span className="text-sm text-gray-300">{attendees} convidados</span>
+              </div>
+            )}
+            <div className="w-1/2 flex items-center">
+              <i className="fas fa-tasks text-primary mr-2"></i>
+              <div className="flex items-center">
+                <span className="text-sm text-gray-300 mr-2">{progressPercentage}%</span>
+                <div className="w-16 h-2 bg-muted rounded-full">
+                  <div className="h-full gradient-primary rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 flex justify-between items-center">
+            <div className="flex">
+              {team.slice(0, 3).map((member, idx) => (
+                <div
+                  key={member.id}
+                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card -ml-2 first:ml-0"
+                  style={{ zIndex: 10 - idx }}
+                >
+                  {member.profileImageUrl ? (
+                    <img 
+                      src={member.profileImageUrl} 
+                      alt={`${member.firstName} ${member.lastName}`}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-medium">
+                      {getInitials(`${member.firstName || ''} ${member.lastName || ''}`)}
+                    </span>
+                  )}
+                </div>
+              ))}
+              {team.length > 3 && (
+                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card -ml-2">
+                  <span className="text-xs font-medium">+{team.length - 3}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center">
+              {lastUpdated && (
+                <span className="text-xs text-muted-foreground">Atualizado: {lastUpdated}</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
