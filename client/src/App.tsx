@@ -9,6 +9,11 @@ import Events from "@/pages/Events";
 import Event from "@/pages/Event";
 import CreateEvent from "@/pages/CreateEvent";
 import Checklist from "@/pages/Checklist";
+import Schedule from "@/pages/Schedule";
+import Team from "@/pages/Team";
+import Vendors from "@/pages/Vendors";
+import Budget from "@/pages/Budget";
+import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +46,11 @@ function Router() {
       <Route path="/events/new" component={() => <ProtectedRoute component={CreateEvent} />} />
       <Route path="/events/:id" component={(params) => <ProtectedRoute component={Event} id={params.id} />} />
       <Route path="/events/:id/checklist" component={(params) => <ProtectedRoute component={Checklist} id={params.id} />} />
+      <Route path="/schedule" component={() => <ProtectedRoute component={Schedule} />} />
+      <Route path="/team" component={() => <ProtectedRoute component={Team} />} />
+      <Route path="/vendors" component={() => <ProtectedRoute component={Vendors} />} />
+      <Route path="/budget" component={() => <ProtectedRoute component={Budget} />} />
+      <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route component={NotFound} />
     </Switch>
   );

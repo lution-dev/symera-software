@@ -4,20 +4,32 @@ import Logo from "./ui/logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { getInitials } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  Home, 
+  Calendar, 
+  Plus, 
+  CalendarDays, 
+  Users, 
+  Store, 
+  DollarSign, 
+  Settings,
+  LogOut
+} from "lucide-react";
 
 const Sidebar: React.FC = () => {
   const [location] = useLocation();
   const { user } = useAuth();
   
   const navItems = [
-    { path: "/", label: "Dashboard", icon: "home" },
-    { path: "/events", label: "Meus Eventos", icon: "calendar-alt" },
-    { path: "/events/new", label: "Criar Evento", icon: "plus", highlight: true },
-    { path: "/schedule", label: "Cronograma", icon: "calendar-day" },
-    { path: "/team", label: "Equipe", icon: "users" },
-    { path: "/vendors", label: "Fornecedores", icon: "store" },
-    { path: "/budget", label: "Orçamento", icon: "coins" },
-    { path: "/settings", label: "Configurações", icon: "cog" },
+    { path: "/", label: "Dashboard", icon: Home },
+    { path: "/events", label: "Meus Eventos", icon: Calendar },
+    { path: "/events/new", label: "Criar Evento", icon: Plus, highlight: true },
+    { path: "/schedule", label: "Cronograma", icon: CalendarDays },
+    { path: "/team", label: "Equipe", icon: Users },
+    { path: "/vendors", label: "Fornecedores", icon: Store },
+    { path: "/budget", label: "Orçamento", icon: DollarSign },
+    { path: "/settings", label: "Configurações", icon: Settings },
   ];
   
   const isActivePath = (path: string) => {
@@ -46,7 +58,7 @@ const Sidebar: React.FC = () => {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
-                <i className={`fas fa-${item.icon} w-5 text-center`}></i>
+                <item.icon className="w-5 h-5" />
                 <span className="ml-3">{item.label}</span>
               </a>
             </Link>
@@ -56,19 +68,12 @@ const Sidebar: React.FC = () => {
       
       <div className="p-4 border-t border-border">
         <div className="flex items-center">
-          {user?.profileImageUrl ? (
-            <img 
-              src={user.profileImageUrl} 
-              alt={`${user.firstName} ${user.lastName}`}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center">
-              <span className="text-white font-semibold">
-                {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
-              </span>
-            </div>
-          )}
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={user?.profileImageUrl} alt={`${user?.firstName || ''} ${user?.lastName || ''}`} />
+            <AvatarFallback className="bg-gradient-primary text-white">
+              {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
+            </AvatarFallback>
+          </Avatar>
           <div className="ml-3">
             <p className="text-sm font-medium">
               {user?.firstName} {user?.lastName}
@@ -80,7 +85,7 @@ const Sidebar: React.FC = () => {
             className="ml-auto text-muted-foreground hover:text-foreground"
             title="Sair"
           >
-            <i className="fas fa-sign-out-alt"></i>
+            <LogOut className="h-4 w-4" />
           </a>
         </div>
       </div>
