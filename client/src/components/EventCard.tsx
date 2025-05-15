@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "wouter";
-import { formatDate, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
+import { formatDate, calculateTaskProgress, getEventTypeLabel, getInitials, generateProfileImageUrl } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface TeamMember {
@@ -139,8 +139,9 @@ const EventCard: React.FC<EventCardProps> = ({
                   style={{ zIndex: 10 - idx }}
                 >
                   <AvatarImage 
-                    src={member.user?.profileImageUrl} 
-                    alt={`${member.user?.firstName} ${member.user?.lastName}`}
+                    src={member.user?.profileImageUrl || 
+                         generateProfileImageUrl(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)} 
+                    alt={`${member.user?.firstName || ''} ${member.user?.lastName || ''}`}
                   />
                   <AvatarFallback className="text-xs">
                     {getInitials(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)}

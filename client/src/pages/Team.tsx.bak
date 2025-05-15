@@ -366,10 +366,7 @@ const Team: React.FC = () => {
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center">
                               <Avatar className="h-10 w-10 mr-3">
-                                <AvatarImage 
-                                  src={member.user?.profileImageUrl || 
-                                       generateProfileImageUrl(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)} 
-                                />
+                                <AvatarImage src={member.user?.profileImageUrl} />
                                 <AvatarFallback>
                                   {getInitials(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)}
                                 </AvatarFallback>
@@ -426,13 +423,13 @@ const Team: React.FC = () => {
                   )}
                 </TabsContent>
                 
-                <TabsContent value="organizers" className="space-y-6">
+                <TabsContent value="organizers">
                   {organizers.length === 0 ? (
                     <div className="text-center py-8">
                       <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                       <h3 className="text-lg font-medium mb-2">Nenhum organizador</h3>
                       <p className="text-muted-foreground mb-4">
-                        Adicione organizadores para ajudar a gerenciar o evento
+                        Adicione organizadores para ajudar a gerenciar este evento
                       </p>
                       <Button onClick={() => setIsAddMemberOpen(true)}>
                         <UserPlus className="h-4 w-4 mr-2" />
@@ -449,10 +446,7 @@ const Team: React.FC = () => {
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center">
                               <Avatar className="h-10 w-10 mr-3">
-                                <AvatarImage 
-                                  src={member.user?.profileImageUrl || 
-                                       generateProfileImageUrl(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)} 
-                                />
+                                <AvatarImage src={member.user?.profileImageUrl} />
                                 <AvatarFallback>
                                   {getInitials(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)}
                                 </AvatarFallback>
@@ -466,9 +460,7 @@ const Team: React.FC = () => {
                                 <p className="text-sm text-muted-foreground">{member.user?.email || ''}</p>
                               </div>
                             </div>
-                            <Badge className="bg-purple-500">
-                              Organizador
-                            </Badge>
+                            <Badge className="bg-purple-500">Organizador</Badge>
                           </div>
                           <div className="flex justify-between items-center mt-4 pt-2 border-t">
                             <div className="flex space-x-2">
@@ -497,15 +489,16 @@ const Team: React.FC = () => {
                   )}
                 </TabsContent>
                 
-                <TabsContent value="members" className="space-y-6">
+                <TabsContent value="members">
                   {teamMembersOnly.length === 0 ? (
-                    <div className="text-center py-8">
-                      <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Nenhum membro da equipe</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Adicione membros à equipe para colaborar neste evento
-                      </p>
-                      <Button onClick={() => setIsAddMemberOpen(true)}>
+                    <div className="text-center py-6">
+                      <p className="text-muted-foreground">Nenhum membro da equipe encontrado</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2" 
+                        onClick={() => setIsAddMemberOpen(true)}
+                      >
                         <UserPlus className="h-4 w-4 mr-2" />
                         Adicionar Membro
                       </Button>
@@ -520,10 +513,7 @@ const Team: React.FC = () => {
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center">
                               <Avatar className="h-10 w-10 mr-3">
-                                <AvatarImage 
-                                  src={member.user?.profileImageUrl || 
-                                       generateProfileImageUrl(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)} 
-                                />
+                                <AvatarImage src={member.user?.profileImageUrl} />
                                 <AvatarFallback>
                                   {getInitials(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)}
                                 </AvatarFallback>
@@ -537,9 +527,7 @@ const Team: React.FC = () => {
                                 <p className="text-sm text-muted-foreground">{member.user?.email || ''}</p>
                               </div>
                             </div>
-                            <Badge className="bg-blue-500">
-                              Membro
-                            </Badge>
+                            <Badge className="bg-blue-500">Membro</Badge>
                           </div>
                           <div className="flex justify-between items-center mt-4 pt-2 border-t">
                             <div className="flex space-x-2">
@@ -568,15 +556,16 @@ const Team: React.FC = () => {
                   )}
                 </TabsContent>
                 
-                <TabsContent value="vendors" className="space-y-6">
+                <TabsContent value="vendors">
                   {vendors.length === 0 ? (
-                    <div className="text-center py-8">
-                      <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Nenhum fornecedor</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Adicione fornecedores para facilitar a comunicação
-                      </p>
-                      <Button onClick={() => setIsAddMemberOpen(true)}>
+                    <div className="text-center py-6">
+                      <p className="text-muted-foreground">Nenhum fornecedor encontrado</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2" 
+                        onClick={() => setIsAddMemberOpen(true)}
+                      >
                         <UserPlus className="h-4 w-4 mr-2" />
                         Adicionar Fornecedor
                       </Button>
@@ -591,10 +580,7 @@ const Team: React.FC = () => {
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center">
                               <Avatar className="h-10 w-10 mr-3">
-                                <AvatarImage 
-                                  src={member.user?.profileImageUrl || 
-                                       generateProfileImageUrl(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)} 
-                                />
+                                <AvatarImage src={member.user?.profileImageUrl} />
                                 <AvatarFallback>
                                   {getInitials(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)}
                                 </AvatarFallback>
@@ -603,14 +589,12 @@ const Team: React.FC = () => {
                                 <h3 className="font-medium">
                                   {member.user?.firstName
                                     ? `${member.user.firstName} ${member.user?.lastName || ''}`
-                                    : member.user?.email?.split('@')[0] || 'Usuário'}
+                                    : member.user?.email?.split('@')[0] || 'Fornecedor'}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">{member.user?.email || ''}</p>
                               </div>
                             </div>
-                            <Badge className="bg-orange-500">
-                              Fornecedor
-                            </Badge>
+                            <Badge className="bg-orange-500">Fornecedor</Badge>
                           </div>
                           <div className="flex justify-between items-center mt-4 pt-2 border-t">
                             <div className="flex space-x-2">
@@ -640,10 +624,11 @@ const Team: React.FC = () => {
                 </TabsContent>
               </Tabs>
             ) : (
-              <div className="text-center py-8">
-                <h3 className="text-lg font-medium mb-2">Selecione um evento</h3>
+              <div className="text-center py-10">
+                <UsersRound className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-medium mb-2">Selecione um evento</h3>
                 <p className="text-muted-foreground">
-                  Selecione um evento para gerenciar sua equipe
+                  Selecione um evento para visualizar e gerenciar sua equipe
                 </p>
               </div>
             )}
