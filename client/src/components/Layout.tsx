@@ -38,7 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Sidebar />
       
       {/* Main content area */}
-      <main className="flex-1 overflow-y-auto custom-scrollbar bg-background md:ml-0 pb-16 md:pb-0">
+      <main className="flex-1 overflow-y-auto custom-scrollbar bg-background md:pl-6 pb-16 md:pb-0">
         {children}
       </main>
       
