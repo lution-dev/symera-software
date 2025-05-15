@@ -125,7 +125,17 @@ export class DatabaseStorage implements IStorage {
     const teamEventIds = teamMemberships.map(tm => tm.eventId);
     
     if (teamEventIds.length === 0) {
-      return ownedEvents;
+      // Adicionar informações da equipe para eventos do proprietário
+      const eventsWithTeam = await Promise.all(
+        ownedEvents.map(async (event) => {
+          const teamMembers = await this.getTeamMembersByEventId(event.id);
+          return {
+            ...event,
+            team: teamMembers
+          };
+        })
+      );
+      return eventsWithTeam;
     }
     
     // Get team events
@@ -148,9 +158,22 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Sort by date
-    return allEvents.sort((a, b) => {
+    const sortedEvents = allEvents.sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
+    
+    // Adicionar informações da equipe para todos os eventos
+    const eventsWithTeam = await Promise.all(
+      sortedEvents.map(async (event) => {
+        const teamMembers = await this.getTeamMembersByEventId(event.id);
+        return {
+          ...event,
+          team: teamMembers
+        };
+      })
+    );
+    
+    return eventsWithTeam;
   }
 
   async getEventById(id: number): Promise<Event | undefined> {
