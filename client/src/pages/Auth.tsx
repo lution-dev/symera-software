@@ -102,18 +102,20 @@ const Auth: React.FC = () => {
       </div>
       
       {/* Right side with login form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-background relative z-10">
+      <div className="flex-1 flex items-center justify-center p-6 bg-background relative">
         {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-950/50 to-background opacity-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-950/50 to-background opacity-50 pointer-events-none"></div>
         
         {/* Subtle floating particles */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute w-40 h-40 rounded-full bg-orange-500 blur-3xl opacity-5 top-20 right-10"></div>
           <div className="absolute w-32 h-32 rounded-full bg-red-500 blur-3xl opacity-5 bottom-20 left-10"></div>
         </div>
         
         {/* Form container */}
-        {isLogin ? <LoginForm /> : <RegisterForm />}
+        <div className="relative z-20">
+          {isLogin ? <LoginForm /> : <RegisterForm />}
+        </div>
       </div>
     </div>
   );

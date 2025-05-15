@@ -34,12 +34,13 @@ const LoginForm: React.FC = () => {
       <CardContent className="grid gap-4">
         <a 
           href="/api/login"
-          className="no-underline w-full"
+          className="no-underline w-full relative z-50"
+          style={{ position: 'relative', zIndex: 50 }}
         >
           <Button
             variant="outline"
             type="button"
-            className="w-full cursor-pointer"
+            className="w-full cursor-pointer relative z-50"
           >
             <svg
               className="mr-2 h-4 w-4"
