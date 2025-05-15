@@ -82,7 +82,9 @@ const Sidebar: React.FC = () => {
       <div className="p-4 border-t border-border">
         <div className="flex items-center">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user?.profileImageUrl || ''} alt={`${user?.firstName || ''} ${user?.lastName || ''}`} />
+            {user?.profileImageUrl ? (
+              <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
+            ) : null}
             <AvatarFallback className="bg-gradient-primary text-white">
               {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
             </AvatarFallback>

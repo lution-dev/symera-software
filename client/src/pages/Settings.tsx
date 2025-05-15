@@ -267,11 +267,13 @@ const Settings: React.FC = () => {
                 <CardContent className="space-y-6">
                   <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage 
-                        src={profileForm.profileImageUrl} 
-                        alt={`${profileForm.firstName} ${profileForm.lastName}`} 
-                      />
-                      <AvatarFallback className="text-lg">
+                      {profileForm.profileImageUrl ? (
+                        <AvatarImage 
+                          src={profileForm.profileImageUrl} 
+                          alt={`${profileForm.firstName} ${profileForm.lastName}`} 
+                        />
+                      ) : null}
+                      <AvatarFallback className="text-lg bg-gradient-primary text-white">
                         {getInitials(`${profileForm.firstName} ${profileForm.lastName}`)}
                       </AvatarFallback>
                     </Avatar>
@@ -282,7 +284,14 @@ const Settings: React.FC = () => {
                       </p>
                       <div className="flex gap-2 mt-2">
                         <Button variant="outline" size="sm">Alterar</Button>
-                        <Button variant="ghost" size="sm">Remover</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setProfileForm({...profileForm, profileImageUrl: ""})}
+                          disabled={!profileForm.profileImageUrl}
+                        >
+                          Remover
+                        </Button>
                       </div>
                     </div>
                   </div>
