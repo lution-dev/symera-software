@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "wouter";
 import { formatDate, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface TeamMember {
   id: string;
@@ -120,28 +121,26 @@ const EventCard: React.FC<EventCardProps> = ({
           <div className="mt-4 flex justify-between items-center">
             <div className="flex">
               {team.slice(0, 3).map((member, idx) => (
-                <div
+                <Avatar
                   key={member.id}
-                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card -ml-2 first:ml-0"
+                  className="w-8 h-8 border-2 border-card -ml-2 first:ml-0"
                   style={{ zIndex: 10 - idx }}
                 >
-                  {member.profileImageUrl ? (
-                    <img 
-                      src={member.profileImageUrl} 
-                      alt={`${member.firstName} ${member.lastName}`}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-xs font-medium">
-                      {getInitials(`${member.firstName || ''} ${member.lastName || ''}`)}
-                    </span>
-                  )}
-                </div>
+                  <AvatarImage 
+                    src={member.profileImageUrl} 
+                    alt={`${member.firstName} ${member.lastName}`}
+                  />
+                  <AvatarFallback className="text-xs">
+                    {getInitials(`${member.firstName || ''} ${member.lastName || ''}`)}
+                  </AvatarFallback>
+                </Avatar>
               ))}
               {team.length > 3 && (
-                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card -ml-2">
-                  <span className="text-xs font-medium">+{team.length - 3}</span>
-                </div>
+                <Avatar className="w-8 h-8 border-2 border-card -ml-2">
+                  <AvatarFallback className="text-xs font-medium">
+                    +{team.length - 3}
+                  </AvatarFallback>
+                </Avatar>
               )}
             </div>
             
