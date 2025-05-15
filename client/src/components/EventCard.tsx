@@ -1,0 +1,163 @@
+import React from "react";
+import { Link } from "wouter";
+import { formatDate, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
+
+interface TeamMember {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+}
+
+interface Task {
+  id: number;
+  status: string;
+}
+
+interface EventCardProps {
+  id: number;
+  name: string;
+  type: string;
+  date: string;
+  location?: string;
+  status: string;
+  attendees?: number;
+  team?: TeamMember[];
+  tasks?: Task[];
+  coverImage?: string;
+  lastUpdated?: string;
+}
+
+const EventCard: React.FC<EventCardProps> = ({
+  id,
+  name,
+  type,
+  date,
+  location,
+  attendees,
+  team = [],
+  tasks = [],
+  status,
+  coverImage,
+  lastUpdated,
+}) => {
+  // Get default cover image based on event type
+  const getDefaultCover = () => {
+    switch (type) {
+      case 'wedding':
+        return 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      case 'corporate':
+        return 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      case 'birthday':
+        return 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      case 'conference':
+        return 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      default:
+        return 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+    }
+  };
+
+  // Calculate progress percentage
+  const progressPercentage = calculateTaskProgress(tasks);
+  
+  // Count pending tasks
+  const pendingTasks = tasks.filter(task => task.status !== "completed").length;
+  
+  return (
+    <div className="bg-card rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow animate-fadeIn">
+      <div className="relative h-40 overflow-hidden">
+        <img 
+          src={coverImage || getDefaultCover()} 
+          alt={`${name} - ${getEventTypeLabel(type)}`} 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-background opacity-80"></div>
+        <div className={`absolute top-4 right-4 ${status === 'active' ? 'bg-green-500' : status === 'planning' ? 'bg-blue-500' : status === 'completed' ? 'bg-gray-500' : 'bg-red-500'} text-white text-xs font-bold px-2 py-1 rounded-full`}>
+          {status === 'active' ? 'Ativo' : status === 'planning' ? 'Planejamento' : status === 'completed' ? 'Concluído' : 'Cancelado'}
+        </div>
+      </div>
+      
+      <div className="p-5">
+        <div className="flex items-center mb-3">
+          <div className={`w-10 h-10 rounded-full ${type === 'wedding' ? 'bg-pink-100' : type === 'corporate' ? 'bg-blue-100' : type === 'birthday' ? 'bg-purple-100' : 'bg-green-100'} flex items-center justify-center mr-3`}>
+            <i className={`fas fa-${type === 'wedding' ? 'heart' : type === 'corporate' ? 'briefcase' : type === 'birthday' ? 'birthday-cake' : 'glass-cheers'} ${type === 'wedding' ? 'text-pink-500' : type === 'corporate' ? 'text-blue-500' : type === 'birthday' ? 'text-purple-500' : 'text-green-500'}`}></i>
+          </div>
+          <div>
+            <h3 className="font-semibold text-white">{name}</h3>
+            <p className="text-muted-foreground text-sm">{getEventTypeLabel(type)}</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-y-3">
+          <div className="w-1/2 flex items-center">
+            <i className="fas fa-calendar-day text-primary mr-2"></i>
+            <span className="text-sm text-gray-300">{formatDate(date)}</span>
+          </div>
+          {location && (
+            <div className="w-1/2 flex items-center">
+              <i className="fas fa-map-marker-alt text-primary mr-2"></i>
+              <span className="text-sm text-gray-300 truncate">{location}</span>
+            </div>
+          )}
+          {attendees && (
+            <div className="w-1/2 flex items-center">
+              <i className="fas fa-user-friends text-primary mr-2"></i>
+              <span className="text-sm text-gray-300">{attendees} convidados</span>
+            </div>
+          )}
+          <div className="w-1/2 flex items-center">
+            <i className="fas fa-tasks text-primary mr-2"></i>
+            <div className="flex items-center">
+              <span className="text-sm text-gray-300 mr-2">{progressPercentage}%</span>
+              <div className="w-16 h-2 bg-muted rounded-full">
+                <div className="h-full gradient-primary rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-4 flex justify-between items-center">
+          <div className="flex">
+            {team.slice(0, 3).map((member, idx) => (
+              <div
+                key={member.id}
+                className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card -ml-2 first:ml-0"
+                style={{ zIndex: 10 - idx }}
+              >
+                {member.profileImageUrl ? (
+                  <img 
+                    src={member.profileImageUrl} 
+                    alt={`${member.firstName} ${member.lastName}`}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs font-medium">
+                    {getInitials(`${member.firstName || ''} ${member.lastName || ''}`)}
+                  </span>
+                )}
+              </div>
+            ))}
+            {team.length > 3 && (
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card -ml-2">
+                <span className="text-xs font-medium">+{team.length - 3}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center">
+            {lastUpdated && (
+              <span className="text-xs text-muted-foreground mr-3">Atualizado: {lastUpdated}</span>
+            )}
+            <Link href={`/events/${id}`}>
+              <a className="text-primary hover:text-white transition-colors">
+                <i className="fas fa-arrow-right"></i>
+              </a>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EventCard;
