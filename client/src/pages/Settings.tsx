@@ -671,56 +671,79 @@ const Settings: React.FC = () => {
                     </div>
                   </div>
                   
-                  <Separator />
-                  
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Ações da Conta</h3>
+                  <div className="space-y-6 pt-6 border-t">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Gerenciamento de Conta</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Opções para gerenciar sua sessão e conta
+                      </p>
+                    </div>
                     
-                    <div className="border rounded-lg">
-                      <div className="p-4 border-b">
-                        <div className="flex items-center gap-4">
-                          <LogOut className="h-5 w-5 text-muted-foreground" />
+                    <div className="rounded-xl border shadow-sm">
+                      <div className="p-4 bg-muted/50 border-b">
+                        <div className="font-medium">Sessão Atual</div>
+                      </div>
+                      
+                      <div className="p-5">
+                        <div className="flex items-center gap-5">
+                          <div className="flex-shrink-0 bg-sky-50 dark:bg-sky-900/30 p-3 rounded-full">
+                            <LogOut className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+                          </div>
                           <div className="flex-1">
-                            <div className="font-medium">Sair da Conta</div>
-                            <div className="text-sm text-muted-foreground mt-0.5">
+                            <div className="font-medium text-base">Encerrar Sessão</div>
+                            <div className="text-sm text-muted-foreground mt-1">
                               Sair da sua conta em todos os dispositivos
                             </div>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => window.location.href = "/api/logout"}
-                          >
-                            Sair
-                          </Button>
+                          <div className="flex-shrink-0">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="font-medium h-9"
+                              onClick={() => window.location.href = "/api/logout"}
+                            >
+                              <LogOut className="h-3.5 w-3.5 mr-1.5" />
+                              Sair
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="p-4">
-                        <div className="flex items-center gap-4">
-                          <Trash2 className="h-5 w-5 text-destructive" />
+                    </div>
+                    
+                    <div className="mt-8">
+                      <h3 className="text-lg font-semibold text-destructive mb-4">Zona de Perigo</h3>
+                      <div className="rounded-xl border border-destructive/15 bg-destructive/5 p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                          <div className="bg-destructive/10 p-3 rounded-full sm:mt-1">
+                            <Trash2 className="h-5 w-5 text-destructive" />
+                          </div>
                           <div className="flex-1">
-                            <div className="font-medium text-destructive">Excluir Conta</div>
-                            <div className="text-sm text-muted-foreground mt-0.5">
-                              Excluir permanentemente sua conta e todos os seus dados
+                            <h4 className="font-medium text-destructive text-lg">Excluir Conta</h4>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              Ao excluir sua conta, todos os seus dados serão permanentemente removidos de nossos servidores. 
+                              Esta ação não pode ser desfeita, então tenha certeza antes de prosseguir.
+                            </p>
+                            <div className="mt-4">
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                className="h-9 px-4"
+                                onClick={() => {
+                                  if (confirm("Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.")) {
+                                    // Lógica para excluir conta
+                                    toast({
+                                      title: "Conta não excluída",
+                                      description: "A exclusão de conta está desabilitada nesta versão.",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir Permanentemente
+                              </Button>
                             </div>
                           </div>
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => {
-                              if (confirm("Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.")) {
-                                // Lógica para excluir conta
-                                toast({
-                                  title: "Conta não excluída",
-                                  description: "A exclusão de conta está desabilitada nesta versão.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                          >
-                            Excluir
-                          </Button>
                         </div>
                       </div>
                     </div>
