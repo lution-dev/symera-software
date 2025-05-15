@@ -4,10 +4,21 @@ import { formatDate, calculateTaskProgress, getEventTypeLabel, getInitials } fro
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface TeamMember {
-  id: string;
-  firstName?: string;
-  lastName?: string;
-  profileImageUrl?: string;
+  id: number;
+  eventId: number;
+  userId: string;
+  role: string;
+  permissions: any;
+  createdAt: string;
+  user: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    profileImageUrl?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 interface Task {
@@ -42,6 +53,7 @@ const EventCard: React.FC<EventCardProps> = ({
   coverImage,
   lastUpdated,
 }) => {
+  console.log(`[Debug] EventCard ${id} - team data:`, team);
   // Get default cover image based on event type
   const getDefaultCover = () => {
     switch (type) {
@@ -127,11 +139,11 @@ const EventCard: React.FC<EventCardProps> = ({
                   style={{ zIndex: 10 - idx }}
                 >
                   <AvatarImage 
-                    src={member.profileImageUrl} 
-                    alt={`${member.firstName} ${member.lastName}`}
+                    src={member.user?.profileImageUrl} 
+                    alt={`${member.user?.firstName} ${member.user?.lastName}`}
                   />
                   <AvatarFallback className="text-xs">
-                    {getInitials(`${member.firstName || ''} ${member.lastName || ''}`)}
+                    {getInitials(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)}
                   </AvatarFallback>
                 </Avatar>
               ))}
