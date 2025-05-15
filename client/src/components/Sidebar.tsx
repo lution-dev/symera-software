@@ -95,14 +95,13 @@ const Sidebar: React.FC = () => {
             </p>
             <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
           </div>
-          <Link href="/api/logout">
-            <div
-              className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
-              title="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </div>
-          </Link>
+          <div
+            className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Sair"
+            onClick={() => window.location.href = "/api/logout"}
+          >
+            <LogOut className="h-4 w-4" />
+          </div>
         </div>
       </div>
     </aside>
