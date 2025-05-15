@@ -13,29 +13,29 @@
   --card-foreground: 0 0% 98%;
   --border: 270 30% 20%;
   --input: 270 30% 20%;
-  --primary: 20 100% 50%;
+  --primary: 30 100% 50%;  /* Cor FF8800 em HSL */
   --primary-foreground: 0 0% 100%;
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
   --accent: 240 3.7% 15.9%;
   --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
+  --destructive: 7 77% 56%;  /* Cor EC4130 em HSL */
   --destructive-foreground: 0 0% 98%;
-  --ring: 24 75% 50%;
+  --ring: 30 100% 50%;  /* Cor FF8800 em HSL */
   --radius: 0.5rem;
   
   /* Custom colors for Symera */
   --purple-dark: 270 60% 10%;
   --purple-medium: 270 45% 15%;
   --purple-light: 270 30% 20%;
-  --orange: 24 100% 50%;
-  --red: 0 100% 50%;
+  --orange: 30 100% 50%;  /* Cor FF8800 em HSL */
+  --red: 7 77% 56%;  /* Cor EC4130 em HSL */
   
   /* Chart colors */
-  --chart-1: 20 100% 50%;
+  --chart-1: 30 100% 50%;  /* FF8800 */
   --chart-2: 200 100% 50%;
   --chart-3: 120 100% 50%;
-  --chart-4: 300 100% 50%;
+  --chart-4: 7 77% 56%;    /* EC4130 */
   --chart-5: 60 100% 50%;
   
   /* Task status colors */
@@ -61,11 +61,11 @@
 /* Custom utility classes */
 @layer utilities {
   .gradient-primary {
-    @apply bg-gradient-to-r from-orange-500 to-red-500;
+    @apply bg-gradient-to-r from-[#FF8800] to-[#EC4130];
   }
   
   .gradient-text {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500;
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-[#FF8800] to-[#EC4130];
   }
   
   .card-hover {
@@ -83,24 +83,24 @@
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-orange-500 to-red-500 rounded-full;
+    @apply bg-gradient-to-b from-[#FF8800] to-[#EC4130] rounded-full;
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-gradient-to-b from-orange-400 to-red-400;
+    @apply bg-gradient-to-b from-[#FF9933] to-[#F05545] rounded-full;
   }
 }
 
 /* Animations */
 @keyframes pulse-border {
   0% {
-    box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7);
+    box-shadow: 0 0 0 0 rgba(255, 136, 0, 0.7);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(255, 87, 34, 0);
+    box-shadow: 0 0 0 10px rgba(255, 136, 0, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 87, 34, 0);
+    box-shadow: 0 0 0 0 rgba(255, 136, 0, 0);
   }
 }
 
