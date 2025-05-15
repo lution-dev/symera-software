@@ -17,9 +17,18 @@ import {
   LogOut
 } from "lucide-react";
 
+// User type definition
+interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+}
+
 const Sidebar: React.FC = () => {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: User | undefined | null };
   
   const navItems = [
     { path: "/", label: "Dashboard", icon: Home },
@@ -34,7 +43,9 @@ const Sidebar: React.FC = () => {
   
   const isActivePath = (path: string) => {
     if (path === '/') return location === '/';
-    return location.startsWith(path);
+    // For /events, check it's exactly /events or event details, but not /events/new
+    if (path === '/events') return location === '/events' || (location.startsWith('/events/') && location !== '/events/new');
+    return location === path;
   };
   
   return (
@@ -47,21 +58,23 @@ const Sidebar: React.FC = () => {
       <nav className="flex-1 p-4 space-y-6">
         <div className="space-y-1">
           {navItems.map((item) => (
-            <Link key={item.path} href={item.path}>
-              <a
-                className={cn(
-                  "flex items-center px-4 py-2 rounded-md transition-colors",
-                  isActivePath(item.path)
-                    ? "bg-primary text-white"
-                    : item.highlight
-                    ? "border border-primary/50 text-primary hover:bg-muted"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="ml-3">{item.label}</span>
-              </a>
-            </Link>
+            <div key={item.path}>
+              <Link href={item.path}>
+                <div
+                  className={cn(
+                    "flex items-center px-4 py-2 rounded-md transition-colors cursor-pointer",
+                    isActivePath(item.path)
+                      ? "bg-primary text-white"
+                      : item.highlight
+                      ? "border border-primary/50 text-primary hover:bg-muted"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="ml-3">{item.label}</span>
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       </nav>
@@ -69,24 +82,25 @@ const Sidebar: React.FC = () => {
       <div className="p-4 border-t border-border">
         <div className="flex items-center">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user?.profileImageUrl} alt={`${user?.firstName || ''} ${user?.lastName || ''}`} />
+            <AvatarImage src={user?.profileImageUrl || ''} alt={`${user?.firstName || ''} ${user?.lastName || ''}`} />
             <AvatarFallback className="bg-gradient-primary text-white">
               {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
             </AvatarFallback>
           </Avatar>
           <div className="ml-3">
             <p className="text-sm font-medium">
-              {user?.firstName} {user?.lastName}
+              {user?.firstName || ''} {user?.lastName || ''}
             </p>
-            <p className="text-xs text-muted-foreground">{user?.email}</p>
+            <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
           </div>
-          <a 
-            href="/api/logout" 
-            className="ml-auto text-muted-foreground hover:text-foreground"
-            title="Sair"
-          >
-            <LogOut className="h-4 w-4" />
-          </a>
+          <Link href="/api/logout">
+            <div
+              className="ml-auto text-muted-foreground hover:text-foreground cursor-pointer"
+              title="Sair"
+            >
+              <LogOut className="h-4 w-4" />
+            </div>
+          </Link>
         </div>
       </div>
     </aside>
