@@ -95,21 +95,26 @@ const Sidebar: React.FC = () => {
       </nav>
       
       <div className="p-4 border-t border-border">
-        <div className="flex items-center">
-          <Avatar className="h-10 w-10 flex-shrink-0">
-            {user?.profileImageUrl ? (
-              <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
-            ) : null}
-            <AvatarFallback className="bg-gradient-primary text-white">
-              {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="ml-3 min-w-0 flex-1 overflow-hidden">
-            <p className="text-sm font-medium truncate">
-              {user?.firstName || ''} {user?.lastName || ''}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
-          </div>
+        <div className="flex items-center justify-between">
+          <Link href="/settings">
+            <div className="flex items-center flex-grow cursor-pointer hover:opacity-80 transition-opacity">
+              <Avatar className="h-10 w-10 flex-shrink-0">
+                {user?.profileImageUrl ? (
+                  <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
+                ) : null}
+                <AvatarFallback className="bg-gradient-primary text-white">
+                  {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="ml-3 min-w-0 overflow-hidden">
+                <p className="text-sm font-medium truncate">
+                  {user?.firstName || ''} {user?.lastName || ''}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+              </div>
+            </div>
+          </Link>
+          
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <div
