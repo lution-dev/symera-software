@@ -223,36 +223,41 @@ const Settings: React.FC = () => {
       <Tabs defaultValue="profile" className="w-full">
         <div className="flex flex-col md:flex-row gap-6">
           <div className="md:w-64 shrink-0">
-            <TabsList className="flex flex-col h-auto p-0 bg-transparent">
-              <TabsTrigger
-                value="profile"
-                className="justify-start py-2 px-3 h-10 data-[state=active]:bg-muted"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Perfil
-              </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="justify-start py-2 px-3 h-10 data-[state=active]:bg-muted"
-              >
-                <Bell className="h-4 w-4 mr-2" />
-                Notificações
-              </TabsTrigger>
-              <TabsTrigger
-                value="appearance"
-                className="justify-start py-2 px-3 h-10 data-[state=active]:bg-muted"
-              >
-                <Palette className="h-4 w-4 mr-2" />
-                Aparência
-              </TabsTrigger>
-              <TabsTrigger
-                value="security"
-                className="justify-start py-2 px-3 h-10 data-[state=active]:bg-muted"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                Segurança
-              </TabsTrigger>
-            </TabsList>
+            <Card className="border shadow-sm">
+              <div className="px-3 py-4 border-b">
+                <h3 className="text-lg font-semibold">Configurações</h3>
+              </div>
+              <TabsList className="flex flex-col h-auto p-0 bg-transparent rounded-none w-full">
+                <TabsTrigger
+                  value="profile"
+                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
+                >
+                  <User className="h-5 w-5 mr-3" />
+                  Perfil
+                </TabsTrigger>
+                <TabsTrigger
+                  value="notifications"
+                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
+                >
+                  <Bell className="h-5 w-5 mr-3" />
+                  Notificações
+                </TabsTrigger>
+                <TabsTrigger
+                  value="appearance"
+                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
+                >
+                  <Palette className="h-5 w-5 mr-3" />
+                  Aparência
+                </TabsTrigger>
+                <TabsTrigger
+                  value="security" 
+                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
+                >
+                  <Shield className="h-5 w-5 mr-3" />
+                  Segurança
+                </TabsTrigger>
+              </TabsList>
+            </Card>
           </div>
           
           <div className="flex-1">
@@ -493,48 +498,84 @@ const Settings: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Tema</h3>
-                    <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Tema da Interface</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Personalize a aparência da plataforma de acordo com sua preferência
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                       <div 
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                        className={`border rounded-lg overflow-hidden shadow-sm cursor-pointer transition-all ${
                           activeTheme === 'light' 
-                            ? 'border-primary bg-primary/5 shadow-sm' 
+                            ? 'ring-2 ring-primary' 
                             : 'hover:border-primary/50'
                         }`}
                         onClick={() => handleThemeChange('light')}
                       >
-                        <div className="flex flex-col items-center justify-center">
-                          <Sun className="h-10 w-10 mb-3 text-amber-500" />
-                          <span className="font-medium">Claro</span>
+                        <div className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 p-4 border-b">
+                          <Sun className="h-8 w-8 text-amber-500" />
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-4 h-4 rounded-full border ${activeTheme === 'light' ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                              {activeTheme === 'light' && <div className="w-2 h-2 bg-white rounded-full m-[3px]"></div>}
+                            </div>
+                            <span className="font-medium">Tema Claro</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Ideal para ambientes bem iluminados
+                          </p>
                         </div>
                       </div>
                       
                       <div 
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                        className={`border rounded-lg overflow-hidden shadow-sm cursor-pointer transition-all ${
                           activeTheme === 'dark' 
-                            ? 'border-primary bg-primary/5 shadow-sm' 
+                            ? 'ring-2 ring-primary' 
                             : 'hover:border-primary/50'
                         }`}
                         onClick={() => handleThemeChange('dark')}
                       >
-                        <div className="flex flex-col items-center justify-center">
-                          <Moon className="h-10 w-10 mb-3 text-purple-500" />
-                          <span className="font-medium">Escuro</span>
+                        <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-4 border-b">
+                          <Moon className="h-8 w-8 text-purple-400" />
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-4 h-4 rounded-full border ${activeTheme === 'dark' ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                              {activeTheme === 'dark' && <div className="w-2 h-2 bg-white rounded-full m-[3px]"></div>}
+                            </div>
+                            <span className="font-medium">Tema Escuro</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Melhor para uso noturno e economia de energia
+                          </p>
                         </div>
                       </div>
                       
                       <div 
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                        className={`border rounded-lg overflow-hidden shadow-sm cursor-pointer transition-all ${
                           activeTheme === 'system' 
-                            ? 'border-primary bg-primary/5 shadow-sm' 
+                            ? 'ring-2 ring-primary' 
                             : 'hover:border-primary/50'
                         }`}
                         onClick={() => handleThemeChange('system')}
                       >
-                        <div className="flex flex-col items-center justify-center">
-                          <Laptop className="h-10 w-10 mb-3 text-blue-500" />
-                          <span className="font-medium">Sistema</span>
+                        <div className="bg-gradient-to-b from-blue-100 to-blue-50 dark:from-blue-900 dark:to-blue-800 p-4 border-b">
+                          <Laptop className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-4 h-4 rounded-full border ${activeTheme === 'system' ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                              {activeTheme === 'system' && <div className="w-2 h-2 bg-white rounded-full m-[3px]"></div>}
+                            </div>
+                            <span className="font-medium">Sistema</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Segue as configurações do seu dispositivo
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -552,37 +593,79 @@ const Settings: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Conta</h3>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Segurança da Conta</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Gerencie as informações de acesso e segurança da sua conta
+                      </p>
+                    </div>
                     
-                    <div className="border rounded-lg">
-                      <div className="p-4 border-b">
-                        <div className="flex items-center gap-4">
-                          <Mail className="h-5 w-5 text-muted-foreground" />
+                    <div className="rounded-xl border shadow-sm divide-y">
+                      <div className="p-5">
+                        <div className="flex items-center gap-5">
+                          <div className="flex-shrink-0 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-full">
+                            <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          </div>
                           <div className="flex-1">
-                            <div className="font-medium">E-mail</div>
-                            <div className="text-sm text-muted-foreground mt-0.5">
-                              {userData?.email || 'Seu e-mail'}
+                            <div className="font-medium text-base">E-mail</div>
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {userData?.email || 'Seu e-mail de acesso'}
                             </div>
                           </div>
-                          <Button variant="outline" size="sm">
-                            Verificado
-                          </Button>
+                          <div className="flex-shrink-0">
+                            <div className="inline-flex items-center px-2.5 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium rounded-full">
+                              <div className="h-1.5 w-1.5 mr-1.5 rounded-full bg-green-500"></div>
+                              Verificado
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="p-4">
-                        <div className="flex items-center gap-4">
-                          <Key className="h-5 w-5 text-muted-foreground" />
+                      <div className="p-5">
+                        <div className="flex items-center gap-5">
+                          <div className="flex-shrink-0 bg-amber-50 dark:bg-amber-900/30 p-3 rounded-full">
+                            <Key className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                          </div>
                           <div className="flex-1">
-                            <div className="font-medium">Senha</div>
-                            <div className="text-sm text-muted-foreground mt-0.5">
-                              Altere sua senha periodicamente para maior segurança
+                            <div className="font-medium text-base">Senha</div>
+                            <div className="text-sm text-muted-foreground mt-1">
+                              Última alteração há 30 dias. Recomendamos a troca periódica para maior segurança.
                             </div>
                           </div>
-                          <Button variant="outline" size="sm">
-                            Alterar Senha
-                          </Button>
+                          <div className="flex-shrink-0">
+                            <Button variant="outline" size="sm" className="font-medium h-9">
+                              <Key className="h-3.5 w-3.5 mr-1.5" />
+                              Alterar Senha
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8">
+                      <h3 className="text-lg font-semibold mb-4">Atividade da Conta</h3>
+                      <div className="rounded-xl border shadow-sm divide-y">
+                        <div className="p-4 flex justify-between items-center bg-muted/50">
+                          <div className="font-medium">Sessões Ativas</div>
+                          <Button variant="ghost" size="sm">Ver Todas</Button>
+                        </div>
+                        <div className="p-5">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
+                              <Laptop className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex justify-between">
+                                <div className="font-medium">Este dispositivo</div>
+                                <div className="text-xs text-muted-foreground">Ativo agora</div>
+                              </div>
+                              <div className="flex text-xs text-muted-foreground mt-1">
+                                <span className="mr-3">Chrome em Windows</span>
+                                <span>São Paulo, BR</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
