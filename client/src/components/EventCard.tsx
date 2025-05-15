@@ -53,7 +53,11 @@ const EventCard: React.FC<EventCardProps> = ({
   coverImage,
   lastUpdated,
 }) => {
-  console.log(`[Debug] EventCard ${id} - team data:`, team);
+  // Certifica-se de que team é um array
+  const teamData = React.useMemo(() => {
+    console.log(`[Debug] EventCard ${id} - team data:`, team);
+    return Array.isArray(team) ? team : [];
+  }, [id, team]);
   // Get default cover image based on event type
   const getDefaultCover = () => {
     switch (type) {
@@ -132,7 +136,7 @@ const EventCard: React.FC<EventCardProps> = ({
           
           <div className="mt-4 flex justify-between items-center">
             <div className="flex">
-              {team.slice(0, 3).map((member, idx) => (
+              {teamData.slice(0, 3).map((member, idx) => (
                 <Avatar
                   key={member.id}
                   className="w-8 h-8 border-2 border-card -ml-2 first:ml-0"
@@ -148,10 +152,10 @@ const EventCard: React.FC<EventCardProps> = ({
                   </AvatarFallback>
                 </Avatar>
               ))}
-              {team.length > 3 && (
+              {teamData.length > 3 && (
                 <Avatar className="w-8 h-8 border-2 border-card -ml-2">
                   <AvatarFallback className="text-xs font-medium">
-                    +{team.length - 3}
+                    +{teamData.length - 3}
                   </AvatarFallback>
                 </Avatar>
               )}
