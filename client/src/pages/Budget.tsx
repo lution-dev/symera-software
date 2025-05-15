@@ -379,37 +379,56 @@ const Budget: React.FC = () => {
     // Montar itens do orçamento incluindo fornecedores
     const allItems = [
       ...budgetItems,
-      ...vendors.filter((v: Vendor) => v.cost).map((v: Vendor) => ({
+      ...vendors.filter((v: Vendor) => v.cost && !isNaN(Number(v.cost))).map((v: Vendor) => ({
         id: `vendor-${v.id}`,
         eventId: v.eventId,
         name: v.name,
         category: v.service,
-        amount: v.cost || 0,
+        amount: Number(v.cost || 0),
         paid: false,
         createdAt: new Date().toISOString()
       }))
     ];
     
-    const totalExpenses = allItems.reduce((sum, item: any) => sum + item.amount, 0);
-    const totalPaid = allItems.reduce((sum, item: any) => sum + (item.paid ? item.amount : 0), 0);
+    const totalExpenses = allItems.reduce((sum, item: any) => {
+      const amount = Number(item.amount) || 0;
+      return sum + amount;
+    }, 0);
+    
+    const totalPaid = allItems.reduce((sum, item: any) => {
+      const amount = Number(item.amount) || 0;
+      return sum + (item.paid ? amount : 0);
+    }, 0);
+    
     const totalPending = totalExpenses - totalPaid;
     
     // Calcular por categoria
     const byCategory: Record<string, number> = {};
     allItems.forEach((item: any) => {
-      if (!byCategory[item.category]) {
-        byCategory[item.category] = 0;
+      const category = item.category || 'other';
+      const amount = Number(item.amount) || 0;
+      
+      if (!byCategory[category]) {
+        byCategory[category] = 0;
       }
-      byCategory[item.category] += item.amount;
+      byCategory[category] += amount;
     });
     
+    // Make sure all numbers are valid
+    const budgetNum = Number(budget) || 0;
+    const totalExpensesNum = Number(totalExpenses) || 0;
+    const totalPaidNum = Number(totalPaid) || 0;
+    const totalPendingNum = Number(totalPending) || 0;
+    const remainingNum = budgetNum - totalExpensesNum;
+    const percentUsedNum = budgetNum > 0 ? (totalExpensesNum / budgetNum) * 100 : 0;
+
     return {
-      budget,
-      totalExpenses,
-      totalPaid,
-      totalPending,
-      remaining: budget - totalExpenses,
-      percentUsed: budget > 0 ? (totalExpenses / budget) * 100 : 0,
+      budget: budgetNum,
+      totalExpenses: totalExpensesNum,
+      totalPaid: totalPaidNum,
+      totalPending: totalPendingNum,
+      remaining: remainingNum,
+      percentUsed: percentUsedNum,
       byCategory
     };
   };
