@@ -74,7 +74,7 @@ const Settings: React.FC = () => {
   });
   
   // Query para buscar dados do usuário
-  const { data: userData, isLoading: isLoadingUser } = useQuery({
+  const { data: userData, isLoading: isLoadingUser } = useQuery<ProfileForm>({
     queryKey: ["/api/auth/user"],
     enabled: !!user,
   });
@@ -606,7 +606,7 @@ const Settings: React.FC = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => logout()}
+                            onClick={() => window.location.href = "/api/logout"}
                           >
                             Sair
                           </Button>

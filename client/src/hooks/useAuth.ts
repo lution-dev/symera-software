@@ -6,11 +6,17 @@ export function useAuth() {
     retry: false,
   });
 
+  // Função de logout - redireciona para a API de logout
+  const logout = () => {
+    window.location.href = "/api/logout";
+  };
+
   return {
     user,
     isLoading,
     error,
     isAuthenticated: !!user,
-    refetch
+    refetch,
+    logout
   };
 }
