@@ -19,10 +19,13 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   
-  const { data: event, isLoading } = useQuery({
+  const { data: event, isLoading, error } = useQuery({
     queryKey: [`/api/events/${id}`],
     enabled: !!id && isAuthenticated,
-    retry: 1
+    retry: 1,
+    onError: (err) => {
+      console.error("[Debug] Erro ao carregar evento:", err);
+    }
   });
   
   const { data: tasks, isLoading: tasksLoading } = useQuery({

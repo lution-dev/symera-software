@@ -30,27 +30,48 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     try {
-      const res = await fetch(queryKey[0] as string, {
+      const url = queryKey[0] as string;
+      console.log(`[Debug] Fazendo requisição para: ${url}`);
+      
+      const res = await fetch(url, {
         credentials: "include",
         headers: {
           "Cache-Control": "no-cache",
           "Pragma": "no-cache"
         }
       });
+      
+      console.log(`[Debug] Resposta da requisição ${url}: status=${res.status}`);
 
       if (res.status === 401) {
-        console.error("Unauthorized access:", queryKey[0]);
+        console.error("[Debug] Unauthorized access:", url);
         if (unauthorizedBehavior === "returnNull") {
+          console.log("[Debug] Retornando null devido a política 'returnNull' para 401");
           return null;
         } else {
+          console.log("[Debug] Lançando erro devido a política 'throw' para 401");
           throw new Error("Unauthorized: Sessão expirada ou usuário não autenticado");
+        }
+      }
+      
+      if (!res.ok) {
+        console.error(`[Debug] Erro na requisição ${url}: status=${res.status}`);
+        // Clone de resposta para ler o corpo
+        const clonedRes = res.clone();
+        try {
+          const errorBody = await clonedRes.text();
+          console.error(`[Debug] Corpo do erro: ${errorBody}`);
+        } catch (e) {
+          console.error(`[Debug] Não foi possível ler corpo do erro: ${e}`);
         }
       }
 
       await throwIfResNotOk(res);
-      return await res.json();
+      const data = await res.json();
+      console.log(`[Debug] Dados recebidos de ${url}:`, data);
+      return data;
     } catch (error) {
-      console.error("Query error:", error);
+      console.error(`[Debug] Erro ao processar ${queryKey[0]}:`, error);
       throw error;
     }
   };
