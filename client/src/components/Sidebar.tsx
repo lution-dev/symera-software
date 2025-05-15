@@ -81,7 +81,7 @@ const Sidebar: React.FC = () => {
       
       <div className="p-4 border-t border-border">
         <div className="flex items-center">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-10 w-10 flex-shrink-0">
             {user?.profileImageUrl ? (
               <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
             ) : null}
@@ -89,15 +89,15 @@ const Sidebar: React.FC = () => {
               {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
             </AvatarFallback>
           </Avatar>
-          <div className="ml-3">
-            <p className="text-sm font-medium">
+          <div className="ml-3 min-w-0 flex-1 overflow-hidden">
+            <p className="text-sm font-medium truncate">
               {user?.firstName || ''} {user?.lastName || ''}
             </p>
-            <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
           </div>
           <Link href="/api/logout">
             <div
-              className="ml-auto text-muted-foreground hover:text-foreground cursor-pointer"
+              className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
               title="Sair"
             >
               <LogOut className="h-4 w-4" />
