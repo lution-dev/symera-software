@@ -418,7 +418,7 @@ const Budget: React.FC = () => {
   const stats = calculateBudgetStats();
   
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Orçamento</h1>
         <div className="flex space-x-2">
