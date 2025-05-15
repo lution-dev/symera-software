@@ -227,7 +227,7 @@ const Settings: React.FC = () => {
               <div className="px-3 py-4 border-b">
                 <h3 className="text-lg font-semibold">Configurações</h3>
               </div>
-              <TabsList className="flex flex-col h-auto p-0 bg-transparent rounded-none w-full">
+              <TabsList className="flex flex-col h-auto p-0 bg-transparent rounded-none w-full items-start">
                 <TabsTrigger
                   value="profile"
                   className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
