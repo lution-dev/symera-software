@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
-import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel } from "@/lib/utils";
+import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -319,20 +320,15 @@ const Event: React.FC<EventProps> = ({ id }) => {
             <div className="space-y-3">
               {team.slice(0, 3).map((member: any) => (
                 <div key={member.id} className="flex items-center">
-                  {member.user.profileImageUrl ? (
-                    <img 
+                  <Avatar className="h-8 w-8 mr-3">
+                    <AvatarImage 
                       src={member.user.profileImageUrl} 
                       alt={`${member.user.firstName} ${member.user.lastName}`}
-                      className="w-8 h-8 rounded-full object-cover mr-3"
                     />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                      <span className="text-primary text-xs font-medium">
-                        {member.user.firstName?.charAt(0) || ''}
-                        {member.user.lastName?.charAt(0) || ''}
-                      </span>
-                    </div>
-                  )}
+                    <AvatarFallback className="text-xs">
+                      {getInitials(`${member.user.firstName || ''} ${member.user.lastName || ''}`)}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="text-sm font-medium">
                       {member.user.firstName} {member.user.lastName}
