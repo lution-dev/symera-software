@@ -17,6 +17,7 @@ const Dashboard: React.FC = () => {
 
   const upcomingEvents = data?.upcomingEvents || [];
   const activeEvents = data?.activeEvents || 0;
+  const activeEventsList = data?.activeEventsList || [];
   const totalEvents = data?.totalEvents || 0;
   const pendingTasks = data?.pendingTasks || [];
   const recentActivities = data?.recentActivities || [];
@@ -103,7 +104,7 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : upcomingEvents.length === 0 ? (
+        ) : activeEventsList.length === 0 ? (
           <div className="bg-card rounded-xl p-8 text-center">
             <div className="mb-4 flex justify-center">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
@@ -120,7 +121,7 @@ const Dashboard: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {upcomingEvents.slice(0, 3).map((event: any) => (
+            {activeEventsList.slice(0, 3).map((event: any) => (
               <EventCard
                 key={event.id}
                 id={event.id}

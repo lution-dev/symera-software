@@ -445,12 +445,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/dashboard', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      console.log(`Buscando dados do dashboard para o usuário: ${userId}`);
       
-      // Get events
+      // Get all events for the user
       const events = await storage.getEventsByUser(userId);
+      console.log(`Total de eventos encontrados: ${events.length}`);
       
-      // Get active events count
+      // Get active events
       const activeEvents = events.filter(event => event.status === "active");
+      console.log(`Eventos ativos encontrados: ${activeEvents.length}`);
+      
+      // Carregar informações detalhadas para eventos ativos (equipe e tarefas)
+      const activeEventsWithDetails = await Promise.all(
+        activeEvents.map(async (event) => {
+          const tasks = await storage.getTasksByEventId(event.id);
+          const team = await storage.getTeamMembersByEventId(event.id);
+          console.log(`Evento ${event.id} - ${event.name}: ${tasks.length} tarefas, ${team.length} membros na equipe`);
+          return {
+            ...event,
+            team,
+            tasks
+          };
+        })
+      );
       
       // Get upcoming events (next 30 days)
       const today = new Date();
@@ -487,6 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         totalEvents: events.length,
         activeEvents: activeEvents.length,
+        activeEventsList: activeEventsWithDetails,  // Nova propriedade com eventos ativos
         upcomingEvents,
         pendingTasks,
         recentActivities
