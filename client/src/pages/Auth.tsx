@@ -50,50 +50,52 @@ const Auth: React.FC = () => {
         </div>
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col items-center justify-center p-12 text-white animate-fadeIn">
-          <div className="mb-8 relative">
-            <Logo className="h-28 w-auto" />
-            <div className="absolute -top-4 -right-4 text-orange-500">
-              <Sparkles className="h-6 w-6 animate-pulse-border" />
-            </div>
-          </div>
-          
-          <h1 className="text-5xl sm:text-6xl font-bold mb-4 gradient-text text-center">Symera</h1>
-          <p className="text-center mb-10 max-w-md text-xl">
-            Faz parte do seu dia-a-dia, faz parte do seu evento!
-          </p>
-          
-          <div className="grid grid-cols-2 gap-6 mt-4 w-full max-w-md">
-            <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
-              <div className="text-primary text-center mb-3 flex justify-center">
-                <CheckCircle className="h-7 w-7" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative z-10 flex flex-col items-center justify-center h-full w-full p-12 text-white animate-fadeIn">
+            <div className="mb-8 relative">
+              <Logo className="h-28 w-auto" />
+              <div className="absolute -top-4 -right-4 text-orange-500">
+                <Sparkles className="h-6 w-6 animate-pulse-border" />
               </div>
-              <h3 className="font-semibold text-center mb-2">Checklist Inteligente</h3>
-              <p className="text-sm text-center opacity-90">Gerado por IA de acordo com suas necessidades</p>
             </div>
             
-            <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
-              <div className="text-primary text-center mb-3 flex justify-center">
-                <Calendar className="h-7 w-7" />
-              </div>
-              <h3 className="font-semibold text-center mb-2">Cronograma</h3>
-              <p className="text-sm text-center opacity-90">Organização completa de suas tarefas</p>
-            </div>
+            <h1 className="text-5xl sm:text-6xl font-bold mb-4 gradient-text text-center">Symera</h1>
+            <p className="text-center mb-10 max-w-md text-xl">
+              Faz parte do seu dia-a-dia, faz parte do seu evento!
+            </p>
             
-            <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
-              <div className="text-primary text-center mb-3 flex justify-center">
-                <FileText className="h-7 w-7" />
+            <div className="grid grid-cols-2 gap-6 mt-4 w-full max-w-md">
+              <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
+                <div className="text-primary text-center mb-3 flex justify-center">
+                  <CheckCircle className="h-7 w-7" />
+                </div>
+                <h3 className="font-semibold text-center mb-2">Checklist Inteligente</h3>
+                <p className="text-sm text-center opacity-90">Gerado por IA de acordo com suas necessidades</p>
               </div>
-              <h3 className="font-semibold text-center mb-2">Documentos</h3>
-              <p className="text-sm text-center opacity-90">Contratos e arquivos organizados</p>
-            </div>
-            
-            <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
-              <div className="text-primary text-center mb-3 flex justify-center">
-                <BarChart3 className="h-7 w-7" />
+              
+              <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
+                <div className="text-primary text-center mb-3 flex justify-center">
+                  <Calendar className="h-7 w-7" />
+                </div>
+                <h3 className="font-semibold text-center mb-2">Cronograma</h3>
+                <p className="text-sm text-center opacity-90">Organização completa de suas tarefas</p>
               </div>
-              <h3 className="font-semibold text-center mb-2">Produtividade</h3>
-              <p className="text-sm text-center opacity-90">Análises e métricas para seu evento</p>
+              
+              <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
+                <div className="text-primary text-center mb-3 flex justify-center">
+                  <FileText className="h-7 w-7" />
+                </div>
+                <h3 className="font-semibold text-center mb-2">Documentos</h3>
+                <p className="text-sm text-center opacity-90">Contratos e arquivos organizados</p>
+              </div>
+              
+              <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
+                <div className="text-primary text-center mb-3 flex justify-center">
+                  <BarChart3 className="h-7 w-7" />
+                </div>
+                <h3 className="font-semibold text-center mb-2">Produtividade</h3>
+                <p className="text-sm text-center opacity-90">Análises e métricas para seu evento</p>
+              </div>
             </div>
           </div>
         </div>
