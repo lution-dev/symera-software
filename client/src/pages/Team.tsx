@@ -34,7 +34,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { UsersRound, UserPlus, Mail, Phone, Check, X } from "lucide-react";
-import { getInitials } from "@/lib/utils";
+import { getInitials, generateProfileImageUrl } from "@/lib/utils";
 
 interface Team {
   id: number;
@@ -77,6 +77,13 @@ const Team: React.FC = () => {
     queryKey: ["/api/events", selectedEventId, "team"],
     enabled: !!selectedEventId,
   });
+  
+  // Log de debug para verificar os dados da equipe
+  React.useEffect(() => {
+    if (teamMembers.length > 0) {
+      console.log('[Debug] Team members data:', teamMembers);
+    }
+  }, [teamMembers]);
   
   // Mutação para adicionar membro à equipe
   const addTeamMemberMutation = useMutation({

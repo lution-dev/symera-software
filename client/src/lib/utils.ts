@@ -139,3 +139,13 @@ export function getInitials(name: string) {
   
   return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
 }
+
+// Gerar URL de imagem de perfil para usuários que não possuem foto
+export function generateProfileImageUrl(name: string) {
+  // Usar o serviço UI Avatars para gerar uma imagem
+  if (!name || name.trim() === '') {
+    return 'https://ui-avatars.com/api/?name=User&background=random';
+  }
+  
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+}
