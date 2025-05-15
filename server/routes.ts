@@ -441,6 +441,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile update route
+  app.put('/api/user/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Validate user data
+      if (!req.body) {
+        return res.status(400).json({ message: "Profile data is required" });
+      }
+      
+      // Get current user data
+      const currentUser = await storage.getUser(userId);
+      
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update user
+      const updatedUser = await storage.upsertUser({
+        ...currentUser,
+        firstName: req.body.firstName !== undefined ? req.body.firstName : currentUser.firstName,
+        lastName: req.body.lastName !== undefined ? req.body.lastName : currentUser.lastName,
+        profileImageUrl: req.body.profileImageUrl !== undefined ? req.body.profileImageUrl : currentUser.profileImageUrl,
+        // Add any other fields you want to update
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+  
+  // Notifications update route
+  app.put('/api/user/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // In a real application, you would update user notification preferences in the database
+      // For now, we'll just return success
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      res.status(500).json({ message: "Failed to update notification preferences" });
+    }
+  });
+
   // Dashboard data route
   app.get('/api/dashboard', isAuthenticated, async (req: any, res) => {
     try {
