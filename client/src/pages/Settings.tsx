@@ -52,7 +52,7 @@ interface NotificationSettings {
 
 const Settings: React.FC = () => {
   const { toast } = useToast();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [activeTheme, setActiveTheme] = React.useState<"light" | "dark" | "system">("system");
   
   // Formulário de perfil
@@ -84,7 +84,7 @@ const Settings: React.FC = () => {
     mutationFn: async (data: Partial<ProfileForm>) => {
       return apiRequest("/api/user/profile", {
         method: "PUT",
-        body: JSON.stringify(data),
+        body: data,
       });
     },
     onSuccess: () => {
@@ -108,7 +108,7 @@ const Settings: React.FC = () => {
     mutationFn: async (data: NotificationSettings) => {
       return apiRequest("/api/user/notifications", {
         method: "PUT",
-        body: JSON.stringify(data),
+        body: data,
       });
     },
     onSuccess: () => {
