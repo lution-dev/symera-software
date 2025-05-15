@@ -32,13 +32,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return null;
   }
   
+  // Determine if we should add padding based on the current route
+  // Dashboard and Events pages already have their own padding
+  const shouldAddPadding = !["/", "/events"].includes(location);
+  
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">
       {/* Sidebar - hidden on mobile */}
       <Sidebar />
       
       {/* Main content area */}
-      <main className="flex-1 overflow-y-auto custom-scrollbar bg-background md:pl-6 pb-16 md:pb-0">
+      <main className={`flex-1 overflow-y-auto custom-scrollbar bg-background pb-16 md:pb-0 ${shouldAddPadding ? 'md:px-6' : ''}`}>
         {children}
       </main>
       
