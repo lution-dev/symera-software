@@ -329,7 +329,7 @@ const Vendors: React.FC = () => {
   }, [filteredVendors]);
   
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold">Fornecedores</h1>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
