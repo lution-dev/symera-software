@@ -101,7 +101,7 @@ const Schedule: React.FC = () => {
   };
   
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Cronograma</h1>
         <div className="flex space-x-2">
