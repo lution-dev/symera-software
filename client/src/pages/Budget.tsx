@@ -45,7 +45,8 @@ import {
   Search,
   CheckCircle2,
   Calendar,
-  Store
+  Store,
+  Users
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils";
@@ -840,7 +841,19 @@ const Budget: React.FC = () => {
                               </tr>
                             </thead>
                             <tbody className="divide-y">
-                              {budgetItems.map((item: BudgetItem) => (
+                              {/* Itens regulares (não-fornecedores) */}
+                              {regularItems.length > 0 && (
+                                <tr className="bg-blue-50/50">
+                                  <td colSpan={5} className="p-2 text-sm font-semibold text-blue-800">
+                                    <div className="flex items-center">
+                                      <Users className="h-4 w-4 mr-2" />
+                                      Despesas Gerais
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                              
+                              {regularItems.map((item: any) => (
                                 <tr key={item.id} className="hover:bg-muted/50">
                                   <td className="p-3">
                                     <div className="font-medium">{item.name}</div>
