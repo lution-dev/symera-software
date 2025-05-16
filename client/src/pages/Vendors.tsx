@@ -632,9 +632,9 @@ const Vendors: React.FC = () => {
                 {events.map((event: Event) => (
                   <div
                     key={event.id}
-                    className={`pl-5 pr-4 py-4 cursor-pointer border-l-4 border-l-orange-500 hover:bg-neutral-800 ${
+                    className={`pl-5 pr-4 py-4 cursor-pointer border-l-4 border-l-orange-500 hover:bg-orange-500/10 ${
                       selectedEventId === event.id
-                        ? "bg-neutral-800"
+                        ? "bg-orange-500/20"
                         : ""
                     }`}
                     onClick={() => setSelectedEventId(event.id)}
