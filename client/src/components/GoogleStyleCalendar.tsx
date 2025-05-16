@@ -371,25 +371,36 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
               >
                 {/* Eventos e tarefas */}
                 <div className="mt-2 flex flex-col gap-1">
-                  {totalItems.slice(0, 6).map((item, idx) => {
-                    const isEvent = 'name' in item;
+                  {/* Primeiro exibir eventos */}
+                  {dayEvents.slice(0, 3).map((event, idx) => (
+                    <div
+                      key={`event-${idx}`}
+                      className="px-2 py-1 text-xs rounded truncate bg-primary/80 text-primary-foreground"
+                    >
+                      {event.name}
+                    </div>
+                  ))}
+                  
+                  {/* Depois exibir tarefas */}
+                  {dayTasks.slice(0, 3).map((task, idx) => {
+                    // Determinar a cor da tarefa baseada no status e prioridade
+                    let bgColorClass = task.status === "completed" 
+                      ? "bg-green-500/80 text-white" 
+                      : task.priority === "high" 
+                        ? "bg-red-500/80 text-white" 
+                        : task.status === "in_progress" 
+                          ? "bg-amber-500/80 text-white" 
+                          : "bg-blue-500/80 text-white";
+                      
                     return (
                       <div
-                        key={idx}
+                        key={`task-${idx}`}
                         className={cn(
-                          "px-2 py-1 text-xs rounded truncate",
-                          isEvent 
-                            ? "bg-primary/80 text-primary-foreground" 
-                            : (item as Task).status === "completed" 
-                              ? "bg-green-500/80 text-white" 
-                              : (item as Task).priority === "high" 
-                                ? "bg-red-500/80 text-white" 
-                                : (item as Task).status === "in_progress" 
-                                  ? "bg-amber-500/80 text-white" 
-                                  : "bg-blue-500/80 text-white"
+                          "px-2 py-1 text-xs rounded truncate flex items-center",
+                          bgColorClass
                         )}
                       >
-                        {isEvent ? (item as Event).name : (item as Task).title}
+                        <span className="mr-1">▢</span> {task.title}
                       </div>
                     );
                   })}
@@ -519,34 +530,40 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
             
             {/* Eventos e tarefas */}
             <div className="flex flex-col gap-1 max-h-[calc(100%-1.75rem)] overflow-hidden">
-              {/* Exibir até 3 itens entre eventos e tarefas */}
-              {[...dayEvents, ...dayTasks]
-                .slice(0, 3)
-                .map((item, idx) => {
-                  // Verificar se é evento ou tarefa
-                  const isEvent = 'name' in item;
-                  const title = isEvent ? item.name : item.title;
-                  
-                  // Determinar a cor baseada no tipo
-                  let bgColorClass = isEvent 
-                    ? "bg-primary/80 text-primary-foreground" 
-                    : (item as Task).status === "completed" 
-                      ? "bg-green-500/80 text-white" 
-                      : (item as Task).priority === "high" 
-                        ? "bg-red-500/80 text-white" 
-                        : (item as Task).status === "in_progress" 
-                          ? "bg-amber-500/80 text-white" 
-                          : "bg-blue-500/80 text-white";
+              {/* Primeiro eventos (até 2) */}
+              {dayEvents
+                .slice(0, 2)
+                .map((event, idx) => (
+                  <div 
+                    key={`event-${idx}`}
+                    className="px-1.5 py-0.5 text-xs font-medium rounded truncate bg-primary/80 text-primary-foreground"
+                  >
+                    {event.name}
+                  </div>
+                ))}
+                
+              {/* Depois tarefas (até 2) */}
+              {dayTasks
+                .slice(0, 2)
+                .map((task, idx) => {
+                  // Determinar a cor da tarefa baseada no status e prioridade
+                  let bgColorClass = task.status === "completed" 
+                    ? "bg-green-500/80 text-white" 
+                    : task.priority === "high" 
+                      ? "bg-red-500/80 text-white" 
+                      : task.status === "in_progress" 
+                        ? "bg-amber-500/80 text-white" 
+                        : "bg-blue-500/80 text-white";
                   
                   return (
                     <div 
-                      key={idx}
+                      key={`task-${idx}`}
                       className={cn(
-                        "px-1.5 py-0.5 text-xs font-medium rounded truncate",
+                        "px-1.5 py-0.5 text-xs font-medium rounded truncate flex items-center",
                         bgColorClass
                       )}
                     >
-                      {title}
+                      <span className="mr-1">▢</span> {task.title}
                     </div>
                   );
                 })}
