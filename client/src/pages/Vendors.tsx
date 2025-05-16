@@ -44,7 +44,10 @@ import {
   Trash2, 
   DollarSign,
   FileText,
-  CheckCircle as CircleCheck
+  CheckCircle,
+  Calendar,
+  Plus,
+  CheckCircle2
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -75,6 +78,7 @@ const Vendors: React.FC = () => {
   const [isAddVendorOpen, setIsAddVendorOpen] = React.useState(false);
   const [isEditVendorOpen, setIsEditVendorOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedEventId, setSelectedEventId] = React.useState<number | null>(null);
   const [selectedVendor, setSelectedVendor] = React.useState<Vendor | null>(null);
   
@@ -610,73 +614,83 @@ const Vendors: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 rounded-xl bg-card overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold">Meus Eventos</h2>
-          
-            <div className="relative mt-4">
-              <div className="relative w-full">
-                <Input
-                  placeholder="Buscar eventos..."
-                  className="w-full pl-10 bg-background/40 rounded-lg"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="lg:col-span-1">
+            <div className="bg-card rounded-lg border overflow-hidden">
+              <div className="px-4 py-3 border-b bg-muted/40">
+                <h3 className="font-semibold text-lg">Meus Eventos</h3>
+                <div className="mt-2 relative">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      type="search" 
+                      placeholder="Buscar eventos..." 
+                      className="pl-9 bg-background"
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
+              
+              {isLoadingEvents ? (
+                <div className="flex items-center justify-center h-20">
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
+                </div>
+              ) : events.length > 0 ? (
+                <div className="overflow-y-auto max-h-[400px]">
+                  {events.map((event: Event) => (
+                    <div
+                      key={event.id}
+                      className={`flex items-center border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-all ${
+                        selectedEventId === event.id
+                          ? "bg-primary/10"
+                          : ""
+                      }`}
+                      onClick={() => setSelectedEventId(event.id)}
+                    >
+                      <div 
+                        className={`w-1 self-stretch transition-colors ${
+                          selectedEventId === event.id ? "bg-primary" : "bg-transparent"
+                        }`}
+                      />
+                      <div className="flex-1 p-3 min-w-0">
+                        <div className="font-medium truncate">{event.name}</div>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                          <Badge variant="outline" className="rounded-sm px-1 text-xs">
+                            {event.type === "wedding" ? "Casamento" :
+                             event.type === "birthday" ? "Aniversário" :
+                             event.type === "corporate" ? "Corporativo" :
+                             event.type === "conference" ? "Conferência" :
+                             event.type === "social" ? "Social" : "Outro"}
+                          </Badge>
+                          <Badge variant="secondary" className="rounded-sm px-1 text-xs flex items-center">
+                            <User className="h-3 w-3 mr-1" />
+                            {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
+                          </Badge>
+                        </div>
+                      </div>
+                      {selectedEventId === event.id && (
+                        <div className="pr-3 text-primary">
+                          <CheckCircle2 className="h-5 w-5" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <Calendar className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                  <p className="font-medium">Nenhum evento encontrado</p>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {searchTerm ? "Tente outra busca" : "Crie um evento para começar"}
+                  </p>
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Criar Evento
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
-          
-          <div>
-            {isLoadingEvents ? (
-              <div className="flex items-center justify-center h-20">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
-              </div>
-            ) : events.length > 0 ? (
-              <div>
-                {events.map((event: Event) => (
-                  <div
-                    key={event.id}
-                    className={`flex items-center justify-between px-6 py-4 cursor-pointer border-l-4 ${
-                      selectedEventId === event.id
-                        ? "bg-zinc-800 border-l-orange-500"
-                        : "border-l-transparent hover:bg-zinc-900"
-                    }`}
-                    onClick={() => setSelectedEventId(event.id)}
-                  >
-                    <div>
-                      <div className="font-medium text-base">{event.name}</div>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <div className="text-sm text-muted-foreground">
-                          {event.type === "wedding" ? "Casamento" :
-                           event.type === "birthday" ? "Aniversário" :
-                           event.type === "corporate" ? "Corporativo" :
-                           event.type === "conference" ? "Conferência" :
-                           event.type === "social" ? "Social" : "Outro"}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <User className="h-3.5 w-3.5 mr-1" />
-                          {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {selectedEventId === event.id && (
-                      <div className="text-orange-500">
-                        <CircleCheck className="h-5 w-5" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">Nenhum evento encontrado</p>
-                <Button variant="outline" size="sm" className="mt-2">
-                  Criar Evento
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
         
         <Card className="lg:col-span-3">
           <CardHeader>
