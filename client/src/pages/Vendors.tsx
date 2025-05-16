@@ -43,7 +43,8 @@ import {
   Edit2, 
   Trash2, 
   DollarSign,
-  FileText 
+  FileText,
+  CheckCircle as CircleCheck
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -610,15 +611,17 @@ const Vendors: React.FC = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 rounded-xl bg-card overflow-hidden">
-          <div className="p-4 border-b border-border/40">
-            <h2 className="text-xl font-bold">Meus Eventos</h2>
+          <div className="p-6">
+            <h2 className="text-2xl font-bold">Meus Eventos</h2>
           
             <div className="relative mt-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar eventos..."
-                className="pl-9 bg-background/60"
-              />
+              <div className="relative w-full">
+                <Input
+                  placeholder="Buscar eventos..."
+                  className="w-full pl-10 bg-background/40 rounded-lg"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
           </div>
           
@@ -632,27 +635,35 @@ const Vendors: React.FC = () => {
                 {events.map((event: Event) => (
                   <div
                     key={event.id}
-                    className={`pl-5 pr-4 py-4 cursor-pointer border-l-4 ${
+                    className={`flex items-center justify-between px-6 py-4 cursor-pointer border-l-4 ${
                       selectedEventId === event.id
-                        ? "bg-orange-500/20 border-l-orange-500"
-                        : "border-l-transparent hover:bg-orange-500/10"
+                        ? "bg-zinc-800 border-l-orange-500"
+                        : "border-l-transparent hover:bg-zinc-900"
                     }`}
                     onClick={() => setSelectedEventId(event.id)}
                   >
-                    <div className="font-medium">{event.name}</div>
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="text-xs text-muted-foreground">
-                        {event.type === "wedding" ? "Casamento" :
-                         event.type === "birthday" ? "Aniversário" :
-                         event.type === "corporate" ? "Corporativo" :
-                         event.type === "conference" ? "Conferência" :
-                         event.type === "social" ? "Social" : "Outro"}
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <User className="h-3 w-3 mr-1" />
-                        {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
+                    <div>
+                      <div className="font-medium text-base">{event.name}</div>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <div className="text-sm text-muted-foreground">
+                          {event.type === "wedding" ? "Casamento" :
+                           event.type === "birthday" ? "Aniversário" :
+                           event.type === "corporate" ? "Corporativo" :
+                           event.type === "conference" ? "Conferência" :
+                           event.type === "social" ? "Social" : "Outro"}
+                        </div>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <User className="h-3.5 w-3.5 mr-1" />
+                          {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
+                        </div>
                       </div>
                     </div>
+                    
+                    {selectedEventId === event.id && (
+                      <div className="text-orange-500">
+                        <CircleCheck className="h-5 w-5" />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
