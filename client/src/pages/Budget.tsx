@@ -389,13 +389,9 @@ const Budget: React.FC = () => {
     }
   };
   
-  // Calcular estatísticas do orçamento
-  const calculateBudgetStats = () => {
-    const event = events.find((e: Event) => e.id === selectedEventId) as Event | undefined;
-    const budget = event?.budget || 0;
-    
-    // Montar itens do orçamento incluindo fornecedores
-    const vendorItems = vendors
+  // Preparar itens do orçamento com distinção entre fornecedores e custos gerais
+  const vendorItems = React.useMemo(() => {
+    return vendors
       .filter((v: Vendor) => v.cost && !isNaN(Number(v.cost)))
       .map((v: Vendor) => ({
         id: `vendor-${v.id}`,
@@ -407,12 +403,20 @@ const Budget: React.FC = () => {
         createdAt: new Date().toISOString(),
         isVendor: true // Marcar como item de fornecedor
       }));
-    
-    // Adicionar campo para indicar se é um item de fornecedor ou não
-    const regularItems = budgetItems.map(item => ({
+  }, [vendors]);
+  
+  // Adicionar campo para indicar se é um item de fornecedor ou não
+  const regularItems = React.useMemo(() => {
+    return budgetItems.map(item => ({
       ...item,
       isVendor: false // Marcar como item regular (não-fornecedor)
     }));
+  }, [budgetItems]);
+  
+  // Calcular estatísticas do orçamento
+  const calculateBudgetStats = () => {
+    const event = events.find((e: Event) => e.id === selectedEventId) as Event | undefined;
+    const budget = event?.budget || 0;
     
     const allItems = [
       ...regularItems,
@@ -816,16 +820,16 @@ const Budget: React.FC = () => {
                     </TabsList>
                     
                     <TabsContent value="items" className="pt-4">
-                      {budgetItems.length === 0 ? (
+                      {regularItems.length === 0 && vendorItems.length === 0 ? (
                         <div className="text-center py-8">
                           <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                           <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
                           <p className="text-muted-foreground mb-4">
-                            Adicione itens ao orçamento para controlar suas despesas
+                            Adicione custos de fornecedores e outras despesas ao orçamento
                           </p>
                           <Button onClick={() => setIsAddItemOpen(true)}>
                             <Plus className="h-4 w-4 mr-2" />
-                            Adicionar Item
+                            Adicionar Despesa
                           </Button>
                         </div>
                       ) : (
@@ -895,6 +899,46 @@ const Budget: React.FC = () => {
                                       >
                                         <Trash2 className="h-4 w-4" />
                                       </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                              
+                              {/* Itens de fornecedores */}
+                              {vendorItems.length > 0 && (
+                                <tr className="bg-amber-50/50">
+                                  <td colSpan={5} className="p-2 text-sm font-semibold text-amber-800">
+                                    <div className="flex items-center">
+                                      <Store className="h-4 w-4 mr-2" />
+                                      Custos de Fornecedores
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                              
+                              {vendorItems.map((item: any) => (
+                                <tr key={item.id} className="hover:bg-muted/50">
+                                  <td className="p-3">
+                                    <div className="font-medium">{item.name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      Fornecedor
+                                    </div>
+                                  </td>
+                                  <td className="p-3">
+                                    {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    {formatCurrency(item.amount)}
+                                  </td>
+                                  <td className="p-3 text-center">
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-700">
+                                      Fornecedor
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    {/* Não podemos editar/excluir itens de fornecedor aqui */}
+                                    <div className="text-xs text-muted-foreground">
+                                      Gerenciar em Fornecedores
                                     </div>
                                   </td>
                                 </tr>
