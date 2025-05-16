@@ -105,14 +105,21 @@ const Vendors: React.FC = () => {
     queryKey: ["/api/events", selectedEventId, "vendors"],
     enabled: !!selectedEventId,
     select: (data) => {
-      // Verificar se os dados são um array
-      if (Array.isArray(data)) {
-        // Se o primeiro item tem propriedades de evento e não de fornecedor, é provável que seja o objeto errado
-        if (data.length > 0 && 'type' in data[0] && 'date' in data[0] && !('service' in data[0])) {
-          console.log("[Debug] Recebendo dados de evento em vez de fornecedores, retornando array vazio");
-          return [];
-        }
+      console.log(`[Debug] Processando resposta de fornecedores:`, data);
+      
+      // Se a resposta não é um array, retorna vazio
+      if (!Array.isArray(data)) {
+        console.log("[Debug] Resposta não é um array, retornando vazio");
+        return [];
       }
+      
+      // Se os dados parecem ser eventos e não fornecedores, retorna vazio
+      if (data.length > 0 && 'type' in data[0] && 'team' in data[0] && !('service' in data[0])) {
+        console.log("[Debug] Recebendo dados de evento em vez de fornecedores, retornando vazio");
+        return [];
+      }
+      
+      console.log(`[Debug] Retornando ${data.length} fornecedores para o evento ${selectedEventId}`);
       return data;
     }
   });

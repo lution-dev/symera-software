@@ -565,11 +565,14 @@ export class DatabaseStorage implements IStorage {
   async getVendorsByEventId(eventId: number): Promise<Vendor[]> {
     console.log(`Buscando fornecedores para o evento ${eventId}`);
     try {
+      // Usar a abordagem do Drizzle para buscar os fornecedores
       const result = await db
         .select()
         .from(vendors)
         .where(eq(vendors.eventId, eventId));
+      
       console.log(`Encontrados ${result.length} fornecedores para o evento ${eventId}`);
+      console.log("Exemplo de fornecedor encontrado:", result.length > 0 ? result[0] : "Nenhum");
       return result;
     } catch (error) {
       console.error(`Erro ao buscar fornecedores para o evento ${eventId}:`, error);
