@@ -590,52 +590,81 @@ const Team: React.FC = () => {
       {/* Visão de Eventos */}
       {viewMode === "events" ? (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <Card className="lg:col-span-1 h-fit">
-            <CardHeader>
-              <CardTitle>Eventos</CardTitle>
-              <CardDescription>
-                Selecione um evento para ver sua equipe
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {isLoadingEvents ? (
-                  <div className="flex items-center justify-center h-20">
-                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
-                  </div>
-                ) : filteredEvents.length > 0 ? (
-                  filteredEvents.map((event: Event) => (
+          <div className="lg:col-span-1">
+            <div className="mb-4">
+              <Select 
+                value={selectedEventId?.toString() || ""} 
+                onValueChange={(value) => setSelectedEventId(parseInt(value, 10))}
+              >
+                <SelectTrigger className="w-full bg-card rounded-md">
+                  <SelectValue placeholder="Selecione um evento" />
+                </SelectTrigger>
+                <SelectContent>
+                  {events.map((event: Event) => (
+                    <SelectItem key={event.id} value={event.id.toString()}>
+                      {event.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="bg-card rounded-lg border p-1 overflow-hidden">
+              <div className="mb-3 px-3 pt-3">
+                <h3 className="font-semibold text-lg">Seus Eventos</h3>
+                <p className="text-muted-foreground text-sm">
+                  Clique para gerenciar a equipe
+                </p>
+              </div>
+              
+              {isLoadingEvents ? (
+                <div className="flex items-center justify-center h-20">
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
+                </div>
+              ) : filteredEvents.length > 0 ? (
+                <div className="overflow-y-auto max-h-[350px] px-1 space-y-1">
+                  {filteredEvents.map((event: Event) => (
                     <div
                       key={event.id}
-                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                      className={`flex items-center p-3 rounded-md cursor-pointer transition-all ${
                         selectedEventId === event.id
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-card hover:bg-primary/10"
+                          ? "bg-primary/15 border-l-4 border-primary"
+                          : "hover:bg-muted border-l-4 border-transparent"
                       }`}
                       onClick={() => setSelectedEventId(event.id)}
                     >
-                      <div className="font-medium">{event.name}</div>
-                      <div className="flex justify-between text-sm opacity-80">
-                        <div>{getEventTypeLabel(event.type)}</div>
-                        <div>
-                          {selectedEventId === event.id && event.team
-                            ? `${event.team.length} membros`
-                            : ""}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{event.name}</div>
+                        <div className="flex items-center text-xs text-muted-foreground mt-1">
+                          <Badge variant="outline" className="mr-2 rounded-sm px-1 text-xs">
+                            {getEventTypeLabel(event.type)}
+                          </Badge>
+                          {event.team && (
+                            <span className="flex items-center">
+                              <UsersRound className="h-3 w-3 mr-1" />
+                              {event.team.length}
+                            </span>
+                          )}
                         </div>
                       </div>
+                      {selectedEventId === event.id && (
+                        <div className="text-primary">
+                          <CheckCircle2 className="h-5 w-5" />
+                        </div>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted-foreground">Nenhum evento encontrado</p>
-                    <Button variant="outline" size="sm" className="mt-2">
-                      Criar Evento
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground">Nenhum evento encontrado</p>
+                  <Button variant="outline" size="sm" className="mt-2">
+                    Criar Evento
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
           
           <Card className="lg:col-span-3">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
