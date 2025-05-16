@@ -592,7 +592,7 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
   };
 
   return (
-    <div className="w-full bg-background">
+    <div className="w-full">
       {renderHeader()}
       {renderCalendarView()}
     </div>
