@@ -975,7 +975,7 @@ const Vendors: React.FC = () => {
             ) : selectedEventId ? (
               <Tabs defaultValue="all">
                 <TabsList className="mb-4">
-                  <TabsTrigger value="all">Todos ({filteredVendors.length})</TabsTrigger>
+                  <TabsTrigger value="all">Todos ({vendors.length})</TabsTrigger>
                   <TabsTrigger value="by-service">Por Serviço</TabsTrigger>
                 </TabsList>
                 
