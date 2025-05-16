@@ -11,6 +11,7 @@ import {
   Tag,
   UserCircle2,
   CheckCircle2,
+  X
 } from "lucide-react";
 import {
   Dialog,
@@ -59,6 +60,7 @@ const Schedule: React.FC = () => {
   const [priorityFilter, setPriorityFilter] = React.useState<string | null>(null);
   const [eventFilter, setEventFilter] = React.useState<number | null>(null);
   const [showNewItemDialog, setShowNewItemDialog] = React.useState<boolean>(false);
+  const [showDayDetailsDialog, setShowDayDetailsDialog] = React.useState<boolean>(false);
   
   // Query para buscar todas as tarefas do usuário
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery<Task[]>({
@@ -152,6 +154,7 @@ const Schedule: React.FC = () => {
   // Função para lidar com a seleção de data
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
+    setShowDayDetailsDialog(true);
   };
   
   // Função para abrir o diálogo para adicionar um novo item
@@ -291,9 +294,9 @@ const Schedule: React.FC = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Calendário estilo Google - ocupa mais espaço */}
-        <Card className="lg:col-span-3 overflow-hidden">
+      <div className="grid grid-cols-1">
+        {/* Calendário estilo Google - ocupa a tela toda */}
+        <Card className="overflow-hidden">
           <CardContent className="p-3 sm:p-6 pt-6">
             <div className="flex justify-between items-center mb-4">
               <div>
@@ -329,22 +332,23 @@ const Schedule: React.FC = () => {
           </CardContent>
         </Card>
         
-        {/* Painel lateral - eventos e tarefas para o dia selecionado */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center">
-              <CalendarIcon className="h-5 w-5 mr-2" />
-              {formatDate(selectedDate)}
-            </CardTitle>
-            <CardDescription>
-              {getEventsForSelectedDate(selectedDate).length + getTasksForSelectedDate(selectedDate).length === 0 
-                ? "Nenhum item neste dia"
-                : `${getEventsForSelectedDate(selectedDate).length} eventos, ${getTasksForSelectedDate(selectedDate).length} tarefas`
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+        {/* Dialog mostrando os detalhes do dia - substitui o painel lateral */}
+        <Dialog open={showDayDetailsDialog} onOpenChange={setShowDayDetailsDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <CalendarIcon className="h-5 w-5 mr-2" />
+                {formatDate(selectedDate)}
+              </DialogTitle>
+              <DialogDescription>
+                {getEventsForSelectedDate(selectedDate).length + getTasksForSelectedDate(selectedDate).length === 0 
+                  ? "Nenhum item neste dia"
+                  : `${getEventsForSelectedDate(selectedDate).length} eventos, ${getTasksForSelectedDate(selectedDate).length} tarefas`
+                }
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-1">
               <div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center">
                   <span className="w-2.5 h-2.5 rounded-full bg-primary mr-2"></span>
@@ -435,19 +439,32 @@ const Schedule: React.FC = () => {
                   <p className="text-muted-foreground text-sm italic">Nenhuma tarefa neste dia</p>
                 )}
               </div>
-
+            </div>
+            
+            <DialogFooter className="flex sm:justify-between items-center gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="w-full gap-2 mt-4"
-                onClick={() => setShowNewItemDialog(true)}
+                className="gap-2"
+                onClick={() => {
+                  setShowNewItemDialog(true);
+                  setShowDayDetailsDialog(false);
+                }}
               >
                 <Plus className="h-4 w-4" />
-                Adicionar item nesta data
+                Adicionar item
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowDayDetailsDialog(false)}
+              >
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
