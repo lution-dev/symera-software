@@ -58,11 +58,16 @@ const Sidebar: React.FC = () => {
     }
   }, []);
 
-  // Save collapsed state to localStorage
+  // Save collapsed state to localStorage and dispatch event
   const toggleCollapsed = () => {
     const newState = !collapsed;
     setCollapsed(newState);
     localStorage.setItem('sidebar_collapsed', String(newState));
+    
+    // Dispatch custom event for layout to listen to
+    window.dispatchEvent(new CustomEvent('sidebarStateChange', { 
+      detail: { collapsed: newState } 
+    }));
   };
   
   const handleLogout = () => {
@@ -90,7 +95,7 @@ const Sidebar: React.FC = () => {
   return (
     <aside 
       className={cn(
-        "hidden md:flex flex-col bg-card border-r border-border overflow-y-auto transition-all duration-300",
+        "hidden md:flex flex-col bg-card border-r border-border overflow-y-auto transition-all duration-300 fixed top-0 bottom-0 left-0 z-40 h-screen",
         collapsed ? "w-16" : "w-64"
       )}
     >

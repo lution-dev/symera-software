@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import MobileNavbar from "./MobileNavbar";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,15 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Load sidebar collapsed state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebar_collapsed');
+    if (savedState) {
+      setSidebarCollapsed(savedState === 'true');
+    }
+  }, []);
   
   // Skip layout when on auth page
   if (location === "/auth") {
@@ -32,13 +41,42 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return null;
   }
   
+  // Listen for changes to sidebar collapsed state
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedState = localStorage.getItem('sidebar_collapsed');
+      if (savedState !== null) {
+        setSidebarCollapsed(savedState === 'true');
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Custom event listener for sidebar state changes
+    const handleSidebarChange = (e: Event) => {
+      if (e instanceof CustomEvent) {
+        setSidebarCollapsed(e.detail.collapsed);
+      }
+    };
+    
+    window.addEventListener('sidebarStateChange', handleSidebarChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('sidebarStateChange', handleSidebarChange as EventListener);
+    };
+  }, []);
+
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">
       {/* Sidebar - hidden on mobile */}
       <Sidebar />
       
       {/* Main content area */}
-      <main className="flex-1 overflow-y-auto custom-scrollbar bg-background pb-16 md:pb-0">
+      <main 
+        className={`flex-1 overflow-y-auto custom-scrollbar bg-background pb-16 md:pb-0 md:ml-${sidebarCollapsed ? '16' : '64'} transition-all duration-300`}
+        style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}
+      >
         {children}
       </main>
       
