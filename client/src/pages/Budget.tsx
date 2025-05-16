@@ -82,6 +82,7 @@ interface BudgetItem {
 
 // Categorias do orçamento
 const BUDGET_CATEGORIES = [
+  // Fornecedores comuns
   { value: "venue", label: "Local" },
   { value: "catering", label: "Buffet" },
   { value: "decoration", label: "Decoração" },
@@ -92,6 +93,17 @@ const BUDGET_CATEGORIES = [
   { value: "attire", label: "Vestuário" },
   { value: "transportation", label: "Transporte" },
   { value: "gifts", label: "Lembranças" },
+  
+  // Custos não associados a fornecedores
+  { value: "staff", label: "Equipe/Funcionários" },
+  { value: "permits", label: "Licenças/Autorizações" },
+  { value: "insurance", label: "Seguro" },
+  { value: "admin", label: "Custos Administrativos" },
+  { value: "marketing", label: "Marketing/Divulgação" },
+  { value: "accommodation", label: "Hospedagem" },
+  { value: "entertainment", label: "Entretenimento" },
+  { value: "fees", label: "Taxas" },
+  { value: "equipment", label: "Equipamentos" },
   { value: "other", label: "Outros" }
 ];
 
