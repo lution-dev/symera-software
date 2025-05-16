@@ -463,8 +463,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...currentUser,
         firstName: req.body.firstName !== undefined ? req.body.firstName : currentUser.firstName,
         lastName: req.body.lastName !== undefined ? req.body.lastName : currentUser.lastName,
+        phone: req.body.phone !== undefined ? req.body.phone : currentUser.phone,
         profileImageUrl: req.body.profileImageUrl !== undefined ? req.body.profileImageUrl : currentUser.profileImageUrl,
-        // Add any other fields you want to update
       });
       
       res.json(updatedUser);
