@@ -283,39 +283,28 @@ const Schedule: React.FC = () => {
               {/* Formulário simplificado com navegação para as páginas de criação */}
               <div className="space-y-4 py-4">
                 <div className="flex justify-center space-x-4 w-full">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => {
-                      try {
+                  <Link href={`/create-event?date=${selectedDate.toISOString().split('T')[0]}`}>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
                         setShowNewItemDialog(false);
-                        // Navegar diretamente para o formulário de criação de evento
-                        navigate("/create-event");
-                        toast({
-                          title: "Criando novo evento",
-                          description: "Preencha os dados para o seu novo evento"
-                        });
-                      } catch (err) {
-                        console.error("Erro ao navegar:", err);
-                      }
-                    }}
-                  >
-                    Novo Evento
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => {
-                      setShowNewItemDialog(false);
-                      navigate("/events");
-                      toast({
-                        title: "Selecione um evento",
-                        description: "Clique em um evento para adicionar tarefas a ele"
-                      });
-                    }}
-                  >
-                    Nova Tarefa
-                  </Button>
+                      }}
+                    >
+                      Novo Evento
+                    </Button>
+                  </Link>
+                  <Link href="/events">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        setShowNewItemDialog(false);
+                      }}
+                    >
+                      Nova Tarefa
+                    </Button>
+                  </Link>
                 </div>
               </div>
               
