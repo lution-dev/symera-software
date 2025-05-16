@@ -436,7 +436,7 @@ const Team: React.FC = () => {
                 Adicionar Membro
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md max-h-[75vh] overflow-hidden mt-24 md:mt-6 p-0">
+            <DialogContent className="sm:max-w-md max-h-[75vh] overflow-hidden mt-24 md:mt-6 p-0 flex flex-col">
               <div className="sticky top-0 left-0 right-0 bg-background z-20 px-4 pt-4 pb-2 border-b">
                 <DialogHeader>
                   <DialogTitle>Adicionar Membro à Equipe</DialogTitle>
@@ -445,7 +445,7 @@ const Team: React.FC = () => {
                   </DialogDescription>
                 </DialogHeader>
               </div>
-              <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(75vh - 160px)' }}>
+              <div className="p-4 overflow-y-auto flex-1" style={{ paddingBottom: '80px' }}>
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="events" className="mb-2 block">Selecione os eventos</Label>
@@ -517,7 +517,7 @@ const Team: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="sticky bottom-0 left-0 right-0 px-4 py-4 border-t bg-background">
+              <div className="fixed bottom-0 left-0 right-0 px-4 py-4 border-t bg-background w-full" style={{ maxWidth: 'inherit', borderBottomLeftRadius: '0.5rem', borderBottomRightRadius: '0.5rem' }}>
                 <DialogFooter>
                   <Button 
                     onClick={handleAddMemberToMultipleEvents} 
