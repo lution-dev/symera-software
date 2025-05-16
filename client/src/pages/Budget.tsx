@@ -41,7 +41,11 @@ import {
   Edit2,
   Trash2,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Search,
+  CheckCircle2,
+  Calendar,
+  Store
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils";
@@ -97,6 +101,7 @@ const Budget: React.FC = () => {
   const [isAddItemOpen, setIsAddItemOpen] = React.useState(false);
   const [isEditBudgetOpen, setIsEditBudgetOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<BudgetItem | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState("");
   
   // Form para item do orçamento
   const [itemForm, setItemForm] = React.useState({
@@ -433,6 +438,14 @@ const Budget: React.FC = () => {
     };
   };
   
+  // Filtrar eventos com base no termo de busca
+  const filteredEvents = React.useMemo(() => {
+    return events.filter((event: Event) => 
+      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [events, searchTerm]);
+
   // Estatísticas do orçamento
   const stats = calculateBudgetStats();
   
@@ -615,49 +628,78 @@ const Budget: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Eventos</CardTitle>
-            <CardDescription>
-              Selecione um evento para ver seu orçamento
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {isLoadingEvents ? (
-                <div className="flex items-center justify-center h-20">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
+        <div className="lg:col-span-1">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="px-4 py-3 border-b bg-muted/40">
+              <h3 className="font-semibold text-lg">Meus Eventos</h3>
+              <div className="mt-2 relative">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    type="search" 
+                    placeholder="Buscar eventos..." 
+                    className="pl-9 bg-background"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
-              ) : events.length > 0 ? (
-                events.map((event: Event) => (
+              </div>
+            </div>
+            
+            {isLoadingEvents ? (
+              <div className="flex items-center justify-center h-20">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
+              </div>
+            ) : filteredEvents.length > 0 ? (
+              <div className="overflow-y-auto max-h-[400px]">
+                {filteredEvents.map((event: Event) => (
                   <div
                     key={event.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    className={`flex items-center border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-all ${
                       selectedEventId === event.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card hover:bg-primary/10"
+                        ? "bg-primary/10"
+                        : ""
                     }`}
                     onClick={() => setSelectedEventId(event.id)}
                   >
-                    <div className="font-medium">{event.name}</div>
-                    <div className="text-sm opacity-80">
-                      {selectedEventId === event.id && event.budget
-                        ? `Orçamento: ${formatCurrency(event.budget)}`
-                        : event.type}
+                    <div 
+                      className={`w-1 self-stretch transition-colors ${
+                        selectedEventId === event.id ? "bg-primary" : "bg-transparent"
+                      }`}
+                    />
+                    <div className="flex-1 p-3 min-w-0">
+                      <div className="font-medium truncate">{event.name}</div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <div className="text-xs">
+                          {event.budget
+                            ? `Orçamento: ${formatCurrency(event.budget)}`
+                            : event.type}
+                        </div>
+                      </div>
                     </div>
+                    {selectedEventId === event.id && (
+                      <div className="pr-3 text-primary">
+                        <CheckCircle2 className="h-5 w-5" />
+                      </div>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-muted-foreground">Nenhum evento encontrado</p>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Criar Evento
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Calendar className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                <p className="font-medium">Nenhum evento encontrado</p>
+                <p className="text-muted-foreground text-sm mb-4">
+                  Crie um evento para começar
+                </p>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Criar Evento
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
         
         <div className="lg:col-span-3 space-y-6">
           {isLoadingBudget || isLoadingVendors ? (
