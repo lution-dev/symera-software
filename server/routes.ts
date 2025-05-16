@@ -9,13 +9,58 @@ import { generateEventChecklist } from "./openai";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
-
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  
+  // Login alternativo temporário para contornar problemas do Replit Auth
+  app.post('/api/auth/dev-login', async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email é obrigatório" });
+      }
+      
+      // Criar ou buscar usuário pelo e-mail
+      const user = await storage.findOrCreateUserByEmail(email);
+      
+      // Armazenar na sessão
+      req.session.devUserId = user.id;
+      req.session.devIsAuthenticated = true;
+      await new Promise<void>((resolve) => {
+        req.session.save(() => resolve());
+      });
+      
+      console.log(`Login de desenvolvimento bem-sucedido para: ${email} (ID: ${user.id})`);
+      
+      return res.status(200).json({ 
+        success: true,
+        user
+      });
+    } catch (error) {
+      console.error("Erro no login de desenvolvimento:", error);
+      return res.status(500).json({ message: "Erro no processo de login" });
+    }
+  });
+
+  // Auth routes - Modificada para verificar login alternativo primeiro
+  app.get('/api/auth/user', async (req: any, res) => {
+    try {
+      // Verificar login alternativo primeiro
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        const user = await storage.getUser(req.session.devUserId);
+        if (user) {
+          return res.json(user);
+        }
+      }
+      
+      // Cair para autenticação normal se login alternativo não funcionar
+      if (req.isAuthenticated() && req.user?.claims?.sub) {
+        const userId = req.user.claims.sub;
+        const user = await storage.getUser(userId);
+        return res.json(user);
+      }
+      
+      // Se não conseguiu autenticar de nenhuma forma
+      return res.status(401).json({ message: "Unauthorized" });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });

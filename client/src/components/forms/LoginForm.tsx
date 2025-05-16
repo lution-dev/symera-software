@@ -1,6 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import {
   Card,
   CardContent,
@@ -13,11 +15,64 @@ import Logo from "@/components/ui/logo";
 
 const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
+  const [email, setEmail] = React.useState("");
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
 
+  // Login via Replit
   const handleGoogleLogin = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsLoading(true);
     window.location.href = "/api/login";
+  };
+
+  // Login alternativo direto por e-mail (sem senha)
+  const handleDevLogin = async () => {
+    if (!email || !email.includes('@')) {
+      toast({
+        title: "E-mail inválido",
+        description: "Por favor, digite um e-mail válido",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/dev-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Redirecionando para o dashboard..."
+        });
+        
+        // Aguarde um pouco e redirecione
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
+      } else {
+        throw new Error(data.message || "Erro ao fazer login");
+      }
+    } catch (error) {
+      console.error("Erro no login:", error);
+      toast({
+        title: "Falha no login",
+        description: error instanceof Error ? error.message : "Ocorreu um erro durante o login",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,6 +96,7 @@ const LoginForm: React.FC = () => {
             variant="outline"
             type="button"
             className="w-full cursor-pointer relative z-50"
+            disabled={isLoading}
           >
             <svg
               className="mr-2 h-4 w-4"
@@ -61,7 +117,7 @@ const LoginForm: React.FC = () => {
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-card px-2 text-muted-foreground">
-              Ou faça login com e-mail
+              Acesso direto com e-mail
             </span>
           </div>
         </div>
@@ -70,24 +126,23 @@ const LoginForm: React.FC = () => {
             id="email"
             type="email"
             placeholder="nome@exemplo.com"
-            disabled={true}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
           />
         </div>
-        <div className="grid gap-2">
-          <Input
-            id="password"
-            type="password"
-            placeholder="Senha"
-            disabled={true}
-          />
-        </div>
+        
         <div className="text-center text-sm text-muted-foreground">
-          Login com e-mail e senha estará disponível em breve!
+          Use qualquer e-mail para acessar o sistema (não precisa de senha)
         </div>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
-        <Button className="w-full" disabled={true}>
-          Entrar com E-mail
+        <Button 
+          className="w-full" 
+          onClick={handleDevLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? "Entrando..." : "Entrar com E-mail"}
         </Button>
         <div className="text-center text-sm text-muted-foreground">
           Ao continuar, você concorda com nossos{" "}

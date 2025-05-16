@@ -115,10 +115,29 @@ export async function setupAuth(app: Express) {
   app.get("/api/callback", (req, res, next) => {
     const domain = req.hostname;
     console.log("Callback com domínio:", domain);
+    
+    // Adicionar mais logs para debug
+    console.log("Parâmetros de callback:", req.query);
+    
     passport.authenticate(`replitauth:${domain}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
+      failureMessage: true
     })(req, res, next);
+  });
+  
+  // Rota de debug para verificar estado da sessão
+  app.get("/api/auth/debug", (req, res) => {
+    console.log("Debug de autenticação:");
+    console.log("- isAuthenticated:", req.isAuthenticated());
+    console.log("- session:", req.session);
+    console.log("- user:", req.user);
+    
+    res.json({
+      authenticated: req.isAuthenticated(),
+      sessionId: req.sessionID,
+      hasUser: !!req.user
+    });
   });
 
   app.get("/api/logout", (req, res) => {
@@ -134,18 +153,32 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  console.log("Verificando autenticação:");
+  console.log("- isAuthenticated:", req.isAuthenticated());
+  console.log("- session ID:", req.sessionID);
+  
   const user = req.user as any;
+  console.log("- user object:", user ? "Presente" : "Ausente");
 
   if (!req.isAuthenticated() || !user) {
     console.log("Não autenticado ou usuário não encontrado");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  console.log("- user claims:", user.claims ? "Presente" : "Ausente");
+  
   if (!user.claims || !user.claims.sub) {
     console.log("Claims do usuário não encontradas");
-    return res.status(401).json({ message: "Unauthorized - invalid user claims" });
+    // Tente recuperar o usuário novamente em vez de retornar erro
+    return res.redirect("/api/login");
   }
 
+  // Armazenar informações importantes na sessão
+  if (!req.session.userId && user.claims.sub) {
+    req.session.userId = user.claims.sub;
+    req.session.save();
+  }
+  
   // Se o token expirou, tente atualizar
   const now = Math.floor(Date.now() / 1000);
   if (user.expires_at && now > user.expires_at) {
@@ -168,5 +201,6 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     }
   }
   
+  console.log("Usuário autenticado com sucesso:", user.claims?.sub);
   return next();
 };
