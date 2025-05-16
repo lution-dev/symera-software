@@ -132,7 +132,10 @@ const Sidebar: React.FC = () => {
       </div>
       
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-6">
+      <nav className={cn(
+        "flex-1 space-y-6",
+        collapsed ? "p-2" : "p-4"
+      )}>
         <div className="space-y-1">
           {navItems.map((item) => (
             <TooltipProvider key={item.path} delayDuration={collapsed ? 100 : 1000}>
@@ -143,7 +146,7 @@ const Sidebar: React.FC = () => {
                       <div
                         className={cn(
                           "flex items-center rounded-md transition-colors cursor-pointer px-4 py-2",
-                          collapsed && "justify-center",
+                          collapsed ? "justify-center" : "",
                           isActivePath(item.path)
                             ? "bg-primary text-white"
                             : item.highlight
@@ -157,7 +160,7 @@ const Sidebar: React.FC = () => {
                     </Link>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="right" className={cn(!collapsed && "hidden")}>
+                <TooltipContent side="right" className={cn("bg-card", !collapsed && "hidden")}>
                   {item.label}
                 </TooltipContent>
               </Tooltip>
@@ -169,7 +172,7 @@ const Sidebar: React.FC = () => {
       {/* User profile */}
       <div className={cn(
         "border-t border-border",
-        "p-4" // Sempre com o mesmo padding
+        collapsed ? "p-2" : "p-4"
       )}>
         <div className={cn(
           "flex items-center",
@@ -205,7 +208,7 @@ const Sidebar: React.FC = () => {
                     <div
                       className={cn(
                         "text-muted-foreground hover:text-foreground cursor-pointer",
-                        collapsed ? "flex items-center justify-center" : "ml-2 flex-shrink-0"
+                        collapsed ? "" : "ml-2 flex-shrink-0"
                       )}
                       title="Sair"
                     >
