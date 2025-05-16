@@ -97,7 +97,7 @@ const Sidebar: React.FC = () => {
       {/* Logo and toggle button */}
       <div className={cn(
         "relative flex items-center border-b border-border", 
-        collapsed ? "justify-center p-3" : "p-4"
+        collapsed ? "justify-center p-3 group" : "p-4"
       )}>
         <div className={cn(
           "flex items-center",
@@ -107,16 +107,25 @@ const Sidebar: React.FC = () => {
           {!collapsed && <h1 className="text-xl font-bold gradient-text ml-3">Symera</h1>}
         </div>
         
-        <button 
-          onClick={toggleCollapsed}
-          className={cn(
-            "absolute flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
-            collapsed ? "right-2 top-9" : "right-4"
-          )}
-          title={collapsed ? "Expandir menu" : "Recolher menu"}
-        >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </button>
+        {!collapsed && (
+          <button 
+            onClick={toggleCollapsed}
+            className="absolute right-4 flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            title="Recolher menu"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        )}
+        
+        {collapsed && (
+          <button 
+            onClick={toggleCollapsed}
+            className="absolute opacity-0 group-hover:opacity-100 flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-opacity left-1/2 transform -translate-x-1/2 mt-10 top-0"
+            title="Expandir menu"
+          >
+            <ChevronRight size={16} />
+          </button>
+        )}
       </div>
       
       {/* Navigation */}
@@ -166,107 +175,67 @@ const Sidebar: React.FC = () => {
           "flex items-center",
           collapsed ? "justify-center" : "justify-between"
         )}>
+          {!collapsed && (
+            <Link href="/settings">
+              <div className="flex items-center flex-grow cursor-pointer hover:opacity-80 transition-opacity">
+                <Avatar className="h-10 w-10 flex-shrink-0">
+                  {user?.profileImageUrl ? (
+                    <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
+                  ) : null}
+                  <AvatarFallback className="bg-gradient-primary text-white">
+                    {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="ml-3 min-w-0 overflow-hidden">
+                  <p className="text-sm font-medium truncate">
+                    {user?.firstName || ''} {user?.lastName || ''}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+                </div>
+              </div>
+            </Link>
+          )}
+          
+          {/* Logout button - shown in both states but in different positions */}
           <TooltipProvider delayDuration={collapsed ? 100 : 1000}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href="/settings">
-                  <div className={cn(
-                    "flex items-center cursor-pointer hover:opacity-80 transition-opacity",
-                    collapsed ? "flex-col" : "flex-grow"
-                  )}>
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      {user?.profileImageUrl ? (
-                        <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
-                      ) : null}
-                      <AvatarFallback className="bg-gradient-primary text-white">
-                        {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
-                      </AvatarFallback>
-                    </Avatar>
-                    {!collapsed && (
-                      <div className="ml-3 min-w-0 overflow-hidden">
-                        <p className="text-sm font-medium truncate">
-                          {user?.firstName || ''} {user?.lastName || ''}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
-                      </div>
-                    )}
-                  </div>
-                </Link>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <div
+                      className={cn(
+                        "text-muted-foreground hover:text-foreground cursor-pointer",
+                        collapsed ? "" : "ml-2 flex-shrink-0"
+                      )}
+                      title="Sair"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirmar saída</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja sair da sua conta?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleLogout}
+                        className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                      >
+                        Sair
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </TooltipTrigger>
-              <TooltipContent side="right" className={cn("bg-card", !collapsed && "hidden")}>
-                {user?.firstName || ''} {user?.lastName || ''}
+              <TooltipContent side="right" className={cn(!collapsed && "hidden")}>
+                Sair
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          
-          {!collapsed && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <div
-                  className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
-                  title="Sair"
-                >
-                  <LogOut className="h-4 w-4" />
-                </div>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmar saída</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza que deseja sair da sua conta?
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={handleLogout}
-                    className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                  >
-                    Sair
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-          
-          {collapsed && (
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <div
-                        className="mt-2 text-muted-foreground hover:text-foreground cursor-pointer"
-                        title="Sair"
-                      >
-                        <LogOut className="h-4 w-4" />
-                      </div>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar saída</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja sair da sua conta?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={handleLogout}
-                          className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                        >
-                          Sair
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  Sair
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
         </div>
       </div>
     </aside>
