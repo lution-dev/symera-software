@@ -146,6 +146,32 @@ const Vendors: React.FC = () => {
           eventId: 5,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
+        },
+        {
+          id: 12,
+          name: "Fotografia Memórias",
+          contactName: "Marcelo Lima",
+          contactEmail: "marcelo@fotografiamemorias.com.br",
+          contactPhone: "(11) 95432-1098",
+          service: "photography",
+          cost: 5500,
+          notes: "Pacote completo de fotografia e vídeo, incluindo álbum digital",
+          eventId: 5,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 13,
+          name: "Orquestra Romântica",
+          contactName: "Eduardo Martins",
+          contactEmail: "eduardo@orquestraromântica.com.br",
+          contactPhone: "(11) 94321-0987",
+          service: "music",
+          cost: 4500,
+          notes: "Apresentação durante a cerimônia e primeira parte da recepção",
+          eventId: 5,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       ];
     } else if (selectedEventId === 6) {
