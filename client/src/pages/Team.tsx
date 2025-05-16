@@ -445,11 +445,11 @@ const Team: React.FC = () => {
                   </DialogDescription>
                 </DialogHeader>
               </div>
-              <div className="p-4 overflow-y-auto max-h-[calc(75vh-80px)]">
+              <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(75vh - 160px)' }}>
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="events" className="mb-2 block">Selecione os eventos</Label>
-                    <div className="border rounded-md p-2 h-[120px] overflow-auto">
+                    <div className="border rounded-md p-2 h-[100px] overflow-auto">
                       {events.map((event: Event) => (
                         <div 
                           key={event.id} 
@@ -517,7 +517,7 @@ const Team: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="px-4 py-4 border-t">
+              <div className="sticky bottom-0 left-0 right-0 px-4 py-4 border-t bg-background">
                 <DialogFooter>
                   <Button 
                     onClick={handleAddMemberToMultipleEvents} 
