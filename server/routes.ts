@@ -350,6 +350,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch tasks" });
     }
   });
+  
+  // Rota para buscar fornecedores de um evento
+  app.get('/api/events/:eventId/vendors', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+      
+      // Check if user has access to this event
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have access to this event" });
+      }
+      
+      const vendors = await storage.getVendorsByEventId(eventId);
+      res.json(vendors);
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+      res.status(500).json({ message: "Failed to fetch vendors" });
+    }
+  });
+  
+  // Rota para adicionar fornecedor a um evento
+  app.post('/api/events/:eventId/vendors', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+      
+      // Check if user has access to this event
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have access to this event" });
+      }
+      
+      // Validate vendor data
+      if (!req.body.name || !req.body.service) {
+        return res.status(400).json({ message: "Name and service are required" });
+      }
+      
+      // Preparar dados do fornecedor
+      const vendorData = {
+        ...req.body,
+        eventId,
+        cost: req.body.cost ? parseFloat(req.body.cost) : null
+      };
+      
+      // Create vendor
+      const vendor = await storage.createVendor(vendorData);
+      
+      // Log activity
+      await storage.createActivityLog({
+        eventId,
+        userId,
+        action: "vendor_added",
+        details: { vendorName: vendor.name, service: vendor.service }
+      });
+      
+      res.status(201).json(vendor);
+    } catch (error) {
+      console.error("Error creating vendor:", error);
+      res.status(500).json({ message: "Failed to create vendor" });
+    }
+  });
+
+  // Rota para atualizar um fornecedor
+  app.put('/api/vendors/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendorId = parseInt(req.params.id, 10);
+      
+      if (isNaN(vendorId)) {
+        return res.status(400).json({ message: "Invalid vendor ID" });
+      }
+      
+      // Buscar fornecedor para verificar a qual evento pertence
+      const vendor = await storage.getVendorById(vendorId);
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento do fornecedor
+      const hasAccess = await storage.hasUserAccessToEvent(userId, vendor.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have access to this vendor" });
+      }
+      
+      // Preparar dados do fornecedor
+      const vendorData = {
+        ...req.body,
+        cost: req.body.cost ? parseFloat(req.body.cost) : null
+      };
+      
+      // Atualizar fornecedor
+      const updatedVendor = await storage.updateVendor(vendorId, vendorData);
+      
+      // Log activity
+      await storage.createActivityLog({
+        eventId: vendor.eventId,
+        userId,
+        action: "vendor_updated",
+        details: { vendorName: updatedVendor.name, service: updatedVendor.service }
+      });
+      
+      res.json(updatedVendor);
+    } catch (error) {
+      console.error("Error updating vendor:", error);
+      res.status(500).json({ message: "Failed to update vendor" });
+    }
+  });
+  
+  // Rota para excluir um fornecedor
+  app.delete('/api/vendors/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const vendorId = parseInt(req.params.id, 10);
+      
+      if (isNaN(vendorId)) {
+        return res.status(400).json({ message: "Invalid vendor ID" });
+      }
+      
+      // Buscar fornecedor para verificar a qual evento pertence
+      const vendor = await storage.getVendorById(vendorId);
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento do fornecedor
+      const hasAccess = await storage.hasUserAccessToEvent(userId, vendor.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have access to this vendor" });
+      }
+      
+      // Excluir fornecedor
+      await storage.deleteVendor(vendorId);
+      
+      // Log activity
+      await storage.createActivityLog({
+        eventId: vendor.eventId,
+        userId,
+        action: "vendor_deleted",
+        details: { vendorName: vendor.name, service: vendor.service }
+      });
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Error deleting vendor:", error);
+      res.status(500).json({ message: "Failed to delete vendor" });
+    }
+  });
 
   app.post('/api/events/:eventId/tasks', isAuthenticated, async (req: any, res) => {
     try {
