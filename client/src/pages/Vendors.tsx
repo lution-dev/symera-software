@@ -610,8 +610,8 @@ const Vendors: React.FC = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 rounded-xl bg-card overflow-hidden">
-          <div className="p-4">
-            <h2 className="text-2xl font-bold">Meus Eventos</h2>
+          <div className="p-4 border-b border-border/40">
+            <h2 className="text-xl font-bold">Meus Eventos</h2>
           
             <div className="relative mt-4">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -632,10 +632,10 @@ const Vendors: React.FC = () => {
                 {events.map((event: Event) => (
                   <div
                     key={event.id}
-                    className={`pl-5 pr-4 py-4 cursor-pointer border-l-4 border-l-orange-500 hover:bg-orange-500/10 ${
+                    className={`pl-5 pr-4 py-4 cursor-pointer border-l-4 ${
                       selectedEventId === event.id
-                        ? "bg-orange-500/20"
-                        : ""
+                        ? "bg-orange-500/20 border-l-orange-500"
+                        : "border-l-transparent hover:bg-orange-500/10"
                     }`}
                     onClick={() => setSelectedEventId(event.id)}
                   >
