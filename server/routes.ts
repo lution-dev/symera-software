@@ -378,7 +378,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const vendors = await storage.getVendorsByEventId(eventId);
       console.log(`Retornando ${vendors.length} fornecedores para o evento ${eventId}`);
-      res.json(vendors);
+      console.log("Fornecedores:", JSON.stringify(vendors).substring(0, 200) + "...");
+      
+      // Garantir que estamos enviando um array de fornecedores e não outro tipo de dado
+      if (vendors && Array.isArray(vendors)) {
+        res.json(vendors);
+      } else {
+        console.error("ERRO: Dados de fornecedores inválidos:", vendors);
+        res.status(500).json({ message: "Invalid vendor data format" });
+      }
     } catch (error) {
       console.error("Error fetching vendors:", error);
       res.status(500).json({ message: "Failed to fetch vendors" });
