@@ -69,32 +69,32 @@ const Auth: React.FC = () => {
                 <div className="text-primary text-center mb-3 flex justify-center">
                   <CheckCircle className="h-7 w-7" />
                 </div>
-                <h3 className="font-semibold text-center mb-2">Checklist por IA</h3>
-                <p className="text-sm text-center opacity-90">Inteligência artificial gera tarefas personalizadas</p>
+                <h3 className="font-semibold text-center mb-2">Organização sem estresse</h3>
+                <p className="text-sm text-center opacity-90">Tenha controle total do seu evento, mesmo com mil detalhes.</p>
               </div>
               
               <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
                 <div className="text-primary text-center mb-3 flex justify-center">
                   <Calendar className="h-7 w-7" />
                 </div>
-                <h3 className="font-semibold text-center mb-2">Agenda Avançada</h3>
-                <p className="text-sm text-center opacity-90">Calendário completo com visualizações personalizáveis</p>
+                <h3 className="font-semibold text-center mb-2">Planejamento que funciona</h3>
+                <p className="text-sm text-center opacity-90">A Symera pensa por você com checklists inteligentes.</p>
               </div>
               
               <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
                 <div className="text-primary text-center mb-3 flex justify-center">
                   <Users className="h-7 w-7" />
                 </div>
-                <h3 className="font-semibold text-center mb-2">Colaboração</h3>
-                <p className="text-sm text-center opacity-90">Trabalhe em equipe em tempo real com permissões</p>
+                <h3 className="font-semibold text-center mb-2">Mais profissionalismo</h3>
+                <p className="text-sm text-center opacity-90">Mostre que sua entrega é de alto padrão.</p>
               </div>
               
               <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
                 <div className="text-primary text-center mb-3 flex justify-center">
                   <DollarSign className="h-7 w-7" />
                 </div>
-                <h3 className="font-semibold text-center mb-2">Gestão Financeira</h3>
-                <p className="text-sm text-center opacity-90">Controle de orçamentos e fornecedores</p>
+                <h3 className="font-semibold text-center mb-2">Pronto para crescer</h3>
+                <p className="text-sm text-center opacity-90">De eventos pequenos a grandes produções.</p>
               </div>
             </div>
           </div>
