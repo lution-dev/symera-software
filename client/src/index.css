@@ -22,7 +22,7 @@
   --destructive: 7 77% 56%;  /* Cor EC4130 em HSL */
   --destructive-foreground: 0 0% 98%;
   --ring: 30 100% 50%;  /* Cor FF8800 em HSL */
-  --radius: 0.5rem;
+  --radius: 1rem;
   
   /* Custom colors for Symera */
   --purple-dark: 270 60% 10%;
@@ -70,6 +70,18 @@
   
   .card-hover {
     @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  .modern-card {
+    @apply rounded-2xl overflow-hidden;
+  }
+  
+  .modern-input {
+    @apply rounded-xl;
+  }
+  
+  .modern-button {
+    @apply rounded-xl;
   }
   
   /* Custom scrollbar */
