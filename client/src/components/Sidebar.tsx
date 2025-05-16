@@ -145,8 +145,8 @@ const Sidebar: React.FC = () => {
                     <Link href={item.path}>
                       <div
                         className={cn(
-                          "flex items-center rounded-md transition-colors cursor-pointer",
-                          collapsed ? "justify-center px-2 py-2" : "px-4 py-2",
+                          "flex items-center rounded-md transition-colors cursor-pointer px-4 py-2",
+                          collapsed ? "justify-center" : "",
                           isActivePath(item.path)
                             ? "bg-primary text-white"
                             : item.highlight
