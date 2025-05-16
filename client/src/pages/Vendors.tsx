@@ -609,58 +609,59 @@ const Vendors: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Eventos</CardTitle>
-            <CardDescription>
-              Selecione um evento para ver seus fornecedores
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {isLoadingEvents ? (
-                <div className="flex items-center justify-center h-20">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
-                </div>
-              ) : events.length > 0 ? (
-                events.map((event: Event) => (
-                  <div
-                    key={event.id}
-                    className={`p-3 mb-2 rounded-lg cursor-pointer border transition-all ${
-                      selectedEventId === event.id
-                        ? "bg-primary/5 border-primary"
-                        : "bg-card hover:bg-primary/5 border-transparent hover:border-primary/30"
-                    }`}
-                    onClick={() => setSelectedEventId(event.id)}
-                  >
-                    <div className="font-medium">{event.name}</div>
-                    <div className="flex items-center justify-between mt-1">
-                      <Badge variant={selectedEventId === event.id ? "default" : "outline"} className="text-xs">
-                        {event.type === "wedding" ? "Casamento" :
-                         event.type === "birthday" ? "Aniversário" :
-                         event.type === "corporate" ? "Corporativo" :
-                         event.type === "conference" ? "Conferência" :
-                         event.type === "social" ? "Social" : "Outro"}
-                      </Badge>
-                      {selectedEventId === event.id && (
-                        <span className="text-xs text-muted-foreground">
-                          {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
-                        </span>
-                      )}
+        <div className="lg:col-span-1 rounded-lg bg-muted/40 p-4">
+          <h2 className="text-2xl font-bold mb-4">Meus Eventos</h2>
+          
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar eventos..."
+              className="pl-9 bg-background/60"
+            />
+          </div>
+          
+          <div className="space-y-0">
+            {isLoadingEvents ? (
+              <div className="flex items-center justify-center h-20">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
+              </div>
+            ) : events.length > 0 ? (
+              events.map((event: Event) => (
+                <div
+                  key={event.id}
+                  className={`pl-4 pr-3 py-3 cursor-pointer border-l-4 border-l-transparent hover:bg-muted/70 transition-all ${
+                    selectedEventId === event.id
+                      ? "bg-muted/70 border-l-primary"
+                      : ""
+                  }`}
+                  onClick={() => setSelectedEventId(event.id)}
+                >
+                  <div className="font-medium">{event.name}</div>
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="text-xs text-muted-foreground">
+                      {event.type === "wedding" ? "Casamento" :
+                       event.type === "birthday" ? "Aniversário" :
+                       event.type === "corporate" ? "Corporativo" :
+                       event.type === "conference" ? "Conferência" :
+                       event.type === "social" ? "Social" : "Outro"}
+                    </div>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <User className="h-3 w-3 mr-1" />
+                      {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-muted-foreground">Nenhum evento encontrado</p>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Criar Evento
-                  </Button>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              ))
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground">Nenhum evento encontrado</p>
+                <Button variant="outline" size="sm" className="mt-2">
+                  Criar Evento
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
         
         <Card className="lg:col-span-3">
           <CardHeader>
