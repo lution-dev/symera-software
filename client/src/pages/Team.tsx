@@ -436,8 +436,8 @@ const Team: React.FC = () => {
                 Adicionar Membro
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-md max-h-[75vh] overflow-y-auto mt-24 md:mt-6 p-3 md:p-6">
+              <DialogHeader className="sticky top-0 bg-background pt-2 pb-2 z-10">
                 <DialogTitle>Adicionar Membro à Equipe</DialogTitle>
                 <DialogDescription>
                   Adicione um novo membro à equipe do seu evento. Se a pessoa não tiver uma conta, um convite será enviado.
