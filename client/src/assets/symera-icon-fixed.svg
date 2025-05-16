@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Definindo um retângulo transparente para forçar o formato quadrado -->
+  <rect width="64" height="64" fill="transparent"/>
+  
+  <!-- Incluindo a imagem original com margens laterais para centralizar -->
+  <image href="/src/assets/symera-icon.png" x="12" y="4" width="40" height="56" preserveAspectRatio="xMidYMid meet"/>
+</svg>
