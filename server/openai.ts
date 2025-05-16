@@ -105,6 +105,7 @@ export async function generateEventChecklist(eventData: CreateEventData): Promis
       // Calculate due date based on days before event
       let dueDate: Date | undefined = undefined;
       if (typeof task.dueDateBefore === 'number') {
+        // Use eventStartDate para calcular a data de vencimento das tarefas
         dueDate = new Date(eventStartDate);
         dueDate.setDate(dueDate.getDate() - task.dueDateBefore);
       }

@@ -22,6 +22,10 @@ interface Event {
   name: string;
   date: string;
   type: string;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 interface Task {
@@ -59,12 +63,25 @@ const AdvancedCalendar: React.FC<AdvancedCalendarProps> = ({
 
   const getEventsForDate = (date: Date) => {
     return events.filter(event => {
-      const eventDate = new Date(event.date);
-      return (
-        eventDate.getDate() === date.getDate() &&
-        eventDate.getMonth() === date.getMonth() &&
-        eventDate.getFullYear() === date.getFullYear()
-      );
+      // Usar startDate se disponível, caso contrário, usar date
+      const eventStartDate = event.startDate ? new Date(event.startDate) : new Date(event.date);
+      
+      // Usar endDate se disponível, caso contrário, usar a data de início
+      const eventEndDate = event.endDate ? new Date(event.endDate) : eventStartDate;
+      
+      // Converter date para início do dia (00:00:00)
+      const checkDate = new Date(date);
+      checkDate.setHours(0, 0, 0, 0);
+      
+      // Converter datas do evento para início do dia para comparação correta
+      const startDay = new Date(eventStartDate);
+      startDay.setHours(0, 0, 0, 0);
+      
+      const endDay = new Date(eventEndDate);
+      endDay.setHours(0, 0, 0, 0);
+      
+      // Evento está no intervalo se a data verificada estiver entre a data de início e fim (inclusive)
+      return checkDate >= startDay && checkDate <= endDay;
     });
   };
 

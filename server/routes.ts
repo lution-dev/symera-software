@@ -85,12 +85,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate event data
       const eventData = createEventSchema.parse(req.body);
       
-      // Create event
-      const event = await storage.createEvent({
+      // Preparar os dados para criação do evento com tipos corretos
+      const createData: any = {
         ...eventData,
         date: new Date(eventData.date),
         ownerId: userId,
-      });
+      };
+      
+      // Adicionar startDate se disponível
+      if (eventData.startDate) {
+        createData.startDate = new Date(eventData.startDate);
+      } else {
+        createData.startDate = new Date(eventData.date);
+      }
+      
+      // Adicionar endDate se disponível
+      if (eventData.endDate) {
+        createData.endDate = new Date(eventData.endDate);
+      }
+      
+      // Create event
+      const event = await storage.createEvent(createData);
       
       // Generate AI checklist if requested
       if (eventData.generateAIChecklist) {
@@ -158,11 +173,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only the event owner can update it" });
       }
       
-      // Update event
-      const updatedEvent = await storage.updateEvent(eventId, {
+      // Preparar os dados para atualização com tipos corretos
+      const updateData: any = {
         ...eventData,
         date: new Date(eventData.date),
-      });
+      };
+      
+      // Adicionar startDate se disponível
+      if (eventData.startDate) {
+        updateData.startDate = new Date(eventData.startDate);
+      } else {
+        updateData.startDate = new Date(eventData.date);
+      }
+      
+      // Adicionar endDate se disponível
+      if (eventData.endDate) {
+        updateData.endDate = new Date(eventData.endDate);
+      }
+      
+      // Update event
+      const updatedEvent = await storage.updateEvent(eventId, updateData);
       
       // Log activity
       await storage.createActivityLog({
@@ -264,8 +294,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedTaskData = createTaskSchema.parse(taskData);
       
+      // Preparar dados da tarefa com tipos corretos
+      const taskDataToCreate: any = {
+        ...validatedTaskData,
+      };
+      
+      // Converter dueDate para objeto Date se existir
+      if (validatedTaskData.dueDate) {
+        taskDataToCreate.dueDate = new Date(validatedTaskData.dueDate);
+      }
+      
       // Create task
-      const task = await storage.createTask(validatedTaskData);
+      const task = await storage.createTask(taskDataToCreate);
       
       // Log activity
       await storage.createActivityLog({
