@@ -112,7 +112,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(events)
       .where(eq(events.ownerId, userId))
-      .orderBy(desc(events.date));
+      .orderBy(desc(events.startDate));
     
     // Get events where user is team member
     const teamMemberships = await db
@@ -157,9 +157,11 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Sort by date
+    // Sort by startDate (com fallback para date se necessário)
     const sortedEvents = allEvents.sort((a, b) => {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      const dateA = a.startDate || a.date;
+      const dateB = b.startDate || b.date;
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
     });
     
     // Adicionar informações da equipe para todos os eventos

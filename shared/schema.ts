@@ -68,7 +68,7 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: eventTypeEnum("type").notNull(),
-  startDate: timestamp("start_date").notNull(),
+  startDate: timestamp("start_date"), // Permitir NULL para compatibilidade com eventos existentes
   endDate: timestamp("end_date"),
   startTime: text("start_time"),
   endTime: text("end_time"),
