@@ -286,7 +286,7 @@ const Schedule: React.FC = () => {
                     className="flex-1"
                     onClick={() => {
                       // Navegar para criar novo evento
-                      window.location.href = "/events";
+                      window.location.href = "/create-event";
                       setShowNewItemDialog(false);
                     }}
                   >
@@ -296,8 +296,8 @@ const Schedule: React.FC = () => {
                     variant="outline" 
                     className="flex-1"
                     onClick={() => {
-                      // Navegar para eventos existentes
-                      window.location.href = "/events";
+                      // Navegar para criar novo evento (e depois adicionar tarefas)
+                      window.location.href = "/create-event";
                       setShowNewItemDialog(false);
                     }}
                   >
