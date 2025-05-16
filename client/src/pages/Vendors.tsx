@@ -110,6 +110,13 @@ const Vendors: React.FC = () => {
   React.useEffect(() => {
     console.log("[Debug] Eventos carregados:", events);
   }, [events]);
+  
+  // Log para depuração de fornecedores
+  React.useEffect(() => {
+    if (selectedEventId) {
+      console.log(`[Debug] Fornecedores para o evento ${selectedEventId}:`, vendors);
+    }
+  }, [vendors, selectedEventId]);
 
   // Filtrar eventos pela busca e remover duplicados
   const filteredEvents = React.useMemo(() => {
@@ -534,7 +541,7 @@ const Vendors: React.FC = () => {
                         <SelectValue placeholder="Selecione um evento" />
                       </SelectTrigger>
                       <SelectContent>
-                        {events.map((event: Event) => (
+                        {filteredEvents.map((event: Event) => (
                           <SelectItem key={event.id} value={event.id.toString()}>
                             {event.name}
                           </SelectItem>
