@@ -230,28 +230,28 @@ const Settings: React.FC = () => {
               <TabsList className="flex flex-col h-auto p-0 bg-transparent rounded-none w-full items-start">
                 <TabsTrigger
                   value="profile"
-                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
+                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium w-full text-left"
                 >
                   <User className="h-5 w-5 mr-3" />
                   Perfil
                 </TabsTrigger>
                 <TabsTrigger
                   value="notifications"
-                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
+                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium w-full text-left"
                 >
                   <Bell className="h-5 w-5 mr-3" />
                   Notificações
                 </TabsTrigger>
                 <TabsTrigger
                   value="appearance"
-                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
+                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium w-full text-left"
                 >
                   <Palette className="h-5 w-5 mr-3" />
                   Aparência
                 </TabsTrigger>
                 <TabsTrigger
                   value="security" 
-                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium"
+                  className="justify-start py-3 px-4 h-12 rounded-none border-l-2 border-l-transparent data-[state=active]:border-l-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary font-medium w-full text-left"
                 >
                   <Shield className="h-5 w-5 mr-3" />
                   Segurança
