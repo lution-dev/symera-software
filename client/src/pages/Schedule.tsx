@@ -278,11 +278,29 @@ const Schedule: React.FC = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              {/* Formulário simplificado apenas para demonstração, seria expandido na implementação final */}
+              {/* Formulário simplificado com navegação para as páginas de criação */}
               <div className="space-y-4 py-4">
                 <div className="flex justify-center space-x-4">
-                  <Button variant="outline" className="flex-1">Novo Evento</Button>
-                  <Button variant="outline" className="flex-1">Nova Tarefa</Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      window.location.href = `/create-event?date=${selectedDate.toISOString()}`;
+                      setShowNewItemDialog(false);
+                    }}
+                  >
+                    Novo Evento
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      window.location.href = `/checklist?date=${selectedDate.toISOString()}`;
+                      setShowNewItemDialog(false);
+                    }}
+                  >
+                    Nova Tarefa
+                  </Button>
                 </div>
               </div>
               
