@@ -143,11 +143,35 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
   const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
 
+  // Função para obter imagem de capa padrão com base no tipo de evento
+  const getDefaultCover = () => {
+    switch (event.type) {
+      case 'wedding':
+        return 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
+      case 'birthday':
+        return 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
+      case 'corporate':
+        return 'https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
+      case 'conference':
+        return 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
+      case 'social':
+        return 'https://images.unsplash.com/photo-1528495612343-9ca9f4a4de28?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
+      default:
+        return 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Event Header */}
-      <div className="mb-6 flex flex-col lg:flex-row lg:items-start lg:justify-between">
-        <div>
+      {/* Event Cover Image */}
+      <div className="relative w-full h-64 md:h-80 mb-6 rounded-xl overflow-hidden shadow-md">
+        <img 
+          src={event.coverImageUrl || getDefaultCover()}
+          alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 p-6">
           <div className="flex items-center mb-2">
             <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary mr-3">
               {getEventTypeLabel(event.type)}
@@ -163,7 +187,13 @@ const Event: React.FC<EventProps> = ({ id }) => {
               event.status === 'completed' ? 'Concluído' : 'Cancelado'}
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">{event.name}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white drop-shadow-md">{event.name}</h1>
+        </div>
+      </div>
+      
+      {/* Event Header */}
+      <div className="mb-6 flex flex-col lg:flex-row lg:items-start lg:justify-between">
+        <div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-muted-foreground">
             <div className="flex items-center">
               <i className="fas fa-calendar-day mr-2 text-primary"></i>
