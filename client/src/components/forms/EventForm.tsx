@@ -44,23 +44,40 @@ interface EventFormProps {
 }
 
 const EventForm: React.FC<EventFormProps> = ({
-  defaultValues = {
+  defaultValues: inputDefaultValues,
+  isEdit = false,
+  eventId,
+}) => {
+  // Check if there's a saved date in localStorage
+  const savedDate = localStorage.getItem('selectedEventDate');
+  
+  // Use the saved date if it exists, otherwise use today's date
+  const defaultDate = savedDate || new Date().toISOString().split("T")[0];
+  
+  // Create the default values with the appropriate date
+  const defaultValues = {
     name: "",
     type: "",
-    date: new Date().toISOString().split("T")[0],
+    date: defaultDate,
     location: "",
     description: "",
     budget: undefined,
     attendees: undefined,
     coverImageUrl: "",
     generateAIChecklist: true,
-  },
-  isEdit = false,
-  eventId,
-}) => {
+    ...(inputDefaultValues || {})
+  };
+
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  // Clear the saved date from localStorage after it's been used
+  React.useEffect(() => {
+    if (savedDate) {
+      localStorage.removeItem('selectedEventDate');
+    }
+  }, [savedDate]);
 
   const form = useForm({
     resolver: zodResolver(createEventSchema),
