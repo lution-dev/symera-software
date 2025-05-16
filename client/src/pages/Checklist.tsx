@@ -40,7 +40,7 @@ interface ChecklistProps {
 }
 
 const Checklist: React.FC<ChecklistProps> = ({ id }) => {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   const [showNewTaskDialog, setShowNewTaskDialog] = React.useState(false);
@@ -306,7 +306,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         <div>
           <Button 
             variant="link" 
-            onClick={() => window.location.href = `/events/${eventId}`} 
+            onClick={() => navigate(`/events/${eventId}`)} 
             className="text-primary hover:underline flex items-center mb-2 p-0"
           >
               <i className="fas fa-arrow-left mr-2"></i> Voltar para {event.name}
