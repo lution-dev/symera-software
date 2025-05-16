@@ -563,10 +563,18 @@ export class DatabaseStorage implements IStorage {
 
   // Vendor operations
   async getVendorsByEventId(eventId: number): Promise<Vendor[]> {
-    return db
-      .select()
-      .from(vendors)
-      .where(eq(vendors.eventId, eventId));
+    console.log(`Buscando fornecedores para o evento ${eventId}`);
+    try {
+      const result = await db
+        .select()
+        .from(vendors)
+        .where(eq(vendors.eventId, eventId));
+      console.log(`Encontrados ${result.length} fornecedores para o evento ${eventId}`);
+      return result;
+    } catch (error) {
+      console.error(`Erro ao buscar fornecedores para o evento ${eventId}:`, error);
+      return [];
+    }
   }
   
   async getVendorById(id: number): Promise<Vendor | undefined> {

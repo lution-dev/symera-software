@@ -104,6 +104,17 @@ const Vendors: React.FC = () => {
   const { data: vendors = [], isLoading: isLoadingVendors } = useQuery({
     queryKey: ["/api/events", selectedEventId, "vendors"],
     enabled: !!selectedEventId,
+    select: (data) => {
+      // Verificar se os dados são um array
+      if (Array.isArray(data)) {
+        // Se o primeiro item tem propriedades de evento e não de fornecedor, é provável que seja o objeto errado
+        if (data.length > 0 && 'type' in data[0] && 'date' in data[0] && !('service' in data[0])) {
+          console.log("[Debug] Recebendo dados de evento em vez de fornecedores, retornando array vazio");
+          return [];
+        }
+      }
+      return data;
+    }
   });
   
   // Log para depuração
