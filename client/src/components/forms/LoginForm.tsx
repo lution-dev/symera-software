@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import {
@@ -15,64 +14,13 @@ import Logo from "@/components/ui/logo";
 
 const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
-  const [email, setEmail] = React.useState("");
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
-  // Login via Replit
-  const handleGoogleLogin = (e: React.MouseEvent) => {
-    e.preventDefault();
+  // Redirecionamento para autenticação do Replit
+  const handleAuthRedirect = () => {
     setIsLoading(true);
     window.location.href = "/api/login";
-  };
-
-  // Login alternativo direto por e-mail (sem senha)
-  const handleDevLogin = async () => {
-    if (!email || !email.includes('@')) {
-      toast({
-        title: "E-mail inválido",
-        description: "Por favor, digite um e-mail válido",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/auth/dev-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Redirecionando para o dashboard..."
-        });
-        
-        // Aguarde um pouco e redirecione
-        setTimeout(() => {
-          navigate('/');
-        }, 1000);
-      } else {
-        throw new Error(data.message || "Erro ao fazer login");
-      }
-    } catch (error) {
-      console.error("Erro no login:", error);
-      toast({
-        title: "Falha no login",
-        description: error instanceof Error ? error.message : "Ocorreu um erro durante o login",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -83,23 +31,55 @@ const LoginForm: React.FC = () => {
           <CardTitle className="text-3xl gradient-text">Symera</CardTitle>
         </div>
         <CardDescription>
-          Faça login para gerenciar seus eventos
+          Plataforma de gerenciamento de eventos
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <a 
-          href="/api/login"
-          className="no-underline w-full relative z-50"
-          style={{ position: 'relative', zIndex: 50 }}
+      <CardContent className="grid gap-6">
+        <div className="text-center">
+          <h3 className="text-lg font-medium">Bem-vindo à Symera</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Escolha uma opção para acessar sua conta
+          </p>
+        </div>
+        
+        <Button
+          onClick={handleAuthRedirect}
+          className="w-full h-11"
+          disabled={isLoading}
         >
+          {isLoading ? "Processando..." : "Entrar na minha conta"}
+        </Button>
+        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-muted" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">
+              ou
+            </span>
+          </div>
+        </div>
+        
+        <Button
+          variant="outline"
+          onClick={handleAuthRedirect}
+          className="w-full h-11"
+          disabled={isLoading}
+        >
+          Criar uma nova conta
+        </Button>
+        
+        <div className="flex items-center justify-center gap-2 mt-2">
           <Button
-            variant="outline"
-            type="button"
-            className="w-full cursor-pointer relative z-50"
+            variant="ghost"
+            size="sm"
+            onClick={handleAuthRedirect}
+            className="flex items-center gap-2"
             disabled={isLoading}
           >
             <svg
-              className="mr-2 h-4 w-4"
+              className="h-4 w-4"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -110,40 +90,9 @@ const LoginForm: React.FC = () => {
             </svg>
             Continuar com Google
           </Button>
-        </a>
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-muted" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">
-              Acesso direto com e-mail
-            </span>
-          </div>
-        </div>
-        <div className="grid gap-2">
-          <Input
-            id="email"
-            type="email"
-            placeholder="nome@exemplo.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        
-        <div className="text-center text-sm text-muted-foreground">
-          Use qualquer e-mail para acessar o sistema (não precisa de senha)
         </div>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
-        <Button 
-          className="w-full" 
-          onClick={handleDevLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? "Entrando..." : "Entrar com E-mail"}
-        </Button>
         <div className="text-center text-sm text-muted-foreground">
           Ao continuar, você concorda com nossos{" "}
           <a href="#" className="underline underline-offset-4 hover:text-primary">
