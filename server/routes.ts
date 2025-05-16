@@ -291,6 +291,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Task routes
+  // Endpoint para buscar todas as tarefas do usuário
+  app.get('/api/tasks', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log('Buscando todas as tarefas do usuário');
+      const userId = req.user.claims.sub;
+      
+      // Buscar todos os eventos que o usuário tem acesso
+      const events = await storage.getEventsByUser(userId);
+      
+      // Para cada evento, buscar as tarefas
+      let allTasks = [];
+      for (const event of events) {
+        const eventTasks = await storage.getTasksByEventId(event.id);
+        // Adicionar o nome do evento a cada tarefa para exibir no calendário
+        const tasksWithEventName = eventTasks.map(task => ({
+          ...task,
+          eventName: event.name
+        }));
+        allTasks = [...allTasks, ...tasksWithEventName];
+      }
+      
+      // Retornar todas as tarefas em ordem de data de vencimento
+      allTasks.sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+      
+      console.log(`Retornando ${allTasks.length} tarefas para o usuário ${userId}`);
+      res.json(allTasks);
+    } catch (error) {
+      console.error("Erro ao buscar tarefas:", error);
+      res.status(500).json({ message: "Falha ao buscar tarefas" });
+    }
+  });
+  
   app.get('/api/events/:eventId/tasks', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
