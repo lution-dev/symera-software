@@ -173,6 +173,15 @@ const EventForm: React.FC<EventFormProps> = ({
               <FormLabel>Imagem de capa</FormLabel>
               <FormControl>
                 <div className="flex flex-col items-center space-y-4">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    id="coverImage"
+                    onChange={handleImageUpload}
+                    disabled={imageUploading}
+                    className="hidden"
+                  />
+                  
                   {imagePreview ? (
                     <div className="relative w-full max-w-xl h-48 rounded-lg overflow-hidden bg-secondary">
                       <img
@@ -192,41 +201,36 @@ const EventForm: React.FC<EventFormProps> = ({
                       >
                         Remover
                       </Button>
-                    </div>
-                  ) : (
-                    <div className="w-full max-w-xl h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50">
-                      <Image className="w-10 h-10 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">Arraste uma imagem ou clique para fazer upload</p>
-                    </div>
-                  )}
-                  <div className="flex justify-center">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      id="coverImage"
-                      onChange={handleImageUpload}
-                      disabled={imageUploading}
-                      className="hidden"
-                    />
-                    <label htmlFor="coverImage">
+                      
                       <Button
                         type="button"
-                        variant="outline"
-                        disabled={imageUploading}
-                        className="cursor-pointer"
+                        variant="secondary"
+                        size="sm"
+                        className="absolute bottom-2 right-2"
                         onClick={() => document.getElementById("coverImage")?.click()}
                       >
+                        Trocar
+                      </Button>
+                    </div>
+                  ) : (
+                    <label htmlFor="coverImage" className="cursor-pointer">
+                      <div className="w-full max-w-xl h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
                         {imageUploading ? (
-                          "Carregando..."
+                          <div className="flex flex-col items-center">
+                            <div className="animate-spin mb-2">
+                              <i className="fas fa-spinner text-2xl" />
+                            </div>
+                            <p className="text-sm text-muted-foreground">Carregando imagem...</p>
+                          </div>
                         ) : (
                           <>
-                            <Upload className="w-4 h-4 mr-2" />
-                            {imagePreview ? "Trocar imagem" : "Adicionar imagem"}
+                            <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+                            <p className="text-sm text-muted-foreground">Clique para adicionar uma imagem de capa</p>
                           </>
                         )}
-                      </Button>
+                      </div>
                     </label>
-                  </div>
+                  )}
                 </div>
               </FormControl>
               <FormDescription>
