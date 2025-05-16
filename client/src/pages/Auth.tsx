@@ -69,32 +69,32 @@ const Auth: React.FC = () => {
                 <div className="text-primary text-center mb-3 flex justify-center">
                   <CheckCircle className="h-7 w-7" />
                 </div>
-                <h3 className="font-semibold text-center mb-2">Checklist Inteligente</h3>
-                <p className="text-sm text-center opacity-90">Gerado por IA de acordo com suas necessidades</p>
+                <h3 className="font-semibold text-center mb-2">Checklist por IA</h3>
+                <p className="text-sm text-center opacity-90">Inteligência artificial gera tarefas personalizadas</p>
               </div>
               
               <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
                 <div className="text-primary text-center mb-3 flex justify-center">
                   <Calendar className="h-7 w-7" />
                 </div>
-                <h3 className="font-semibold text-center mb-2">Cronograma</h3>
-                <p className="text-sm text-center opacity-90">Organização completa de suas tarefas</p>
+                <h3 className="font-semibold text-center mb-2">Agenda Avançada</h3>
+                <p className="text-sm text-center opacity-90">Calendário completo com visualizações personalizáveis</p>
               </div>
               
               <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
                 <div className="text-primary text-center mb-3 flex justify-center">
-                  <FileText className="h-7 w-7" />
+                  <Users className="h-7 w-7" />
                 </div>
-                <h3 className="font-semibold text-center mb-2">Documentos</h3>
-                <p className="text-sm text-center opacity-90">Contratos e arquivos organizados</p>
+                <h3 className="font-semibold text-center mb-2">Colaboração</h3>
+                <p className="text-sm text-center opacity-90">Trabalhe em equipe em tempo real com permissões</p>
               </div>
               
               <div className="bg-black/20 backdrop-blur-md p-5 rounded-xl card-hover border border-white/5">
                 <div className="text-primary text-center mb-3 flex justify-center">
-                  <BarChart3 className="h-7 w-7" />
+                  <DollarSign className="h-7 w-7" />
                 </div>
-                <h3 className="font-semibold text-center mb-2">Produtividade</h3>
-                <p className="text-sm text-center opacity-90">Análises e métricas para seu evento</p>
+                <h3 className="font-semibold text-center mb-2">Gestão Financeira</h3>
+                <p className="text-sm text-center opacity-90">Controle de orçamentos e fornecedores</p>
               </div>
             </div>
           </div>
