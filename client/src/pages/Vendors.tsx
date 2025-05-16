@@ -422,8 +422,11 @@ const Vendors: React.FC = () => {
   const filteredEvents = React.useMemo(() => {
     // Verificar se os eventos estão disponíveis
     if (!events || !Array.isArray(events)) {
+      console.log("[Debug] Eventos indisponíveis ou não é um array");
       return [];
     }
+    
+    console.log("[Debug] Total de eventos recebidos:", events.length);
     
     // Remover eventos duplicados usando um Set baseado nos IDs
     const uniqueEventIds = new Set();
@@ -435,12 +438,17 @@ const Vendors: React.FC = () => {
       return true;
     });
     
+    console.log("[Debug] Eventos únicos após remoção de duplicados:", uniqueEvents.length);
+    
     // Aplicar o filtro de busca
-    return uniqueEvents.filter((event: Event) => 
+    const filtered = uniqueEvents.filter((event: Event) => 
       searchTerm === "" || 
       event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.type.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    
+    console.log("[Debug] Eventos filtrados após busca:", filtered.length);
+    return filtered;
   }, [events, searchTerm]);
   
   // Mutação para adicionar fornecedor
@@ -537,10 +545,20 @@ const Vendors: React.FC = () => {
   
   // Selecionar primeiro evento automaticamente se nenhum estiver selecionado
   React.useEffect(() => {
-    if (events.length > 0 && !selectedEventId) {
+    if (Array.isArray(events) && events.length > 0 && !selectedEventId) {
       setSelectedEventId(events[0].id);
+      console.log("[Debug] Selecionando primeiro evento automaticamente:", events[0].id);
     }
   }, [events, selectedEventId]);
+  
+  // Resetar a lista de fornecedores quando o evento selecionado muda
+  React.useEffect(() => {
+    if (selectedEventId) {
+      // Invalida a query para forçar uma nova busca de fornecedores
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "vendors"] });
+      console.log("[Debug] Resetando lista de fornecedores para o novo evento:", selectedEventId);
+    }
+  }, [selectedEventId, queryClient]);
   
   // Resetar formulário
   const resetForm = () => {
