@@ -172,7 +172,7 @@ const EventForm: React.FC<EventFormProps> = ({
             <FormItem className="col-span-full mb-6">
               <FormLabel>Imagem de capa</FormLabel>
               <FormControl>
-                <div className="flex flex-col items-center space-y-4">
+                <div className="w-full">
                   <Input
                     type="file"
                     accept="image/*"
@@ -183,7 +183,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   />
                   
                   {imagePreview ? (
-                    <div className="relative w-full max-w-xl h-48 rounded-lg overflow-hidden bg-secondary">
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden bg-secondary">
                       <img
                         src={imagePreview}
                         alt="Prévia da imagem"
@@ -213,8 +213,8 @@ const EventForm: React.FC<EventFormProps> = ({
                       </Button>
                     </div>
                   ) : (
-                    <label htmlFor="coverImage" className="cursor-pointer">
-                      <div className="w-full max-w-xl h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                    <label htmlFor="coverImage" className="cursor-pointer w-full block">
+                      <div className="w-full h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
                         {imageUploading ? (
                           <div className="flex flex-col items-center">
                             <div className="animate-spin mb-2">
