@@ -404,7 +404,7 @@ const Vendors: React.FC = () => {
                         <SelectValue placeholder="Selecione um evento" />
                       </SelectTrigger>
                       <SelectContent>
-                        {events.map((event: Event) => (
+                        {filteredEvents.map((event: Event) => (
                           <SelectItem key={event.id} value={event.id.toString()}>
                             {event.name}
                           </SelectItem>
