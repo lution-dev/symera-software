@@ -106,9 +106,30 @@ const Vendors: React.FC = () => {
     enabled: !!selectedEventId,
   });
   
-  // Filtrar eventos pela busca
+  // Log para depuração
+  React.useEffect(() => {
+    console.log("[Debug] Eventos carregados:", events);
+  }, [events]);
+
+  // Filtrar eventos pela busca e remover duplicados
   const filteredEvents = React.useMemo(() => {
-    return events.filter((event: Event) => 
+    // Verificar se os eventos estão disponíveis
+    if (!events || !Array.isArray(events)) {
+      return [];
+    }
+    
+    // Remover eventos duplicados usando um Set baseado nos IDs
+    const uniqueEventIds = new Set();
+    const uniqueEvents = events.filter((event: Event) => {
+      if (!event || uniqueEventIds.has(event.id)) {
+        return false;
+      }
+      uniqueEventIds.add(event.id);
+      return true;
+    });
+    
+    // Aplicar o filtro de busca
+    return uniqueEvents.filter((event: Event) => 
       searchTerm === "" || 
       event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.type.toLowerCase().includes(searchTerm.toLowerCase())
