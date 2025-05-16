@@ -63,7 +63,8 @@ import {
   X, 
   Briefcase, 
   User,
-  UserCog
+  UserCog,
+  Calendar
 } from "lucide-react";
 import { getInitials, generateProfileImageUrl, getEventTypeLabel } from "@/lib/utils";
 
@@ -591,30 +592,21 @@ const Team: React.FC = () => {
       {viewMode === "events" ? (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <div className="mb-4">
-              <Select 
-                value={selectedEventId?.toString() || ""} 
-                onValueChange={(value) => setSelectedEventId(parseInt(value, 10))}
-              >
-                <SelectTrigger className="w-full bg-card rounded-md">
-                  <SelectValue placeholder="Selecione um evento" />
-                </SelectTrigger>
-                <SelectContent>
-                  {events.map((event: Event) => (
-                    <SelectItem key={event.id} value={event.id.toString()}>
-                      {event.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="bg-card rounded-lg border p-1 overflow-hidden">
-              <div className="mb-3 px-3 pt-3">
-                <h3 className="font-semibold text-lg">Seus Eventos</h3>
-                <p className="text-muted-foreground text-sm">
-                  Clique para gerenciar a equipe
-                </p>
+            <div className="bg-card rounded-lg border overflow-hidden">
+              <div className="px-4 py-3 border-b bg-muted/40">
+                <h3 className="font-semibold text-lg">Meus Eventos</h3>
+                <div className="mt-2 relative">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      type="search" 
+                      placeholder="Buscar eventos..." 
+                      className="pl-9 bg-background"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
               
               {isLoadingEvents ? (
@@ -622,33 +614,38 @@ const Team: React.FC = () => {
                   <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
                 </div>
               ) : filteredEvents.length > 0 ? (
-                <div className="overflow-y-auto max-h-[350px] px-1 space-y-1">
+                <div className="overflow-y-auto max-h-[400px]">
                   {filteredEvents.map((event: Event) => (
                     <div
                       key={event.id}
-                      className={`flex items-center p-3 rounded-md cursor-pointer transition-all ${
+                      className={`flex items-center border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-all ${
                         selectedEventId === event.id
-                          ? "bg-primary/15 border-l-4 border-primary"
-                          : "hover:bg-muted border-l-4 border-transparent"
+                          ? "bg-primary/10"
+                          : ""
                       }`}
                       onClick={() => setSelectedEventId(event.id)}
                     >
-                      <div className="flex-1 min-w-0">
+                      <div 
+                        className={`w-1 self-stretch transition-colors ${
+                          selectedEventId === event.id ? "bg-primary" : "bg-transparent"
+                        }`}
+                      />
+                      <div className="flex-1 p-3 min-w-0">
                         <div className="font-medium truncate">{event.name}</div>
-                        <div className="flex items-center text-xs text-muted-foreground mt-1">
-                          <Badge variant="outline" className="mr-2 rounded-sm px-1 text-xs">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                          <Badge variant="outline" className="rounded-sm px-1 text-xs">
                             {getEventTypeLabel(event.type)}
                           </Badge>
                           {event.team && (
-                            <span className="flex items-center">
+                            <Badge variant="secondary" className="rounded-sm px-1 text-xs flex items-center">
                               <UsersRound className="h-3 w-3 mr-1" />
-                              {event.team.length}
-                            </span>
+                              {event.team.length} membros
+                            </Badge>
                           )}
                         </div>
                       </div>
                       {selectedEventId === event.id && (
-                        <div className="text-primary">
+                        <div className="pr-3 text-primary">
                           <CheckCircle2 className="h-5 w-5" />
                         </div>
                       )}
@@ -656,9 +653,14 @@ const Team: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-4">
-                  <p className="text-muted-foreground">Nenhum evento encontrado</p>
-                  <Button variant="outline" size="sm" className="mt-2">
+                <div className="text-center py-6">
+                  <Calendar className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                  <p className="font-medium">Nenhum evento encontrado</p>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {searchTerm ? "Tente outra busca" : "Crie um evento para começar"}
+                  </p>
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-1" />
                     Criar Evento
                   </Button>
                 </div>
