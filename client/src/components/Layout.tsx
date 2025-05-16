@@ -13,12 +13,36 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [location] = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
-  // Load sidebar collapsed state from localStorage
+  // Load sidebar collapsed state from localStorage and setup event listeners
   useEffect(() => {
+    // Initial load from localStorage
     const savedState = localStorage.getItem('sidebar_collapsed');
     if (savedState) {
       setSidebarCollapsed(savedState === 'true');
     }
+    
+    // Setup storage event listener
+    const handleStorageChange = () => {
+      const savedState = localStorage.getItem('sidebar_collapsed');
+      if (savedState !== null) {
+        setSidebarCollapsed(savedState === 'true');
+      }
+    };
+    
+    // Setup custom event listener
+    const handleSidebarChange = (e: Event) => {
+      if (e instanceof CustomEvent) {
+        setSidebarCollapsed(e.detail.collapsed);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('sidebarStateChange', handleSidebarChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('sidebarStateChange', handleSidebarChange as EventListener);
+    };
   }, []);
   
   // Skip layout when on auth page
@@ -40,32 +64,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     window.location.href = "/auth";
     return null;
   }
-  
-  // Listen for changes to sidebar collapsed state
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedState = localStorage.getItem('sidebar_collapsed');
-      if (savedState !== null) {
-        setSidebarCollapsed(savedState === 'true');
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Custom event listener for sidebar state changes
-    const handleSidebarChange = (e: Event) => {
-      if (e instanceof CustomEvent) {
-        setSidebarCollapsed(e.detail.collapsed);
-      }
-    };
-    
-    window.addEventListener('sidebarStateChange', handleSidebarChange as EventListener);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('sidebarStateChange', handleSidebarChange as EventListener);
-    };
-  }, []);
 
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">
