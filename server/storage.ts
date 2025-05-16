@@ -5,18 +5,21 @@ import {
   eventTeamMembers,
   vendors,
   activityLogs,
+  budgetItems,
   type User,
   type Event,
   type Task,
   type EventTeamMember,
   type Vendor,
   type ActivityLog,
+  type BudgetItem,
   type UpsertUser,
   type InsertEvent,
   type InsertTask,
   type InsertEventTeamMember,
   type InsertVendor,
   type InsertActivityLog,
+  type InsertBudgetItem,
 } from "@shared/schema";
 import { db, executeWithRetry } from "./db";
 import { eq, and, or, desc, gte, lte } from "drizzle-orm";
@@ -634,6 +637,48 @@ export class DatabaseStorage implements IStorage {
       .values(activityLogData)
       .returning();
     return activityLog;
+  }
+
+  // Budget item operations
+  async getBudgetItemsByEventId(eventId: number): Promise<BudgetItem[]> {
+    return db
+      .select()
+      .from(budgetItems)
+      .where(eq(budgetItems.eventId, eventId))
+      .orderBy(desc(budgetItems.createdAt));
+  }
+
+  async getBudgetItemById(id: number): Promise<BudgetItem | undefined> {
+    const [item] = await db
+      .select()
+      .from(budgetItems)
+      .where(eq(budgetItems.id, id))
+      .limit(1);
+    return item;
+  }
+
+  async createBudgetItem(budgetItemData: InsertBudgetItem): Promise<BudgetItem> {
+    const [item] = await db
+      .insert(budgetItems)
+      .values(budgetItemData)
+      .returning();
+    return item;
+  }
+
+  async updateBudgetItem(id: number, budgetItemData: Partial<InsertBudgetItem>): Promise<BudgetItem> {
+    const [item] = await db
+      .update(budgetItems)
+      .set({
+        ...budgetItemData,
+        updatedAt: new Date()
+      })
+      .where(eq(budgetItems.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteBudgetItem(id: number): Promise<void> {
+    await db.delete(budgetItems).where(eq(budgetItems.id, id));
   }
 }
 

@@ -2,7 +2,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { CreateEventData, CreateTaskData, createEventSchema, createTaskSchema } from "@shared/schema";
+import { 
+  CreateEventData, 
+  CreateTaskData, 
+  createEventSchema, 
+  createTaskSchema,
+  insertBudgetItemSchema 
+} from "@shared/schema";
 import { z } from "zod";
 import { generateEventChecklist } from "./openai";
 
@@ -527,6 +533,193 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting vendor:", error);
       res.status(500).json({ message: "Failed to delete vendor" });
+    }
+  });
+
+  // Rota para buscar itens de orçamento de um evento
+  app.get('/api/events/:eventId/budget', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a este evento" });
+      }
+      
+      const budgetItems = await storage.getBudgetItemsByEventId(eventId);
+      console.log(`Retornando ${budgetItems.length} itens de orçamento para o evento ${eventId}`);
+      
+      res.json(budgetItems);
+    } catch (error) {
+      console.error("Erro ao buscar itens de orçamento:", error);
+      res.status(500).json({ message: "Falha ao buscar itens de orçamento" });
+    }
+  });
+  
+  // Rota para adicionar item ao orçamento
+  app.post('/api/events/:eventId/budget', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a este evento" });
+      }
+      
+      // Validar dados do item de orçamento
+      const budgetItemSchema = insertBudgetItemSchema.omit({ id: true, createdAt: true, updatedAt: true });
+      const validatedData = budgetItemSchema.parse({
+        ...req.body,
+        eventId: eventId,
+        amount: parseFloat(req.body.amount),
+        paid: req.body.paid || false
+      });
+      
+      // Criar item de orçamento
+      const budgetItem = await storage.createBudgetItem(validatedData);
+      
+      // Log da atividade
+      await storage.createActivityLog({
+        eventId,
+        userId,
+        action: "budget_item_added",
+        details: { 
+          itemName: budgetItem.name, 
+          category: budgetItem.category,
+          amount: budgetItem.amount
+        }
+      });
+      
+      res.status(201).json(budgetItem);
+    } catch (error) {
+      console.error("Erro ao adicionar item ao orçamento:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos para o item de orçamento", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Falha ao adicionar item ao orçamento" });
+    }
+  });
+  
+  // Rota para atualizar item do orçamento
+  app.put('/api/budget/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const itemId = parseInt(req.params.id, 10);
+      
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "ID de item inválido" });
+      }
+      
+      // Buscar item para verificar a qual evento pertence
+      const budgetItem = await storage.getBudgetItemById(itemId);
+      
+      if (!budgetItem) {
+        return res.status(404).json({ message: "Item de orçamento não encontrado" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento do item
+      const hasAccess = await storage.hasUserAccessToEvent(userId, budgetItem.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a este item" });
+      }
+      
+      // Validar dados do item
+      const updateSchema = insertBudgetItemSchema.partial().omit({ id: true, eventId: true, createdAt: true, updatedAt: true });
+      
+      const updateData = updateSchema.parse({
+        ...req.body,
+        amount: req.body.amount ? parseFloat(req.body.amount) : undefined
+      });
+      
+      // Atualizar item
+      const updatedItem = await storage.updateBudgetItem(itemId, updateData);
+      
+      // Log da atividade
+      await storage.createActivityLog({
+        eventId: budgetItem.eventId,
+        userId,
+        action: "budget_item_updated",
+        details: { 
+          itemName: updatedItem.name, 
+          category: updatedItem.category,
+          amount: updatedItem.amount
+        }
+      });
+      
+      res.json(updatedItem);
+    } catch (error) {
+      console.error("Erro ao atualizar item do orçamento:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos para o item de orçamento", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Falha ao atualizar item do orçamento" });
+    }
+  });
+  
+  // Rota para excluir item do orçamento
+  app.delete('/api/budget/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const itemId = parseInt(req.params.id, 10);
+      
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "ID de item inválido" });
+      }
+      
+      // Buscar item para verificar a qual evento pertence
+      const budgetItem = await storage.getBudgetItemById(itemId);
+      
+      if (!budgetItem) {
+        return res.status(404).json({ message: "Item de orçamento não encontrado" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento do item
+      const hasAccess = await storage.hasUserAccessToEvent(userId, budgetItem.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a este item" });
+      }
+      
+      // Excluir item
+      await storage.deleteBudgetItem(itemId);
+      
+      // Log da atividade
+      await storage.createActivityLog({
+        eventId: budgetItem.eventId,
+        userId,
+        action: "budget_item_deleted",
+        details: { 
+          itemName: budgetItem.name, 
+          category: budgetItem.category,
+          amount: budgetItem.amount
+        }
+      });
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Erro ao excluir item do orçamento:", error);
+      res.status(500).json({ message: "Falha ao excluir item do orçamento" });
     }
   });
 
