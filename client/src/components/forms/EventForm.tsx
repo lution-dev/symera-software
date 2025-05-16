@@ -165,6 +165,78 @@ const EventForm: React.FC<EventFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="coverImageUrl"
+          render={({ field }) => (
+            <FormItem className="col-span-full mb-6">
+              <FormLabel>Imagem de capa</FormLabel>
+              <FormControl>
+                <div className="flex flex-col items-center space-y-4">
+                  {imagePreview ? (
+                    <div className="relative w-full max-w-xl h-48 rounded-lg overflow-hidden bg-secondary">
+                      <img
+                        src={imagePreview}
+                        alt="Prévia da imagem"
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          setImagePreview(null);
+                          form.setValue("coverImageUrl", "");
+                        }}
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-full max-w-xl h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50">
+                      <Image className="w-10 h-10 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">Arraste uma imagem ou clique para fazer upload</p>
+                    </div>
+                  )}
+                  <div className="flex justify-center">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      id="coverImage"
+                      onChange={handleImageUpload}
+                      disabled={imageUploading}
+                      className="hidden"
+                    />
+                    <label htmlFor="coverImage">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={imageUploading}
+                        className="cursor-pointer"
+                        onClick={() => document.getElementById("coverImage")?.click()}
+                      >
+                        {imageUploading ? (
+                          "Carregando..."
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            {imagePreview ? "Trocar imagem" : "Adicionar imagem"}
+                          </>
+                        )}
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+              </FormControl>
+              <FormDescription>
+                Adicione uma imagem de capa para seu evento (opcional). Tamanho máximo: 5MB.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+            
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
