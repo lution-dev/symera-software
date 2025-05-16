@@ -394,17 +394,28 @@ const Budget: React.FC = () => {
     const budget = event?.budget || 0;
     
     // Montar itens do orçamento incluindo fornecedores
-    const allItems = [
-      ...budgetItems,
-      ...vendors.filter((v: Vendor) => v.cost && !isNaN(Number(v.cost))).map((v: Vendor) => ({
+    const vendorItems = vendors
+      .filter((v: Vendor) => v.cost && !isNaN(Number(v.cost)))
+      .map((v: Vendor) => ({
         id: `vendor-${v.id}`,
         eventId: v.eventId,
         name: v.name,
         category: v.service,
         amount: Number(v.cost || 0),
         paid: false,
-        createdAt: new Date().toISOString()
-      }))
+        createdAt: new Date().toISOString(),
+        isVendor: true // Marcar como item de fornecedor
+      }));
+    
+    // Adicionar campo para indicar se é um item de fornecedor ou não
+    const regularItems = budgetItems.map(item => ({
+      ...item,
+      isVendor: false // Marcar como item regular (não-fornecedor)
+    }));
+    
+    const allItems = [
+      ...regularItems,
+      ...vendorItems
     ];
     
     const totalExpenses = allItems.reduce((sum, item: any) => {
