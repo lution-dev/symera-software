@@ -20,14 +20,30 @@ const handleOpenAIError = (error: any) => {
 // Generate a checklist for an event based on its details
 export async function generateEventChecklist(eventData: CreateEventData): Promise<Array<{ title: string, dueDate?: Date, description?: string, priority?: string }>> {
   try {
-    // Calculate days until event
-    const eventDate = new Date(eventData.date);
+    // Use startDate if available, otherwise fallback to the date field
+    const eventStartDate = new Date(eventData.startDate || eventData.date);
+    const eventEndDate = eventData.endDate ? new Date(eventData.endDate) : eventStartDate;
     const today = new Date();
-    const daysUntilEvent = Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntilEvent = Math.ceil((eventStartDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Format date with time if available
+    const formatDateWithTime = (date: Date, time?: string) => {
+      const dateStr = date.toLocaleDateString();
+      return time ? `${dateStr} às ${time}` : dateStr;
+    };
+    
+    const eventStartDisplay = formatDateWithTime(eventStartDate, eventData.startTime);
+    const eventEndDisplay = formatDateWithTime(eventEndDate, eventData.endTime);
+    
+    // Determine if it's a multi-day event
+    const isMultiDay = eventStartDate.getTime() !== eventEndDate.getTime();
+    const dateDisplay = isMultiDay 
+      ? `de ${eventStartDisplay} até ${eventEndDisplay}`
+      : eventStartDisplay;
 
     // Prepare prompt for OpenAI
     const prompt = `
-      Create a comprehensive checklist for a ${eventData.type} event named "${eventData.name}" that will occur on ${eventDate.toLocaleDateString()}. 
+      Create a comprehensive checklist for a ${eventData.type} event named "${eventData.name}" that will occur ${dateDisplay}. 
       
       Additional details:
       - Location: ${eventData.location || 'To be determined'}
@@ -35,6 +51,7 @@ export async function generateEventChecklist(eventData: CreateEventData): Promis
       - Budget: ${eventData.budget ? `$${eventData.budget}` : 'Not specified'}
       - Days until event: ${daysUntilEvent}
       - Description: ${eventData.description || 'Not provided'}
+      - Event duration: ${isMultiDay ? `Multiple days (${Math.ceil((eventEndDate.getTime() - eventStartDate.getTime()) / (1000 * 60 * 60 * 24))} days)` : 'Single day'}
 
       Please provide a detailed, organized checklist with tasks that need to be completed before the event.
       For each task, include:
@@ -88,7 +105,7 @@ export async function generateEventChecklist(eventData: CreateEventData): Promis
       // Calculate due date based on days before event
       let dueDate: Date | undefined = undefined;
       if (typeof task.dueDateBefore === 'number') {
-        dueDate = new Date(eventDate);
+        dueDate = new Date(eventStartDate);
         dueDate.setDate(dueDate.getDate() - task.dueDateBefore);
       }
 

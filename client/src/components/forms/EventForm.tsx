@@ -32,6 +32,10 @@ interface EventFormProps {
     name?: string;
     type?: string;
     date?: string;
+    startDate?: string;
+    endDate?: string;
+    startTime?: string;
+    endTime?: string;
     location?: string;
     description?: string;
     budget?: number;
@@ -59,6 +63,10 @@ const EventForm: React.FC<EventFormProps> = ({
     name: "",
     type: "",
     date: defaultDate,
+    startDate: defaultDate,
+    endDate: defaultDate,
+    startTime: "09:00",
+    endTime: "18:00",
     location: "",
     description: "",
     budget: undefined,
@@ -307,12 +315,62 @@ const EventForm: React.FC<EventFormProps> = ({
 
           <FormField
             control={form.control}
-            name="date"
+            name="startDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data do evento</FormLabel>
+                <FormLabel>Data de início</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="date" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(e);
+                      // Atualiza o campo date para manter compatibilidade
+                      form.setValue("date", e.target.value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de término</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="startTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Horário de início</FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="endTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Horário de término</FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

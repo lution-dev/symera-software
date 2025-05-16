@@ -68,7 +68,11 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: eventTypeEnum("type").notNull(),
-  date: timestamp("date").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  startTime: text("start_time"),
+  endTime: text("end_time"),
+  date: timestamp("date").notNull(), // Mantido para compatibilidade com código existente
   location: text("location"),
   description: text("description"),
   budget: real("budget"),
@@ -253,7 +257,11 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export const createEventSchema = z.object({
   name: z.string().min(3, "Nome do evento é obrigatório").max(100),
   type: z.enum(["wedding", "birthday", "corporate", "conference", "social", "other"]),
-  date: z.string().or(z.date()),
+  startDate: z.string().or(z.date()),
+  endDate: z.string().or(z.date()).optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  date: z.string().or(z.date()), // Mantido para compatibilidade com código existente
   location: z.string().optional(),
   description: z.string().optional(),
   budget: z.number().optional(),
