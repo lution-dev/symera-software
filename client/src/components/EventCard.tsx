@@ -66,6 +66,12 @@ const EventCard: React.FC<EventCardProps> = ({
     console.log(`[Debug] EventCard ${id} - team data:`, team);
     return Array.isArray(team) ? team : [];
   }, [id, team]);
+
+  // Debug task data
+  React.useEffect(() => {
+    console.log(`[Debug] EventCard ${id} - tasks data:`, tasks);
+    console.log(`[Debug] EventCard ${id} - progress:`, calculateTaskProgress(tasks));
+  }, [id, tasks]);
   // Get default cover image based on event type
   const getDefaultCover = () => {
     switch (type) {
