@@ -285,7 +285,8 @@ const Schedule: React.FC = () => {
                     variant="outline" 
                     className="flex-1"
                     onClick={() => {
-                      window.location.href = `/create-event?date=${selectedDate.toISOString()}`;
+                      // Navegar para criar novo evento
+                      window.location.href = "/events";
                       setShowNewItemDialog(false);
                     }}
                   >
@@ -295,7 +296,8 @@ const Schedule: React.FC = () => {
                     variant="outline" 
                     className="flex-1"
                     onClick={() => {
-                      window.location.href = `/checklist?date=${selectedDate.toISOString()}`;
+                      // Navegar para eventos existentes
+                      window.location.href = "/events";
                       setShowNewItemDialog(false);
                     }}
                   >
