@@ -105,6 +105,15 @@ const Vendors: React.FC = () => {
     enabled: !!selectedEventId,
   });
   
+  // Filtrar eventos pela busca
+  const filteredEvents = React.useMemo(() => {
+    return events.filter((event: Event) => 
+      searchTerm === "" || 
+      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [events, searchTerm]);
+  
   // Mutação para adicionar fornecedor
   const addVendorMutation = useMutation({
     mutationFn: async (data: {
@@ -635,9 +644,9 @@ const Vendors: React.FC = () => {
                 <div className="flex items-center justify-center h-20">
                   <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
                 </div>
-              ) : events.length > 0 ? (
+              ) : filteredEvents.length > 0 ? (
                 <div className="overflow-y-auto max-h-[400px]">
-                  {events.map((event: Event) => (
+                  {filteredEvents.map((event: Event) => (
                     <div
                       key={event.id}
                       className={`flex items-center border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-all ${
