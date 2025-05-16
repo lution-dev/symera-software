@@ -699,34 +699,48 @@ const Vendors: React.FC = () => {
                       </Button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {filteredVendors.map((vendor: Vendor) => (
                         <div
                           key={vendor.id}
-                          className="border rounded-lg hover:border-primary transition-colors"
+                          className="bg-card border rounded-lg shadow-sm hover:shadow-md transition-shadow"
                         >
                           <div className="p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h3 className="font-medium">{vendor.name}</h3>
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                  <Badge variant="outline" className="mr-2">
-                                    {vendor.service === "catering" ? "Buffet" :
-                                     vendor.service === "venue" ? "Local" :
-                                     vendor.service === "photography" ? "Fotografia" :
-                                     vendor.service === "decoration" ? "Decoração" :
-                                     vendor.service === "music" ? "Música" :
-                                     vendor.service === "invitation" ? "Convites" :
-                                     vendor.service === "transport" ? "Transporte" :
-                                     vendor.service === "cake" ? "Bolo e Doces" :
-                                     vendor.service === "costume" ? "Vestuário" : "Outro"}
-                                  </Badge>
-                                  {vendor.cost && (
-                                    <div className="flex items-center">
-                                      <DollarSign className="h-3 w-3 mr-1" />
-                                      {formatCurrency(vendor.cost)}
-                                    </div>
-                                  )}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-start gap-3">
+                                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
+                                  {vendor.service === "catering" ? <Store className="h-5 w-5" /> :
+                                   vendor.service === "venue" ? <Store className="h-5 w-5" /> :
+                                   vendor.service === "photography" ? <Store className="h-5 w-5" /> :
+                                   vendor.service === "decoration" ? <Store className="h-5 w-5" /> :
+                                   vendor.service === "music" ? <Store className="h-5 w-5" /> :
+                                   vendor.service === "invitation" ? <Store className="h-5 w-5" /> :
+                                   vendor.service === "transport" ? <Store className="h-5 w-5" /> :
+                                   vendor.service === "cake" ? <Store className="h-5 w-5" /> :
+                                   vendor.service === "costume" ? <Store className="h-5 w-5" /> :
+                                   <Store className="h-5 w-5" />}
+                                </div>
+                                <div>
+                                  <h3 className="font-medium">{vendor.name}</h3>
+                                  <div className="flex items-center text-sm text-muted-foreground mt-1">
+                                    <Badge variant="outline" className="mr-2">
+                                      {vendor.service === "catering" ? "Buffet" :
+                                       vendor.service === "venue" ? "Local" :
+                                       vendor.service === "photography" ? "Fotografia" :
+                                       vendor.service === "decoration" ? "Decoração" :
+                                       vendor.service === "music" ? "Música" :
+                                       vendor.service === "invitation" ? "Convites" :
+                                       vendor.service === "transport" ? "Transporte" :
+                                       vendor.service === "cake" ? "Bolo e Doces" :
+                                       vendor.service === "costume" ? "Vestuário" : "Outro"}
+                                    </Badge>
+                                    {vendor.cost && (
+                                      <div className="flex items-center">
+                                        <DollarSign className="h-3 w-3 mr-1" />
+                                        {formatCurrency(vendor.cost)}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                               <div className="flex space-x-1">
@@ -748,24 +762,24 @@ const Vendors: React.FC = () => {
                               </div>
                             </div>
                             {(vendor.contactName || vendor.contactEmail || vendor.contactPhone) && (
-                              <div className="border-t pt-2 mt-2">
-                                <h4 className="text-sm font-medium mb-1">Informações de Contato</h4>
-                                <div className="grid grid-cols-1 gap-1">
+                              <div className="border-t pt-3 mt-3">
+                                <h4 className="text-sm font-medium mb-2">Informações de Contato</h4>
+                                <div className="grid grid-cols-1 gap-2">
                                   {vendor.contactName && (
                                     <div className="flex items-center text-sm">
-                                      <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                                      <User className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                                       {vendor.contactName}
                                     </div>
                                   )}
                                   {vendor.contactEmail && (
                                     <div className="flex items-center text-sm">
-                                      <Mail className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                                      <Mail className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                                       {vendor.contactEmail}
                                     </div>
                                   )}
                                   {vendor.contactPhone && (
                                     <div className="flex items-center text-sm">
-                                      <Phone className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                                      <Phone className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                                       {vendor.contactPhone}
                                     </div>
                                   )}
@@ -773,9 +787,9 @@ const Vendors: React.FC = () => {
                               </div>
                             )}
                             {vendor.notes && (
-                              <div className="border-t pt-2 mt-2">
-                                <div className="flex items-center text-sm">
-                                  <FileText className="h-3.5 w-3.5 mr-1.5 text-muted-foreground flex-shrink-0" />
+                              <div className="border-t pt-3 mt-3">
+                                <div className="flex items-start text-sm">
+                                  <FileText className="h-3.5 w-3.5 mr-2 text-muted-foreground flex-shrink-0 mt-0.5" />
                                   <span className="text-muted-foreground line-clamp-2">{vendor.notes}</span>
                                 </div>
                               </div>
