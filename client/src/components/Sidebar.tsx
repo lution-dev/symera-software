@@ -122,7 +122,7 @@ const Sidebar: React.FC = () => {
             <button 
               onClick={toggleCollapsed}
               className="absolute opacity-100 flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted z-50 shadow-sm bg-card border border-border"
-              style={{ left: '0px', top: '50px' }}
+              style={{ left: '8px', top: '15px' }}
               title="Expandir menu"
             >
               <ChevronRight size={16} />
