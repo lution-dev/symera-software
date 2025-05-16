@@ -101,6 +101,8 @@ const Team: React.FC = () => {
   const [isAddMemberToMultipleOpen, setIsAddMemberToMultipleOpen] = React.useState(false);
   const [selectedEventId, setSelectedEventId] = React.useState<number | null>(null);
   const [email, setEmail] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [phone, setPhone] = React.useState("");
   const [role, setRole] = React.useState("team_member");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedEvents, setSelectedEvents] = React.useState<number[]>([]);
@@ -176,12 +178,14 @@ const Team: React.FC = () => {
   
   // Mutação para adicionar membro à equipe
   const addTeamMemberMutation = useMutation({
-    mutationFn: async (data: { eventId: number, email: string, role: string }) => {
+    mutationFn: async (data: { eventId: number, email: string, role: string, name?: string, phone?: string }) => {
       return apiRequest(`/api/events/${data.eventId}/team`, {
         method: "POST",
         body: JSON.stringify({
           email: data.email,
-          role: data.role
+          role: data.role,
+          name: data.name,
+          phone: data.phone
         }),
       });
     },
@@ -209,7 +213,7 @@ const Team: React.FC = () => {
   
   // Mutação para adicionar membro a múltiplos eventos
   const addTeamMemberToMultipleEventsMutation = useMutation({
-    mutationFn: async (data: { eventIds: number[], email: string, role: string }) => {
+    mutationFn: async (data: { eventIds: number[], email: string, role: string, name?: string, phone?: string }) => {
       // Esta é uma simplificação, na verdade precisaríamos fazer múltiplas chamadas
       // ou adicionar um novo endpoint no backend para lidar com isso
       
@@ -220,7 +224,9 @@ const Team: React.FC = () => {
           method: "POST",
           body: JSON.stringify({
             email: data.email,
-            role: data.role
+            role: data.role,
+            name: data.name,
+            phone: data.phone
           }),
         });
         results.push(result);
@@ -296,6 +302,8 @@ const Team: React.FC = () => {
       eventId: selectedEventId,
       email,
       role,
+      name,
+      phone
     });
   };
   
@@ -323,6 +331,8 @@ const Team: React.FC = () => {
       eventIds: selectedEvents,
       email,
       role,
+      name,
+      phone
     });
   };
   
@@ -477,6 +487,16 @@ const Team: React.FC = () => {
                   </Select>
                 </div>
                 <div className="grid gap-2">
+                  <Label htmlFor="name">Nome</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Nome completo"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="email">E-mail</Label>
                   <Input
                     id="email"
@@ -484,6 +504,16 @@ const Team: React.FC = () => {
                     placeholder="email@exemplo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Telefone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="(00) 00000-0000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-2">
