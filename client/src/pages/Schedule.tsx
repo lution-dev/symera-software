@@ -399,6 +399,7 @@ const Schedule: React.FC = () => {
                       <div 
                         key={event.id} 
                         className="p-3 rounded-lg bg-card border-l-4 border-l-primary border border-border hover:border-primary hover:shadow-md transition-all cursor-pointer"
+                        onClick={() => navigate(`/events/${event.id}`)}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="font-medium">{event.name}</h4>
@@ -438,6 +439,7 @@ const Schedule: React.FC = () => {
                           task.status === "in_progress" ? "border-l-4 border-l-amber-500" :
                           "border-l-4 border-l-green-500"
                         }`}
+                        onClick={() => navigate(`/events/${task.eventId}?tab=tasks&taskId=${task.id}`)}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="font-medium">{task.title}</h4>
