@@ -377,6 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const vendors = await storage.getVendorsByEventId(eventId);
+      console.log(`Retornando ${vendors.length} fornecedores para o evento ${eventId}`);
       res.json(vendors);
     } catch (error) {
       console.error("Error fetching vendors:", error);

@@ -734,7 +734,7 @@ const Vendors: React.FC = () => {
           <CardHeader>
             <CardTitle>
               {selectedEventId
-                ? events.find((e: Event) => e.id === selectedEventId)?.name || "Fornecedores"
+                ? filteredEvents.find((e: Event) => e.id === selectedEventId)?.name || "Fornecedores"
                 : "Fornecedores"}
             </CardTitle>
             <div className="flex justify-between items-center">
