@@ -1,6 +1,6 @@
 import React from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,36 +33,46 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createTaskSchema } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ChecklistProps {
   id?: string;
 }
 
 const Checklist: React.FC<ChecklistProps> = ({ id }) => {
+  const [location] = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   const [showNewTaskDialog, setShowNewTaskDialog] = React.useState(false);
   const [showEditTaskDialog, setShowEditTaskDialog] = React.useState(false);
   const [currentTask, setCurrentTask] = React.useState<any>(null);
   const [filterStatus, setFilterStatus] = React.useState("all");
   const [filterPriority, setFilterPriority] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
+  
+  // Extract the event ID from the URL if not provided as a prop
+  const eventId = id || location.split('/')[2];
+  
+  console.log("[Debug] Checklist - ID do evento recebido como prop:", id);
+  console.log("[Debug] Checklist - ID do evento extraído da URL:", eventId);
 
   // Get event details
   const { data: event, isLoading: eventLoading } = useQuery({
-    queryKey: [`/api/events/${id}`],
-    enabled: !!id,
+    queryKey: [`/api/events/${eventId}`],
+    enabled: !!eventId && isAuthenticated,
+    retry: 1
   });
 
   // Get tasks for the event
   const { data: tasks, isLoading: tasksLoading } = useQuery({
-    queryKey: [`/api/events/${id}/tasks`],
-    enabled: !!id,
+    queryKey: [`/api/events/${eventId}/tasks`],
+    enabled: !!eventId && !!event,
   });
 
   // Get team members for task assignment
   const { data: team } = useQuery({
-    queryKey: [`/api/events/${id}/team`],
-    enabled: !!id,
+    queryKey: [`/api/events/${eventId}/team`],
+    enabled: !!eventId && !!event,
   });
 
   // Form for creating new tasks
@@ -74,7 +84,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
       dueDate: "",
       status: "todo",
       priority: "medium",
-      eventId: Number(id),
+      eventId: Number(eventId),
       assigneeId: "",
     },
   });
@@ -88,7 +98,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
       dueDate: "",
       status: "todo",
       priority: "medium",
-      eventId: Number(id),
+      eventId: Number(eventId),
       assigneeId: "",
     },
   });
@@ -96,7 +106,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   // Create task mutation
   const createTaskMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest("POST", `/api/events/${id}/tasks`, data);
+      return apiRequest("POST", `/api/events/${eventId}/tasks`, data);
     },
     onSuccess: () => {
       setShowNewTaskDialog(false);
@@ -105,7 +115,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         title: "Tarefa criada",
         description: "A tarefa foi criada com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${id}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
     },
     onError: () => {
       toast({
@@ -129,7 +139,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         title: "Tarefa atualizada",
         description: "A tarefa foi atualizada com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${id}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
     },
     onError: () => {
       toast({
@@ -150,7 +160,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         title: "Tarefa excluída",
         description: "A tarefa foi excluída com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${id}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
     },
     onError: () => {
       toast({
