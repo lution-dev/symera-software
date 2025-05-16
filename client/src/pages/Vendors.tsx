@@ -188,6 +188,19 @@ const Vendors: React.FC = () => {
           eventId: 6,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
+        },
+        {
+          id: 17,
+          name: "Fotografia Jovem",
+          contactName: "Laura Santos",
+          contactEmail: "laura@fotografiajovem.com.br",
+          contactPhone: "(11) 90123-4567",
+          service: "photography",
+          cost: 3200,
+          notes: "Fotografia e vídeo com edição especial para redes sociais",
+          eventId: 6,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       ];
     } else if (selectedEventId === 8) {
@@ -309,6 +322,48 @@ const Vendors: React.FC = () => {
           cost: 4500,
           notes: "Transmissão ao vivo e gravação do evento",
           eventId: 7,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+    } else if (selectedEventId === 9) {
+      return [
+        {
+          id: 23,
+          name: "Espaço Coworking Central",
+          contactName: "Amanda Vieira",
+          contactEmail: "amanda@coworkingcentral.com.br",
+          contactPhone: "(11) 93210-6789",
+          service: "venue",
+          cost: 2000,
+          notes: "Sala de treinamento para 30 pessoas",
+          eventId: 9,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 24,
+          name: "Marketing Online",
+          contactName: "Gabriel Oliveira",
+          contactEmail: "gabriel@marketingonline.com.br",
+          contactPhone: "(11) 92345-7890",
+          service: "other",
+          cost: 1800,
+          notes: "Material didático digital e assessoria de marketing",
+          eventId: 9,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 25,
+          name: "Café & Co.",
+          contactName: "Patrícia Lima",
+          contactEmail: "patricia@cafeeco.com.br",
+          contactPhone: "(11) 91234-5678",
+          service: "catering",
+          cost: 1200,
+          notes: "Coffee break para 30 participantes",
+          eventId: 9,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
