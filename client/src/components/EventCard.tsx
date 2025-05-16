@@ -31,6 +31,10 @@ interface EventCardProps {
   name: string;
   type: string;
   date: string;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
   location?: string;
   status: string;
   attendees?: number;
@@ -45,6 +49,10 @@ const EventCard: React.FC<EventCardProps> = ({
   name,
   type,
   date,
+  startDate,
+  endDate,
+  startTime,
+  endTime,
   location,
   attendees,
   team = [],
@@ -109,7 +117,17 @@ const EventCard: React.FC<EventCardProps> = ({
           <div className="flex flex-wrap gap-y-3">
             <div className="w-1/2 flex items-center">
               <i className="fas fa-calendar-day text-primary mr-2"></i>
-              <span className="text-sm text-gray-300">{formatDate(date)}</span>
+              <span className="text-sm text-gray-300">
+                {startDate && endDate && startDate !== endDate ? (
+                  <>De {formatDate(startDate)} até {formatDate(endDate)}</>
+                ) : startDate ? (
+                  formatDate(startDate)
+                ) : (
+                  formatDate(date)
+                )}
+                {startTime && <> às {startTime}</>}
+                {endTime && startTime !== endTime && <> - {endTime}</>}
+              </span>
             </div>
             {location && (
               <div className="w-1/2 flex items-center">
