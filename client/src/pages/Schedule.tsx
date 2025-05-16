@@ -289,10 +289,10 @@ const Schedule: React.FC = () => {
                     onClick={() => {
                       try {
                         setShowNewItemDialog(false);
-                        // Navegar diretamente para o formulário de criação de evento
+                        // Navegar diretamente para o formulário de criação de evento com a URL correta
                         // Armazenar a data selecionada em localStorage para acessar na página de criação de evento
                         localStorage.setItem('selectedEventDate', selectedDate.toISOString().split('T')[0]);
-                        navigate("/create-event");
+                        navigate("/events/new");
                         toast({
                           title: "Criando novo evento",
                           description: "Preencha os dados para o seu novo evento"
