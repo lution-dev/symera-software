@@ -134,7 +134,7 @@ const Sidebar: React.FC = () => {
       {/* Navigation */}
       <nav className={cn(
         "flex-1 space-y-6",
-        collapsed ? "p-2" : "p-4"
+        "p-4" // Agora a navegação sempre tem p-4
       )}>
         <div className="space-y-1">
           {navItems.map((item) => (
@@ -146,7 +146,7 @@ const Sidebar: React.FC = () => {
                       <div
                         className={cn(
                           "flex items-center rounded-md transition-colors cursor-pointer px-4 py-2",
-                          collapsed ? "justify-center" : "",
+                          collapsed && "justify-center",
                           isActivePath(item.path)
                             ? "bg-primary text-white"
                             : item.highlight
@@ -172,7 +172,7 @@ const Sidebar: React.FC = () => {
       {/* User profile */}
       <div className={cn(
         "border-t border-border",
-        collapsed ? "p-2" : "p-4"
+        "p-4" // Sempre com o mesmo padding
       )}>
         <div className={cn(
           "flex items-center",
@@ -208,7 +208,7 @@ const Sidebar: React.FC = () => {
                     <div
                       className={cn(
                         "text-muted-foreground hover:text-foreground cursor-pointer",
-                        collapsed ? "" : "ml-2 flex-shrink-0"
+                        collapsed ? "p-4" : "ml-2 flex-shrink-0 p-2" // Mais padding quando fechado para manter posicionamento
                       )}
                       title="Sair"
                     >
