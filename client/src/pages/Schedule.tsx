@@ -287,12 +287,17 @@ const Schedule: React.FC = () => {
                     variant="outline" 
                     className="flex-1"
                     onClick={() => {
-                      setShowNewItemDialog(false);
-                      navigate("/create-event");
-                      toast({
-                        title: "Criando novo evento",
-                        description: "Preencha os dados para criar seu evento"
-                      });
+                      try {
+                        setShowNewItemDialog(false);
+                        // Use o caminho relativo correto para criar evento
+                        navigate("/events");
+                        toast({
+                          title: "Criar novo evento",
+                          description: "Clique no botão 'Criar Evento' na página de eventos"
+                        });
+                      } catch (err) {
+                        console.error("Erro ao navegar:", err);
+                      }
                     }}
                   >
                     Novo Evento
