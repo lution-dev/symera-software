@@ -118,11 +118,11 @@ const Sidebar: React.FC = () => {
         )}
         
         {collapsed && (
-          <div className="fixed" style={{ left: '16px' }}>
+          <div className="fixed top-0 bottom-0 w-8" style={{ left: '16px' }}>
             <button 
               onClick={toggleCollapsed}
               className="absolute opacity-100 flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted z-50 shadow-sm bg-card border border-border"
-              style={{ left: '8px', top: '21px' }}
+              style={{ left: '8px', top: '24px' }}
               title="Expandir menu"
             >
               <ChevronRight size={16} />
