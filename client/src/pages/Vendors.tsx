@@ -71,6 +71,7 @@ interface Event {
   type: string;
   date: string;
   ownerId: string;
+  vendorCount?: number;
 }
 
 const Vendors: React.FC = () => {
@@ -673,7 +674,7 @@ const Vendors: React.FC = () => {
                           </Badge>
                           <Badge variant="secondary" className="rounded-sm px-1 text-xs flex items-center">
                             <User className="h-3 w-3 mr-1" />
-                            {(event as any).vendorCount || 0} fornecedores
+                            {event.vendorCount || 0} fornecedores
                           </Badge>
                         </div>
                       </div>
