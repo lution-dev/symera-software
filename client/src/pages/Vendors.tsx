@@ -272,6 +272,45 @@ const Vendors: React.FC = () => {
           eventId: 7,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
+        },
+        {
+          id: 20,
+          name: "Coffee Break Express",
+          contactName: "Thiago Santos",
+          contactEmail: "thiago@coffeebreak.com.br",
+          contactPhone: "(11) 96543-3456",
+          service: "catering",
+          cost: 6500,
+          notes: "2 coffee breaks e 1 almoço para 300 participantes",
+          eventId: 7,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 21,
+          name: "Crachás & Materiais",
+          contactName: "Fernanda Costa",
+          contactEmail: "fernanda@crachasemat.com.br",
+          contactPhone: "(11) 95432-4567",
+          service: "invitation",
+          cost: 3000,
+          notes: "Crachás, pastas e materiais personalizados",
+          eventId: 7,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 22,
+          name: "Streaming Pro",
+          contactName: "Daniel Martins",
+          contactEmail: "daniel@streamingpro.com.br",
+          contactPhone: "(11) 94321-5678",
+          service: "photography",
+          cost: 4500,
+          notes: "Transmissão ao vivo e gravação do evento",
+          eventId: 7,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       ];
     }
