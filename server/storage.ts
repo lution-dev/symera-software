@@ -211,19 +211,21 @@ export class DatabaseStorage implements IStorage {
       const teamEventIds = teamMemberships.map(tm => tm.eventId);
       
       if (teamEventIds.length === 0) {
-        // Adicionar informações da equipe para eventos do proprietário
-        const eventsWithTeam = await Promise.all(
+        // Adicionar informações da equipe e tarefas para eventos do proprietário
+        const eventsWithTeamAndTasks = await Promise.all(
           ownedEvents.map(async (event) => {
             const teamMembers = await this.getTeamMembersByEventId(event.id);
+            const tasks = await this.getTasksByEventId(event.id);
             return {
               ...event,
-              team: teamMembers
+              team: teamMembers,
+              tasks: tasks
             };
           })
         );
         // Armazenar em cache
-        eventCache.set(cacheKey, eventsWithTeam);
-        return eventsWithTeam;
+        eventCache.set(cacheKey, eventsWithTeamAndTasks);
+        return eventsWithTeamAndTasks;
       }
       
       // Get team events (usando consulta em lote para reduzir requisições)
@@ -264,20 +266,22 @@ export class DatabaseStorage implements IStorage {
         return new Date(dateB).getTime() - new Date(dateA).getTime();
       });
       
-      // Adicionar informações da equipe para todos os eventos
-      const eventsWithTeam = await Promise.all(
+      // Adicionar informações da equipe e tarefas para todos os eventos
+      const eventsWithTeamAndTasks = await Promise.all(
         sortedEvents.map(async (event) => {
           const teamMembers = await this.getTeamMembersByEventId(event.id);
+          const tasks = await this.getTasksByEventId(event.id);
           return {
             ...event,
-            team: teamMembers
+            team: teamMembers,
+            tasks: tasks
           };
         })
       );
       
       // Armazenar em cache
-      eventCache.set(cacheKey, eventsWithTeam);
-      return eventsWithTeam;
+      eventCache.set(cacheKey, eventsWithTeamAndTasks);
+      return eventsWithTeamAndTasks;
     });
   }
 
