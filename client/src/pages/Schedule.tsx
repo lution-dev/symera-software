@@ -56,6 +56,7 @@ interface Event {
 
 const Schedule: React.FC = () => {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
   const [statusFilter, setStatusFilter] = React.useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = React.useState<string | null>(null);
@@ -287,7 +288,11 @@ const Schedule: React.FC = () => {
                     className="flex-1"
                     onClick={() => {
                       setShowNewItemDialog(false);
-                      window.location.href = "/create-event";
+                      navigate("/create-event");
+                      toast({
+                        title: "Criando novo evento",
+                        description: "Preencha os dados para criar seu evento"
+                      });
                     }}
                   >
                     Novo Evento
@@ -297,7 +302,11 @@ const Schedule: React.FC = () => {
                     className="flex-1"
                     onClick={() => {
                       setShowNewItemDialog(false);
-                      window.location.href = "/events";
+                      navigate("/events");
+                      toast({
+                        title: "Selecione um evento",
+                        description: "Clique em um evento para adicionar tarefas a ele"
+                      });
                     }}
                   >
                     Nova Tarefa
