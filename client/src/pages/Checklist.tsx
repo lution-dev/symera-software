@@ -294,10 +294,8 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <Link href={`/events/${id}`}>
-            <a className="text-primary hover:underline flex items-center mb-2">
+          <Link href={`/events/${id}`} className="text-primary hover:underline flex items-center mb-2">
               <i className="fas fa-arrow-left mr-2"></i> Voltar para {event.name}
-            </a>
           </Link>
           <h1 className="text-2xl md:text-3xl font-bold">Checklist do Evento</h1>
           <p className="text-muted-foreground mt-1">

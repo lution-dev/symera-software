@@ -412,11 +412,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
                   </>
                 )}
               </Button>
-              <Link href={`/events/${eventId}/checklist`}>
-                <Button variant="outline">
-                  <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={() => window.location.href = `/events/${eventId}/checklist`}>
+                <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
+              </Button>
             </div>
           </div>
           
