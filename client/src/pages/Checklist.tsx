@@ -304,9 +304,13 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <Link href={`/events/${id}`} className="text-primary hover:underline flex items-center mb-2">
+          <Button 
+            variant="link" 
+            onClick={() => window.location.href = `/events/${eventId}`} 
+            className="text-primary hover:underline flex items-center mb-2 p-0"
+          >
               <i className="fas fa-arrow-left mr-2"></i> Voltar para {event.name}
-          </Link>
+          </Button>
           <h1 className="text-2xl md:text-3xl font-bold">Checklist do Evento</h1>
           <p className="text-muted-foreground mt-1">
             Gerencie todas as tarefas para garantir um evento de sucesso
