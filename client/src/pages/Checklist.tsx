@@ -191,14 +191,14 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   // Regenerate checklist mutation
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/events/${id}/generate-checklist`);
+      return apiRequest("POST", `/api/events/${eventId}/generate-checklist`);
     },
     onSuccess: () => {
       toast({
         title: "Checklist regenerado",
         description: "O checklist foi regenerado com sucesso usando IA",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${id}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
     },
     onError: () => {
       toast({
