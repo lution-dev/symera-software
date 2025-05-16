@@ -1,18 +1,7 @@
 import React from "react";
 import EventForm from "@/components/forms/EventForm";
-import { useLocation } from "wouter";
 
 const CreateEvent: React.FC = () => {
-  const [location] = useLocation();
-  
-  // Extrair a data do URL se estiver disponível
-  const searchParams = new URLSearchParams(window.location.search);
-  const dateParam = searchParams.get('date');
-  
-  const defaultValues = dateParam ? {
-    date: dateParam
-  } : undefined;
-  
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-8">
@@ -23,7 +12,7 @@ const CreateEvent: React.FC = () => {
       </div>
 
       <div className="bg-card p-6 rounded-xl shadow-lg">
-        <EventForm defaultValues={defaultValues} />
+        <EventForm />
       </div>
     </div>
   );
