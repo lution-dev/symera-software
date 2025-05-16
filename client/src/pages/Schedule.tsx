@@ -34,6 +34,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface Task {
   id: number;
@@ -225,6 +235,24 @@ const Schedule: React.FC = () => {
     }
   };
   
+  // Modal para adicionar tarefa rapidamente
+  const [showAddTaskModal, setShowAddTaskModal] = React.useState(false);
+  const [newTaskTitle, setNewTaskTitle] = React.useState("");
+  const [newTaskEventId, setNewTaskEventId] = React.useState<number | null>(null);
+  const [newTaskPriority, setNewTaskPriority] = React.useState<"low" | "medium" | "high">("medium");
+  
+  // Função para exibir o preview do número de itens em um dia
+  const renderDayPreview = (date: Date) => {
+    const items = getTotalItemsForDate(date);
+    if (items.total === 0) return null;
+    
+    return (
+      <div className="text-xs font-medium text-center bg-background/80 backdrop-blur-sm rounded-full border border-border px-1.5 py-0.5 shadow-sm">
+        {items.total} {items.total === 1 ? 'item' : 'itens'}
+      </div>
+    );
+  };
+  
   return (
     <div className="container max-w-full px-2 sm:px-4 py-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -234,22 +262,35 @@ const Schedule: React.FC = () => {
         </div>
         
         <div className="flex flex-wrap gap-2 items-center">
-          <Button variant="outline" size="sm" onClick={() => setSelectedDate(new Date())}>
+          <Button variant="outline" size="sm" onClick={() => setSelectedDate(new Date())} className="border-primary/40 hover:border-primary">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Hoje
           </Button>
           
-          <Tabs defaultValue={activeView} className="bg-background/95 backdrop-blur-sm border rounded-md" onValueChange={(value: string) => setActiveView(value as "day" | "week" | "month")}>
-            <TabsList className="w-full p-0.5">
-              <TabsTrigger value="day" className="flex items-center data-[state=active]:bg-accent">
+          <Tabs 
+            defaultValue={activeView} 
+            className="bg-background/95 backdrop-blur-sm border rounded-md shadow-sm" 
+            onValueChange={(value: string) => setActiveView(value as "day" | "week" | "month")}
+          >
+            <TabsList className="w-full p-0.5 bg-muted/30">
+              <TabsTrigger 
+                value="day" 
+                className="flex items-center data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all"
+              >
                 <CalendarDays className="h-4 w-4 mr-1.5" />
                 Dia
               </TabsTrigger>
-              <TabsTrigger value="week" className="flex items-center data-[state=active]:bg-accent">
+              <TabsTrigger 
+                value="week" 
+                className="flex items-center data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all"
+              >
                 <CalendarWeek className="h-4 w-4 mr-1.5" />
                 Semana
               </TabsTrigger>
-              <TabsTrigger value="month" className="flex items-center data-[state=active]:bg-accent">
+              <TabsTrigger 
+                value="month" 
+                className="flex items-center data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all"
+              >
                 <CalendarRange className="h-4 w-4 mr-1.5" />
                 Mês
               </TabsTrigger>
@@ -258,11 +299,11 @@ const Schedule: React.FC = () => {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button variant="outline" size="sm" className="gap-1.5 border-primary/40 hover:border-primary">
                 <Filter className="h-4 w-4" />
                 Filtrar
                 {(statusFilter || priorityFilter || eventFilter) && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1 text-xs">
+                  <Badge variant="secondary" className="ml-1.5 h-5 px-1 text-xs">
                     {(statusFilter ? 1 : 0) + (priorityFilter ? 1 : 0) + (eventFilter ? 1 : 0)}
                   </Badge>
                 )}
@@ -347,25 +388,22 @@ const Schedule: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon" variant="outline">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Adicionar novo item</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="bg-gradient-to-r from-purple-500 to-primary text-white" 
+            onClick={() => setShowAddTaskModal(true)}
+          >
+            <Plus className="h-4 w-4 mr-1.5" />
+            Novo Item
+          </Button>
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Calendário - agora ocupa mais espaço */}
-        <Card className="lg:col-span-3">
-          <CardHeader className="pb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 min-h-[70vh]">
+        {/* Calendário - agora ocupa 80% do espaço disponível */}
+        <Card className="lg:col-span-4 shadow-md">
+          <CardHeader className="pb-2 border-b">
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle>Calendário</CardTitle>
@@ -374,28 +412,28 @@ const Schedule: React.FC = () => {
                 </CardDescription>
               </div>
               
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground border rounded-lg px-3 py-1.5 bg-background/80 backdrop-blur-sm shadow-sm">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-purple-500/60"></span>
+                  <span className="w-3 h-3 rounded-full bg-purple-500/80"></span>
                   <span>Eventos</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-orange-500/60"></span>
+                  <span className="w-3 h-3 rounded-full bg-orange-500/80"></span>
                   <span>Tarefas pendentes</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-green-500/60"></span>
+                  <span className="w-3 h-3 rounded-full bg-green-500/80"></span>
                   <span>Concluído</span>
                 </div>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-4">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border shadow-sm w-full max-w-none"
+              className="rounded-md w-full max-w-none shadow-inner bg-background/50"
               modifiers={{
                 event: (date) => events.some((event: Event) => {
                   const eventDate = new Date(event.date);
@@ -424,41 +462,56 @@ const Schedule: React.FC = () => {
                     task.status !== "completed"
                   );
                 }),
+                hasItems: (date) => {
+                  const items = getTotalItemsForDate(date);
+                  return items.total > 0;
+                }
               }}
               modifiersClassNames={{
-                event: "border-b-2 border-purple-500",
-                task: "border-t-2 border-primary",
-                pendingTask: "border-l-2 border-orange-500"
+                event: "border-b-2 border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10",
+                task: "border-t-2 border-primary hover:bg-primary-50 dark:hover:bg-primary/10",
+                pendingTask: "border-l-2 border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10",
+                hasItems: "cursor-pointer hover:scale-105 transition-transform"
               }}
               classNames={{
-                day_today: "bg-accent text-accent-foreground font-bold border border-primary/40",
-                day_selected: "bg-primary text-primary-foreground !opacity-100 font-bold",
-                day: "text-sm font-medium focus-visible:bg-accent h-9 w-9 p-0 aria-selected:opacity-100",
-                caption: "flex justify-center pt-1 relative items-center",
+                day_today: "bg-accent text-accent-foreground font-bold border border-primary/40 ring-1 ring-primary/30",
+                day_selected: "bg-primary text-primary-foreground !opacity-100 font-bold ring-2 ring-primary/40",
+                day: "text-sm font-medium h-11 w-11 p-0 aria-selected:opacity-100 hover:bg-muted/50 transition-all duration-200",
+                caption: "flex justify-center pt-2 relative items-center",
                 caption_label: "text-base font-medium",
                 nav: "flex items-center gap-1 space-x-1",
-                nav_button: "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100",
-                table: "w-full border-collapse",
-                head_row: "flex",
-                head_cell: "w-9 text-sm font-semibold text-muted-foreground rounded-md",
-                row: "flex w-full mt-2",
-                cell: "h-9 w-9 text-center text-sm relative p-0 data-[unavailable=true]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                cell_content: "",
+                nav_button: "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100 hover:bg-muted/50 rounded-md transition-all",
+                table: "w-full border-collapse space-y-1",
+                head_row: "flex mb-2",
+                head_cell: "w-11 text-xs font-semibold text-muted-foreground rounded-md uppercase",
+                row: "flex w-full mt-1",
+                cell: "h-11 w-11 text-center text-sm relative p-0 data-[unavailable=true]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 hover:z-10",
+                cell_content: "relative group",
               }}
               components={{
                 DayContent: (props) => {
                   const items = getTotalItemsForDate(props.date);
+                  
                   return (
-                    <div className="relative flex flex-col justify-center items-center h-full w-full">
-                      <span className="absolute top-0 left-0 right-0 text-center">{props.date.getDate()}</span>
+                    <div className="relative flex flex-col justify-center items-center h-full w-full group">
+                      <span className="relative z-10">{props.date.getDate()}</span>
+                      
+                      {/* Indicadores de eventos e tarefas */}
                       {items.total > 0 && (
-                        <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-[2px]">
+                        <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-[3px] z-10">
                           {items.eventCount > 0 && (
-                            <div className="w-[6px] h-[6px] rounded-full bg-purple-500"></div>
+                            <div className="w-[6px] h-[6px] rounded-full bg-purple-500 shadow-sm"></div>
                           )}
                           {items.taskCount > 0 && (
-                            <div className="w-[6px] h-[6px] rounded-full bg-primary"></div>
+                            <div className="w-[6px] h-[6px] rounded-full bg-primary shadow-sm"></div>
                           )}
+                        </div>
+                      )}
+                      
+                      {/* Preview que aparece no hover */}
+                      {items.total > 0 && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/0 opacity-0 group-hover:opacity-100 group-hover:bg-background/90 transition-all duration-200 z-20 rounded-md backdrop-blur-sm">
+                          {renderDayPreview(props.date)}
                         </div>
                       )}
                     </div>
@@ -469,11 +522,11 @@ const Schedule: React.FC = () => {
           </CardContent>
         </Card>
         
-        {/* Lista de eventos e tarefas para o dia selecionado */}
-        <Card>
-          <CardHeader className="pb-2">
+        {/* Painel lateral - agenda do dia selecionado */}
+        <Card className="shadow-md h-full">
+          <CardHeader className="pb-2 border-b">
             <CardTitle className="flex items-center">
-              <CalendarIcon className="h-5 w-5 mr-2" />
+              <CalendarIcon className="h-5 w-5 mr-2 text-primary" />
               {selectedDate && formatDate(selectedDate)}
             </CardTitle>
             <CardDescription>
@@ -483,33 +536,34 @@ const Schedule: React.FC = () => {
               }
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-4">
             {selectedDate && (
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold mb-2 flex items-center">
                     <span className="w-2.5 h-2.5 rounded-full bg-purple-500 mr-2"></span>
                     Eventos
-                    <Badge variant="outline" className="ml-2">
+                    <Badge variant="outline" className="ml-2 font-medium">
                       {getEventsForSelectedDate(selectedDate).length}
                     </Badge>
                   </h3>
                   
                   {getEventsForSelectedDate(selectedDate).length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       {getEventsForSelectedDate(selectedDate).map((event: Event) => (
                         <div 
                           key={event.id} 
-                          className="p-3 rounded-lg bg-card border-l-4 border-l-purple-500 border border-border hover:border-purple-500 hover:shadow-md transition-all cursor-pointer"
+                          className="p-3 rounded-md bg-card border-l-4 border-l-purple-500 border shadow-sm hover:border-purple-500 hover:shadow-md transition-all cursor-pointer hover:translate-x-0.5 hover:-translate-y-0.5"
                         >
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-medium">{event.name}</h4>
-                            <span className="text-xs bg-purple-500/20 text-purple-600 dark:text-purple-400 px-2 py-1 rounded">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <h4 className="font-medium text-sm">{event.name}</h4>
+                            <span className="text-xs bg-purple-500/20 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded font-medium">
                               {event.type}
                             </span>
                           </div>
                           {event.location && (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs text-muted-foreground flex items-center">
+                              <span className="inline-block w-1.5 h-1.5 bg-purple-300 rounded-full mr-1.5"></span>
                               {event.location}
                             </p>
                           )}
@@ -517,7 +571,9 @@ const Schedule: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-sm italic">Nenhum evento neste dia</p>
+                    <div className="rounded-md border border-dashed p-3 text-center">
+                      <p className="text-muted-foreground text-sm italic">Nenhum evento neste dia</p>
+                    </div>
                   )}
                 </div>
                 
@@ -525,59 +581,78 @@ const Schedule: React.FC = () => {
                   <h3 className="text-lg font-semibold mb-2 flex items-center">
                     <span className="w-2.5 h-2.5 rounded-full bg-primary mr-2"></span>
                     Tarefas
-                    <Badge variant="outline" className="ml-2">
+                    <Badge variant="outline" className="ml-2 font-medium">
                       {getTasksForSelectedDate(selectedDate).length}
                     </Badge>
                   </h3>
                   
                   {getTasksForSelectedDate(selectedDate).length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       {getTasksForSelectedDate(selectedDate).map((task: Task) => (
                         <div 
                           key={task.id} 
-                          className={`p-3 rounded-lg border hover:border-primary transition-all hover:shadow-md cursor-pointer ${
+                          className={`p-3 rounded-md border shadow-sm hover:border-primary transition-all hover:shadow-md cursor-pointer hover:translate-x-0.5 hover:-translate-y-0.5 ${
                             task.status === "todo" ? "border-l-4 border-l-slate-400" :
                             task.status === "in_progress" ? "border-l-4 border-l-amber-500" :
                             "border-l-4 border-l-green-500"
                           }`}
                         >
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-medium">{task.title}</h4>
-                            <div className="flex items-center space-x-2">
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                task.priority === "low" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400" :
-                                task.priority === "medium" ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" :
-                                "bg-red-500/20 text-red-600 dark:text-red-400"
-                              }`}>
-                                {task.priority === "low" ? "Baixa" : 
-                                 task.priority === "medium" ? "Média" : "Alta"}
-                              </span>
-                              <span className={`text-xs px-2 py-1 rounded ${getTaskStatusColor(task.status)}`}>
-                                {getTaskStatusLabel(task.status)}
-                              </span>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            {task.status === "todo" ? (
+                              <span className="text-slate-400">⭘</span>
+                            ) : task.status === "in_progress" ? (
+                              <span className="text-amber-500">◔</span>
+                            ) : (
+                              <span className="text-green-500">✓</span>
+                            )}
+                            <h4 className="font-medium text-sm flex-1">{task.title}</h4>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              task.priority === "low" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400" :
+                              task.priority === "medium" ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" :
+                              "bg-red-500/20 text-red-600 dark:text-red-400"
+                            }`}>
+                              {task.priority === "low" ? "Baixa" : 
+                               task.priority === "medium" ? "Média" : "Alta"}
+                            </span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${getTaskStatusColor(task.status)}`}>
+                              {getTaskStatusLabel(task.status)}
+                            </span>
+                          </div>
+                          
+                          {(task.eventName || task.description) && (
+                            <div className="mt-1.5 pt-1.5 border-t border-dashed border-border/50">
+                              {task.eventName && (
+                                <p className="text-xs text-muted-foreground flex items-center">
+                                  <span className="inline-block w-1.5 h-1.5 bg-purple-300 rounded-full mr-1.5"></span>
+                                  Evento: {task.eventName}
+                                </p>
+                              )}
+                              {task.description && (
+                                <p className="text-xs text-muted-foreground mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
+                                  <span className="inline-block w-1.5 h-1.5 bg-slate-300 rounded-full mr-1.5"></span>
+                                  {task.description.length > 40 ? `${task.description.substring(0, 40)}...` : task.description}
+                                </p>
+                              )}
                             </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2 items-center justify-between mt-1">
-                            {task.eventName && (
-                              <p className="text-sm text-muted-foreground">
-                                Evento: {task.eventName}
-                              </p>
-                            )}
-                            {task.description && (
-                              <p className="text-xs text-muted-foreground max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                                {task.description.length > 60 ? `${task.description.substring(0, 60)}...` : task.description}
-                              </p>
-                            )}
-                          </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-sm italic">Nenhuma tarefa neste dia</p>
+                    <div className="rounded-md border border-dashed p-3 text-center">
+                      <p className="text-muted-foreground text-sm italic">Nenhuma tarefa neste dia</p>
+                    </div>
                   )}
                 </div>
 
-                <Button variant="outline" size="sm" className="w-full gap-2 mt-4">
+                <Button 
+                  variant="default" 
+                  className="w-full gap-2 mt-4 bg-gradient-to-r from-purple-500 to-primary text-white shadow-md"
+                  onClick={() => setShowAddTaskModal(true)}
+                >
                   <Plus className="h-4 w-4" />
                   Adicionar item nesta data
                 </Button>
@@ -586,6 +661,106 @@ const Schedule: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Modal para adicionar novo item rapidamente */}
+      <Dialog open={showAddTaskModal} onOpenChange={setShowAddTaskModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Item</DialogTitle>
+            <DialogDescription>
+              Crie rapidamente uma tarefa ou evento para {selectedDate ? formatDate(selectedDate) : "hoje"}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor="task-title">Título</Label>
+              <Input 
+                id="task-title" 
+                placeholder="Ex: Reunião com equipe de marketing" 
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label>Tipo</Label>
+              <div className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="radio" 
+                    id="type-task" 
+                    name="item-type" 
+                    className="h-4 w-4 text-primary" 
+                    defaultChecked 
+                  />
+                  <Label htmlFor="type-task" className="font-normal cursor-pointer">Tarefa</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="radio" 
+                    id="type-event" 
+                    name="item-type" 
+                    className="h-4 w-4 text-primary" 
+                  />
+                  <Label htmlFor="type-event" className="font-normal cursor-pointer">Evento</Label>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="task-event">Evento relacionado</Label>
+              <select 
+                id="task-event" 
+                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                value={newTaskEventId || ""}
+                onChange={(e) => setNewTaskEventId(e.target.value ? Number(e.target.value) : null)}
+              >
+                <option value="">Selecione um evento</option>
+                {events.map((event: Event) => (
+                  <option key={event.id} value={event.id}>{event.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="task-priority">Prioridade</Label>
+              <select 
+                id="task-priority" 
+                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                value={newTaskPriority}
+                onChange={(e) => setNewTaskPriority(e.target.value as "low" | "medium" | "high")}
+              >
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+              </select>
+            </div>
+          </div>
+          
+          <DialogFooter className="sm:justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAddTaskModal(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-gradient-to-r from-purple-500 to-primary text-white"
+              onClick={() => {
+                toast({
+                  title: "Funcionalidade em desenvolvimento",
+                  description: "A funcionalidade de adicionar itens estará disponível em breve!",
+                });
+                setShowAddTaskModal(false);
+              }}
+            >
+              Adicionar Item
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
