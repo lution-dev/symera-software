@@ -436,7 +436,7 @@ const Team: React.FC = () => {
                 Adicionar Membro
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Adicionar Membro à Equipe</DialogTitle>
                 <DialogDescription>
@@ -446,7 +446,7 @@ const Team: React.FC = () => {
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="events" className="mb-2 block">Selecione os eventos</Label>
-                  <div className="border rounded-md p-2 h-[150px] overflow-auto">
+                  <div className="border rounded-md p-2 h-[120px] overflow-auto">
                     {events.map((event: Event) => (
                       <div 
                         key={event.id} 
