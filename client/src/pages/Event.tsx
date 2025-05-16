@@ -363,7 +363,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
         <TabsList className="mb-4">
           <TabsTrigger value="tasks">Tarefas</TabsTrigger>
           <TabsTrigger value="team">Equipe Completa</TabsTrigger>
-          <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
+          <TabsTrigger value="timeline">Cronograma do Evento</TabsTrigger>
           <TabsTrigger value="activity">Atividade</TabsTrigger>
         </TabsList>
         
@@ -464,7 +464,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
         
         <TabsContent value="timeline">
           <div className="bg-card rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-6">Linha do Tempo</h2>
+            <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
             
             {tasksLoading ? (
               <div className="flex justify-center py-8">

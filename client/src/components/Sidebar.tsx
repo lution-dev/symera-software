@@ -49,7 +49,7 @@ const Sidebar: React.FC = () => {
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/events", label: "Meus Eventos", icon: Calendar },
     { path: "/events/new", label: "Criar Evento", icon: Plus, highlight: true },
-    { path: "/schedule", label: "Cronograma", icon: CalendarDays },
+    { path: "/schedule", label: "Agenda", icon: CalendarDays },
     { path: "/team", label: "Equipe", icon: Users },
     { path: "/vendors", label: "Fornecedores", icon: Store },
     { path: "/budget", label: "Orçamento", icon: DollarSign },
