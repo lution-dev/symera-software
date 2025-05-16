@@ -122,14 +122,40 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
   };
 
   const getTasksForDate = (date: Date) => {
+    // Debug logs para entender o problema com as tarefas
+    console.log("Tasks disponíveis:", tasks);
+    console.log("Data selecionada:", date);
+    
     return tasks.filter(task => {
-      if (!task.dueDate) return false;
+      if (!task.dueDate) {
+        console.log("Task sem data de vencimento:", task);
+        return false;
+      }
+      
       const taskDate = new Date(task.dueDate);
-      return (
+      console.log("Comparando datas:", {
+        taskId: task.id,
+        taskTitle: task.title,
+        taskDate: taskDate.toISOString(),
+        taskDay: taskDate.getDate(),
+        taskMonth: taskDate.getMonth(),
+        taskYear: taskDate.getFullYear(),
+        compareDay: date.getDate(),
+        compareMonth: date.getMonth(), 
+        compareYear: date.getFullYear()
+      });
+      
+      const match = (
         taskDate.getDate() === date.getDate() &&
         taskDate.getMonth() === date.getMonth() &&
         taskDate.getFullYear() === date.getFullYear()
       );
+      
+      if (match) {
+        console.log("MATCH ENCONTRADO para task:", task.title);
+      }
+      
+      return match;
     });
   };
 
