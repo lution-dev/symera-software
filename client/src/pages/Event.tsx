@@ -543,7 +543,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                   </div>
                 </div>
                 <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
-                <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar sua linha do tempo</p>
+                <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
                 <Link href={`/events/${id}/checklist`}>
                   <Button>
                     <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
