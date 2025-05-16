@@ -18,8 +18,52 @@ import {
   type InsertVendor,
   type InsertActivityLog,
 } from "@shared/schema";
-import { db } from "./db";
+import { db, executeWithRetry } from "./db";
 import { eq, and, desc, gte, lte } from "drizzle-orm";
+
+// Sistema de cache em memória para reduzir consultas
+class MemoryCache {
+  private cache: Map<string, { data: any, timestamp: number }>;
+  private ttl: number; // Tempo de vida do cache em ms
+
+  constructor(ttlMs: number = 60000) { // Default: 1 minuto
+    this.cache = new Map();
+    this.ttl = ttlMs;
+  }
+
+  get<T>(key: string): T | undefined {
+    const entry = this.cache.get(key);
+    if (!entry) return undefined;
+    
+    // Verificar se o cache está expirado
+    if (Date.now() - entry.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return undefined;
+    }
+    
+    return entry.data as T;
+  }
+
+  set<T>(key: string, data: T): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
+  }
+
+  invalidate(prefix: string): void {
+    Array.from(this.cache.keys()).forEach(key => {
+      if (key.startsWith(prefix)) {
+        this.cache.delete(key);
+      }
+    });
+  }
+}
+
+// Criar instâncias de cache para diferentes tipos de dados
+const userCache = new MemoryCache(300000); // 5 minutos
+const eventCache = new MemoryCache(180000); // 3 minutos
+const taskCache = new MemoryCache(120000); // 2 minutos
 
 // Interface for storage operations
 export interface IStorage {
@@ -63,71 +107,166 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    // Verificar cache primeiro
+    const cacheKey = `user:${id}`;
+    const cachedUser = userCache.get<User>(cacheKey);
+    if (cachedUser) return cachedUser;
+    
+    // Se não estiver em cache, consultar banco de dados com retry
+    return executeWithRetry(async () => {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      
+      // Armazenar em cache para futuras requisições
+      if (user) {
+        userCache.set(cacheKey, user);
+      }
+      
+      return user;
+    });
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
+    return executeWithRetry(async () => {
+      const [user] = await db
+        .insert(users)
+        .values(userData)
+        .onConflictDoUpdate({
+          target: users.id,
+          set: {
+            ...userData,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      
+      // Invalidar e atualizar cache
+      userCache.invalidate(`user:${user.id}`);
+      userCache.set(`user:${user.id}`, user);
+      
+      return user;
+    });
   }
 
   async findOrCreateUserByEmail(email: string): Promise<User> {
-    // Check if user exists
-    const existingUsers = await db.select().from(users).where(eq(users.email, email));
+    // Verificar cache pelo email
+    const cacheKey = `user:email:${email}`;
+    const cachedUser = userCache.get<User>(cacheKey);
+    if (cachedUser) return cachedUser;
     
-    if (existingUsers.length > 0) {
-      return existingUsers[0];
-    }
-    
-    // Create new user
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        id: `local-${Date.now()}`, // Generate a temporary ID for non-OAuth users
-        email,
-        firstName: email.split('@')[0], // Use part of email as name
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .returning();
-    
-    return newUser;
+    return executeWithRetry(async () => {
+      // Check if user exists
+      const existingUsers = await db.select().from(users).where(eq(users.email, email));
+      
+      if (existingUsers.length > 0) {
+        const user = existingUsers[0];
+        // Atualizar cache
+        userCache.set(`user:${user.id}`, user);
+        userCache.set(cacheKey, user);
+        return user;
+      }
+      
+      // Create new user
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          id: `local-${Date.now()}`, // Generate a temporary ID for non-OAuth users
+          email,
+          firstName: email.split('@')[0], // Use part of email as name
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      
+      // Atualizar cache
+      userCache.set(`user:${newUser.id}`, newUser);
+      userCache.set(cacheKey, newUser);
+      
+      return newUser;
+    });
   }
 
   // Event operations
   async getEventsByUser(userId: string): Promise<Event[]> {
-    // Get events where user is owner
-    const ownedEvents = await db
-      .select()
-      .from(events)
-      .where(eq(events.ownerId, userId))
-      .orderBy(desc(events.startDate));
+    // Verificar cache
+    const cacheKey = `events:user:${userId}`;
+    const cachedEvents = eventCache.get<Event[]>(cacheKey);
+    if (cachedEvents) return cachedEvents;
     
-    // Get events where user is team member
-    const teamMemberships = await db
-      .select({
-        eventId: eventTeamMembers.eventId,
-      })
-      .from(eventTeamMembers)
-      .where(eq(eventTeamMembers.userId, userId));
-    
-    const teamEventIds = teamMemberships.map(tm => tm.eventId);
-    
-    if (teamEventIds.length === 0) {
-      // Adicionar informações da equipe para eventos do proprietário
+    return executeWithRetry(async () => {
+      // Get events where user is owner
+      const ownedEvents = await db
+        .select()
+        .from(events)
+        .where(eq(events.ownerId, userId))
+        .orderBy(desc(events.startDate));
+      
+      // Get events where user is team member
+      const teamMemberships = await db
+        .select({
+          eventId: eventTeamMembers.eventId,
+        })
+        .from(eventTeamMembers)
+        .where(eq(eventTeamMembers.userId, userId));
+      
+      const teamEventIds = teamMemberships.map(tm => tm.eventId);
+      
+      if (teamEventIds.length === 0) {
+        // Adicionar informações da equipe para eventos do proprietário
+        const eventsWithTeam = await Promise.all(
+          ownedEvents.map(async (event) => {
+            const teamMembers = await this.getTeamMembersByEventId(event.id);
+            return {
+              ...event,
+              team: teamMembers
+            };
+          })
+        );
+        // Armazenar em cache
+        eventCache.set(cacheKey, eventsWithTeam);
+        return eventsWithTeam;
+      }
+      
+      // Get team events (usando consulta em lote para reduzir requisições)
+      let teamEvents: Event[] = [];
+      if (teamEventIds.length > 0) {
+        if (teamEventIds.length === 1) {
+          // Se houver apenas um ID, use eq() 
+          teamEvents = await db
+            .select()
+            .from(events)
+            .where(eq(events.id, teamEventIds[0]));
+        } else {
+          // Se houver vários IDs, use múltiplas condições com OR
+          const conditions = teamEventIds.map(id => eq(events.id, id));
+          const queryOr = conditions.reduce((acc, condition, index) => {
+            return index === 0 ? condition : or(acc, condition);
+          }, conditions[0]);
+          
+          teamEvents = await db
+            .select()
+            .from(events)
+            .where(queryOr);
+        }
+      }
+      
+      // Combine owned and team events, removing duplicates
+      const allEvents = [...ownedEvents];
+      for (const event of teamEvents) {
+        if (event && !allEvents.some(e => e.id === event.id)) {
+          allEvents.push(event);
+        }
+      }
+      
+      // Sort by startDate (com fallback para date se necessário)
+      const sortedEvents = allEvents.sort((a, b) => {
+        const dateA = a.startDate || a.date;
+        const dateB = b.startDate || b.date;
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
+      
+      // Adicionar informações da equipe para todos os eventos
       const eventsWithTeam = await Promise.all(
-        ownedEvents.map(async (event) => {
+        sortedEvents.map(async (event) => {
           const teamMembers = await this.getTeamMembersByEventId(event.id);
           return {
             ...event,
@@ -135,108 +274,171 @@ export class DatabaseStorage implements IStorage {
           };
         })
       );
+      
+      // Armazenar em cache
+      eventCache.set(cacheKey, eventsWithTeam);
       return eventsWithTeam;
-    }
-    
-    // Get team events
-    const teamEvents = await Promise.all(
-      teamEventIds.map(async (eventId) => {
-        const [event] = await db
-          .select()
-          .from(events)
-          .where(eq(events.id, eventId));
-        return event;
-      })
-    );
-    
-    // Combine owned and team events, removing duplicates
-    const allEvents = [...ownedEvents];
-    for (const event of teamEvents) {
-      if (event && !allEvents.some(e => e.id === event.id)) {
-        allEvents.push(event);
-      }
-    }
-    
-    // Sort by startDate (com fallback para date se necessário)
-    const sortedEvents = allEvents.sort((a, b) => {
-      const dateA = a.startDate || a.date;
-      const dateB = b.startDate || b.date;
-      return new Date(dateB).getTime() - new Date(dateA).getTime();
     });
-    
-    // Adicionar informações da equipe para todos os eventos
-    const eventsWithTeam = await Promise.all(
-      sortedEvents.map(async (event) => {
-        const teamMembers = await this.getTeamMembersByEventId(event.id);
-        return {
-          ...event,
-          team: teamMembers
-        };
-      })
-    );
-    
-    return eventsWithTeam;
   }
 
   async getEventById(id: number): Promise<Event | undefined> {
-    const [event] = await db.select().from(events).where(eq(events.id, id));
-    return event;
+    // Verificar cache
+    const cacheKey = `event:${id}`;
+    const cachedEvent = eventCache.get<Event>(cacheKey);
+    if (cachedEvent) return cachedEvent;
+    
+    return executeWithRetry(async () => {
+      const [event] = await db.select().from(events).where(eq(events.id, id));
+      // Armazenar em cache
+      if (event) {
+        eventCache.set(cacheKey, event);
+      }
+      return event;
+    });
   }
 
   async createEvent(eventData: InsertEvent): Promise<Event> {
-    const [event] = await db.insert(events).values(eventData).returning();
-    return event;
+    return executeWithRetry(async () => {
+      const [event] = await db.insert(events).values(eventData).returning();
+      
+      // Invalidar caches relacionados
+      eventCache.invalidate(`events:user:${eventData.ownerId}`);
+      eventCache.set(`event:${event.id}`, event);
+      
+      return event;
+    });
   }
 
   async updateEvent(id: number, eventData: Partial<InsertEvent>): Promise<Event> {
-    const [event] = await db
-      .update(events)
-      .set({
-        ...eventData,
-        updatedAt: new Date(),
-      })
-      .where(eq(events.id, id))
-      .returning();
-    return event;
+    return executeWithRetry(async () => {
+      const [event] = await db
+        .update(events)
+        .set({
+          ...eventData,
+          updatedAt: new Date(),
+        })
+        .where(eq(events.id, id))
+        .returning();
+      
+      // Invalidar e atualizar caches
+      eventCache.invalidate(`event:${id}`);
+      eventCache.invalidate(`events:user:`); // Invalidar todos os caches de lista de eventos
+      eventCache.set(`event:${id}`, event);
+      
+      return event;
+    });
   }
 
   async deleteEvent(id: number): Promise<void> {
-    await db.delete(events).where(eq(events.id, id));
+    return executeWithRetry(async () => {
+      // Obter o evento antes de excluir para identificar o proprietário
+      const [event] = await db.select().from(events).where(eq(events.id, id));
+      
+      await db.delete(events).where(eq(events.id, id));
+      
+      // Invalidar caches
+      eventCache.invalidate(`event:${id}`);
+      if (event) {
+        eventCache.invalidate(`events:user:${event.ownerId}`);
+      }
+      eventCache.invalidate(`events:user:`); // Invalidar qualquer cache de lista de eventos
+    });
   }
 
   // Task operations
   async getTasksByEventId(eventId: number): Promise<Task[]> {
-    return db
-      .select()
-      .from(tasks)
-      .where(eq(tasks.eventId, eventId))
-      .orderBy(tasks.dueDate);
+    // Verificar cache
+    const cacheKey = `tasks:event:${eventId}`;
+    const cachedTasks = taskCache.get<Task[]>(cacheKey);
+    if (cachedTasks) return cachedTasks;
+    
+    return executeWithRetry(async () => {
+      const result = await db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.eventId, eventId))
+        .orderBy(tasks.dueDate);
+      
+      // Armazenar em cache
+      taskCache.set(cacheKey, result);
+      return result;
+    });
   }
 
   async getTaskById(id: number): Promise<Task | undefined> {
-    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
-    return task;
+    // Verificar cache
+    const cacheKey = `task:${id}`;
+    const cachedTask = taskCache.get<Task>(cacheKey);
+    if (cachedTask) return cachedTask;
+    
+    return executeWithRetry(async () => {
+      const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+      
+      // Armazenar em cache
+      if (task) {
+        taskCache.set(cacheKey, task);
+      }
+      
+      return task;
+    });
   }
 
   async createTask(taskData: InsertTask): Promise<Task> {
-    const [task] = await db.insert(tasks).values(taskData).returning();
-    return task;
+    return executeWithRetry(async () => {
+      const [task] = await db.insert(tasks).values(taskData).returning();
+      
+      // Invalidar e atualizar cache
+      taskCache.invalidate(`tasks:event:${taskData.eventId}`);
+      taskCache.set(`task:${task.id}`, task);
+      
+      return task;
+    });
   }
 
   async updateTask(id: number, taskData: Partial<InsertTask>): Promise<Task> {
-    const [task] = await db
-      .update(tasks)
-      .set({
-        ...taskData,
-        updatedAt: new Date(),
-      })
-      .where(eq(tasks.id, id))
-      .returning();
-    return task;
+    return executeWithRetry(async () => {
+      const [task] = await db
+        .update(tasks)
+        .set({
+          ...taskData,
+          updatedAt: new Date(),
+        })
+        .where(eq(tasks.id, id))
+        .returning();
+      
+      // Invalidar e atualizar caches
+      taskCache.set(`task:${id}`, task);
+      
+      // Se eventId foi atualizado, invalidar caches de ambos os eventos
+      if (taskData.eventId) {
+        // Obter a tarefa antiga para saber o eventId antigo
+        const oldTask = await this.getTaskById(id);
+        if (oldTask && oldTask.eventId !== taskData.eventId) {
+          taskCache.invalidate(`tasks:event:${oldTask.eventId}`);
+        }
+        taskCache.invalidate(`tasks:event:${taskData.eventId}`);
+      } else {
+        // Se não temos eventId nos dados de atualização, obter do resultado
+        taskCache.invalidate(`tasks:event:${task.eventId}`);
+      }
+      
+      return task;
+    });
   }
 
   async deleteTask(id: number): Promise<void> {
-    await db.delete(tasks).where(eq(tasks.id, id));
+    return executeWithRetry(async () => {
+      // Obter a tarefa antes de excluir para saber o eventId
+      const task = await this.getTaskById(id);
+      
+      await db.delete(tasks).where(eq(tasks.id, id));
+      
+      // Invalidar caches
+      taskCache.invalidate(`task:${id}`);
+      if (task) {
+        taskCache.invalidate(`tasks:event:${task.eventId}`);
+      }
+    });
   }
 
   // Team member operations
