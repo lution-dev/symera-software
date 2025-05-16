@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import AdvancedCalendar from "@/components/AdvancedCalendar";
+import GoogleStyleCalendar from "@/components/GoogleStyleCalendar";
 
 interface Task {
   id: number;
@@ -292,44 +292,40 @@ const Schedule: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Calendário avançado - ocupa mais espaço */}
+        {/* Calendário estilo Google - ocupa mais espaço */}
         <Card className="lg:col-span-3 overflow-hidden">
-          <CardContent className="p-0">
-            <div className="border-b px-6 pt-6 pb-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Calendário</CardTitle>
-                  <CardDescription>
-                    Visualize seus eventos e tarefas
-                  </CardDescription>
+          <CardContent className="p-3 sm:p-6 pt-6">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <CardTitle>Calendário</CardTitle>
+                <CardDescription>
+                  Visualize seus eventos e tarefas
+                </CardDescription>
+              </div>
+              
+              <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-primary/70"></span>
+                  <span>Eventos</span>
                 </div>
-                
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-primary/70"></span>
-                    <span>Eventos</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-amber-500/70"></span>
-                    <span>Em andamento</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-green-500/70"></span>
-                    <span>Concluído</span>
-                  </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-amber-500/70"></span>
+                  <span>Em andamento</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-green-500/70"></span>
+                  <span>Concluído</span>
                 </div>
               </div>
             </div>
             
-            <div className="p-6">
-              <AdvancedCalendar
-                events={events}
-                tasks={tasks}
-                onDateSelect={handleDateSelect}
-                selectedDate={selectedDate}
-                onAddItem={handleAddItem}
-              />
-            </div>
+            <GoogleStyleCalendar
+              events={events}
+              tasks={tasks}
+              onDateSelect={handleDateSelect}
+              selectedDate={selectedDate}
+              onAddItem={handleAddItem}
+            />
           </CardContent>
         </Card>
         
