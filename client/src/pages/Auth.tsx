@@ -4,7 +4,7 @@ import LoginForm from "@/components/forms/LoginForm";
 import RegisterForm from "@/components/forms/RegisterForm";
 import Logo from "@/components/ui/logo";
 import { useAuth } from "@/hooks/useAuth";
-import { CheckCircle, Calendar, FileText, BarChart3, Sparkles } from "lucide-react";
+import { CheckCircle, Calendar, FileText, BarChart3, Sparkles, Users, DollarSign } from "lucide-react";
 
 const Auth: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
