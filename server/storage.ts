@@ -19,7 +19,7 @@ import {
   type InsertActivityLog,
 } from "@shared/schema";
 import { db, executeWithRetry } from "./db";
-import { eq, and, desc, gte, lte } from "drizzle-orm";
+import { eq, and, or, desc, gte, lte } from "drizzle-orm";
 
 // Sistema de cache em memória para reduzir consultas
 class MemoryCache {
@@ -236,16 +236,16 @@ export class DatabaseStorage implements IStorage {
             .from(events)
             .where(eq(events.id, teamEventIds[0]));
         } else {
-          // Se houver vários IDs, use múltiplas condições com OR
-          const conditions = teamEventIds.map(id => eq(events.id, id));
-          const queryOr = conditions.reduce((acc, condition, index) => {
-            return index === 0 ? condition : or(acc, condition);
-          }, conditions[0]);
+          // Buscar eventos em lotes menores para evitar problemas
+          // Essa abordagem evita usar o operador OR com muitas condições
+          const batchResults = await Promise.all(
+            teamEventIds.map(id => 
+              db.select().from(events).where(eq(events.id, id))
+            )
+          );
           
-          teamEvents = await db
-            .select()
-            .from(events)
-            .where(queryOr);
+          // Combinar resultados de todos os lotes
+          teamEvents = batchResults.flat();
         }
       }
       

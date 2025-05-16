@@ -35,11 +35,12 @@ export function getSession() {
   return session({
     secret: process.env.SESSION_SECRET || 'replit-session-secret',
     store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Desativamos secure para desenvolvimento
+      sameSite: 'lax',
       maxAge: sessionTtl,
     },
   });
