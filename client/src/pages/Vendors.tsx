@@ -673,7 +673,7 @@ const Vendors: React.FC = () => {
                           </Badge>
                           <Badge variant="secondary" className="rounded-sm px-1 text-xs flex items-center">
                             <User className="h-3 w-3 mr-1" />
-                            {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
+                            {(event as any).vendorCount || 0} fornecedores
                           </Badge>
                         </div>
                       </div>

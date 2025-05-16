@@ -72,6 +72,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const events = await storage.getEventsByUser(userId);
+      
+      // Para cada evento, buscar os fornecedores e adicionar a contagem
+      for (const event of events) {
+        const eventVendors = await storage.getVendorsByEventId(event.id);
+        // Adicionar contagem de fornecedores ao evento
+        (event as any).vendorCount = eventVendors.length;
+      }
+      
       res.json(events);
     } catch (error) {
       console.error("Error fetching events:", error);
