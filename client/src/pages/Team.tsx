@@ -436,91 +436,97 @@ const Team: React.FC = () => {
                 Adicionar Membro
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md max-h-[75vh] overflow-y-auto mt-24 md:mt-6 p-3 md:p-6">
-              <DialogHeader className="sticky top-0 bg-background pt-2 pb-2 z-10">
-                <DialogTitle>Adicionar Membro à Equipe</DialogTitle>
-                <DialogDescription>
-                  Adicione um novo membro à equipe do seu evento. Se a pessoa não tiver uma conta, um convite será enviado.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="events" className="mb-2 block">Selecione os eventos</Label>
-                  <div className="border rounded-md p-2 h-[120px] overflow-auto">
-                    {events.map((event: Event) => (
-                      <div 
-                        key={event.id} 
-                        className="flex items-center p-2 hover:bg-muted rounded mb-1"
-                      >
-                        <input 
-                          type="checkbox" 
-                          id={`event-single-${event.id}`}
-                          className="mr-2 h-4 w-4"
-                          checked={selectedEvents.includes(event.id)}
-                          onChange={() => toggleEventSelection(event.id)}
-                        />
-                        <label 
-                          htmlFor={`event-single-${event.id}`}
-                          className="flex-1 cursor-pointer"
+            <DialogContent className="sm:max-w-md max-h-[75vh] overflow-hidden mt-24 md:mt-6 p-0">
+              <div className="sticky top-0 left-0 right-0 bg-background z-20 px-4 pt-4 pb-2 border-b">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Membro à Equipe</DialogTitle>
+                  <DialogDescription>
+                    Adicione um novo membro à equipe do seu evento. Se a pessoa não tiver uma conta, um convite será enviado.
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+              <div className="p-4 overflow-y-auto max-h-[calc(75vh-80px)]">
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="events" className="mb-2 block">Selecione os eventos</Label>
+                    <div className="border rounded-md p-2 h-[120px] overflow-auto">
+                      {events.map((event: Event) => (
+                        <div 
+                          key={event.id} 
+                          className="flex items-center p-2 hover:bg-muted rounded mb-1"
                         >
-                          {event.name}
-                        </label>
-                      </div>
-                    ))}
+                          <input 
+                            type="checkbox" 
+                            id={`event-single-${event.id}`}
+                            className="mr-2 h-4 w-4"
+                            checked={selectedEvents.includes(event.id)}
+                            onChange={() => toggleEventSelection(event.id)}
+                          />
+                          <label 
+                            htmlFor={`event-single-${event.id}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            {event.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Nome</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Nome completo"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="(00) 00000-0000"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="role">Função</Label>
+                    <Select value={role} onValueChange={setRole}>
+                      <SelectTrigger id="role">
+                        <SelectValue placeholder="Selecione uma função" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="organizer">Organizador</SelectItem>
+                        <SelectItem value="team_member">Membro da Equipe</SelectItem>
+                        <SelectItem value="vendor">Fornecedor</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Nome</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="Nome completo"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="email@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="(00) 00000-0000"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="role">Função</Label>
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger id="role">
-                      <SelectValue placeholder="Selecione uma função" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="organizer">Organizador</SelectItem>
-                      <SelectItem value="team_member">Membro da Equipe</SelectItem>
-                      <SelectItem value="vendor">Fornecedor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
-              <DialogFooter>
-                <Button 
-                  onClick={handleAddMemberToMultipleEvents} 
-                  disabled={selectedEvents.length === 0 || !email || addTeamMemberToMultipleEventsMutation.isPending}
-                >
-                  {addTeamMemberToMultipleEventsMutation.isPending ? "Adicionando..." : `Adicionar a ${selectedEvents.length} evento${selectedEvents.length !== 1 ? 's' : ''}`}
-                </Button>
-              </DialogFooter>
+              <div className="px-4 py-4 border-t">
+                <DialogFooter>
+                  <Button 
+                    onClick={handleAddMemberToMultipleEvents} 
+                    disabled={selectedEvents.length === 0 || !email || addTeamMemberToMultipleEventsMutation.isPending}
+                  >
+                    {addTeamMemberToMultipleEventsMutation.isPending ? "Adicionando..." : `Adicionar a ${selectedEvents.length} evento${selectedEvents.length !== 1 ? 's' : ''}`}
+                  </Button>
+                </DialogFooter>
+              </div>
             </DialogContent>
           </Dialog>
           
