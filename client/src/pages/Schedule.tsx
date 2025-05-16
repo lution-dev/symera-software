@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/utils";
+import { Link, useLocation } from "wouter";
 import { 
   CalendarIcon, 
   Filter, 
@@ -281,28 +282,24 @@ const Schedule: React.FC = () => {
               {/* Formulário simplificado com navegação para as páginas de criação */}
               <div className="space-y-4 py-4">
                 <div className="flex justify-center space-x-4">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => {
-                      // Navegar para criar novo evento
-                      window.location.href = "/create-event";
-                      setShowNewItemDialog(false);
-                    }}
-                  >
-                    Novo Evento
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => {
-                      // Navegar para criar novo evento (e depois adicionar tarefas)
-                      window.location.href = "/create-event";
-                      setShowNewItemDialog(false);
-                    }}
-                  >
-                    Nova Tarefa
-                  </Button>
+                  <Link href="/create-event">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setShowNewItemDialog(false)}
+                    >
+                      Novo Evento
+                    </Button>
+                  </Link>
+                  <Link href="/events">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setShowNewItemDialog(false)}
+                    >
+                      Nova Tarefa
+                    </Button>
+                  </Link>
                 </div>
               </div>
               
