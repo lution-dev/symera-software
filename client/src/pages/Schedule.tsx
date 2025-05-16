@@ -341,10 +341,18 @@ const Schedule: React.FC = () => {
                 </CardDescription>
               </div>
               
-              <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-full bg-primary/70"></span>
                   <span>Eventos</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="flex items-center justify-center w-3 h-3">▢</span>
+                  <span>Tarefas</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-red-500/70"></span>
+                  <span>Alta prioridade</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-full bg-amber-500/70"></span>
