@@ -118,13 +118,15 @@ const Sidebar: React.FC = () => {
         )}
         
         {collapsed && (
-          <button 
-            onClick={toggleCollapsed}
-            className="absolute opacity-0 group-hover:opacity-100 flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-opacity right-0 transform translate-x-1/2 top-1/2 -translate-y-1/2 z-50 shadow-sm bg-card border border-border"
-            title="Expandir menu"
-          >
-            <ChevronRight size={16} />
-          </button>
+          <div className="absolute right-0 top-0 h-full w-4 group-hover:opacity-100 z-50">
+            <button 
+              onClick={toggleCollapsed}
+              className="absolute opacity-0 group-hover:opacity-100 flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-opacity right-0 transform translate-x-1/2 top-1/2 -translate-y-1/2 z-50 shadow-sm bg-card border border-border"
+              title="Expandir menu"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
         )}
       </div>
       
