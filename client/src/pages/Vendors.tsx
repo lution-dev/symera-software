@@ -609,49 +609,53 @@ const Vendors: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 rounded-lg bg-card/20 p-4">
-          <h2 className="text-2xl font-bold mb-4">Meus Eventos</h2>
+        <div className="lg:col-span-1 rounded-xl bg-card/20 overflow-hidden">
+          <div className="p-4">
+            <h2 className="text-2xl font-bold">Meus Eventos</h2>
           
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar eventos..."
-              className="pl-9 bg-background/60"
-            />
+            <div className="relative mt-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar eventos..."
+                className="pl-9 bg-background/60"
+              />
+            </div>
           </div>
           
-          <div className="space-y-0">
+          <div>
             {isLoadingEvents ? (
               <div className="flex items-center justify-center h-20">
                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
               </div>
             ) : events.length > 0 ? (
-              events.map((event: Event) => (
-                <div
-                  key={event.id}
-                  className={`p-4 mb-1 rounded-md cursor-pointer transition-all ${
-                    selectedEventId === event.id
-                      ? "bg-primary/80 text-white"
-                      : "bg-muted/40 hover:bg-muted/60"
-                  }`}
-                  onClick={() => setSelectedEventId(event.id)}
-                >
-                  <div className="font-medium">{event.name}</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <div className={`text-xs ${selectedEventId === event.id ? "text-white/80" : "text-muted-foreground"}`}>
-                      {event.type === "wedding" ? "Casamento" :
-                       event.type === "birthday" ? "Aniversário" :
-                       event.type === "corporate" ? "Corporativo" :
-                       event.type === "conference" ? "Conferência" :
-                       event.type === "social" ? "Social" : "Outro"}
-                    </div>
-                    <div className={`flex items-center text-xs ${selectedEventId === event.id ? "text-white/80" : "text-muted-foreground"}`}>
-                      <User className="h-3 w-3 mr-1" />
-                      {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
+              <div>
+                {events.map((event: Event, index: number) => (
+                  <div
+                    key={event.id}
+                    className={`pl-5 pr-4 py-4 cursor-pointer border-l-4 ${
+                      selectedEventId === event.id
+                        ? "bg-primary text-white border-l-primary/50"
+                        : "border-l-transparent hover:bg-muted/30"
+                    } ${index !== 0 ? "border-t border-t-border/40" : ""}`}
+                    onClick={() => setSelectedEventId(event.id)}
+                  >
+                    <div className="font-medium">{event.name}</div>
+                    <div className="flex items-center justify-between mt-1">
+                      <div className={`text-xs ${selectedEventId === event.id ? "text-white/80" : "text-muted-foreground"}`}>
+                        {event.type === "wedding" ? "Casamento" :
+                         event.type === "birthday" ? "Aniversário" :
+                         event.type === "corporate" ? "Corporativo" :
+                         event.type === "conference" ? "Conferência" :
+                         event.type === "social" ? "Social" : "Outro"}
+                      </div>
+                      <div className={`flex items-center text-xs ${selectedEventId === event.id ? "text-white/80" : "text-muted-foreground"}`}>
+                        <User className="h-3 w-3 mr-1" />
+                        {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
               <div className="text-center py-4">
                 <p className="text-muted-foreground">Nenhum evento encontrado</p>
