@@ -626,20 +626,27 @@ const Vendors: React.FC = () => {
                 events.map((event: Event) => (
                   <div
                     key={event.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    className={`p-3 mb-2 rounded-lg cursor-pointer border transition-all ${
                       selectedEventId === event.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card hover:bg-primary/10"
+                        ? "bg-primary/5 border-primary"
+                        : "bg-card hover:bg-primary/5 border-transparent hover:border-primary/30"
                     }`}
                     onClick={() => setSelectedEventId(event.id)}
                   >
                     <div className="font-medium">{event.name}</div>
-                    <div className="text-sm opacity-80">
-                      {selectedEventId === event.id
-                        ? `${
-                            vendors.filter((v: Vendor) => v.eventId === event.id).length
-                          } fornecedores`
-                        : event.type}
+                    <div className="flex items-center justify-between mt-1">
+                      <Badge variant={selectedEventId === event.id ? "default" : "outline"} className="text-xs">
+                        {event.type === "wedding" ? "Casamento" :
+                         event.type === "birthday" ? "Aniversário" :
+                         event.type === "corporate" ? "Corporativo" :
+                         event.type === "conference" ? "Conferência" :
+                         event.type === "social" ? "Social" : "Outro"}
+                      </Badge>
+                      {selectedEventId === event.id && (
+                        <span className="text-xs text-muted-foreground">
+                          {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))
