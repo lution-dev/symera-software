@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createEventSchema } from "@shared/schema";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { Image, Upload } from "lucide-react";
 
 interface EventFormProps {
   defaultValues?: {
@@ -34,6 +36,7 @@ interface EventFormProps {
     description?: string;
     budget?: number;
     attendees?: number;
+    coverImageUrl?: string;
     generateAIChecklist?: boolean;
   };
   isEdit?: boolean;
@@ -49,6 +52,7 @@ const EventForm: React.FC<EventFormProps> = ({
     description: "",
     budget: undefined,
     attendees: undefined,
+    coverImageUrl: "",
     generateAIChecklist: true,
   },
   isEdit = false,
@@ -63,12 +67,68 @@ const EventForm: React.FC<EventFormProps> = ({
     defaultValues,
   });
 
+  const [imagePreview, setImagePreview] = useState<string | null>(defaultValues.coverImageUrl || null);
+  const [imageUploading, setImageUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Tipo de arquivo inválido",
+        description: "Por favor, selecione uma imagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setImageUploading(true);
+
+    try {
+      // Create a FileReader to get a data URL for preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setImagePreview(result);
+        form.setValue("coverImageUrl", result);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível fazer o upload da imagem.",
+        variant: "destructive",
+      });
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       if (isEdit && eventId) {
         // Update existing event
-        await apiRequest("PUT", `/api/events/${eventId}`, data);
+        await apiRequest(
+          `/api/events/${eventId}`, 
+          { 
+            method: "PUT", 
+            body: data 
+          }
+        );
         toast({
           title: "Evento atualizado",
           description: "O evento foi atualizado com sucesso!",
@@ -76,7 +136,13 @@ const EventForm: React.FC<EventFormProps> = ({
         navigate(`/events/${eventId}`);
       } else {
         // Create new event
-        const response = await apiRequest("POST", "/api/events", data);
+        const response = await apiRequest(
+          "/api/events", 
+          { 
+            method: "POST", 
+            body: data 
+          }
+        );
         const newEvent = await response.json();
         toast({
           title: "Evento criado",

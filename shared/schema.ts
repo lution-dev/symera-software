@@ -74,6 +74,7 @@ export const events = pgTable("events", {
   budget: real("budget"),
   expenses: real("expenses").default(0),
   attendees: integer("attendees"),
+  coverImageUrl: text("cover_image_url"),
   status: eventStatusEnum("status").default("planning"),
   ownerId: varchar("owner_id")
     .notNull()
@@ -257,6 +258,7 @@ export const createEventSchema = z.object({
   description: z.string().optional(),
   budget: z.number().optional(),
   attendees: z.number().int().optional(),
+  coverImageUrl: z.string().optional(),
   generateAIChecklist: z.boolean().default(true),
 });
 
