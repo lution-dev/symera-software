@@ -132,10 +132,7 @@ const Sidebar: React.FC = () => {
       </div>
       
       {/* Navigation */}
-      <nav className={cn(
-        "flex-1 space-y-6",
-        "p-4" // Agora a navegação sempre tem p-4
-      )}>
+      <nav className="flex-1 p-4 space-y-6">
         <div className="space-y-1">
           {navItems.map((item) => (
             <TooltipProvider key={item.path} delayDuration={collapsed ? 100 : 1000}>
@@ -160,7 +157,7 @@ const Sidebar: React.FC = () => {
                     </Link>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="right" className={cn("bg-card", !collapsed && "hidden")}>
+                <TooltipContent side="right" className={cn(!collapsed && "hidden")}>
                   {item.label}
                 </TooltipContent>
               </Tooltip>
@@ -208,7 +205,7 @@ const Sidebar: React.FC = () => {
                     <div
                       className={cn(
                         "text-muted-foreground hover:text-foreground cursor-pointer",
-                        collapsed ? "p-4" : "ml-2 flex-shrink-0 p-2" // Mais padding quando fechado para manter posicionamento
+                        collapsed ? "flex items-center justify-center" : "ml-2 flex-shrink-0"
                       )}
                       title="Sair"
                     >
