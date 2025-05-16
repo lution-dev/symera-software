@@ -100,6 +100,13 @@ export interface IStorage {
   updateVendor(id: number, vendor: Partial<InsertVendor>): Promise<Vendor>;
   deleteVendor(id: number): Promise<void>;
   
+  // Budget item operations
+  getBudgetItemsByEventId(eventId: number): Promise<BudgetItem[]>;
+  getBudgetItemById(id: number): Promise<BudgetItem | undefined>;
+  createBudgetItem(budgetItem: InsertBudgetItem): Promise<BudgetItem>;
+  updateBudgetItem(id: number, budgetItem: Partial<InsertBudgetItem>): Promise<BudgetItem>;
+  deleteBudgetItem(id: number): Promise<void>;
+  
   // Activity log operations
   getActivityLogsByEventId(eventId: number): Promise<ActivityLog[]>;
   createActivityLog(activityLog: InsertActivityLog): Promise<ActivityLog>;

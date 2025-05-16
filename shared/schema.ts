@@ -95,6 +95,7 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
   tasks: many(tasks),
   teamMembers: many(eventTeamMembers),
   vendors: many(vendors),
+  budgetItems: many(budgetItems),
 }));
 
 // Task Status
@@ -226,6 +227,33 @@ export const activityLogs = pgTable("activity_logs", {
   }
 });
 
+// Budget Items
+export const budgetItems = pgTable("budget_items", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  amount: real("amount").notNull(),
+  paid: boolean("paid").default(false),
+  dueDate: timestamp("due_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return {
+    eventIdIdx: index("budget_items_event_id_idx").on(table.eventId),
+  }
+});
+
+export const budgetItemsRelations = relations(budgetItems, ({ one }) => ({
+  event: one(events, {
+    fields: [budgetItems.eventId],
+    references: [events.id],
+  }),
+}));
+
 // Schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertEventSchema = createInsertSchema(events);
@@ -233,6 +261,7 @@ export const insertTaskSchema = createInsertSchema(tasks);
 export const insertEventTeamMemberSchema = createInsertSchema(eventTeamMembers);
 export const insertVendorSchema = createInsertSchema(vendors);
 export const insertActivityLogSchema = createInsertSchema(activityLogs);
+export const insertBudgetItemSchema = createInsertSchema(budgetItems);
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -252,6 +281,9 @@ export type Vendor = typeof vendors.$inferSelect;
 
 export type InsertActivityLog = typeof activityLogs.$inferInsert;
 export type ActivityLog = typeof activityLogs.$inferSelect;
+
+export type InsertBudgetItem = typeof budgetItems.$inferInsert;
+export type BudgetItem = typeof budgetItems.$inferSelect;
 
 // Event creation schema with validation
 export const createEventSchema = z.object({
