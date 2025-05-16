@@ -197,6 +197,8 @@ const Team: React.FC = () => {
         description: "O membro foi adicionado à equipe com sucesso.",
       });
       setEmail("");
+      setName("");
+      setPhone("");
       setRole("team_member");
       setIsAddMemberOpen(false);
       setIsAddMemberToMultipleOpen(false);
@@ -241,6 +243,8 @@ const Team: React.FC = () => {
         description: "O membro foi adicionado aos eventos selecionados com sucesso.",
       });
       setEmail("");
+      setName("");
+      setPhone("");
       setRole("team_member");
       setIsAddMemberToMultipleOpen(false);
       setSelectedEvents([]);
@@ -554,9 +558,19 @@ const Team: React.FC = () => {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">E-mail</Label>
+                  <Label htmlFor="name-multiple">Nome</Label>
                   <Input
-                    id="email"
+                    id="name-multiple"
+                    type="text"
+                    placeholder="Nome completo"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email-multiple">E-mail</Label>
+                  <Input
+                    id="email-multiple"
                     type="email"
                     placeholder="email@exemplo.com"
                     value={email}
@@ -564,9 +578,19 @@ const Team: React.FC = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="role">Função</Label>
+                  <Label htmlFor="phone-multiple">Telefone</Label>
+                  <Input
+                    id="phone-multiple"
+                    type="tel"
+                    placeholder="(00) 00000-0000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="role-multiple">Função</Label>
                   <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger id="role">
+                    <SelectTrigger id="role-multiple">
                       <SelectValue placeholder="Selecione uma função" />
                     </SelectTrigger>
                     <SelectContent>
