@@ -281,25 +281,27 @@ const Schedule: React.FC = () => {
               
               {/* Formulário simplificado com navegação para as páginas de criação */}
               <div className="space-y-4 py-4">
-                <div className="flex justify-center space-x-4">
-                  <Link href="/create-event">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => setShowNewItemDialog(false)}
-                    >
-                      Novo Evento
-                    </Button>
-                  </Link>
-                  <Link href="/events">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => setShowNewItemDialog(false)}
-                    >
-                      Nova Tarefa
-                    </Button>
-                  </Link>
+                <div className="flex justify-center space-x-4 w-full">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setShowNewItemDialog(false);
+                      window.location.href = "/create-event";
+                    }}
+                  >
+                    Novo Evento
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setShowNewItemDialog(false);
+                      window.location.href = "/events";
+                    }}
+                  >
+                    Nova Tarefa
+                  </Button>
                 </div>
               </div>
               
