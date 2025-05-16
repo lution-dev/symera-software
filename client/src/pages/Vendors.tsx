@@ -609,7 +609,7 @@ const Vendors: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 rounded-xl bg-card/20 overflow-hidden">
+        <div className="lg:col-span-1 rounded-xl bg-card overflow-hidden">
           <div className="p-4">
             <h2 className="text-2xl font-bold">Meus Eventos</h2>
           
@@ -629,26 +629,26 @@ const Vendors: React.FC = () => {
               </div>
             ) : events.length > 0 ? (
               <div>
-                {events.map((event: Event, index: number) => (
+                {events.map((event: Event) => (
                   <div
                     key={event.id}
-                    className={`pl-5 pr-4 py-4 cursor-pointer border-l-4 ${
+                    className={`pl-5 pr-4 py-4 cursor-pointer border-l-4 border-l-orange-500 hover:bg-neutral-800 ${
                       selectedEventId === event.id
-                        ? "bg-primary text-white border-l-primary/50"
-                        : "border-l-transparent hover:bg-muted/30"
-                    } ${index !== 0 ? "border-t border-t-border/40" : ""}`}
+                        ? "bg-neutral-800"
+                        : ""
+                    }`}
                     onClick={() => setSelectedEventId(event.id)}
                   >
                     <div className="font-medium">{event.name}</div>
                     <div className="flex items-center justify-between mt-1">
-                      <div className={`text-xs ${selectedEventId === event.id ? "text-white/80" : "text-muted-foreground"}`}>
+                      <div className="text-xs text-muted-foreground">
                         {event.type === "wedding" ? "Casamento" :
                          event.type === "birthday" ? "Aniversário" :
                          event.type === "corporate" ? "Corporativo" :
                          event.type === "conference" ? "Conferência" :
                          event.type === "social" ? "Social" : "Outro"}
                       </div>
-                      <div className={`flex items-center text-xs ${selectedEventId === event.id ? "text-white/80" : "text-muted-foreground"}`}>
+                      <div className="flex items-center text-xs text-muted-foreground">
                         <User className="h-3 w-3 mr-1" />
                         {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
                       </div>
