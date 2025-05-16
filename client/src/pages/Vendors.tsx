@@ -609,7 +609,7 @@ const Vendors: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 rounded-lg bg-muted/40 p-4">
+        <div className="lg:col-span-1 rounded-lg bg-card/20 p-4">
           <h2 className="text-2xl font-bold mb-4">Meus Eventos</h2>
           
           <div className="relative mb-4">
@@ -629,23 +629,23 @@ const Vendors: React.FC = () => {
               events.map((event: Event) => (
                 <div
                   key={event.id}
-                  className={`pl-4 pr-3 py-3 cursor-pointer border-l-4 border-l-transparent hover:bg-muted/70 transition-all ${
+                  className={`p-4 mb-1 rounded-md cursor-pointer transition-all ${
                     selectedEventId === event.id
-                      ? "bg-muted/70 border-l-primary"
-                      : ""
+                      ? "bg-primary/80 text-white"
+                      : "bg-muted/40 hover:bg-muted/60"
                   }`}
                   onClick={() => setSelectedEventId(event.id)}
                 >
                   <div className="font-medium">{event.name}</div>
                   <div className="flex items-center justify-between mt-1">
-                    <div className="text-xs text-muted-foreground">
+                    <div className={`text-xs ${selectedEventId === event.id ? "text-white/80" : "text-muted-foreground"}`}>
                       {event.type === "wedding" ? "Casamento" :
                        event.type === "birthday" ? "Aniversário" :
                        event.type === "corporate" ? "Corporativo" :
                        event.type === "conference" ? "Conferência" :
                        event.type === "social" ? "Social" : "Outro"}
                     </div>
-                    <div className="flex items-center text-xs text-muted-foreground">
+                    <div className={`flex items-center text-xs ${selectedEventId === event.id ? "text-white/80" : "text-muted-foreground"}`}>
                       <User className="h-3 w-3 mr-1" />
                       {vendors.filter((v: Vendor) => v.eventId === event.id).length} fornecedores
                     </div>
