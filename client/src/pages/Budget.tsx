@@ -81,6 +81,20 @@ interface BudgetItem {
   createdAt: string;
 }
 
+interface Expense {
+  id: number;
+  eventId: number;
+  name: string;
+  category: string;
+  amount: number;
+  paid: boolean;
+  dueDate?: string;
+  paymentDate?: string;
+  vendorId?: number;
+  notes?: string;
+  createdAt: string;
+}
+
 // Categorias do orçamento
 const BUDGET_CATEGORIES = [
   // Fornecedores comuns
@@ -150,6 +164,11 @@ const Budget: React.FC = () => {
   
   const { data: budgetItems = [], isLoading: isLoadingBudget } = useQuery({
     queryKey: ["/api/events", selectedEventId, "budget"],
+    enabled: !!selectedEventId,
+  });
+  
+  const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
+    queryKey: ["/api/events", selectedEventId, "expenses"],
     enabled: !!selectedEventId,
   });
   
@@ -234,6 +253,96 @@ const Budget: React.FC = () => {
       toast({
         title: "Erro ao excluir item",
         description: "Ocorreu um erro ao excluir o item do orçamento.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutações para despesas
+  const addExpenseMutation = useMutation({
+    mutationFn: async (data: {
+      eventId: number;
+      name: string;
+      category: string;
+      amount: number;
+      paid: boolean;
+      vendorId?: number;
+      dueDate?: string;
+      paymentDate?: string;
+      notes?: string;
+    }) => {
+      return apiRequest(`/api/events/${data.eventId}/expenses`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({
+        title: "Despesa adicionada",
+        description: "A despesa foi adicionada com sucesso.",
+      });
+      resetItemForm();
+      setIsAddItemOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao adicionar despesa",
+        description: "Ocorreu um erro ao adicionar a despesa.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const updateExpenseMutation = useMutation({
+    mutationFn: async (data: {
+      id: number;
+      updates: Partial<Expense>;
+    }) => {
+      return apiRequest(`/api/expenses/${data.id}`, {
+        method: "PUT",
+        body: JSON.stringify(data.updates),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({
+        title: "Despesa atualizada",
+        description: "A despesa foi atualizada com sucesso.",
+      });
+      resetItemForm();
+      setSelectedItem(null);
+      setIsAddItemOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao atualizar despesa",
+        description: "Ocorreu um erro ao atualizar a despesa.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const deleteExpenseMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/expenses/${id}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({
+        title: "Despesa excluída",
+        description: "A despesa foi excluída com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao excluir despesa",
+        description: "Ocorreu um erro ao excluir a despesa.",
         variant: "destructive",
       });
     },
@@ -887,7 +996,7 @@ const Budget: React.FC = () => {
                 </div>
                 
                 <Tabs defaultValue="items">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="items">Despesas</TabsTrigger>
                     <TabsTrigger value="categories">Categorias</TabsTrigger>
                     <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
