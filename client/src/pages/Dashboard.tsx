@@ -41,7 +41,7 @@ const Dashboard: React.FC = () => {
             Seja bem-vindo(a), {user?.firstName || ""}!
           </h1>
           <p className="text-muted-foreground mt-1">
-            Você tem {activeEvents} eventos ativos e {pendingTasks.length} tarefas pendentes.
+            Você tem {totalEvents} eventos e {pendingTasks.length} tarefas pendentes.
           </p>
         </div>
         <div className="mt-4 md:mt-0">
@@ -91,7 +91,7 @@ const Dashboard: React.FC = () => {
       {/* Events Section */}
       <div className="mb-10">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Seus Eventos Ativos</h2>
+          <h2 className="text-xl font-bold">Seus Eventos</h2>
           <Link href="/events">
             <div className="text-primary hover:text-primary/80 flex items-center text-sm font-medium cursor-pointer">
               Ver todos
@@ -111,8 +111,8 @@ const Dashboard: React.FC = () => {
                 <i className="fas fa-calendar text-primary text-2xl"></i>
               </div>
             </div>
-            <h3 className="text-lg font-medium mb-2">Nenhum evento ativo</h3>
-            <p className="text-muted-foreground mb-6">Você ainda não tem eventos ativos. Crie seu primeiro evento agora!</p>
+            <h3 className="text-lg font-medium mb-2">Nenhum evento</h3>
+            <p className="text-muted-foreground mb-6">Você ainda não tem eventos. Crie seu primeiro evento agora!</p>
             <Link href="/events/new">
               <Button className="gradient-primary">
                 <i className="fas fa-plus mr-2"></i> Criar Evento
