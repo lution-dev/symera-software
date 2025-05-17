@@ -76,6 +76,23 @@ export function calculateTaskProgress(tasks: Array<{ status: string }>) {
   return Math.round((completedTasks.length / tasks.length) * 100);
 }
 
+// Calculate event progress considering team and tasks
+export function calculateEventProgress(tasks: Array<{ status: string }> = [], team: Array<any> = []) {
+  // Se tiver tarefas, usa o cálculo baseado nas tarefas concluídas
+  if (tasks.length > 0) {
+    const completedTasks = tasks.filter(task => task.status === 'completed');
+    return Math.round((completedTasks.length / tasks.length) * 100);
+  }
+  
+  // Se não tiver tarefas mas tiver equipe, retorna 5% de progresso para indicar que o planejamento começou
+  if (team.length > 0) {
+    return 5;
+  }
+  
+  // Se não tiver nem tarefas nem equipe, retorna 0%
+  return 0;
+}
+
 // Format currency values
 export function formatCurrency(value: number | undefined) {
   if (value === undefined) return '';

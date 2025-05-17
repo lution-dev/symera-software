@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "wouter";
-import { formatDate, calculateTaskProgress, getEventTypeLabel, getInitials, generateProfileImageUrl } from "@/lib/utils";
+import { formatDate, calculateTaskProgress, calculateEventProgress, getEventTypeLabel, getInitials, generateProfileImageUrl } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface TeamMember {
@@ -88,8 +88,8 @@ const EventCard: React.FC<EventCardProps> = ({
     }
   };
 
-  // Calculate progress percentage
-  const progressPercentage = calculateTaskProgress(tasks);
+  // Calculate progress percentage considerando também a equipe
+  const progressPercentage = calculateEventProgress(tasks, teamData);
   
   // Count pending tasks
   const pendingTasks = tasks.filter(task => task.status !== "completed").length;
