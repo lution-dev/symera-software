@@ -104,8 +104,17 @@ const EventCard: React.FC<EventCardProps> = ({
             className="w-full h-full object-cover"
           />
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-background opacity-80"></div>
-          <div className={`absolute top-4 right-4 ${status === 'active' ? 'bg-green-500' : status === 'planning' ? 'bg-blue-500' : status === 'completed' ? 'bg-gray-500' : 'bg-red-500'} text-white text-xs font-bold px-2 py-1 rounded-full`}>
-            {status === 'active' ? 'Ativo' : status === 'planning' ? 'Planejamento' : status === 'completed' ? 'Concluído' : 'Cancelado'}
+          <div className={`absolute top-4 right-4 ${
+            status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+            status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+            status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+            status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+            'bg-[hsl(var(--event-cancelled))]'
+          } text-white text-xs font-bold px-2 py-1 rounded-full`}>
+            {status === 'planning' ? 'Planejamento' : 
+             status === 'confirmed' ? 'Confirmado' : 
+             status === 'in_progress' ? 'Em andamento' : 
+             status === 'completed' ? 'Concluído' : 'Cancelado'}
           </div>
         </div>
         

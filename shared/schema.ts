@@ -57,10 +57,11 @@ export const eventTypeEnum = pgEnum("event_type", [
 
 // Event Status
 export const eventStatusEnum = pgEnum("event_status", [
-  "planning",
-  "active",
-  "completed",
-  "cancelled",
+  "planning",   // Planejamento
+  "confirmed",  // Confirmado
+  "in_progress", // Em andamento
+  "completed",  // Concluído
+  "cancelled",  // Cancelado
 ]);
 
 // Events
