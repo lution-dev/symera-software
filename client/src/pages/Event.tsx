@@ -163,14 +163,33 @@ const Event: React.FC<EventProps> = ({ id }) => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Breadcrumb / Back Button */}
-      <div className="mb-4">
-        <Link href="/events">
-          <Button variant="ghost" className="pl-0 flex items-center text-muted-foreground hover:text-foreground">
-            <i className="fas fa-arrow-left mr-2"></i> Voltar para Eventos
-          </Button>
-        </Link>
-      </div>
+      {/* Breadcrumb Navigation */}
+      <nav className="flex mb-4" aria-label="Breadcrumb">
+        <ol className="inline-flex items-center space-x-1 md:space-x-3">
+          <li className="inline-flex items-center">
+            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+              <i className="fas fa-home mr-2"></i>
+              Início
+            </Link>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
+              <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
+                Eventos
+              </Link>
+            </div>
+          </li>
+          <li aria-current="page">
+            <div className="flex items-center">
+              <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
+              <span className="text-sm font-medium text-primary">
+                {event.name}
+              </span>
+            </div>
+          </li>
+        </ol>
+      </nav>
       
       {/* Event Cover Image */}
       <div className="relative w-full h-64 md:h-80 mb-6 rounded-xl overflow-hidden shadow-md">
