@@ -1,0 +1,103 @@
+Adaptação Completa do Design da Symera para Mobile e Tablet
+Objetivo:
+Adaptar toda a interface atual da Symera (feita para desktop) para funcionar perfeitamente em celulares e tablets, mantendo o visual moderno, elegante e funcional, respeitando as boas práticas de UX/UI mobile.
+
+✅ Diretrizes Gerais
+1. 📐 Responsividade e estrutura
+Utilizar layout responsivo com breakpoints bem definidos para:
+
+📱 Telas de até 480px (mobile)
+
+📲 Telas entre 481px e 1024px (tablet)
+
+Grid adaptativo: empilhar colunas em blocos verticais quando necessário, com espaçamento consistente entre os elementos.
+
+2. 🧠 Heurísticas e boas práticas de UX mobile
+Aplicar os princípios de usabilidade mobile com base nas heurísticas de Nielsen e diretrizes modernas:
+
+Princípio	Aplicação esperada
+Visibilidade do status do sistema	Mostrar carregamentos, progresso, status de ações com feedbacks visuais leves
+Reconhecimento em vez de memorização	Elementos como botões, ícones e cards devem ser fáceis de reconhecer com ações óbvias
+Prevenção de erros	Áreas clicáveis bem definidas, evitar ações perigosas sem confirmação
+Consistência e padrões	Manter a identidade da Symera: cores, ícones, botões, fontes
+
+3. 🔧 Adaptação por componente/tela
+🟠 Dashboard
+Componentes como “Eventos Ativos”, “Tarefas Pendentes” e “Progresso” devem empilhar verticalmente.
+
+Cards dos eventos devem virar carrossel horizontal (swipe) ou empilhar em coluna.
+
+Ícones e indicadores (ex: porcentagens, dias restantes) devem ser realçados em destaque no topo dos blocos.
+
+🟢 Lista de eventos
+Colapsar filtros e busca em um botão 🔍 Filtros que abre em modal.
+
+Os cards de evento devem ocupar 100% da largura com padding lateral, e botões de ação (checklist, editar, excluir) podem ir em menu ⋮.
+
+🟣 Tela de evento
+Cabeçalho com imagem e infos essenciais deve ser compacto, com botão flutuante de ações principais (ex: + tarefa, checklist).
+
+Seções como "Progresso", "Orçamento", "Equipe" devem aparecer em blocos verticais com destaque.
+
+Tabs (“Tarefas”, “Equipe”, “Cronograma”) viram menu scroll horizontal ou menu suspenso.
+
+🔵 Checklists e tarefas
+Layout em lista única vertical, com prioridade e status visíveis logo no topo da célula.
+
+Ações como editar ou marcar como concluída devem aparecer como ícones flutuantes à direita, ou abrir em menu de ação ao tocar.
+
+🟣 Tela de orçamento
+Seções como “Resumo”, “Despesas” e “Categorias” empilhadas com cards expansíveis.
+
+Tabela vira lista de cards verticais, cada um mostrando:
+
+Nome do item
+
+Valor
+
+Categoria
+
+Status
+
+Ícones de ação
+
+🟠 Tela de criação/edição de evento
+Campos em empilhamento único vertical
+
+Controles (ex: data/hora, número) adaptados para input mobile-friendly
+
+Checklist com IA deve ter botão grande com legenda clara no fim do formulário
+
+⚙️ Sidebar e navegação
+Sidebar vira menu hamburger ☰ fixado no topo
+
+Acesso ao usuário, configurações e troca de evento deve estar no menu ou em um botão flutuante no rodapé
+
+4. 🎨 Visual e tipografia
+Fonte: manter família tipográfica atual com peso adaptado para leitura em telas menores
+
+Tamanhos: mínimo de 14px para textos; 44px para área clicável (padrão Apple/Google)
+
+Contraste: manter o ótimo contraste já existente no desktop (não reduzir intensidade)
+
+Botões: sempre usar min-width: 100% quando em formulários mobile
+
+5. 🧪 Testes esperados
+Ao concluir a adaptação, garantir que:
+
+Todos os componentes funcionem corretamente em touch
+
+Nenhum conteúdo esteja cortado ou com scroll lateral
+
+Não haja “toques fantasmas” (elementos sobrepostos indevidamente)
+
+A hierarquia visual seja clara em telas menores
+
+📌 Resultado Esperado
+Interface mobile com visual moderno, fluido e fiel ao desktop
+
+Experiência otimizada para celulares com foco em facilidade de navegação e ação rápida
+
+Aplicação consistente da identidade visual da Symera
+
+Nenhuma perda de funcionalidade
