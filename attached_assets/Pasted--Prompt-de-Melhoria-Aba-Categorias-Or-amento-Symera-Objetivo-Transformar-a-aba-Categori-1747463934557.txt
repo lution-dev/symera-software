@@ -1,0 +1,80 @@
+🧠 Prompt de Melhoria — Aba “Categorias” (Orçamento | Symera)
+
+Objetivo:
+Transformar a aba “Categorias”, hoje estática e sem funcionalidade clara, em uma visão analítica dinâmica baseada nos dados de despesas e itens orçamentários do evento.
+
+⸻
+
+✅ Alterações Recomendadas
+
+1. 🔁 Renomear a aba
+
+De: Categorias
+Para: 📊 Análise por Categoria
+
+	Isso melhora a clareza da funcionalidade, já que essa tela será um resumo visual e não um cadastro ou gerenciamento direto.
+
+⸻
+
+2. 📊 Substituir conteúdo vazio por visualização dinâmica
+
+Se houver pelo menos uma despesa ou item orçamentário com categoria preenchida, mostrar:
+
+a. Gráfico de pizza
+	•	Representando o total de valor distribuído por categoria
+	•	Exibir o valor absoluto e a porcentagem relativa a cada categoria
+	•	Usar cores distintas por categoria (paleta Symera)
+
+b. Tabela de apoio
+
+Cada linha deve conter:
+	•	Nome da categoria (com ícone, se possível)
+	•	Total de itens vinculados àquela categoria
+	•	Valor total da categoria
+	•	Porcentagem do orçamento total consumido por essa categoria
+
+    Exemplo visual:
+    | Categoria     | Itens | Valor Total | % do Orçamento |
+|---------------|-------|-------------|----------------|
+| Local         | 1     | R$ 5.000    | 33%            |
+| Buffet        | 2     | R$ 12.500   | 55%            |
+| Decoração     | 1     | R$ 3.200    | 12%            |
+
+
+
+⸻
+
+3. ⚠️ Lidar com itens sem categoria
+	•	Se algum item estiver sem categoria, agrupar sob “Outros” ou “Sem Categoria”
+	•	Exibir um aviso suave, como:
+	“Alguns itens não estão categorizados. Deseja categorizá-los agora?”
+	•	Oferecer um botão de ação:
+→ Categorizar Itens → abre modal para edição em massa (ou redireciona para aba de despesas)
+
+⸻
+
+4. 📌 Interação condicional
+	•	Se não houver nenhuma despesa ou item: manter o estado vazio com o texto:
+    Nenhum item no orçamento ainda.
+Adicione despesas ou itens para visualizar as estatísticas por categoria.
+
+Se houver dados: exibir gráfico + tabela automaticamente, sem necessidade de ação do usuário.
+
+⸻
+
+5. 🔮 (Futuro) Sugerir categoria com IA
+
+Em próximas versões, permitir que a IA sugira categorias com base na descrição do item (ex: se o nome for “DJ”, sugerir “Atrações”).
+
+⸻
+
+🎯 Benefícios esperados
+	•	Melhora a experiência de análise do organizador
+	•	Torna a aba “Categorias” útil e interativa
+	•	Ajuda na tomada de decisão financeira do evento
+
+⸻
+
+Esse é o comportamento esperado para a nova versão da aba “Análise por Categoria”. Pode manter os estilos visuais atuais da Symera, usando a mesma base de design (Dark Mode, botões, fontes e cores).
+
+Caso deseje confirmação de estilo visual, posso gerar wireframes sob demanda. Obrigado!
