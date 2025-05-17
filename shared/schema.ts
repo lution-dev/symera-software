@@ -254,6 +254,40 @@ export const budgetItemsRelations = relations(budgetItems, ({ one }) => ({
   }),
 }));
 
+// Expenses
+export const expenses = pgTable("expenses", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  amount: real("amount").notNull(),
+  paid: boolean("paid").default(false),
+  dueDate: timestamp("due_date"),
+  paymentDate: timestamp("payment_date"),
+  vendorId: integer("vendor_id").references(() => vendors.id, { onDelete: "set null" }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return {
+    eventIdIdx: index("expenses_event_id_idx").on(table.eventId),
+    vendorIdIdx: index("expenses_vendor_id_idx").on(table.vendorId),
+  }
+});
+
+export const expensesRelations = relations(expenses, ({ one }) => ({
+  event: one(events, {
+    fields: [expenses.eventId],
+    references: [events.id],
+  }),
+  vendor: one(vendors, {
+    fields: [expenses.vendorId],
+    references: [vendors.id],
+  }),
+}));
+
 // Schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertEventSchema = createInsertSchema(events);
@@ -262,6 +296,7 @@ export const insertEventTeamMemberSchema = createInsertSchema(eventTeamMembers);
 export const insertVendorSchema = createInsertSchema(vendors);
 export const insertActivityLogSchema = createInsertSchema(activityLogs);
 export const insertBudgetItemSchema = createInsertSchema(budgetItems);
+export const insertExpenseSchema = createInsertSchema(expenses);
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -284,6 +319,9 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 
 export type InsertBudgetItem = typeof budgetItems.$inferInsert;
 export type BudgetItem = typeof budgetItems.$inferSelect;
+
+export type InsertExpense = typeof expenses.$inferInsert;
+export type Expense = typeof expenses.$inferSelect;
 
 // Event creation schema with validation
 export const createEventSchema = z.object({

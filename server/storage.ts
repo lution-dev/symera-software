@@ -110,6 +110,13 @@ export interface IStorage {
   updateBudgetItem(id: number, budgetItem: Partial<InsertBudgetItem>): Promise<BudgetItem>;
   deleteBudgetItem(id: number): Promise<void>;
   
+  // Expense operations
+  getExpensesByEventId(eventId: number): Promise<Expense[]>;
+  getExpenseById(id: number): Promise<Expense | undefined>;
+  createExpense(expense: InsertExpense): Promise<Expense>;
+  updateExpense(id: number, expense: Partial<InsertExpense>): Promise<Expense>;
+  deleteExpense(id: number): Promise<void>;
+  
   // Activity log operations
   getActivityLogsByEventId(eventId: number): Promise<ActivityLog[]>;
   createActivityLog(activityLog: InsertActivityLog): Promise<ActivityLog>;
@@ -679,6 +686,85 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBudgetItem(id: number): Promise<void> {
     await db.delete(budgetItems).where(eq(budgetItems.id, id));
+  }
+
+  // Expense operations
+  async getExpensesByEventId(eventId: number): Promise<Expense[]> {
+    return db
+      .select()
+      .from(expenses)
+      .where(eq(expenses.eventId, eventId))
+      .orderBy(desc(expenses.createdAt));
+  }
+
+  async getExpenseById(id: number): Promise<Expense | undefined> {
+    const [expense] = await db
+      .select()
+      .from(expenses)
+      .where(eq(expenses.id, id))
+      .limit(1);
+    return expense;
+  }
+
+  async createExpense(expenseData: InsertExpense): Promise<Expense> {
+    const [expense] = await db
+      .insert(expenses)
+      .values(expenseData)
+      .returning();
+      
+    // Atualizar o total de despesas do evento
+    const event = await this.getEventById(expenseData.eventId);
+    if (event) {
+      const totalExpenses = await this.calculateEventTotalExpenses(expenseData.eventId);
+      await this.updateEvent(expenseData.eventId, { expenses: totalExpenses });
+    }
+    
+    return expense;
+  }
+
+  async updateExpense(id: number, expenseData: Partial<InsertExpense>): Promise<Expense> {
+    const [expense] = await db
+      .update(expenses)
+      .set({
+        ...expenseData,
+        updatedAt: new Date()
+      })
+      .where(eq(expenses.id, id))
+      .returning();
+      
+    // Atualizar o total de despesas do evento, se necessário
+    if (expenseData.amount !== undefined || expenseData.eventId !== undefined) {
+      const eventId = expenseData.eventId !== undefined ? 
+        expenseData.eventId : 
+        expense.eventId;
+      
+      const totalExpenses = await this.calculateEventTotalExpenses(eventId);
+      await this.updateEvent(eventId, { expenses: totalExpenses });
+    }
+    
+    return expense;
+  }
+
+  async deleteExpense(id: number): Promise<void> {
+    // Obter a despesa antes de excluí-la para saber o eventId
+    const expense = await this.getExpenseById(id);
+    if (expense) {
+      await db.delete(expenses).where(eq(expenses.id, id));
+      
+      // Atualizar o total de despesas do evento
+      const totalExpenses = await this.calculateEventTotalExpenses(expense.eventId);
+      await this.updateEvent(expense.eventId, { expenses: totalExpenses });
+    }
+  }
+  
+  // Método auxiliar para calcular o total de despesas de um evento
+  private async calculateEventTotalExpenses(eventId: number): Promise<number> {
+    const allExpenses = await db
+      .select({ total: sql`SUM(${expenses.amount})` })
+      .from(expenses)
+      .where(eq(expenses.eventId, eventId));
+      
+    return Number(allExpenses[0]?.total || 0);
   }
 }
 
