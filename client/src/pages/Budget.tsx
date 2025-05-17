@@ -172,6 +172,12 @@ const Budget: React.FC = () => {
     // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
     refetchOnWindowFocus: false,
+    onSuccess: (data) => {
+      console.log(`[Budget] Carregados ${data.length} itens de orçamento para o evento ${selectedEventId}`);
+    },
+    onError: (error) => {
+      console.error(`[Budget] Erro ao carregar itens de orçamento:`, error);
+    }
   });
   
   const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
@@ -180,6 +186,12 @@ const Budget: React.FC = () => {
     // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
     refetchOnWindowFocus: false,
+    onSuccess: (data) => {
+      console.log(`[Budget] Carregadas ${data.length} despesas para o evento ${selectedEventId}`);
+    },
+    onError: (error) => {
+      console.error(`[Budget] Erro ao carregar despesas:`, error);
+    }
   });
   
   // Mutações
