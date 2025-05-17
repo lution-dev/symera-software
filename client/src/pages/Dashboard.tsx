@@ -119,19 +119,19 @@ const Dashboard: React.FC = () => {
                         {planningEvents > 0 && (
                           <div className="flex items-center">
                             <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-planning))]"></span>
-                            <span className="text-sm whitespace-nowrap">🟠 {planningEvents} em Planejamento</span>
+                            <span className="text-sm whitespace-nowrap">{planningEvents} em Planejamento</span>
                           </div>
                         )}
                         {confirmedEvents > 0 && (
                           <div className="flex items-center">
                             <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
-                            <span className="text-sm whitespace-nowrap">🟢 {confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
+                            <span className="text-sm whitespace-nowrap">{confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
                           </div>
                         )}
                         {inProgressEvents > 0 && (
                           <div className="flex items-center">
                             <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                            <span className="text-sm whitespace-nowrap">🔵 {inProgressEvents} Em andamento</span>
+                            <span className="text-sm whitespace-nowrap">{inProgressEvents} Em andamento</span>
                           </div>
                         )}
                       </div>
