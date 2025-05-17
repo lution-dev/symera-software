@@ -64,6 +64,9 @@ const Settings: React.FC = () => {
     profileImageUrl: ""
   });
   
+  // Referência para o input de arquivo
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
   // Configurações de notificações
   const [notificationSettings, setNotificationSettings] = React.useState<NotificationSettings>({
     emailNotifications: true,
@@ -84,7 +87,10 @@ const Settings: React.FC = () => {
     mutationFn: async (data: Partial<ProfileForm>) => {
       return apiRequest("/api/user/profile", {
         method: "PUT",
-        body: data,
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json"
+        }
       });
     },
     onSuccess: () => {
@@ -108,7 +114,10 @@ const Settings: React.FC = () => {
     mutationFn: async (data: NotificationSettings) => {
       return apiRequest("/api/user/notifications", {
         method: "PUT",
-        body: data,
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json"
+        }
       });
     },
     onSuccess: () => {
@@ -188,6 +197,45 @@ const Settings: React.FC = () => {
       document.documentElement.classList.remove("light", "dark");
       document.documentElement.classList.add(theme);
     }
+  };
+  
+  // Handler para upload de imagem de perfil
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Verifica o tamanho do arquivo (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "Por favor, selecione uma imagem com menos de 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Verifica o tipo do arquivo
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Formato inválido",
+        description: "Por favor, selecione um arquivo de imagem válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Converter para base64 para preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setProfileForm({...profileForm, profileImageUrl: result});
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Trigger para abrir o seletor de arquivo
+  const handleChooseImage = () => {
+    fileInputRef.current?.click();
   };
   
   // Handler para atualizar perfil
@@ -288,7 +336,20 @@ const Settings: React.FC = () => {
                         Sua foto será exibida em seu perfil e nas notificações
                       </p>
                       <div className="flex gap-2 mt-2">
-                        <Button variant="outline" size="sm">Alterar</Button>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleChooseImage}
+                        >
+                          Alterar
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="sm" 
