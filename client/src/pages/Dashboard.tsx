@@ -61,20 +61,21 @@ const Dashboard: React.FC = () => {
   }, [upcomingEvents]);
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">
+          <h1 className="mobile-header text-2xl md:text-3xl font-bold">
             Seja bem-vindo(a), {user?.firstName || ""}!
           </h1>
           {activeEvents > 0 ? (
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1 mobile-text">
               {isMobile ? (
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                   <DialogTrigger asChild>
-                    <span className="cursor-pointer underline decoration-dotted">
-                      Você tem {activeEvents} eventos ativos
+                    <span className="cursor-pointer underline decoration-dotted touch-target inline-flex items-center">
+                      <span className="mr-1 text-primary">{activeEvents}</span>
+                      <span>eventos ativos</span>
                     </span>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
@@ -82,23 +83,23 @@ const Dashboard: React.FC = () => {
                       <DialogTitle>Distribuição dos eventos ativos</DialogTitle>
                     </DialogHeader>
                     <div className="py-4">
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {planningEvents > 0 && (
-                          <div className="flex items-center">
-                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-planning))]"></span>
-                            <span className="text-sm">{planningEvents} em Planejamento</span>
+                          <div className="flex items-center touch-target">
+                            <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-planning))]"></span>
+                            <span className="text-base">{planningEvents} em Planejamento</span>
                           </div>
                         )}
                         {confirmedEvents > 0 && (
-                          <div className="flex items-center">
-                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
-                            <span className="text-sm">{confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
+                          <div className="flex items-center touch-target">
+                            <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
+                            <span className="text-base">{confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
                           </div>
                         )}
                         {inProgressEvents > 0 && (
-                          <div className="flex items-center">
-                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                            <span className="text-sm">{inProgressEvents} Em andamento</span>
+                          <div className="flex items-center touch-target">
+                            <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                            <span className="text-base">{inProgressEvents} Em andamento</span>
                           </div>
                         )}
                       </div>
@@ -142,14 +143,14 @@ const Dashboard: React.FC = () => {
               {' '}e {pendingTasks.length} tarefas pendentes.
             </p>
           ) : (
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1 mobile-text">
               Você não tem eventos ativos no momento. {pendingTasks.length > 0 && `Você tem ${pendingTasks.length} tarefas pendentes.`}
             </p>
           )}
         </div>
         <div className="mt-4 md:mt-0">
           <Link href="/events/new">
-            <Button className="gradient-primary">
+            <Button className="gradient-primary w-full sm:w-auto touch-target min-h-[44px]">
               <i className="fas fa-plus mr-2"></i> Criar Novo Evento
             </Button>
           </Link>
@@ -166,21 +167,21 @@ const Dashboard: React.FC = () => {
       />
 
       {/* Create Event Banner */}
-      <div className="mb-8 bg-card rounded-xl p-6 shadow-lg relative overflow-hidden">
+      <div className="mb-8 bg-card rounded-xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
         <div className="relative z-10">
-          <h2 className="text-xl font-bold mb-2">Crie seu próximo evento com inteligência</h2>
-          <p className="text-muted-foreground mb-4 max-w-xl">
+          <h2 className="text-lg sm:text-xl font-bold mb-2">Crie seu próximo evento com inteligência</h2>
+          <p className="text-muted-foreground text-sm sm:text-base mb-4 max-w-xl">
             Use nosso checklist inteligente com IA para organizar qualquer tipo de evento 
             de forma profissional, sem esquecer nenhum detalhe.
           </p>
           <Link href="/events/new">
-            <Button className="gradient-primary">
+            <Button className="gradient-primary w-full sm:w-auto touch-target min-h-[44px]">
               <i className="fas fa-plus mr-2"></i> Criar Novo Evento
             </Button>
           </Link>
         </div>
-        {/* Abstract decoration */}
-        <div className="absolute top-0 right-0 w-64 h-full opacity-10">
+        {/* Abstract decoration - hidden on small mobile */}
+        <div className="absolute top-0 right-0 w-32 sm:w-64 h-full opacity-10 hidden sm:block">
           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <path
               fill="currentColor"
@@ -191,12 +192,12 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Events Section */}
+      {/* Events Section - Horizontal scroll on mobile */}
       <div className="mb-10">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Seus Eventos</h2>
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold">Seus Eventos</h2>
           <Link href="/events">
-            <div className="text-primary hover:text-primary/80 flex items-center text-sm font-medium cursor-pointer">
+            <div className="text-primary hover:text-primary/80 flex items-center text-sm font-medium cursor-pointer touch-target">
               Ver todos
               <i className="fas fa-chevron-right ml-2 text-xs"></i>
             </div>
@@ -208,7 +209,7 @@ const Dashboard: React.FC = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : activeEventsList.length === 0 ? (
-          <div className="bg-card rounded-xl p-8 text-center">
+          <div className="bg-card rounded-xl p-6 sm:p-8 text-center">
             <div className="mb-4 flex justify-center">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
                 <i className="fas fa-calendar text-primary text-2xl"></i>
@@ -217,35 +218,59 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-medium mb-2">Nenhum evento</h3>
             <p className="text-muted-foreground mb-6">Você ainda não tem eventos. Crie seu primeiro evento agora!</p>
             <Link href="/events/new">
-              <Button className="gradient-primary">
+              <Button className="gradient-primary w-full sm:w-auto touch-target min-h-[44px]">
                 <i className="fas fa-plus mr-2"></i> Criar Evento
               </Button>
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activeEventsList.slice(0, 3).map((event: any) => (
-              <EventCard
-                key={event.id}
-                id={event.id}
-                name={event.name}
-                type={event.type}
-                date={event.date}
-                location={event.location}
-                status={event.status}
-                attendees={event.attendees}
-                team={event.team || []}
-                tasks={event.tasks || []}
-              />
-            ))}
-          </div>
+          <>
+            {/* Mobile carousel view */}
+            <div className="sm:hidden mobile-scroll-container overflow-x-auto">
+              <div className="mobile-scroll-items flex space-x-4 pb-4 w-max">
+                {activeEventsList.slice(0, 6).map((event: any) => (
+                  <div key={event.id} className="w-[280px] flex-shrink-0">
+                    <EventCard
+                      id={event.id}
+                      name={event.name}
+                      type={event.type}
+                      date={event.date}
+                      location={event.location}
+                      status={event.status}
+                      attendees={event.attendees}
+                      team={event.team || []}
+                      tasks={event.tasks || []}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Tablet and desktop grid view */}
+            <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeEventsList.slice(0, 3).map((event: any) => (
+                <EventCard
+                  key={event.id}
+                  id={event.id}
+                  name={event.name}
+                  type={event.type}
+                  date={event.date}
+                  location={event.location}
+                  status={event.status}
+                  attendees={event.attendees}
+                  team={event.team || []}
+                  tasks={event.tasks || []}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
 
-      {/* Tasks and Activity Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+      {/* Tasks and Activity Section - Stack on mobile, side-by-side on larger screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-10">
         {/* Pending Tasks */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 order-1">
           <TaskList 
             title="Tarefas Pendentes"
             tasks={pendingTasks}
@@ -254,7 +279,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Activity Feed */}
-        <div>
+        <div className="order-2">
           <ActivityFeed 
             activities={recentActivities}
             loading={isLoading}

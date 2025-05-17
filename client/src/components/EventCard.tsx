@@ -96,15 +96,18 @@ const EventCard: React.FC<EventCardProps> = ({
   
   return (
     <Link href={`/events/${id}`}>
-      <div className="bg-card rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow animate-fadeIn cursor-pointer">
-        <div className="relative h-40 overflow-hidden">
+      <div className="bg-card rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow animate-fadeIn cursor-pointer mobile-card">
+        {/* Cover image with status badge */}
+        <div className="relative h-32 sm:h-40 overflow-hidden">
           <img 
             src={coverImage || getDefaultCover()} 
             alt={`${name} - ${getEventTypeLabel(type)}`} 
             className="w-full h-full object-cover"
           />
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-background opacity-80"></div>
-          <div className={`absolute top-4 right-4 ${
+          
+          {/* Status badge - more prominent on mobile */}
+          <div className={`absolute top-3 right-3 ${
             status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
             status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
             status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
@@ -112,7 +115,7 @@ const EventCard: React.FC<EventCardProps> = ({
             status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
             status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
             'bg-[hsl(var(--event-planning))]'
-          } text-white text-xs font-bold px-2 py-1 rounded-full`}>
+          } text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm`}>
             {status === 'planning' ? 'Planejamento' : 
              status === 'confirmed' ? 'Confirmado' : 
              status === 'in_progress' ? 'Em andamento' : 
@@ -123,21 +126,23 @@ const EventCard: React.FC<EventCardProps> = ({
           </div>
         </div>
         
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
+          {/* Event title and type - more compact on mobile */}
           <div className="flex items-center mb-3">
-            <div className={`w-10 h-10 rounded-full ${type === 'wedding' ? 'bg-pink-100' : type === 'corporate' ? 'bg-blue-100' : type === 'birthday' ? 'bg-purple-100' : 'bg-green-100'} flex items-center justify-center mr-3`}>
+            <div className={`min-w-[44px] w-10 h-10 rounded-full touch-target ${type === 'wedding' ? 'bg-pink-100' : type === 'corporate' ? 'bg-blue-100' : type === 'birthday' ? 'bg-purple-100' : 'bg-green-100'} flex items-center justify-center mr-3`}>
               <i className={`fas fa-${type === 'wedding' ? 'heart' : type === 'corporate' ? 'briefcase' : type === 'birthday' ? 'birthday-cake' : 'glass-cheers'} ${type === 'wedding' ? 'text-pink-500' : type === 'corporate' ? 'text-blue-500' : type === 'birthday' ? 'text-purple-500' : 'text-green-500'}`}></i>
             </div>
-            <div>
-              <h3 className="font-semibold text-white">{name}</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-white truncate">{name}</h3>
               <p className="text-muted-foreground text-sm">{getEventTypeLabel(type)}</p>
             </div>
           </div>
           
+          {/* Event details - stack on small mobile, 2-column on larger screens */}
           <div className="flex flex-wrap gap-y-3">
-            <div className="w-1/2 flex items-center">
-              <i className="fas fa-calendar-day text-primary mr-2"></i>
-              <span className="text-sm text-gray-300">
+            <div className="w-full sm:w-1/2 flex items-center">
+              <i className="fas fa-calendar-day text-primary mr-2 min-w-[16px]"></i>
+              <span className="text-sm text-gray-300 truncate">
                 {startDate && endDate && startDate !== endDate ? (
                   <>De {formatDate(startDate)} até {formatDate(endDate)}</>
                 ) : startDate ? (
@@ -150,28 +155,31 @@ const EventCard: React.FC<EventCardProps> = ({
               </span>
             </div>
             {location && (
-              <div className="w-1/2 flex items-center">
-                <i className="fas fa-map-marker-alt text-primary mr-2"></i>
+              <div className="w-full sm:w-1/2 flex items-center">
+                <i className="fas fa-map-marker-alt text-primary mr-2 min-w-[16px]"></i>
                 <span className="text-sm text-gray-300 truncate">{location}</span>
               </div>
             )}
             {attendees && (
-              <div className="w-1/2 flex items-center">
-                <i className="fas fa-user-friends text-primary mr-2"></i>
+              <div className="w-full sm:w-1/2 flex items-center">
+                <i className="fas fa-user-friends text-primary mr-2 min-w-[16px]"></i>
                 <span className="text-sm text-gray-300">{attendees} convidados</span>
               </div>
             )}
-            <div className="w-1/2 flex items-center">
-              <i className="fas fa-tasks text-primary mr-2"></i>
-              <div className="flex items-center">
+            
+            {/* Progress indicator - full width and more visible on mobile */}
+            <div className="w-full sm:w-1/2 flex items-center mt-1 sm:mt-0">
+              <i className="fas fa-tasks text-primary mr-2 min-w-[16px]"></i>
+              <div className="flex items-center flex-1">
                 <span className="text-sm text-gray-300 mr-2">{progressPercentage}%</span>
-                <div className="w-16 h-2 bg-muted rounded-full">
+                <div className="flex-1 h-2 bg-muted rounded-full max-w-[100px]">
                   <div className="h-full gradient-primary rounded-full" style={{ width: `${progressPercentage}%` }}></div>
                 </div>
               </div>
             </div>
           </div>
           
+          {/* Team members and last updated - compact on mobile */}
           <div className="mt-4 flex justify-between items-center">
             <div className="flex">
               {teamData.slice(0, 3).map((member, idx) => (
@@ -201,7 +209,13 @@ const EventCard: React.FC<EventCardProps> = ({
             
             <div className="flex items-center">
               {lastUpdated && (
-                <span className="text-xs text-muted-foreground">Atualizado: {lastUpdated}</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">Atualizado: {lastUpdated}</span>
+              )}
+              {/* Show just the icon on mobile for last updated */}
+              {lastUpdated && (
+                <span className="text-xs text-muted-foreground sm:hidden">
+                  <i className="fas fa-history mr-1"></i>
+                </span>
               )}
             </div>
           </div>
