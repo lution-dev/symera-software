@@ -21,11 +21,11 @@ const MobileNavbar: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-10 flex items-center justify-around shadow-lg">
+    <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-40 flex items-center justify-around shadow-lg border-t border-border">
       {navItems.map((item) => (
-        <div key={item.path}>
+        <div key={item.path} className="touch-target">
           <Link href={item.path}>
-            <div className="flex flex-col items-center cursor-pointer">
+            <div className="flex flex-col items-center cursor-pointer min-w-[44px] min-h-[44px] justify-center">
               {item.highlight ? (
                 <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6">
                   <i className={`fas fa-${item.icon} text-white`}></i>

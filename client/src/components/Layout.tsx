@@ -72,10 +72,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       
       {/* Main content area */}
       <main 
-        className={`flex-1 overflow-y-auto custom-scrollbar bg-background pb-16 md:pb-0 md:ml-${sidebarCollapsed ? '16' : '64'} transition-all duration-300`}
-        style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}
+        className={`flex-1 overflow-y-auto custom-scrollbar bg-background pb-16 md:pb-0 transition-all duration-300`}
+        style={{ 
+          marginLeft: window.innerWidth >= 768 ? (sidebarCollapsed ? '4rem' : '16rem') : '0',
+          paddingBottom: window.innerWidth < 768 ? '4rem' : '0'
+        }}
       >
-        {children}
+        <div className="max-w-[1600px] mx-auto">
+          {children}
+        </div>
       </main>
       
       {/* Mobile navigation - visible only on small screens */}

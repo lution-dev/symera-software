@@ -49,6 +49,13 @@
   --event-in-progress: 30 100% 50%; /* Laranja #FF8800 */
   --event-completed: 120 70% 50%;   /* Verde #33CC66 */
   --event-cancelled: 0 100% 60%;    /* Vermelho #FF3333 */
+  
+  /* Responsive breakpoints - as per design requirements */
+  --mobile-breakpoint: 480px;      /* Telas de até 480px (mobile) */
+  --tablet-breakpoint: 1024px;     /* Telas entre 481px e 1024px (tablet) */
+  
+  /* Touch target sizes */
+  --touch-target-min: 44px;        /* Minimum touch target size per Apple/Google standards */
 }
 
 @layer base {
@@ -89,6 +96,44 @@
   
   .modern-button {
     @apply rounded-xl;
+  }
+  
+  /* Mobile-optimized utilities */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px]; /* Apple/Google recommended minimum touch target size */
+  }
+  
+  .mobile-card {
+    @apply w-full p-4 rounded-xl;
+  }
+  
+  .mobile-full-width {
+    @apply w-full mx-0;
+  }
+  
+  .mobile-stack {
+    @apply flex flex-col;
+  }
+  
+  .mobile-scroll-container {
+    @apply overflow-x-auto py-2 -mx-4 px-4;
+  }
+  
+  .mobile-scroll-items {
+    @apply flex space-x-3 pb-2;
+  }
+  
+  /* Enhanced spacing and text size for mobile */
+  .mobile-spacing {
+    @apply p-4 sm:p-6;
+  }
+  
+  .mobile-text {
+    @apply text-base sm:text-sm;
+  }
+  
+  .mobile-header {
+    @apply text-xl sm:text-2xl md:text-3xl;
   }
   
   /* Custom scrollbar */
