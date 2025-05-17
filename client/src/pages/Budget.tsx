@@ -46,10 +46,21 @@ import {
   CheckCircle2,
   Calendar,
   Store,
-  Users
+  Users,
+  Tag
 } from "lucide-react";
+import { PieChart as RechartsChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Event {
   id: number;
@@ -1055,7 +1066,7 @@ const Budget: React.FC = () => {
                   <TabsList className="grid w-full grid-cols-4">
                       <TabsTrigger value="items">Itens Orçamento</TabsTrigger>
                     <TabsTrigger value="expenses">Despesas</TabsTrigger>
-                    <TabsTrigger value="categories">Categorias</TabsTrigger>
+                    <TabsTrigger value="categories">📊 Análise por Categoria</TabsTrigger>
                     <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
                   </TabsList>
                   
@@ -1336,6 +1347,10 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="categories" className="pt-4">
+                    <div className="mb-4 text-sm text-muted-foreground px-1">
+                      Visualize a distribuição do orçamento por categorias. Esta visão permite analisar onde estão concentrados os recursos do seu evento.
+                    </div>
+                    
                     {Object.keys(stats.byCategory).length === 0 ? (
                       <div className="text-center py-8">
                         <PieChart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -1350,6 +1365,121 @@ const Budget: React.FC = () => {
                       </div>
                     ) : (
                       <div className="space-y-6">
+                        <div className="grid gap-6 md:grid-cols-2">
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="flex items-center">
+                                <PieChart className="h-5 w-5 mr-2 text-primary" />
+                                Distribuição do Orçamento
+                              </CardTitle>
+                              <CardDescription>
+                                Visualização da distribuição de gastos por categoria
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-2">
+                              <div className="h-[300px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <RechartsChart>
+                                    <Pie
+                                      data={Object.entries(stats.byCategory).map(([category, amount]) => ({
+                                        name: BUDGET_CATEGORIES.find(c => c.value === category)?.label || (category === 'uncategorized' ? 'Sem Categoria' : category),
+                                        value: amount
+                                      }))}
+                                      cx="50%"
+                                      cy="50%"
+                                      labelLine={true}
+                                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                      outerRadius={80}
+                                      fill="#8884d8"
+                                      dataKey="value"
+                                    >
+                                      {Object.entries(stats.byCategory).map(([category, _], index) => (
+                                        <Cell 
+                                          key={`cell-${index}`} 
+                                          fill={[
+                                            "#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088FE", 
+                                            "#00C49F", "#FFBB28", "#FF8042", "#a4de6c", "#d0ed57"
+                                          ][index % 10]} 
+                                        />
+                                      ))}
+                                    </Pie>
+                                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                                    <Legend />
+                                  </RechartsChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="flex items-center">
+                                <Tag className="h-5 w-5 mr-2 text-primary" />
+                                Detalhamento por Categoria
+                              </CardTitle>
+                              <CardDescription>
+                                Detalhes específicos de cada categoria do orçamento
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-2">
+                              <div className="overflow-auto max-h-[300px]">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Categoria</TableHead>
+                                      <TableHead className="text-right">Itens</TableHead>
+                                      <TableHead className="text-right">Valor Total</TableHead>
+                                      <TableHead className="text-right">% do Orçamento</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {Object.entries(stats.byCategory).map(([category, amount]) => {
+                                      const totalItemsInCategory = [
+                                        ...expenses.filter(e => e.category === category),
+                                        ...budgetItems.filter(i => i.category === category)
+                                      ].length;
+                                      
+                                      const categoryPercent = stats.budget > 0 
+                                        ? (amount / stats.budget) * 100 
+                                        : (amount / stats.totalExpenses) * 100;
+                                      
+                                      return (
+                                        <TableRow key={category}>
+                                          <TableCell className="font-medium">
+                                            {BUDGET_CATEGORIES.find(c => c.value === category)?.label || (category === 'uncategorized' ? 'Sem Categoria' : category)}
+                                          </TableCell>
+                                          <TableCell className="text-right">{totalItemsInCategory}</TableCell>
+                                          <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
+                                          <TableCell className="text-right">{categoryPercent.toFixed(1)}%</TableCell>
+                                        </TableRow>
+                                      );
+                                    })}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                        
+                        {/* Alerta para itens sem categoria */}
+                        {(expenses.some(e => !e.category || e.category === 'uncategorized') || 
+                          budgetItems.some(i => !i.category || i.category === 'uncategorized')) && (
+                          <Alert className="bg-amber-50 border-amber-200">
+                            <AlertCircle className="h-4 w-4 text-amber-600" />
+                            <AlertTitle className="text-amber-800">Itens sem categoria</AlertTitle>
+                            <AlertDescription className="text-amber-700">
+                              Alguns itens não estão categorizados. Deseja categorizá-los agora?
+                              <Button 
+                                variant="outline" 
+                                className="ml-4 border-amber-600 text-amber-700 hover:bg-amber-100"
+                                onClick={() => document.querySelector('[value="expenses"]')?.dispatchEvent(new Event('click'))}
+                              >
+                                Categorizar Itens
+                              </Button>
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        
                         {/* Categorias de despesas gerais */}
                         <div className="space-y-3">
                           <div className="flex items-center space-x-2 mb-2">
