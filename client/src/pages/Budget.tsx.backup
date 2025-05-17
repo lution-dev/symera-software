@@ -160,25 +160,16 @@ const Budget: React.FC = () => {
   const { data: vendors = [], isLoading: isLoadingVendors } = useQuery({
     queryKey: ["/api/events", selectedEventId, "vendors"],
     enabled: !!selectedEventId,
-    // Força recarregamento dos dados quando o evento for alterado
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
   });
   
   const { data: budgetItems = [], isLoading: isLoadingBudget } = useQuery({
     queryKey: ["/api/events", selectedEventId, "budget"],
     enabled: !!selectedEventId,
-    // Força recarregamento dos dados quando o evento for alterado
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
   });
   
   const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
     queryKey: ["/api/events", selectedEventId, "expenses"],
     enabled: !!selectedEventId,
-    // Força recarregamento dos dados quando o evento for alterado
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
   });
   
   // Mutações
@@ -892,7 +883,6 @@ const Budget: React.FC = () => {
                         Nenhum evento encontrado
                       </div>
                     ) : (
-                      // Só mostra a lista de eventos na barra lateral esquerda
                       filteredEvents.map((event: Event) => (
                         <div
                           key={event.id}
