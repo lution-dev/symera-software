@@ -1365,7 +1365,6 @@ const Budget: React.FC = () => {
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        {/* Gráfico e Tabela de Análise */}
                         <div className="grid gap-6 md:grid-cols-2">
                           <Card>
                             <CardHeader>
@@ -1404,7 +1403,7 @@ const Budget: React.FC = () => {
                                         />
                                       ))}
                                     </Pie>
-                                    <Tooltip formatter={(value) => formatCurrency(value)} />
+                                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
                                     <Legend />
                                   </RechartsChart>
                                 </ResponsiveContainer>
@@ -1461,6 +1460,32 @@ const Budget: React.FC = () => {
                             </CardContent>
                           </Card>
                         </div>
+                        
+                        {/* Alerta para itens sem categoria */}
+                        {(expenses.some(e => !e.category || e.category === 'uncategorized') || 
+                          budgetItems.some(i => !i.category || i.category === 'uncategorized')) && (
+                          <Alert className="bg-amber-50 border-amber-200">
+                            <AlertCircle className="h-4 w-4 text-amber-600" />
+                            <AlertTitle className="text-amber-800">Itens sem categoria</AlertTitle>
+                            <AlertDescription className="text-amber-700">
+                              Alguns itens não estão categorizados. Deseja categorizá-los agora?
+                              <Button 
+                                variant="outline" 
+                                className="ml-4 border-amber-600 text-amber-700 hover:bg-amber-100"
+                                onClick={() => document.querySelector('[value="expenses"]')?.dispatchEvent(new Event('click'))}
+                              >
+                                Categorizar Itens
+                              </Button>
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        
+                        {/* Categorias de despesas gerais */}
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Users className="h-5 w-5 text-blue-600" />
+                            <h3 className="text-lg font-medium text-blue-800">Despesas Gerais</h3>
+                          </div>
                           
                           <div className="space-y-3 pl-7">
                             {Object.entries(stats.byCategory)
