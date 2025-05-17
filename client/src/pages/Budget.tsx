@@ -791,43 +791,43 @@ const Budget: React.FC = () => {
               </div>
             </Card>
           ) : (
-            <Card className="bg-white shadow-md border-0">
-              <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-t-2xl">
+            <Card className="border-primary/10 shadow-md">
+              <CardHeader className="pb-4 bg-gradient-to-r from-primary/10 to-transparent rounded-t-2xl">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-primary-foreground font-bold">
+                    <CardTitle>
                       {events.find((e: Event) => e.id === selectedEventId)?.name}
                     </CardTitle>
-                    <CardDescription className="text-primary-foreground/80 mt-1">
+                    <CardDescription className="mt-1">
                       {events.find((e: Event) => e.id === selectedEventId)?.type} | {new Date(events.find((e: Event) => e.id === selectedEventId)?.date || "").toLocaleDateString()}
                     </CardDescription>
                   </div>
-                  <div className="bg-white p-4 rounded-lg shadow-sm border border-primary/20">
-                    <div className="text-xs font-medium text-primary uppercase tracking-wide">Orçamento Total</div>
+                  <div className="bg-card p-3 rounded-lg border border-primary/20">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Orçamento Total</div>
                     <div className="text-2xl font-bold text-primary">{formatCurrency(stats.budget)}</div>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="pb-2">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-white p-5 rounded-lg shadow-sm border border-muted">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="text-sm font-medium text-foreground">Total de Despesas</div>
-                      <div className="p-2 rounded-full bg-primary/10">
+                  <div className="bg-card/80 p-4 rounded-lg border border-muted">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-medium">Total de Despesas</div>
+                      <div className="p-2 rounded-full bg-primary/20">
                         <DollarSign className="h-5 w-5 text-primary" />
                       </div>
                     </div>
-                    <div className="text-2xl font-semibold mb-2">{formatCurrency(stats.totalExpenses)}</div>
-                    <div className="text-xs text-foreground/70 flex items-center">
+                    <div className="text-2xl font-semibold mb-1">{formatCurrency(stats.totalExpenses)}</div>
+                    <div className="text-xs text-muted-foreground flex items-center">
                       {stats.budget > 0 && (
                         <>
                           {stats.totalExpenses <= stats.budget ? (
-                            <span className="flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-full mr-2">
+                            <span className="flex items-center px-2 py-1 bg-green-950 text-green-400 rounded-full mr-2">
                               <TrendingDown className="h-3 w-3 mr-1" />
                               {((stats.totalExpenses / stats.budget) * 100).toFixed(1)}%
                             </span>
                           ) : (
-                            <span className="flex items-center px-2 py-1 bg-red-100 text-red-700 rounded-full mr-2">
+                            <span className="flex items-center px-2 py-1 bg-red-950 text-red-400 rounded-full mr-2">
                               <TrendingUp className="h-3 w-3 mr-1" />
                               {((stats.totalExpenses / stats.budget) * 100).toFixed(1)}%
                             </span>
@@ -838,16 +838,16 @@ const Budget: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-white p-5 rounded-lg shadow-sm border border-muted">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="text-sm font-medium text-foreground">Despesas Pagas</div>
-                      <div className="p-2 rounded-full bg-green-100">
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <div className="bg-card/80 p-4 rounded-lg border border-muted">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-medium">Despesas Pagas</div>
+                      <div className="p-2 rounded-full bg-green-950">
+                        <CheckCircle2 className="h-5 w-5 text-green-400" />
                       </div>
                     </div>
-                    <div className="text-2xl font-semibold mb-2">{formatCurrency(stats.totalPaid)}</div>
-                    <div className="text-xs text-foreground/70 flex items-center">
-                      <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
+                    <div className="text-2xl font-semibold mb-1">{formatCurrency(stats.totalPaid)}</div>
+                    <div className="text-xs text-muted-foreground flex items-center">
+                      <span className="px-2 py-1 bg-blue-950 text-blue-400 rounded-full">
                         {stats.totalExpenses > 0 
                           ? `${((stats.totalPaid / stats.totalExpenses) * 100).toFixed(1)}% do total`
                           : "0% do total"}
@@ -855,28 +855,28 @@ const Budget: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-white p-5 rounded-lg shadow-sm border border-muted">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="text-sm font-medium text-foreground">
+                  <div className="bg-card/80 p-4 rounded-lg border border-muted">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-medium">
                         {stats.remaining >= 0 ? "Saldo Restante" : "Excedente"}
                       </div>
                       {stats.remaining >= 0 ? (
-                        <div className="p-2 rounded-full bg-blue-100">
-                          <BarChart className="h-5 w-5 text-blue-600" />
+                        <div className="p-2 rounded-full bg-blue-950">
+                          <BarChart className="h-5 w-5 text-blue-400" />
                         </div>
                       ) : (
-                        <div className="p-2 rounded-full bg-red-100">
-                          <AlertCircle className="h-5 w-5 text-red-600" />
+                        <div className="p-2 rounded-full bg-red-950">
+                          <AlertCircle className="h-5 w-5 text-red-400" />
                         </div>
                       )}
                     </div>
-                    <div className={`text-2xl font-semibold mb-2 ${stats.remaining < 0 ? "text-red-600" : "text-foreground"}`}>
+                    <div className={`text-2xl font-semibold mb-1 ${stats.remaining < 0 ? "text-red-400" : ""}`}>
                       {formatCurrency(Math.abs(stats.remaining))}
                     </div>
-                    <div className="text-xs text-foreground/70">
+                    <div className="text-xs text-muted-foreground">
                       {stats.budget > 0 && (
                         <span className={`px-2 py-1 rounded-full ${
-                          stats.remaining >= 0 ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-700"
+                          stats.remaining >= 0 ? "bg-blue-950 text-blue-400" : "bg-red-950 text-red-400"
                         }`}>
                           {Math.abs(((stats.remaining / stats.budget) * 100)).toFixed(1)}% 
                           {stats.remaining >= 0 ? " disponível" : " excedido"}
