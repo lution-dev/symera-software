@@ -131,8 +131,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificação automática de status baseado nas tarefas e datas
-      // Apenas verificamos se não for um status definido manualmente como cancelado
-      if (event.status !== "cancelled") {
+      // Verificamos os logs de atividade para determinar se o status atual foi definido manualmente
+      const activities = await storage.getActivityLogsByEventId(eventId);
+      
+      // Encontramos o último log de atividade relacionado ao status
+      const lastStatusActivity = activities
+        .filter(log => log.action === "status_updated" || log.action === "status_auto_updated")
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        
+      // Se o último status foi definido manualmente, não devemos alterar automaticamente
+      const statusWasSetManually = lastStatusActivity && lastStatusActivity.action === "status_updated";
+      
+      // Só alteramos automaticamente o status se ele NÃO foi definido manualmente por último
+      if (!statusWasSetManually && event.status !== "cancelled") {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
@@ -142,39 +153,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Buscar todas as tarefas do evento
         const tasks = await storage.getTasksByEventId(eventId);
         
-        // Verificar se o evento está acontecendo hoje: status = em andamento
-        if (eventDate.getTime() === today.getTime() && event.status !== "in_progress" && event.status !== "completed") {
-          await storage.updateEvent(eventId, { status: "in_progress" });
-          await storage.createActivityLog({
-            eventId,
-            userId,
-            action: "status_auto_updated",
-            details: { 
-              oldStatus: event.status,
-              newStatus: "in_progress",
-              reason: "O evento está acontecendo hoje"
-            }
-          });
-          event.status = "in_progress";
-        }
-        
-        // Verificar se o evento já passou e todas as tarefas estão concluídas: status = concluído
-        const eventPassed = eventDate < today;
-        const allTasksCompleted = tasks.length > 0 && tasks.every(task => task.status === "completed");
-        
-        if (eventPassed && allTasksCompleted && event.status !== "completed") {
-          await storage.updateEvent(eventId, { status: "completed" });
-          await storage.createActivityLog({
-            eventId,
-            userId,
-            action: "status_auto_updated",
-            details: { 
-              oldStatus: event.status,
-              newStatus: "completed",
-              reason: "O evento já passou e todas as tarefas foram concluídas"
-            }
-          });
-          event.status = "completed";
+        // Só aplicamos automação se o status NÃO foi definido manualmente
+        if (!statusWasSetManually) {
+          // Verificar se o evento está acontecendo hoje: status = em andamento
+          if (eventDate.getTime() === today.getTime() && event.status !== "in_progress" && event.status !== "completed") {
+            await storage.updateEvent(eventId, { status: "in_progress" });
+            await storage.createActivityLog({
+              eventId,
+              userId,
+              action: "status_auto_updated",
+              details: { 
+                oldStatus: event.status,
+                newStatus: "in_progress",
+                reason: "O evento está acontecendo hoje"
+              }
+            });
+            event.status = "in_progress";
+          }
+          
+          // Verificar se o evento já passou e todas as tarefas estão concluídas: status = concluído
+          const eventPassed = eventDate < today;
+          const allTasksCompleted = tasks.length > 0 && tasks.every(task => task.status === "completed");
+          
+          if (eventPassed && allTasksCompleted && event.status !== "completed") {
+            await storage.updateEvent(eventId, { status: "completed" });
+            await storage.createActivityLog({
+              eventId,
+              userId,
+              action: "status_auto_updated",
+              details: { 
+                oldStatus: event.status,
+                newStatus: "completed",
+                reason: "O evento já passou e todas as tarefas foram concluídas"
+              }
+            });
+            event.status = "completed";
+          }
         }
         
         // Verificar se faltam 3 dias ou menos para o evento e mais de 80% das tarefas estão pendentes
