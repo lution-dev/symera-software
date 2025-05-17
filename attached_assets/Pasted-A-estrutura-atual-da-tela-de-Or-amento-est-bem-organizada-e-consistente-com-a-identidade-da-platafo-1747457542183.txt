@@ -1,0 +1,81 @@
+A estrutura atual da tela de Orçamento está bem organizada e consistente com a identidade da plataforma. Mas considerando o nosso público-alvo (organizadores, produtores e agências de eventos), mapeamos alguns pontos importantes que podem tornar a experiência mais fluida, clara e eficiente.
+
+✅ 1. Reorganização das Abas Internas
+Contexto: Quando um evento é selecionado, hoje temos as abas:
+
+Itens Orçamento
+
+Despesas
+
+Categorias
+
+Fornecedores
+
+Melhoria sugerida:
+Reordenar e renomear as abas para seguir o fluxo mental natural de quem organiza um evento:
+
+Despesas – Mostrar tudo que foi pago ou está pendente
+
+Itens Planejados (atual "Itens Orçamento") – Planejamento inicial do orçamento
+
+Fornecedores – Ligados às despesas e itens
+
+Categorias – Referência para estrutura, filtros e relatórios
+
+Sugestão adicional: Exibir número de registros em cada aba (ex: “Despesas (3)”)
+
+🎨 2. Ajustes Visuais no Layout da Tabela
+Aumentar o contraste das fontes nas colunas (categoria, valor, status)
+
+Usar cores mais visíveis nos status (ex: Verde #22C55E, Laranja #F97316)
+
+Adicionar ícones aos status para leitura rápida (✅ Pago / ⏳ Pendente)
+
+Manter ícones de edição e exclusão mais visíveis (com hover e tooltip)
+
+📊 3. Indicadores Visuais de Progresso
+Adicionar barra de progresso simples mostrando:
+
+% do orçamento já usado
+
+Saldo restante
+
+Excedente (se houver)
+
+Exemplo de layout:
+
+arduino
+Copiar
+Editar
+[■■■■■■■■■■□□□□□□] 53% do orçamento usado
+🔎 4. Filtros e Busca
+Acima da tabela, incluir:
+
+Campo de busca por item
+
+Filtro por categoria
+
+Filtro por status (Pago / Pendente)
+
+➕ 5. Acessibilidade e Interação
+Repetir o botão “+ Adicionar Despesa” no rodapé da tabela (não só no topo)
+
+Mostrar data de cada despesa com ícone de calendário (🗓️)
+
+Possibilidade futura: ordenar a tabela por valor ou data
+
+🧠 6. Feedback Contextual (UX Writing)
+Quando o usuário entra em uma aba, mostrar uma descrição leve:
+
+“Veja abaixo todas as despesas do evento, com status e datas de pagamento.”
+
+📌 Objetivo
+Com essas melhorias, a tela de Orçamento vai se tornar mais:
+
+Profissional e clara para o usuário final
+
+Eficiente na tomada de decisões (pagamentos, fornecedores, controle)
+
+Alinhada com a proposta moderna e inteligente da Symera
+
+Obrigado pela atenção e pelo ótimo trabalho até aqui! 🚀
