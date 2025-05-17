@@ -108,13 +108,18 @@ const EventCard: React.FC<EventCardProps> = ({
             status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
             status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
             status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+            status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
             status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
-            'bg-[hsl(var(--event-cancelled))]'
+            status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+            'bg-[hsl(var(--event-planning))]'
           } text-white text-xs font-bold px-2 py-1 rounded-full`}>
             {status === 'planning' ? 'Planejamento' : 
              status === 'confirmed' ? 'Confirmado' : 
              status === 'in_progress' ? 'Em andamento' : 
-             status === 'completed' ? 'Concluído' : 'Cancelado'}
+             status === 'active' ? 'Ativo' : 
+             status === 'completed' ? 'Concluído' : 
+             status === 'cancelled' ? 'Cancelado' : 
+             'Planejamento'}
           </div>
         </div>
         

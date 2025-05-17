@@ -260,13 +260,18 @@ const Event: React.FC<EventProps> = ({ id }) => {
               event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
               event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
               event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+              event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
               event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
-              'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]'
+              event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
+              'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
             }`}>
               {event.status === 'planning' ? 'Planejamento' : 
               event.status === 'confirmed' ? 'Confirmado' : 
               event.status === 'in_progress' ? 'Em andamento' : 
-              event.status === 'completed' ? 'Concluído' : 'Cancelado'}
+              event.status === 'active' ? 'Ativo' : 
+              event.status === 'completed' ? 'Concluído' : 
+              event.status === 'cancelled' ? 'Cancelado' : 
+              'Planejamento'}
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white drop-shadow-md">{event.name}</h1>
@@ -283,8 +288,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
                 event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
                 event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
                 event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
-                'bg-[hsl(var(--event-cancelled))]'
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+                'bg-[hsl(var(--event-planning))]'
               }`}></span>
             </Button>
           </AlertDialogTrigger>
@@ -322,6 +329,11 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
                       <span>Em andamento</span>
                       <span className="text-xs text-muted-foreground ml-2">- Evento ocorrendo agora</span>
+                    </SelectItem>
+                    <SelectItem value="active" className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                      <span>Ativo</span>
+                      <span className="text-xs text-muted-foreground ml-2">- Status legado</span>
                     </SelectItem>
                     <SelectItem value="completed" className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-completed))]"></span>
