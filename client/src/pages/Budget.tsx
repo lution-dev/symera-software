@@ -160,7 +160,7 @@ const Budget: React.FC = () => {
   const { data: vendors = [], isLoading: isLoadingVendors } = useQuery({
     queryKey: ["/api/events", selectedEventId, "vendors"],
     enabled: !!selectedEventId,
-    // Forçar recarregamento dos dados quando o evento for alterado
+    // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
@@ -168,7 +168,7 @@ const Budget: React.FC = () => {
   const { data: budgetItems = [], isLoading: isLoadingBudget } = useQuery({
     queryKey: ["/api/events", selectedEventId, "budget"],
     enabled: !!selectedEventId,
-    // Forçar recarregamento dos dados quando o evento for alterado
+    // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
@@ -176,7 +176,7 @@ const Budget: React.FC = () => {
   const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
     queryKey: ["/api/events", selectedEventId, "expenses"],
     enabled: !!selectedEventId,
-    // Forçar recarregamento dos dados quando o evento for alterado
+    // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
@@ -386,7 +386,7 @@ const Budget: React.FC = () => {
   
   // Selecionar primeiro evento automaticamente se nenhum estiver selecionado
   React.useEffect(() => {
-    if (events && events.length > 0 && !selectedEventId) {
+    if (events.length > 0 && !selectedEventId) {
       setSelectedEventId(events[0].id);
     }
   }, [events, selectedEventId]);
@@ -414,7 +414,7 @@ const Budget: React.FC = () => {
   };
   
   // Preparar formulário para edição de item
-  const handleEditItem = (item: any) => {
+  const handleEditItem = (item: BudgetItem) => {
     setSelectedItem(item);
     setItemForm({
       name: item.name,
@@ -429,14 +429,12 @@ const Budget: React.FC = () => {
   
   // Preparar formulário para edição de orçamento geral
   const handleEditBudget = () => {
-    if (events && events.length > 0) {
-      const event = events.find((e: Event) => e.id === selectedEventId);
-      if (event) {
-        setbudgetForm({
-          budget: event.budget?.toString() || ""
-        });
-        setIsEditBudgetOpen(true);
-      }
+    const event = events.find((e: Event) => e.id === selectedEventId);
+    if (event) {
+      setbudgetForm({
+        budget: event.budget?.toString() || ""
+      });
+      setIsEditBudgetOpen(true);
     }
   };
   
@@ -552,251 +550,322 @@ const Budget: React.FC = () => {
     });
   };
   
-  // Filtrar eventos baseado na busca
-  const filteredEvents = React.useMemo(() => {
-    if (!events || !events.length) return [];
-    
-    return events.filter((event: Event) => {
-      if (!searchTerm) return true;
-      
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        event.name.toLowerCase().includes(searchLower) ||
-        event.type.toLowerCase().includes(searchLower)
-      );
-    });
-  }, [events, searchTerm]);
-  
-  // Separar itens regulares e itens de fornecedores
-  const regularItems = React.useMemo(() => {
-    if (!budgetItems || !budgetItems.length) return [];
-    
-    return budgetItems.filter((item: BudgetItem) => {
-      // Filtrar apenas itens que não são de fornecedores
-      const categoryType = getCategoryType(item.category);
-      return categoryType !== 'vendor';
-    });
-  }, [budgetItems]);
-  
-  const vendorItems = React.useMemo(() => {
-    if (!budgetItems || !budgetItems.length) return [];
-    
-    return budgetItems.filter((item: BudgetItem) => {
-      // Filtrar apenas itens de fornecedores
-      const categoryType = getCategoryType(item.category);
-      return categoryType === 'vendor';
-    });
-  }, [budgetItems]);
-  
-  // Estatísticas de orçamento
-  const stats = React.useMemo(() => {
-    if (!budgetItems || !expenses) {
-      return {
-        budget: 0,
-        totalExpenses: 0,
-        paid: 0,
-        pending: 0,
-        remaining: 0,
-        byCategory: {},
-      };
+  // Handler para excluir item
+  const handleDeleteItem = (id: number) => {
+    if (confirm("Tem certeza que deseja excluir este item do orçamento?")) {
+      deleteBudgetItemMutation.mutate(id);
     }
-    
-    const event = events?.find((e: Event) => e.id === selectedEventId);
+  };
+  
+  // Preparar itens do orçamento com distinção entre fornecedores e custos gerais
+  const vendorItems = React.useMemo(() => {
+    return vendors
+      .filter((v: Vendor) => v.cost && !isNaN(Number(v.cost)))
+      .map((v: Vendor) => ({
+        id: `vendor-${v.id}`,
+        eventId: v.eventId,
+        name: v.name,
+        category: v.service,
+        amount: Number(v.cost || 0),
+        paid: false,
+        createdAt: new Date().toISOString(),
+        isVendor: true // Marcar como item de fornecedor
+      }));
+  }, [vendors]);
+  
+  // Adicionar campo para indicar se é um item de fornecedor ou não
+  const regularItems = React.useMemo(() => {
+    return budgetItems.map((item: BudgetItem) => ({
+      ...item,
+      isVendor: false // Marcar como item regular (não-fornecedor)
+    }));
+  }, [budgetItems]);
+  
+  // Calcular estatísticas do orçamento
+  const calculateBudgetStats = () => {
+    const event = events.find((e: Event) => e.id === selectedEventId) as Event | undefined;
     const budget = event?.budget || 0;
     
-    // Total de despesas
-    const totalExpenses = expenses.reduce((sum: number, expense: Expense) => sum + expense.amount, 0);
+    // Coletamos todos os itens: itens do orçamento regular, despesas e custos de fornecedores
+    const allItems = [
+      ...regularItems,
+      ...expenses.map((e: Expense) => ({...e, isExpense: true})),
+      // Excluímos os itens de fornecedores para não duplicar com as despesas que têm vendorId
+      ...vendorItems.filter(v => !expenses.some((e: Expense) => e.vendorId === parseInt(v.id.toString().replace('vendor-', ''))))
+    ];
     
-    // Despesas pagas e pendentes
-    const paid = expenses.reduce((sum: number, expense: Expense) => sum + (expense.paid ? expense.amount : 0), 0);
-    const pending = totalExpenses - paid;
+    const totalExpenses = allItems.reduce((sum, item: any) => {
+      const amount = Number(item.amount) || 0;
+      return sum + amount;
+    }, 0);
     
-    // Saldo disponível
-    const remaining = budget - totalExpenses;
+    const totalPaid = allItems.reduce((sum, item: any) => {
+      const amount = Number(item.amount) || 0;
+      return sum + (item.paid ? amount : 0);
+    }, 0);
     
-    // Despesas por categoria
+    const totalPending = totalExpenses - totalPaid;
+    
+    // Calcular por categoria
     const byCategory: Record<string, number> = {};
-    
-    // Adicionar despesas por categoria
-    expenses.forEach((expense: Expense) => {
-      if (!byCategory[expense.category]) {
-        byCategory[expense.category] = 0;
+    allItems.forEach((item: any) => {
+      const category = item.category || 'other';
+      const amount = Number(item.amount) || 0;
+      
+      if (!byCategory[category]) {
+        byCategory[category] = 0;
       }
-      byCategory[expense.category] += expense.amount;
+      byCategory[category] += amount;
     });
     
-    return {
-      budget,
-      totalExpenses,
-      paid,
-      pending,
-      remaining,
-      byCategory,
+    // Calcular por tipo (despesa, item orçamento, fornecedor)
+    const byType: Record<string, number> = {
+      expense: 0,
+      budget: 0,
+      vendor: 0
     };
-  }, [events, selectedEventId, expenses, budgetItems]);
+    
+    allItems.forEach((item: any) => {
+      const amount = Number(item.amount) || 0;
+      if (item.isExpense) {
+        byType.expense += amount;
+      } else if (item.isVendor) {
+        byType.vendor += amount;
+      } else {
+        byType.budget += amount;
+      }
+    });
+    
+    // Make sure all numbers are valid
+    const budgetNum = Number(budget) || 0;
+    const totalExpensesNum = Number(totalExpenses) || 0;
+    const totalPaidNum = Number(totalPaid) || 0;
+    const totalPendingNum = Number(totalPending) || 0;
+    const remainingNum = budgetNum - totalExpensesNum;
+    const percentUsedNum = budgetNum > 0 ? (totalExpensesNum / budgetNum) * 100 : 0;
+
+    return {
+      budget: budgetNum,
+      totalExpenses: totalExpensesNum,
+      totalPaid: totalPaidNum,
+      totalPending: totalPendingNum,
+      remaining: remainingNum,
+      percentUsed: percentUsedNum,
+      byCategory,
+      byType
+    };
+  };
+  
+  // Filtrar eventos com base no termo de busca
+  const filteredEvents = React.useMemo(() => {
+    return events.filter((event: Event) => 
+      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [events, searchTerm]);
+
+  // Estatísticas do orçamento
+  const stats = calculateBudgetStats();
   
   return (
-    <div className="container py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Gerenciamento de Orçamento</h1>
-        <p className="text-muted-foreground">Controle os gastos e orçamentos dos seus eventos</p>
-      </div>
-      
-      <div>
-        {/* Formulário para adicionar item */}
-        <Dialog open={isAddItemOpen} onOpenChange={setIsAddItemOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{selectedItem ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
-              <DialogDescription>
-                {selectedItem ? "Atualize os detalhes do item selecionado." : "Adicione um novo item ao orçamento ou como despesa."}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nome do Item</Label>
-                <Input
-                  id="name"
-                  value={itemForm.name}
-                  onChange={(e) => setItemForm({...itemForm, name: e.target.value})}
-                  placeholder="Ex: Aluguel de equipamento"
-                />
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Orçamento</h1>
+        <div className="flex space-x-2">
+          <Dialog open={isEditBudgetOpen} onOpenChange={setIsEditBudgetOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Edit2 className="h-4 w-4 mr-2" />
+                Editar Orçamento
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Editar Orçamento</DialogTitle>
+                <DialogDescription>
+                  Defina o valor total do orçamento para o evento.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="budget">Valor do Orçamento (R$)</Label>
+                  <Input
+                    id="budget"
+                    type="number"
+                    placeholder="0,00"
+                    value={budgetForm.budget}
+                    onChange={(e) => setbudgetForm({ budget: e.target.value })}
+                  />
+                </div>
               </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="category">Categoria</Label>
-                <Select
-                  value={itemForm.category}
-                  onValueChange={(value) => setItemForm({...itemForm, category: value})}
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancelar</Button>
+                </DialogClose>
+                <Button 
+                  onClick={handleUpdateBudget} 
+                  disabled={!budgetForm.budget || updateEventBudgetMutation.isPending}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="venue">Local</SelectItem>
-                    <SelectItem value="catering">Buffet</SelectItem>
-                    <SelectItem value="decoration">Decoração</SelectItem>
-                    <SelectItem value="music">Música</SelectItem>
-                    <SelectItem value="photography">Fotografia</SelectItem>
-                    <SelectItem value="video">Vídeo</SelectItem>
-                    <SelectItem value="invitations">Convites</SelectItem>
-                    <SelectItem value="attire">Vestuário</SelectItem>
-                    <SelectItem value="transportation">Transporte</SelectItem>
-                    <SelectItem value="gifts">Lembranças</SelectItem>
-                    <SelectItem value="staff">Equipe/Funcionários</SelectItem>
-                    <SelectItem value="permits">Licenças/Autorizações</SelectItem>
-                    <SelectItem value="insurance">Seguro</SelectItem>
-                    <SelectItem value="admin">Custos Administrativos</SelectItem>
-                    <SelectItem value="marketing">Marketing/Divulgação</SelectItem>
-                    <SelectItem value="accommodation">Hospedagem</SelectItem>
-                    <SelectItem value="entertainment">Entretenimento</SelectItem>
-                    <SelectItem value="fees">Taxas</SelectItem>
-                    <SelectItem value="equipment">Equipamentos</SelectItem>
-                    <SelectItem value="other">Outros</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="amount">Valor (R$)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={itemForm.amount}
-                  onChange={(e) => setItemForm({...itemForm, amount: e.target.value})}
-                  placeholder="Ex: 1000"
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="dueDate">Data de Vencimento (opcional)</Label>
-                <Input
-                  id="dueDate"
-                  type="date"
-                  value={itemForm.dueDate}
-                  onChange={(e) => setItemForm({...itemForm, dueDate: e.target.value})}
-                />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="paid"
-                  checked={itemForm.paid}
-                  onChange={(e) => setItemForm({...itemForm, paid: e.target.checked})}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <Label htmlFor="paid">Pago</Label>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="notes">Notas (opcional)</Label>
-                <Input
-                  id="notes"
-                  value={itemForm.notes}
-                  onChange={(e) => setItemForm({...itemForm, notes: e.target.value})}
-                  placeholder="Observações adicionais"
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogClose>
-              <Button 
-                onClick={handleAddItem} 
-                disabled={!itemForm.name || !itemForm.category || !itemForm.amount || addBudgetItemMutation.isPending || updateBudgetItemMutation.isPending}
-              >
-                {selectedItem 
-                  ? (updateBudgetItemMutation.isPending ? "Atualizando..." : "Atualizar Item")
-                  : (addBudgetItemMutation.isPending ? "Adicionando..." : "Adicionar Item")}
+                  {updateEventBudgetMutation.isPending ? "Atualizando..." : "Atualizar Orçamento"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isAddItemOpen} onOpenChange={(open) => {
+            setIsAddItemOpen(open);
+            if (!open) {
+              resetItemForm();
+              setSelectedItem(null);
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Despesa
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        
-        {/* Formulário para editar orçamento geral */}
-        <Dialog open={isEditBudgetOpen} onOpenChange={setIsEditBudgetOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Editar Orçamento</DialogTitle>
-              <DialogDescription>
-                Atualize o valor do orçamento total para este evento.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="budget">Valor do Orçamento (R$)</Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  value={budgetForm.budget}
-                  onChange={(e) => setbudgetForm({budget: e.target.value})}
-                  placeholder="Ex: 10000"
-                />
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {selectedItem ? "Editar Item do Orçamento" : "Adicionar Item ao Orçamento"}
+                </DialogTitle>
+                <DialogDescription>
+                  {selectedItem 
+                    ? "Atualize as informações do item do orçamento." 
+                    : "Adicione um novo item ao orçamento do seu evento."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="item-event">Evento</Label>
+                  <Select
+                    value={selectedEventId?.toString() || ""}
+                    onValueChange={(value) => setSelectedEventId(parseInt(value, 10))}
+                    disabled={!!selectedItem}
+                  >
+                    <SelectTrigger id="item-event">
+                      <SelectValue placeholder="Selecione um evento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {events.map((event: Event) => (
+                        <SelectItem key={event.id} value={event.id.toString()}>
+                          {event.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-name">Nome da Despesa</Label>
+                  <Input
+                    id="item-name"
+                    value={itemForm.name}
+                    onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-category">Categoria</Label>
+                  <Select
+                    value={itemForm.category}
+                    onValueChange={(value) => setItemForm({ ...itemForm, category: value })}
+                  >
+                    <SelectTrigger id="item-category">
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="header-vendor" disabled className="font-semibold text-amber-600">
+                        Fornecedores
+                      </SelectItem>
+                      {BUDGET_CATEGORIES.filter(c => c.type === "vendor").map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="header-general" disabled className="font-semibold text-blue-600 mt-2">
+                        Despesas Gerais
+                      </SelectItem>
+                      {BUDGET_CATEGORIES.filter(c => c.type === "general").map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="header-other" disabled className="font-semibold text-gray-600 mt-2">
+                        Outros
+                      </SelectItem>
+                      {BUDGET_CATEGORIES.filter(c => c.type === "other").map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-amount">Valor (R$)</Label>
+                  <Input
+                    id="item-amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0,00"
+                    value={itemForm.amount}
+                    onChange={(e) => setItemForm({ ...itemForm, amount: e.target.value })}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-date">Data de Vencimento (opcional)</Label>
+                  <Input
+                    id="item-date"
+                    type="date"
+                    value={itemForm.dueDate}
+                    onChange={(e) => setItemForm({ ...itemForm, dueDate: e.target.value })}
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="item-paid"
+                    checked={itemForm.paid}
+                    onChange={(e) => setItemForm({ ...itemForm, paid: e.target.checked })}
+                    className="rounded border-gray-300 text-primary"
+                  />
+                  <Label htmlFor="item-paid">Pago</Label>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-notes">Observações (opcional)</Label>
+                  <Input
+                    id="item-notes"
+                    value={itemForm.notes}
+                    onChange={(e) => setItemForm({ ...itemForm, notes: e.target.value })}
+                  />
+                </div>
               </div>
-            </div>
-            
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogClose>
-              <Button 
-                onClick={handleUpdateBudget} 
-                disabled={!budgetForm.budget || updateEventBudgetMutation.isPending}
-              >
-                {updateEventBudgetMutation.isPending ? "Atualizando..." : "Atualizar Orçamento"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancelar</Button>
+                </DialogClose>
+                <Button 
+                  onClick={handleAddItem} 
+                  disabled={!itemForm.name || !itemForm.category || !itemForm.amount || addBudgetItemMutation.isPending || updateBudgetItemMutation.isPending}
+                >
+                  {selectedItem 
+                    ? (updateBudgetItemMutation.isPending ? "Atualizando..." : "Atualizar Item")
+                    : (addBudgetItemMutation.isPending ? "Adicionando..." : "Adicionar Item")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Barra lateral com a lista de eventos */}
         <div className="lg:col-span-1">
           <Card className="h-full overflow-hidden">
             <CardHeader className="pb-3 pt-4 px-4">
@@ -823,6 +892,7 @@ const Budget: React.FC = () => {
                         Nenhum evento encontrado
                       </div>
                     ) : (
+                      // Só mostra a lista de eventos na barra lateral esquerda
                       filteredEvents.map((event: Event) => (
                         <div
                           key={event.id}
@@ -848,6 +918,35 @@ const Budget: React.FC = () => {
                               {new Date(event.date).toLocaleDateString()}
                             </span>
                           </div>
+                          {event.budget ? (
+                            <div className="mt-3 text-sm">
+                              <div className="flex justify-between mb-1">
+                                <span className="flex items-center">
+                                  <DollarSign className="h-3 w-3 mr-1" />
+                                  {formatCurrency(event.budget)}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                  stats.totalExpenses > event.budget 
+                                    ? "bg-red-100 text-red-700" 
+                                    : "bg-green-100 text-green-700"
+                                }`}>
+                                  {Math.min(100, Math.floor((stats.totalExpenses / event.budget) * 100))}%
+                                </span>
+                              </div>
+                              <Progress
+                                value={Math.min(100, (stats.totalExpenses / event.budget) * 100)}
+                                className="h-2"
+                                indicatorClassName={`${
+                                  stats.totalExpenses > event.budget ? "bg-destructive" : "bg-primary"
+                                }`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="mt-2 text-xs text-muted-foreground flex items-center">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Nenhum orçamento definido
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
@@ -858,97 +957,116 @@ const Budget: React.FC = () => {
           </Card>
         </div>
         
-        {/* Conteúdo principal (painel direito) */}
         <div className="lg:col-span-3">
           {!selectedEventId ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhum evento selecionado</h3>
-                <p className="text-muted-foreground">
-                  Selecione um evento na lista para gerenciar seu orçamento
+            <Card className="h-full flex items-center justify-center p-8">
+              <div className="text-center max-w-md">
+                <div className="bg-muted/30 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <AlertCircle className="h-8 w-8 text-primary/70" />
+                </div>
+                <h3 className="text-xl font-medium mb-3">Nenhum evento selecionado</h3>
+                <p className="text-muted-foreground mb-6">
+                  Selecione um evento na lista à esquerda para visualizar e gerenciar o orçamento detalhado do seu evento.
                 </p>
+                <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                  <span className="flex items-center">
+                    <DollarSign className="h-4 w-4 mr-1" />
+                    Gerencie custos
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30"></span>
+                  <span className="flex items-center">
+                    <Store className="h-4 w-4 mr-1" />
+                    Acompanhe fornecedores
+                  </span>
+                </div>
               </div>
-            </div>
+            </Card>
           ) : (
-            <Card>
-              <CardHeader className="pb-2">
+            <Card className="border-none shadow-lg rounded-3xl overflow-hidden bg-[#1F1A29]">
+              <CardHeader className="pb-6 pt-6 bg-gradient-to-b from-purple-900/40 to-transparent">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-xl mb-1">
+                    <CardTitle className="text-2xl font-bold text-white">
                       {events.find((e: Event) => e.id === selectedEventId)?.name}
                     </CardTitle>
-                    <CardDescription>
-                      Gerenciamento de Orçamento
+                    <CardDescription className="mt-1 text-gray-300">
+                      {events.find((e: Event) => e.id === selectedEventId)?.type} | {new Date(events.find((e: Event) => e.id === selectedEventId)?.date || "").toLocaleDateString()}
                     </CardDescription>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleEditBudget}
-                  >
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    Editar Orçamento
-                  </Button>
+                  <div className="bg-[#2B2639] p-4 rounded-xl shadow-sm border border-primary/20">
+                    <div className="text-xs text-orange-300 uppercase tracking-wide font-medium">Orçamento Total</div>
+                    <div className="text-3xl font-bold text-orange-400 mt-1">{formatCurrency(stats.budget)}</div>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                {/* Stats do orçamento */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-background rounded-lg p-4 shadow-sm border">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Orçamento Total</p>
-                        <p className="text-2xl font-bold">
-                          {formatCurrency(stats.budget)}
-                        </p>
-                      </div>
-                      <div className="rounded-full bg-primary/10 p-2">
-                        <DollarSign className="h-5 w-5 text-primary" />
+              <CardContent className="pb-6 px-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="text-sm font-medium text-gray-300">Total de Despesas</div>
+                      <div className="p-2 rounded-full bg-[#472A37]">
+                        <DollarSign className="h-5 w-5 text-orange-400" />
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="bg-background rounded-lg p-4 shadow-sm border">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Despesas Realizadas</p>
-                        <p className="text-2xl font-bold">
-                          {formatCurrency(stats.totalExpenses)}
-                        </p>
-                      </div>
-                      <div className="rounded-full bg-orange-500/10 p-2">
-                        <TrendingDown className="h-5 w-5 text-orange-500" />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-background rounded-lg p-4 shadow-sm border">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">
-                          {stats.remaining >= 0 ? "Saldo Disponível" : "Orçamento Excedido"}
-                        </p>
-                        <p className={`text-2xl font-bold ${stats.remaining >= 0 ? "text-blue-600" : "text-red-600"}`}>
-                          {formatCurrency(Math.abs(stats.remaining))}
-                        </p>
-                      </div>
-                      <div className={`rounded-full p-2 ${stats.remaining >= 0 ? "bg-blue-500/10" : "bg-red-500/10"}`}>
-                        {stats.remaining >= 0 ? (
-                          <TrendingUp className="h-5 w-5 text-blue-500" />
-                        ) : (
-                          <AlertCircle className="h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <Progress 
-                        value={Math.min((stats.totalExpenses / stats.budget) * 100, 100)} 
-                        className="h-2"
-                        indicatorClassName={stats.remaining >= 0 ? "bg-blue-500" : "bg-red-500"}
-                      />
+                    <div className="text-3xl font-bold text-white mb-2">{formatCurrency(stats.totalExpenses)}</div>
+                    <div className="text-xs text-gray-400 flex items-center">
                       {stats.budget > 0 && (
-                        <span className={`text-xs mt-1 block ${
+                        <>
+                          {stats.totalExpenses <= stats.budget ? (
+                            <span className="flex items-center px-2 py-1 bg-green-900/40 text-green-400 rounded-full mr-2">
+                              <TrendingDown className="h-3 w-3 mr-1" />
+                              {((stats.totalExpenses / stats.budget) * 100).toFixed(1)}%
+                            </span>
+                          ) : (
+                            <span className="flex items-center px-2 py-1 bg-red-900/40 text-red-400 rounded-full mr-2">
+                              <TrendingUp className="h-3 w-3 mr-1" />
+                              {((stats.totalExpenses / stats.budget) * 100).toFixed(1)}%
+                            </span>
+                          )}
+                          <span>do orçamento</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="text-sm font-medium text-gray-300">Despesas Pagas</div>
+                      <div className="p-2 rounded-full bg-[#1E4039]">
+                        <CheckCircle2 className="h-5 w-5 text-green-400" />
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold text-white mb-2">{formatCurrency(stats.totalPaid)}</div>
+                    <div className="text-xs text-gray-400 flex items-center">
+                      <span className="px-2 py-1 bg-blue-900/40 text-blue-400 rounded-full">
+                        {stats.totalExpenses > 0 
+                          ? `${((stats.totalPaid / stats.totalExpenses) * 100).toFixed(1)}% do total`
+                          : "0% do total"}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="text-sm font-medium text-gray-300">
+                        {stats.remaining >= 0 ? "Saldo Restante" : "Excedente"}
+                      </div>
+                      {stats.remaining >= 0 ? (
+                        <div className="p-2 rounded-full bg-[#1E3349]">
+                          <BarChart className="h-5 w-5 text-blue-400" />
+                        </div>
+                      ) : (
+                        <div className="p-2 rounded-full bg-[#472A37]">
+                          <AlertCircle className="h-5 w-5 text-red-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className={`text-3xl font-bold mb-2 ${stats.remaining < 0 ? "text-red-400" : "text-white"}`}>
+                      {formatCurrency(Math.abs(stats.remaining))}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {stats.budget > 0 && (
+                        <span className={`px-2 py-1 rounded-full ${
                           stats.remaining >= 0 ? "bg-blue-900/40 text-blue-400" : "bg-red-900/40 text-red-400"
                         }`}>
                           {Math.abs(((stats.remaining / stats.budget) * 100)).toFixed(1)}% 
@@ -959,7 +1077,6 @@ const Budget: React.FC = () => {
                   </div>
                 </div>
                 
-                {/* Abas de conteúdo */}
                 <Tabs defaultValue="items">
                   <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="items">Itens Orçamento</TabsTrigger>
@@ -968,14 +1085,13 @@ const Budget: React.FC = () => {
                     <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
                   </TabsList>
                   
-                  {/* Aba: Itens Orçamento */}
                   <TabsContent value="items" className="pt-4">
                     {isLoadingBudget ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando itens do orçamento...</h3>
                       </div>
-                    ) : regularItems.length === 0 && vendorItems.length === 0 ? (
+                    ) : regularItems.length === 0 ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
@@ -988,113 +1104,124 @@ const Budget: React.FC = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-medium">Itens do orçamento</h3>
-                          <Button onClick={() => {
-                            setSelectedItem(null);
-                            setItemForm({
-                              name: "",
-                              category: "",
-                              amount: "",
-                              paid: false,
-                              dueDate: "",
-                              notes: ""
-                            });
-                            setIsAddItemOpen(true);
-                          }}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Adicionar
-                          </Button>
-                        </div>
-
-                        <div className="border rounded-md overflow-hidden">
-                          <table className="w-full">
-                            <thead className="bg-muted">
-                              <tr>
-                                <th className="p-3 text-left font-medium">Item</th>
-                                <th className="p-3 text-left font-medium">Categoria</th>
-                                <th className="p-3 text-right font-medium">Valor</th>
-                                <th className="p-3 text-center font-medium">Tipo</th>
-                                <th className="p-3 text-right font-medium">Ações</th>
+                      <div className="border rounded-md overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="text-left p-3">Item</th>
+                              <th className="text-left p-3">Categoria</th>
+                              <th className="text-right p-3">Valor</th>
+                              <th className="text-center p-3">Status</th>
+                              <th className="text-right p-3">Ações</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {/* Itens regulares */}
+                            {regularItems.length > 0 && (
+                              <tr className="bg-blue-50/50">
+                                <td colSpan={5} className="p-2 text-sm font-semibold text-blue-800">
+                                  <div className="flex items-center">
+                                    <Users className="h-4 w-4 mr-2" />
+                                    Despesas Gerais
+                                  </div>
+                                </td>
                               </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                              {regularItems.map((item: BudgetItem) => (
-                                <tr key={item.id} className="hover:bg-muted/30">
-                                  <td className="p-3">
-                                    <div>{item.name}</div>
-                                    {item.notes && (
-                                      <div className="text-xs text-muted-foreground mt-1">{item.notes}</div>
-                                    )}
-                                  </td>
-                                  <td className="p-3">
-                                    {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    {formatCurrency(item.amount)}
-                                  </td>
-                                  <td className="p-3 text-center">
-                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary">
-                                      Orçamento
-                                    </span>
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    <div className="flex justify-end space-x-2">
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleEditItem(item)}
-                                      >
-                                        <Edit2 className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => deleteBudgetItemMutation.mutate(item.id)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
+                            )}
+                            
+                            {regularItems.map((item: any) => (
+                              <tr key={item.id} className="hover:bg-muted/50">
+                                <td className="p-3">
+                                  <div className="font-medium">{item.name}</div>
+                                  {item.dueDate && (
+                                    <div className="text-xs text-muted-foreground flex items-center">
+                                      <Calendar className="h-3 w-3 mr-1" />
+                                      {new Date(item.dueDate).toLocaleDateString()}
                                     </div>
-                                  </td>
-                                </tr>
-                              ))}
-                              
-                              {vendorItems.map((item: BudgetItem) => (
-                                <tr key={item.id} className="hover:bg-muted/30 bg-blue-50/30">
-                                  <td className="p-3">
-                                    <div>{item.name}</div>
-                                    {item.notes && (
-                                      <div className="text-xs text-muted-foreground mt-1">{item.notes}</div>
-                                    )}
-                                  </td>
-                                  <td className="p-3">
-                                    {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    {formatCurrency(item.amount)}
-                                  </td>
-                                  <td className="p-3 text-center">
-                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-700">
-                                      Fornecedor
+                                  )}
+                                </td>
+                                <td className="p-3">
+                                  {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
+                                </td>
+                                <td className="p-3 text-right">
+                                  {formatCurrency(item.amount)}
+                                </td>
+                                <td className="p-3 text-center">
+                                  {item.paid ? (
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-700">
+                                      Pago
                                     </span>
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    {/* Não podemos editar/excluir itens de fornecedor aqui */}
-                                    <div className="text-xs text-muted-foreground">
-                                      Gerenciar em Fornecedores
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                                  ) : (
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-700">
+                                      Pendente
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="p-3 text-right">
+                                  <div className="flex justify-end space-x-2">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleEditItem(item)}
+                                    >
+                                      <Edit2 className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDeleteItem(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                            
+                            {/* Itens de fornecedores */}
+                            {vendorItems.length > 0 && (
+                              <tr className="bg-amber-50/50">
+                                <td colSpan={5} className="p-2 text-sm font-semibold text-amber-800">
+                                  <div className="flex items-center">
+                                    <Store className="h-4 w-4 mr-2" />
+                                    Custos de Fornecedores
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                            
+                            {vendorItems.map((item: any) => (
+                              <tr key={item.id} className="hover:bg-muted/50">
+                                <td className="p-3">
+                                  <div className="font-medium">{item.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Fornecedor
+                                  </div>
+                                </td>
+                                <td className="p-3">
+                                  {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
+                                </td>
+                                <td className="p-3 text-right">
+                                  {formatCurrency(item.amount)}
+                                </td>
+                                <td className="p-3 text-center">
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-700">
+                                    Fornecedor
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right">
+                                  {/* Não podemos editar/excluir itens de fornecedor aqui */}
+                                  <div className="text-xs text-muted-foreground">
+                                    Gerenciar em Fornecedores
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     )}
                   </TabsContent>
                   
-                  {/* Aba: Despesas */}
                   <TabsContent value="expenses" className="pt-4">
                     {isLoadingExpenses ? (
                       <div className="text-center py-8">
@@ -1166,7 +1293,7 @@ const Budget: React.FC = () => {
                                       {expense.vendorId && (
                                         <div className="text-xs text-muted-foreground flex items-center mt-1">
                                           <Store className="h-3 w-3 mr-1" />
-                                          {vendors.find((v: Vendor) => v.id === expense.vendorId)?.name || "Fornecedor"}
+                                          {vendors.find(v => v.id === expense.vendorId)?.name || "Fornecedor"}
                                         </div>
                                       )}
                                     </td>
@@ -1234,7 +1361,6 @@ const Budget: React.FC = () => {
                     )}
                   </TabsContent>
                   
-                  {/* Aba: Categorias */}
                   <TabsContent value="categories" className="pt-4">
                     {Object.keys(stats.byCategory).length === 0 ? (
                       <div className="text-center py-8">
@@ -1345,20 +1471,17 @@ const Budget: React.FC = () => {
                           <div className="space-y-3 pl-7">
                             {Object.entries(stats.byCategory)
                               .filter(([category]) => {
-                                // Filtrar categorias que não são de fornecedores nem gerais
-                                const vendorCategories = [
+                                const allDefinedCategories = [
                                   'venue', 'catering', 'decoration', 'music', 
                                   'photography', 'video', 'invitations', 'attire',
-                                  'transportation', 'gifts'
+                                  'transportation', 'gifts', 'staff', 'permits', 
+                                  'insurance', 'admin', 'marketing', 'fees', 
+                                  'equipment', 'accommodation', 'entertainment'
                                 ];
-                                const nonVendorCategories = [
-                                  'staff', 'permits', 'insurance', 'admin', 
-                                  'marketing', 'fees', 'equipment', 'accommodation', 'entertainment'
-                                ];
-                                return !vendorCategories.includes(category) && !nonVendorCategories.includes(category);
+                                return !allDefinedCategories.includes(category);
                               })
                               .map(([category, amount]) => (
-                                <div key={category} className="border rounded-lg p-4 bg-gray-50">
+                                <div key={category} className="border rounded-lg p-4">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="font-medium">
                                       {BUDGET_CATEGORIES.find(c => c.value === category)?.label || category}
@@ -1385,7 +1508,6 @@ const Budget: React.FC = () => {
                     )}
                   </TabsContent>
                   
-                  {/* Aba: Fornecedores */}
                   <TabsContent value="vendors" className="pt-4">
                     {isLoadingVendors ? (
                       <div className="text-center py-8">
@@ -1395,44 +1517,68 @@ const Budget: React.FC = () => {
                     ) : vendors.length === 0 ? (
                       <div className="text-center py-8">
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">Nenhum fornecedor</h3>
+                        <h3 className="text-lg font-medium mb-2">Nenhum fornecedor cadastrado</h3>
                         <p className="text-muted-foreground mb-4">
-                          Adicione fornecedores na seção de Fornecedores do sistema
+                          Acesse a página de Fornecedores para adicionar fornecedores ao seu evento
                         </p>
-                        <Button onClick={() => window.location.href = '/vendors'}>
-                          <Store className="h-4 w-4 mr-2" />
-                          Gerenciar Fornecedores
+                        <Button asChild>
+                          <a href={`/vendors?eventId=${selectedEventId}`}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Gerenciar Fornecedores
+                          </a>
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-medium">Fornecedores do evento</h3>
-                          <Button onClick={() => window.location.href = '/vendors'}>
-                            <Store className="h-4 w-4 mr-2" />
-                            Gerenciar
-                          </Button>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {vendors.map((vendor: Vendor) => (
-                            <div key={vendor.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <h4 className="font-medium">{vendor.name}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    {BUDGET_CATEGORIES.find(c => c.value === vendor.service)?.label || vendor.service}
-                                  </p>
-                                </div>
-                                <div className="bg-primary/10 rounded-md px-2 py-1">
-                                  <span className="text-sm font-medium text-primary">
-                                    {formatCurrency(vendor.cost || 0)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                      <div className="border rounded-md overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="text-left p-3">Fornecedor</th>
+                              <th className="text-left p-3">Serviço</th>
+                              <th className="text-right p-3">Custo</th>
+                              <th className="text-right p-3">Ações</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {vendors.map((vendor: Vendor) => (
+                              <tr key={vendor.id} className="hover:bg-muted/50">
+                                <td className="p-3">
+                                  <div className="font-medium">{vendor.name}</div>
+                                </td>
+                                <td className="p-3">
+                                  {BUDGET_CATEGORIES.find(c => c.value === vendor.service)?.label || vendor.service}
+                                </td>
+                                <td className="p-3 text-right">
+                                  {vendor.cost ? formatCurrency(vendor.cost) : "Não definido"}
+                                </td>
+                                <td className="p-3 text-right">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    asChild
+                                  >
+                                    <a href={`/vendors?eventId=${selectedEventId}`}>
+                                      <Edit2 className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                            <tr className="bg-muted/30">
+                              <td colSpan={2} className="p-3 text-right font-medium">
+                                Total de Fornecedores:
+                              </td>
+                              <td className="p-3 text-right font-bold">
+                                {formatCurrency(
+                                  vendors.reduce((total: number, vendor: Vendor) => {
+                                    return total + (vendor.cost ? Number(vendor.cost) : 0);
+                                  }, 0)
+                                )}
+                              </td>
+                              <td></td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     )}
                   </TabsContent>
