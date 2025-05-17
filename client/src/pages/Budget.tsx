@@ -166,10 +166,10 @@ const Budget: React.FC = () => {
     refetchOnWindowFocus: false
   });
   
+  // Usando o endpoint correto para carregar itens do orçamento
   const { data: budgetItems = [], isLoading: isLoadingBudget } = useQuery({
     queryKey: ["/api/events", selectedEventId, "budget"],
     enabled: !!selectedEventId,
-    // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
     refetchOnWindowFocus: false
   });
@@ -187,9 +187,13 @@ const Budget: React.FC = () => {
     }
     
     return budgetItems.filter(item => {
-      const matches = item.eventId === selectedEventId;
+      // Converter os IDs para número para garantir que a comparação seja por valor e não por referência
+      const itemEventId = Number(item.eventId);
+      const currentEventId = Number(selectedEventId);
+      const matches = itemEventId === currentEventId;
+      
       if (!matches && item.eventId !== undefined) {
-        console.log(`[Budget] Item não corresponde - item.eventId: ${item.eventId}, selectedEventId: ${selectedEventId}`);
+        console.log(`[Budget] Item não corresponde - item.eventId: ${itemEventId} (${typeof item.eventId}), selectedEventId: ${currentEventId} (${typeof selectedEventId})`);
       }
       return matches;
     });
@@ -211,7 +215,12 @@ const Budget: React.FC = () => {
     if (!Array.isArray(expenses) || !selectedEventId) return [];
     console.log(`[Budget] Filtrando ${expenses.length} despesas para o evento ${selectedEventId}`);
     
-    return expenses.filter(expense => expense.eventId === selectedEventId);
+    return expenses.filter(expense => {
+      // Converter os IDs para número para garantir que a comparação seja por valor
+      const expenseEventId = Number(expense.eventId);
+      const currentEventId = Number(selectedEventId);
+      return expenseEventId === currentEventId;
+    });
   }, [expenses, selectedEventId]);
   
   // Fornecedores filtrados para o evento atual
@@ -219,7 +228,12 @@ const Budget: React.FC = () => {
     if (!Array.isArray(vendors) || !selectedEventId) return [];
     console.log(`[Budget] Filtrando ${vendors.length} fornecedores para o evento ${selectedEventId}`);
     
-    return vendors.filter(vendor => vendor.eventId === selectedEventId);
+    return vendors.filter(vendor => {
+      // Converter os IDs para número para garantir que a comparação seja por valor
+      const vendorEventId = Number(vendor.eventId);
+      const currentEventId = Number(selectedEventId);
+      return vendorEventId === currentEventId;
+    });
   }, [vendors, selectedEventId]);
   
   React.useEffect(() => {
