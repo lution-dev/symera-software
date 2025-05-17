@@ -598,8 +598,16 @@ const Budget: React.FC = () => {
   
   // Adicionar campo para indicar se é um item de fornecedor ou não
   const regularItems = React.useMemo(() => {
-    // Garantir que todos os itens pertencem ao evento selecionado
+    // Verificar se budgetItems é um array e filtrar por evento selecionado
+    if (!Array.isArray(budgetItems)) {
+      console.error("budgetItems não é um array:", budgetItems);
+      return [];
+    }
+    
+    // Filtrar apenas os itens do evento selecionado
     const eventItems = budgetItems.filter((item: BudgetItem) => item.eventId === selectedEventId);
+    console.log(`Filtrados ${eventItems.length} itens de orçamento para o evento ${selectedEventId}`);
+    
     return eventItems.map((item: BudgetItem) => ({
       ...item,
       isVendor: false // Marcar como item regular (não-fornecedor)
@@ -1123,7 +1131,7 @@ const Budget: React.FC = () => {
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando itens do orçamento...</h3>
                       </div>
-                    ) : regularItems.length === 0 ? (
+                    ) : !Array.isArray(budgetItems) || budgetItems.filter(i => i.eventId === selectedEventId).length === 0 ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
