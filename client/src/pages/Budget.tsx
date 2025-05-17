@@ -1668,12 +1668,128 @@ const Budget: React.FC = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-6">
-                        {/* Categorias de despesas gerais */}
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Users className="h-5 w-5 text-blue-600" />
-                            <h3 className="text-lg font-medium text-blue-800">Despesas Gerais</h3>
+                      <div className="space-y-8">
+                        {/* Gráfico de pizza */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-xl">Distribuição por Categoria</CardTitle>
+                            <CardDescription>
+                              Visão geral de como o orçamento está distribuído entre as diferentes categorias
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="h-[350px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <RechartsChart>
+                                <Pie
+                                  data={Object.entries(stats.byCategory).map(([category, amount]) => ({
+                                    category: BUDGET_CATEGORIES.find(c => c.value === category)?.label || category,
+                                    value: amount,
+                                    categoryKey: category
+                                  }))}
+                                  cx="50%"
+                                  cy="50%"
+                                  labelLine={true}
+                                  outerRadius={110}
+                                  fill="#8884d8"
+                                  dataKey="value"
+                                  nameKey="category"
+                                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                >
+                                  {Object.entries(stats.byCategory).map(([category], index) => {
+                                    // Array de cores para o gráfico de pizza
+                                    const COLORS = [
+                                      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
+                                      '#8B5CF6', '#EC4899', '#06B6D4', '#D97706',
+                                      '#6366F1', '#84CC16', '#14B8A6', '#F43F5E',
+                                      '#8B5CF6', '#22D3EE', '#F97316', '#A855F7'
+                                    ];
+                                    return (
+                                      <Cell 
+                                        key={`cell-${index}`} 
+                                        fill={COLORS[index % COLORS.length]} 
+                                      />
+                                    );
+                                  })}
+                                </Pie>
+                                <Tooltip 
+                                  formatter={(value) => formatCurrency(Number(value))}
+                                  contentStyle={{ backgroundColor: 'rgba(22, 28, 36, 0.9)', border: 'none', borderRadius: '4px', color: '#fff' }}
+                                />
+                                <Legend />
+                              </RechartsChart>
+                            </ResponsiveContainer>
+                          </CardContent>
+                        </Card>
+                        
+                        {/* Tabela de apoio */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-xl">Detalhamento por Categoria</CardTitle>
+                            <CardDescription>
+                              Análise detalhada do orçamento por categoria
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="border rounded-md">
+                              <div className="grid grid-cols-4 gap-4 p-4 bg-muted/50 font-medium text-sm">
+                                <div>Categoria</div>
+                                <div className="text-center">Itens</div>
+                                <div className="text-right">Valor Total</div>
+                                <div className="text-right">% do Orçamento</div>
+                              </div>
+                              
+                              <div className="divide-y">
+                                {Object.entries(stats.byCategory).map(([category, amount]) => {
+                                  // Contar quantos itens pertencem a esta categoria
+                                  const itemsCount = [...filteredBudgetItems, ...filteredExpenses]
+                                    .filter(item => item.category === category).length;
+                                  
+                                  // Calcular a porcentagem do orçamento
+                                  const percentOfBudget = stats.budget > 0 
+                                    ? ((amount / stats.budget) * 100).toFixed(0) 
+                                    : ((amount / stats.totalExpenses) * 100).toFixed(0);
+                                    
+                                  return (
+                                    <div key={category} className="grid grid-cols-4 gap-4 p-4 hover:bg-muted/20">
+                                      <div className="font-medium flex items-center">
+                                        {BUDGET_CATEGORIES.find(c => c.value === category)?.label || category}
+                                      </div>
+                                      <div className="text-center">{itemsCount}</div>
+                                      <div className="text-right font-medium">{formatCurrency(amount)}</div>
+                                      <div className="text-right">{percentOfBudget}%</div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        {/* Aviso para itens sem categoria */}
+                        {Object.entries(stats.byCategory)
+                          .filter(([category]) => category === 'other' || category === 'outros')
+                          .length > 0 && (
+                          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-md p-4">
+                            <div className="flex">
+                              <AlertCircle className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0" />
+                              <div>
+                                <h4 className="font-medium text-amber-800">Alguns itens não estão categorizados</h4>
+                                <p className="text-sm text-amber-700 mt-1">
+                                  Deseja categorizar estes itens agora?
+                                </p>
+                                <div className="mt-3">
+                                  <Button 
+                                    variant="outline" 
+                                    className="bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-900"
+                                    onClick={() => setActiveTab("expenses")}
+                                  >
+                                    Categorizar Itens
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                           </div>
                           
                           <div className="space-y-3 pl-7">
