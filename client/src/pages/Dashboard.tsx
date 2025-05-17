@@ -26,16 +26,29 @@ import {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["/api/dashboard"],
   });
 
   const upcomingEvents = data?.upcomingEvents || [];
-  const activeEvents = data?.activeEvents || 0;
   const activeEventsList = data?.activeEventsList || [];
   const totalEvents = data?.totalEvents || 0;
   const pendingTasks = data?.pendingTasks || [];
   const recentActivities = data?.recentActivities || [];
+  
+  // Filter active events (with status planning, confirmed, or in_progress)
+  const activeEvents = activeEventsList.filter(event => 
+    event.status === 'planning' || 
+    event.status === 'confirmed' || 
+    event.status === 'in_progress'
+  ).length;
+  
+  // Count events by status
+  const planningEvents = activeEventsList.filter(event => event.status === 'planning').length;
+  const confirmedEvents = activeEventsList.filter(event => event.status === 'confirmed').length;
+  const inProgressEvents = activeEventsList.filter(event => event.status === 'in_progress').length;
 
   // Determine next upcoming event days
   const upcomingEventDays = React.useMemo(() => {
@@ -55,9 +68,84 @@ const Dashboard: React.FC = () => {
           <h1 className="text-2xl md:text-3xl font-bold">
             Seja bem-vindo(a), {user?.firstName || ""}!
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Você tem {totalEvents} eventos e {pendingTasks.length} tarefas pendentes.
-          </p>
+          {activeEvents > 0 ? (
+            <p className="text-muted-foreground mt-1">
+              {isMobile ? (
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <span className="cursor-pointer underline decoration-dotted">
+                      Você tem {activeEvents} eventos ativos
+                    </span>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Distribuição dos eventos ativos</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <div className="space-y-2">
+                        {planningEvents > 0 && (
+                          <div className="flex items-center">
+                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-planning))]"></span>
+                            <span className="text-sm">{planningEvents} em Planejamento</span>
+                          </div>
+                        )}
+                        {confirmedEvents > 0 && (
+                          <div className="flex items-center">
+                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
+                            <span className="text-sm">{confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
+                          </div>
+                        )}
+                        {inProgressEvents > 0 && (
+                          <div className="flex items-center">
+                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                            <span className="text-sm">{inProgressEvents} Em andamento</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-pointer underline decoration-dotted">
+                        Você tem {activeEvents} eventos ativos
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="p-4 max-w-[250px]">
+                      <div className="text-center mb-1 font-medium">Distribuição dos eventos ativos:</div>
+                      <div className="space-y-2">
+                        {planningEvents > 0 && (
+                          <div className="flex items-center">
+                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-planning))]"></span>
+                            <span className="text-sm">🟠 {planningEvents} em Planejamento</span>
+                          </div>
+                        )}
+                        {confirmedEvents > 0 && (
+                          <div className="flex items-center">
+                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
+                            <span className="text-sm">🟢 {confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
+                          </div>
+                        )}
+                        {inProgressEvents > 0 && (
+                          <div className="flex items-center">
+                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                            <span className="text-sm">🔵 {inProgressEvents} Em andamento</span>
+                          </div>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {' '}e {pendingTasks.length} tarefas pendentes.
+            </p>
+          ) : (
+            <p className="text-muted-foreground mt-1">
+              Você não tem eventos ativos no momento. {pendingTasks.length > 0 && `Você tem ${pendingTasks.length} tarefas pendentes.`}
+            </p>
+          )}
         </div>
         <div className="mt-4 md:mt-0">
           <Link href="/events/new">
