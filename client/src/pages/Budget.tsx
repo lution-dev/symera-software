@@ -214,9 +214,18 @@ const Budget: React.FC = () => {
     return expenses.filter(expense => expense.eventId === selectedEventId);
   }, [expenses, selectedEventId]);
   
+  // Fornecedores filtrados para o evento atual
+  const filteredVendors = React.useMemo(() => {
+    if (!Array.isArray(vendors) || !selectedEventId) return [];
+    console.log(`[Budget] Filtrando ${vendors.length} fornecedores para o evento ${selectedEventId}`);
+    
+    return vendors.filter(vendor => vendor.eventId === selectedEventId);
+  }, [vendors, selectedEventId]);
+  
   React.useEffect(() => {
     console.log(`[Budget] Filtradas ${filteredExpenses.length} de ${Array.isArray(expenses) ? expenses.length : 0} despesas para o evento ${selectedEventId}`);
-  }, [filteredExpenses, expenses, selectedEventId]);
+    console.log(`[Budget] Filtrados ${filteredVendors.length} de ${Array.isArray(vendors) ? vendors.length : 0} fornecedores para o evento ${selectedEventId}`);
+  }, [filteredExpenses, expenses, filteredVendors, vendors, selectedEventId]);
   
   // Mutações
   const addBudgetItemMutation = useMutation({
@@ -1348,9 +1357,7 @@ const Budget: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody className="divide-y">
-                                {Array.isArray(expenses) && expenses
-                                  .filter((expense: Expense) => expense.eventId === selectedEventId)
-                                  .map((expense: Expense) => (
+                                {filteredExpenses.map((expense: Expense) => (
                                   <tr key={expense.id} className="hover:bg-muted/30">
                                     <td className="p-3">
                                       <div>{expense.name}</div>
@@ -1578,7 +1585,7 @@ const Budget: React.FC = () => {
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando fornecedores...</h3>
                       </div>
-                    ) : !Array.isArray(vendors) || vendors.filter((v: any) => v.eventId === selectedEventId).length === 0 ? (
+                    ) : filteredVendors.length === 0 ? (
                       <div className="text-center py-8">
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum fornecedor cadastrado</h3>
