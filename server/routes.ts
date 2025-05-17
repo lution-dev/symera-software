@@ -1141,8 +1141,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const events = await storage.getEventsByUser(userId);
       console.log(`Total de eventos encontrados: ${events.length}`);
       
-      // Get active events
-      const activeEvents = events.filter(event => event.status === "active");
+      // Get active events (planning, confirmed, in_progress or active status)
+      const activeEvents = events.filter(event => 
+        event.status === "planning" || 
+        event.status === "confirmed" || 
+        event.status === "in_progress" || 
+        event.status === "active"
+      );
       console.log(`Eventos ativos encontrados: ${activeEvents.length}`);
       
       // Carregar informações detalhadas para eventos ativos (equipe e tarefas)
