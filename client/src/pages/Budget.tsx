@@ -60,13 +60,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Event {
@@ -1354,12 +1347,16 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="categories" className="pt-4">
+                    <div className="mb-4 text-sm text-muted-foreground px-1">
+                      Visualize a distribuição do orçamento por categorias. Esta visão permite analisar onde estão concentrados os recursos do seu evento.
+                    </div>
+                    
                     {Object.keys(stats.byCategory).length === 0 ? (
                       <div className="text-center py-8">
                         <PieChart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
+                        <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento ainda</h3>
                         <p className="text-muted-foreground mb-4">
-                          Adicione itens ao orçamento para visualizar as estatísticas por categoria
+                          Adicione despesas ou itens para visualizar as estatísticas por categoria
                         </p>
                         <Button onClick={() => setIsAddItemOpen(true)}>
                           <Plus className="h-4 w-4 mr-2" />
