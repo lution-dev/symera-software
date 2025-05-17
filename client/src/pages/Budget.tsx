@@ -419,12 +419,12 @@ const Budget: React.FC = () => {
     }
   };
   
-  // Handler para adicionar item
+  // Handler para adicionar item (orçamento ou despesa)
   const handleAddItem = () => {
     if (!selectedEventId) {
       toast({
         title: "Nenhum evento selecionado",
-        description: "Selecione um evento para adicionar um item ao orçamento.",
+        description: "Selecione um evento para adicionar um item.",
         variant: "destructive",
       });
       return;
@@ -448,32 +448,66 @@ const Budget: React.FC = () => {
       });
       return;
     }
+
+    // Pegar a aba ativa atual para determinar se é despesa ou item de orçamento
+    const activeTab = document.querySelector('[role="tabpanel"][data-state="active"]')?.getAttribute('data-value');
+    const isExpenseTab = activeTab === 'expenses';
     
     if (selectedItem) {
-      // Atualizar item existente
-      updateBudgetItemMutation.mutate({
-        id: selectedItem.id,
-        eventId: selectedEventId,
-        updates: {
+      // Verificar se é uma despesa ou um item de orçamento
+      if ('vendorId' in selectedItem || isExpenseTab) {
+        // É uma despesa
+        updateExpenseMutation.mutate({
+          id: selectedItem.id,
+          updates: {
+            name: itemForm.name,
+            category: itemForm.category,
+            amount,
+            paid: itemForm.paid,
+            dueDate: itemForm.dueDate || undefined,
+            notes: itemForm.notes || undefined
+          }
+        });
+      } else {
+        // É um item de orçamento
+        updateBudgetItemMutation.mutate({
+          id: selectedItem.id,
+          eventId: selectedEventId,
+          updates: {
+            name: itemForm.name,
+            category: itemForm.category,
+            amount,
+            paid: itemForm.paid,
+            dueDate: itemForm.dueDate || undefined,
+            notes: itemForm.notes || undefined
+          }
+        });
+      }
+    } else {
+      // Adicionar novo item com base na aba ativa
+      if (isExpenseTab) {
+        // Adicionar como despesa
+        addExpenseMutation.mutate({
+          eventId: selectedEventId,
           name: itemForm.name,
           category: itemForm.category,
           amount,
           paid: itemForm.paid,
           dueDate: itemForm.dueDate || undefined,
           notes: itemForm.notes || undefined
-        }
-      });
-    } else {
-      // Adicionar novo item
-      addBudgetItemMutation.mutate({
-        eventId: selectedEventId,
-        name: itemForm.name,
-        category: itemForm.category,
-        amount,
-        paid: itemForm.paid,
-        dueDate: itemForm.dueDate || undefined,
-        notes: itemForm.notes || undefined
-      });
+        });
+      } else {
+        // Adicionar como item de orçamento
+        addBudgetItemMutation.mutate({
+          eventId: selectedEventId,
+          name: itemForm.name,
+          category: itemForm.category,
+          amount,
+          paid: itemForm.paid,
+          dueDate: itemForm.dueDate || undefined,
+          notes: itemForm.notes || undefined
+        });
+      }
     }
   };
   
@@ -533,9 +567,12 @@ const Budget: React.FC = () => {
     const event = events.find((e: Event) => e.id === selectedEventId) as Event | undefined;
     const budget = event?.budget || 0;
     
+    // Coletamos todos os itens: itens do orçamento regular, despesas e custos de fornecedores
     const allItems = [
       ...regularItems,
-      ...vendorItems
+      ...expenses.map((e: Expense) => ({...e, isExpense: true})),
+      // Excluímos os itens de fornecedores para não duplicar com as despesas que têm vendorId
+      ...vendorItems.filter(v => !expenses.some((e: Expense) => e.vendorId === parseInt(v.id.toString().replace('vendor-', ''))))
     ];
     
     const totalExpenses = allItems.reduce((sum, item: any) => {
@@ -562,6 +599,24 @@ const Budget: React.FC = () => {
       byCategory[category] += amount;
     });
     
+    // Calcular por tipo (despesa, item orçamento, fornecedor)
+    const byType: Record<string, number> = {
+      expense: 0,
+      budget: 0,
+      vendor: 0
+    };
+    
+    allItems.forEach((item: any) => {
+      const amount = Number(item.amount) || 0;
+      if (item.isExpense) {
+        byType.expense += amount;
+      } else if (item.isVendor) {
+        byType.vendor += amount;
+      } else {
+        byType.budget += amount;
+      }
+    });
+    
     // Make sure all numbers are valid
     const budgetNum = Number(budget) || 0;
     const totalExpensesNum = Number(totalExpenses) || 0;
@@ -577,7 +632,8 @@ const Budget: React.FC = () => {
       totalPending: totalPendingNum,
       remaining: remainingNum,
       percentUsed: percentUsedNum,
-      byCategory
+      byCategory,
+      byType
     };
   };
   
@@ -997,13 +1053,14 @@ const Budget: React.FC = () => {
                 
                 <Tabs defaultValue="items">
                   <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="items">Despesas</TabsTrigger>
+                      <TabsTrigger value="items">Itens Orçamento</TabsTrigger>
+                    <TabsTrigger value="expenses">Despesas</TabsTrigger>
                     <TabsTrigger value="categories">Categorias</TabsTrigger>
                     <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="items" className="pt-4">
-                    {regularItems.length === 0 && vendorItems.length === 0 ? (
+                    {regularItems.length === 0 ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
@@ -1130,6 +1187,140 @@ const Budget: React.FC = () => {
                             ))}
                           </tbody>
                         </table>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="expenses" className="pt-4">
+                    {expenses.length === 0 ? (
+                      <div className="text-center py-8">
+                        <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">Nenhuma despesa registrada</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Adicione despesas para acompanhar os gastos do seu evento
+                        </p>
+                        <Button onClick={() => {
+                          setSelectedItem(null);
+                          setItemForm({
+                            name: "",
+                            category: "",
+                            amount: "",
+                            paid: false,
+                            dueDate: "",
+                            notes: ""
+                          });
+                          setIsAddItemOpen(true);
+                        }}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Despesa
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-medium">Despesas do evento</h3>
+                          <Button onClick={() => {
+                            setSelectedItem(null);
+                            setItemForm({
+                              name: "",
+                              category: "",
+                              amount: "",
+                              paid: false,
+                              dueDate: "",
+                              notes: ""
+                            });
+                            setIsAddItemOpen(true);
+                          }}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar
+                          </Button>
+                        </div>
+                        
+                        <div className="rounded-md border">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b bg-muted/50">
+                                  <th className="p-3 text-left font-medium">Item</th>
+                                  <th className="p-3 text-left font-medium">Vencimento</th>
+                                  <th className="p-3 text-left font-medium">Categoria</th>
+                                  <th className="p-3 text-right font-medium">Valor</th>
+                                  <th className="p-3 text-center font-medium">Status</th>
+                                  <th className="p-3 text-right font-medium">Ações</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y">
+                                {expenses.map((expense: Expense) => (
+                                  <tr key={expense.id} className="hover:bg-muted/30">
+                                    <td className="p-3">
+                                      <div>{expense.name}</div>
+                                      {expense.vendorId && (
+                                        <div className="text-xs text-muted-foreground flex items-center mt-1">
+                                          <Store className="h-3 w-3 mr-1" />
+                                          {vendors.find(v => v.id === expense.vendorId)?.name || "Fornecedor"}
+                                        </div>
+                                      )}
+                                    </td>
+                                    <td className="p-3">
+                                      {expense.dueDate && (
+                                        <div className="flex items-center text-xs text-muted-foreground">
+                                          <Calendar className="h-3 w-3 mr-1" />
+                                          {new Date(expense.dueDate).toLocaleDateString()}
+                                        </div>
+                                      )}
+                                    </td>
+                                    <td className="p-3">
+                                      {BUDGET_CATEGORIES.find(c => c.value === expense.category)?.label || expense.category}
+                                    </td>
+                                    <td className="p-3 text-right">
+                                      {formatCurrency(expense.amount)}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {expense.paid ? (
+                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-700">
+                                          Pago
+                                        </span>
+                                      ) : (
+                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-700">
+                                          Pendente
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="p-3 text-right">
+                                      <div className="flex justify-end space-x-2">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => {
+                                            setSelectedItem(expense);
+                                            setItemForm({
+                                              name: expense.name,
+                                              category: expense.category,
+                                              amount: expense.amount.toString(),
+                                              paid: expense.paid,
+                                              dueDate: expense.dueDate || "",
+                                              notes: expense.notes || ""
+                                            });
+                                            setIsAddItemOpen(true);
+                                          }}
+                                        >
+                                          <Edit2 className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => deleteExpenseMutation.mutate(expense.id)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </TabsContent>
