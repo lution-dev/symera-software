@@ -885,6 +885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const teamMembers = await storage.getTeamMembersByEventId(eventId);
+      console.log(`Membros da equipe para o evento ${eventId}:`, teamMembers.length);
       res.json(teamMembers);
     } catch (error) {
       console.error("Error fetching team members:", error);
