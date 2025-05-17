@@ -163,6 +163,15 @@ const Event: React.FC<EventProps> = ({ id }) => {
 
   return (
     <div className="container mx-auto px-4 py-6">
+      {/* Breadcrumb / Back Button */}
+      <div className="mb-4">
+        <Link href="/events">
+          <Button variant="ghost" className="pl-0 flex items-center text-muted-foreground hover:text-foreground">
+            <i className="fas fa-arrow-left mr-2"></i> Voltar para Eventos
+          </Button>
+        </Link>
+      </div>
+      
       {/* Event Cover Image */}
       <div className="relative w-full h-64 md:h-80 mb-6 rounded-xl overflow-hidden shadow-md">
         <img 
