@@ -939,8 +939,8 @@ const Budget: React.FC = () => {
                     onValueChange={(value) => setSelectedEventId(parseInt(value, 10))}
                     disabled={!!selectedItem}
                   >
-                    <SelectTrigger id="item-event">
-                      <SelectValue placeholder="Selecione um evento" />
+                    <SelectTrigger id="item-event" className="placeholder:text-muted-foreground">
+                      <SelectValue placeholder="Selecione um evento para esta despesa" />
                     </SelectTrigger>
                     <SelectContent>
                       {events.map((event: Event) => (
@@ -968,8 +968,8 @@ const Budget: React.FC = () => {
                     value={itemForm.category}
                     onValueChange={(value) => setItemForm({ ...itemForm, category: value })}
                   >
-                    <SelectTrigger id="item-category">
-                      <SelectValue placeholder="Selecione uma categoria" />
+                    <SelectTrigger id="item-category" className="placeholder:text-muted-foreground">
+                      <SelectValue placeholder="Escolha o tipo de despesa" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="header-vendor" disabled className="font-semibold text-amber-600">
@@ -1007,7 +1007,7 @@ const Budget: React.FC = () => {
                     type="number"
                     step="0.01"
                     min="0"
-                    placeholder="0,00"
+                    placeholder="Digite o valor (ex: 1500,00)"
                     value={itemForm.amount}
                     onChange={(e) => setItemForm({ ...itemForm, amount: e.target.value })}
                   />
@@ -1018,7 +1018,7 @@ const Budget: React.FC = () => {
                   <Input
                     id="item-date"
                     type="date"
-                    placeholder="Selecione a data"
+                    className="text-muted-foreground focus:text-foreground"
                     value={itemForm.dueDate}
                     onChange={(e) => setItemForm({ ...itemForm, dueDate: e.target.value })}
                   />
