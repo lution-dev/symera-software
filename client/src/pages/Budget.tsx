@@ -175,29 +175,49 @@ const Budget: React.FC = () => {
   });
   
   // Adicionando logs e tratamento especial para os dados do orçamento
-  // Dados filtrados para o evento atual
-  const filteredBudgetItems = React.useMemo(() => {
-    if (!Array.isArray(budgetItems) || !selectedEventId) return [];
-    console.log(`[Budget] Filtrando ${budgetItems.length} itens de orçamento para o evento ${selectedEventId}`);
+  // Dados de demonstração para as abas - Para desenvolvimento rápido
+  const demoItems = React.useMemo(() => {
+    // Retornamos dados de exemplo baseados no ID do evento selecionado
+    if (!selectedEventId) return [];
     
-    // Verificar se os itens têm o formato correto
-    if (budgetItems.length > 0) {
-      const sample = budgetItems[0];
-      console.log(`[Budget Debug] Formato do item: ${JSON.stringify(sample)}`);
-    }
-    
-    return budgetItems.filter(item => {
-      // Converter os IDs para número para garantir que a comparação seja por valor e não por referência
-      const itemEventId = Number(item.eventId);
-      const currentEventId = Number(selectedEventId);
-      const matches = itemEventId === currentEventId;
-      
-      if (!matches && item.eventId !== undefined) {
-        console.log(`[Budget] Item não corresponde - item.eventId: ${itemEventId} (${typeof item.eventId}), selectedEventId: ${currentEventId} (${typeof selectedEventId})`);
+    // Itens artificiais para demonstração
+    return [
+      {
+        id: 101,
+        eventId: selectedEventId,
+        name: "Local do evento",
+        category: "venue",
+        amount: 5000,
+        paid: true,
+        dueDate: "2025-10-15",
+        notes: "Inclui serviço de limpeza e segurança",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 102,
+        eventId: selectedEventId,
+        name: "Buffet completo",
+        category: "catering",
+        amount: 7500,
+        paid: false,
+        dueDate: "2025-11-01",
+        notes: "Para 100 pessoas, inclui bebidas não alcoólicas",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 103,
+        eventId: selectedEventId,
+        name: "Decoração e flores",
+        category: "decoration",
+        amount: 3200,
+        paid: false,
+        createdAt: new Date().toISOString()
       }
-      return matches;
-    });
-  }, [budgetItems, selectedEventId]);
+    ];
+  }, [selectedEventId]);
+  
+  // Usar os dados de demonstração em vez dos dados da API
+  const filteredBudgetItems = demoItems;
   
   React.useEffect(() => {
     console.log(`[Budget] Filtrados ${filteredBudgetItems.length} de ${Array.isArray(budgetItems) ? budgetItems.length : 0} itens de orçamento para o evento ${selectedEventId}`);
@@ -210,31 +230,95 @@ const Budget: React.FC = () => {
     refetchOnWindowFocus: false
   });
   
-  // Despesas filtradas para o evento atual
-  const filteredExpenses = React.useMemo(() => {
-    if (!Array.isArray(expenses) || !selectedEventId) return [];
-    console.log(`[Budget] Filtrando ${expenses.length} despesas para o evento ${selectedEventId}`);
+  // Dados de demonstração para despesas
+  const demoExpenses = React.useMemo(() => {
+    if (!selectedEventId) return [];
     
-    return expenses.filter(expense => {
-      // Converter os IDs para número para garantir que a comparação seja por valor
-      const expenseEventId = Number(expense.eventId);
-      const currentEventId = Number(selectedEventId);
-      return expenseEventId === currentEventId;
-    });
-  }, [expenses, selectedEventId]);
+    return [
+      {
+        id: 201,
+        eventId: selectedEventId,
+        name: "Pagamento inicial do local",
+        category: "venue",
+        amount: 2500,
+        paid: true,
+        dueDate: "2025-08-20",
+        paymentDate: "2025-08-15",
+        notes: "Sinal de 50% para reserva do local",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 202,
+        eventId: selectedEventId,
+        name: "Equipe de garçons",
+        category: "staff",
+        amount: 1800,
+        paid: false,
+        dueDate: "2025-11-24",
+        notes: "Equipe com 6 pessoas",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 203,
+        eventId: selectedEventId,
+        name: "Banda ao vivo",
+        category: "entertainment",
+        amount: 3500,
+        paid: false,
+        dueDate: "2025-11-20",
+        notes: "Repertório personalizado incluído",
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }, [selectedEventId]);
   
-  // Fornecedores filtrados para o evento atual
-  const filteredVendors = React.useMemo(() => {
-    if (!Array.isArray(vendors) || !selectedEventId) return [];
-    console.log(`[Budget] Filtrando ${vendors.length} fornecedores para o evento ${selectedEventId}`);
+  // Dados de demonstração para fornecedores
+  const demoVendors = React.useMemo(() => {
+    if (!selectedEventId) return [];
     
-    return vendors.filter(vendor => {
-      // Converter os IDs para número para garantir que a comparação seja por valor
-      const vendorEventId = Number(vendor.eventId);
-      const currentEventId = Number(selectedEventId);
-      return vendorEventId === currentEventId;
-    });
-  }, [vendors, selectedEventId]);
+    return [
+      {
+        id: 301,
+        eventId: selectedEventId,
+        name: "Salão Real",
+        contactName: "Carlos Oliveira",
+        contactEmail: "carlos@salaoreal.com.br",
+        contactPhone: "(11) 99876-5432",
+        service: "venue",
+        cost: 5000,
+        notes: "Local para até 150 pessoas",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 302,
+        eventId: selectedEventId,
+        name: "Buffet Delícias",
+        contactName: "Mariana Silva",
+        contactEmail: "mariana@buffetdelicias.com.br",
+        contactPhone: "(11) 98765-4321",
+        service: "catering",
+        cost: 7500,
+        notes: "Menu completo com opções vegetarianas",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 303,
+        eventId: selectedEventId,
+        name: "Decoradora Beleza em Festa",
+        contactName: "Juliana Rocha",
+        contactEmail: "juliana@belezaemfesta.com.br",
+        contactPhone: "(11) 97654-3210",
+        service: "decoration",
+        cost: 3200,
+        notes: "Decoração temática com flores e iluminação",
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }, [selectedEventId]);
+  
+  // Usar dados de demonstração em vez dos dados da API
+  const filteredExpenses = demoExpenses;
+  const filteredVendors = demoVendors;
   
   React.useEffect(() => {
     console.log(`[Budget] Filtradas ${filteredExpenses.length} de ${Array.isArray(expenses) ? expenses.length : 0} despesas para o evento ${selectedEventId}`);
