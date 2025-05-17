@@ -1,0 +1,53 @@
+Status de Eventos na Symera
+Objetivo:
+Adicionar sistema de status para eventos na Symera, com controle manual e automações baseadas em lógica de datas e tarefas.
+
+✅ 1. Estados possíveis do evento
+Criar os seguintes status com suas respectivas condições:
+
+Status	Cor sugerida	Descrição
+Planejamento	🟠 Laranja	Evento em construção. Checklist, orçamento e equipe sendo montados.
+Confirmado	🟢 Verde	Planejamento completo. Contratações em andamento.
+Em andamento	🔵 Azul	Evento ocorrendo hoje (status automático ou manual).
+Concluído	⚫ Cinza	Evento já aconteceu e está encerrado.
+Cancelado	🔴 Vermelho	Evento cancelado. Nenhuma atividade futura planejada.
+
+🎛 2. Alteração manual do status
+Adicionar um botão ou menu com dropdown no topo da tela de evento (próximo à tag “Planejamento”) para que o usuário possa alterar o status manualmente.
+
+Modal simples com um select contendo os 5 status
+
+Mostrar uma breve descrição explicativa abaixo do campo ao selecionar
+
+📌 3. Exibição do status
+Exibir a tag de status no topo do evento (como já é feito com “Planejamento”), trocando a cor e o texto conforme o status atual
+
+Mostrar o status também no card do evento (dashboard e lista de eventos ativos)
+
+📦 4. Automatizações do sistema (sem IA externa)
+Implementar as seguintes automações internas:
+
+✅ Checklist 100% concluído + Data já passou
+→ Mudar automaticamente o status para Concluído
+
+📆 Data do evento é hoje
+→ Mudar automaticamente o status para Em andamento
+
+⚠️ Faltam até 3 dias para o evento + Mais de 80% das tarefas estão pendentes
+→ Gerar um alerta visual na tela de evento:
+
+“⚠️ Atenção! A maioria das tarefas ainda não foi concluída e o evento está próximo.”
+
+🧠 Observações
+Todas as automações devem respeitar o status manual, ou seja, se o organizador definir manualmente como "Cancelado", o sistema não deve alterar automaticamente.
+
+As automações devem rodar em uma verificação diária no backend ou sempre que o evento for acessado.
+
+🎯 Resultado Esperado
+Melhor organização visual e funcional dos eventos
+
+Clareza para o usuário sobre o estágio do planejamento
+
+Ações preventivas baseadas em status e datas, aumentando a produtividade e reduzindo falhas
+
+Quando concluído, avisar para que possamos validar os gatilhos automáticos e testar os fluxos de mudança de status. Obrigado! 🚀
