@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
   DialogContent, 
@@ -955,6 +956,7 @@ const Budget: React.FC = () => {
                   <Label htmlFor="item-name">Nome da Despesa</Label>
                   <Input
                     id="item-name"
+                    placeholder="Ex: Aluguel do espaço"
                     value={itemForm.name}
                     onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
                   />
@@ -1016,18 +1018,17 @@ const Budget: React.FC = () => {
                   <Input
                     id="item-date"
                     type="date"
+                    placeholder="Selecione a data"
                     value={itemForm.dueDate}
                     onChange={(e) => setItemForm({ ...itemForm, dueDate: e.target.value })}
                   />
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center space-x-2 gap-2">
+                  <Switch
                     id="item-paid"
                     checked={itemForm.paid}
-                    onChange={(e) => setItemForm({ ...itemForm, paid: e.target.checked })}
-                    className="rounded border-gray-300 text-primary"
+                    onCheckedChange={(checked) => setItemForm({ ...itemForm, paid: checked })}
                   />
                   <Label htmlFor="item-paid">Pago</Label>
                 </div>
@@ -1036,6 +1037,7 @@ const Budget: React.FC = () => {
                   <Label htmlFor="item-notes">Observações (opcional)</Label>
                   <Input
                     id="item-notes"
+                    placeholder="Detalhes adicionais sobre esta despesa"
                     value={itemForm.notes}
                     onChange={(e) => setItemForm({ ...itemForm, notes: e.target.value })}
                   />
