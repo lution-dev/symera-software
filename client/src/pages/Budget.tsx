@@ -1192,7 +1192,12 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="expenses" className="pt-4">
-                    {expenses.length === 0 ? (
+                    {isLoadingExpenses ? (
+                      <div className="text-center py-8">
+                        <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
+                        <h3 className="text-lg font-medium mb-2">Carregando despesas...</h3>
+                      </div>
+                    ) : expenses.length === 0 ? (
                       <div className="text-center py-8">
                         <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhuma despesa registrada</h3>
@@ -1322,7 +1327,7 @@ const Budget: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                    )}
+                    )
                   </TabsContent>
                   
                   <TabsContent value="categories" className="pt-4">
@@ -1473,7 +1478,12 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="vendors" className="pt-4">
-                    {vendors.length === 0 ? (
+                    {isLoadingVendors ? (
+                      <div className="text-center py-8">
+                        <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
+                        <h3 className="text-lg font-medium mb-2">Carregando fornecedores...</h3>
+                      </div>
+                    ) : vendors.length === 0 ? (
                       <div className="text-center py-8">
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum fornecedor cadastrado</h3>
@@ -1505,7 +1515,7 @@ const Budget: React.FC = () => {
                                   <div className="font-medium">{vendor.name}</div>
                                 </td>
                                 <td className="p-3">
-                                  {vendor.service}
+                                  {BUDGET_CATEGORIES.find(c => c.value === vendor.service)?.label || vendor.service}
                                 </td>
                                 <td className="p-3 text-right">
                                   {vendor.cost ? formatCurrency(vendor.cost) : "Não definido"}
@@ -1539,7 +1549,7 @@ const Budget: React.FC = () => {
                           </tbody>
                         </table>
                       </div>
-                    )}
+                    )
                   </TabsContent>
                 </Tabs>
               </CardContent>
