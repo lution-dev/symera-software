@@ -1015,14 +1015,20 @@ const Budget: React.FC = () => {
                 
                 <div className="grid gap-2">
                   <Label htmlFor="item-date">Data de Vencimento (opcional)</Label>
-                  <Input
-                    id="item-date"
-                    type="date"
-                    className="text-muted-foreground focus:text-foreground"
-                    placeholder="Selecione a data de vencimento"
-                    value={itemForm.dueDate}
-                    onChange={(e) => setItemForm({ ...itemForm, dueDate: e.target.value })}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="item-date"
+                      type="date"
+                      className={`${!itemForm.dueDate ? "text-transparent" : "text-foreground"}`}
+                      value={itemForm.dueDate}
+                      onChange={(e) => setItemForm({ ...itemForm, dueDate: e.target.value })}
+                    />
+                    {!itemForm.dueDate && (
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                        Selecione a data de vencimento
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex items-center space-x-2 gap-2">
