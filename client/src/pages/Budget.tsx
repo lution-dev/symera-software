@@ -889,7 +889,13 @@ const Budget: React.FC = () => {
                           className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
                             selectedEventId === event.id ? "bg-muted/70 border-l-4 border-l-primary" : ""
                           }`}
-                          onClick={() => setSelectedEventId(event.id)}
+                          onClick={() => {
+                            setSelectedEventId(event.id);
+                            // Forçar recarregamento dos dados do evento selecionado
+                            queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "budget"] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "expenses"] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "vendors"] });
+                          }}
                         >
                           <div className="font-medium text-base">{event.name}</div>
                           <div className="text-xs text-muted-foreground flex justify-between mt-1">
