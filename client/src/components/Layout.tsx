@@ -75,7 +75,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         className={`flex-1 overflow-y-auto custom-scrollbar bg-background pb-16 md:pb-0 transition-all duration-300`}
         style={{ 
           marginLeft: window.innerWidth >= 768 ? (sidebarCollapsed ? '4rem' : '16rem') : '0',
-          paddingBottom: window.innerWidth < 768 ? '4rem' : '0'
+          paddingTop: window.innerWidth < 768 ? '3.5rem' : '0',  // Espaço para a navbar superior
+          paddingBottom: window.innerWidth < 768 ? '4rem' : '0'  // Espaço para a navbar inferior
         }}
       >
         <div className="max-w-[1600px] mx-auto">
