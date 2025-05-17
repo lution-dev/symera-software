@@ -1019,6 +1019,7 @@ const Budget: React.FC = () => {
                     id="item-date"
                     type="date"
                     className="text-muted-foreground focus:text-foreground"
+                    placeholder="Selecione a data de vencimento"
                     value={itemForm.dueDate}
                     onChange={(e) => setItemForm({ ...itemForm, dueDate: e.target.value })}
                   />
