@@ -382,6 +382,16 @@ const Budget: React.FC = () => {
     }
   }, [events, selectedEventId]);
   
+  // Força a refetcher das abas quando o evento muda
+  React.useEffect(() => {
+    if (selectedEventId) {
+      // Forçar atualização dos dados quando o evento selecionado muda
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "budget"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "vendors"] });
+    }
+  }, [selectedEventId]);
+  
   // Resetar formulário de item
   const resetItemForm = () => {
     setItemForm({
