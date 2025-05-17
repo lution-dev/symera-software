@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { AlertTriangle } from "lucide-react";
 
 interface EventProps {
   id?: string;
@@ -342,6 +343,16 @@ const Event: React.FC<EventProps> = ({ id }) => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+      
+      {/* Alerta para tarefas pendentes quando evento está próximo */}
+      {(event as any).warningMessage && (
+        <div className="mb-6 p-4 bg-amber-950/30 border-l-4 border-amber-500 rounded-lg text-amber-100">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
+            <p>{(event as any).warningMessage}</p>
+          </div>
+        </div>
+      )}
       
       {/* Event Header */}
       <div className="mb-6 flex flex-col lg:flex-row lg:items-start lg:justify-between">

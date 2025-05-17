@@ -130,6 +130,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
+      // Verificação automática de status baseado nas tarefas e datas
+      // Apenas verificamos se não for um status definido manualmente como cancelado
+      if (event.status !== "cancelled") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const eventDate = new Date(event.date);
+        eventDate.setHours(0, 0, 0, 0);
+        
+        // Buscar todas as tarefas do evento
+        const tasks = await storage.getTasksByEventId(eventId);
+        
+        // Verificar se o evento está acontecendo hoje: status = em andamento
+        if (eventDate.getTime() === today.getTime() && event.status !== "in_progress" && event.status !== "completed") {
+          await storage.updateEvent(eventId, { status: "in_progress" });
+          await storage.createActivityLog({
+            eventId,
+            userId,
+            action: "status_auto_updated",
+            details: { 
+              oldStatus: event.status,
+              newStatus: "in_progress",
+              reason: "O evento está acontecendo hoje"
+            }
+          });
+          event.status = "in_progress";
+        }
+        
+        // Verificar se o evento já passou e todas as tarefas estão concluídas: status = concluído
+        const eventPassed = eventDate < today;
+        const allTasksCompleted = tasks.length > 0 && tasks.every(task => task.status === "completed");
+        
+        if (eventPassed && allTasksCompleted && event.status !== "completed") {
+          await storage.updateEvent(eventId, { status: "completed" });
+          await storage.createActivityLog({
+            eventId,
+            userId,
+            action: "status_auto_updated",
+            details: { 
+              oldStatus: event.status,
+              newStatus: "completed",
+              reason: "O evento já passou e todas as tarefas foram concluídas"
+            }
+          });
+          event.status = "completed";
+        }
+        
+        // Verificar se faltam 3 dias ou menos para o evento e mais de 80% das tarefas estão pendentes
+        const threeDaysFromNow = new Date();
+        threeDaysFromNow.setDate(today.getDate() + 3);
+        
+        const isApproaching = eventDate <= threeDaysFromNow && eventDate >= today;
+        const pendingTasks = tasks.filter(task => task.status !== "completed");
+        const pendingPercentage = tasks.length > 0 ? (pendingTasks.length / tasks.length) * 100 : 0;
+        
+        // Adicionar alerta ao evento se necessário
+        if (isApproaching && pendingPercentage > 80) {
+          event.warningMessage = "⚠️ Atenção! A maioria das tarefas ainda não foi concluída e o evento está próximo.";
+        } else {
+          event.warningMessage = undefined;
+        }
+      }
+      
       console.log(`Retornando dados do evento ${eventId} para usuário ${userId}`);
       res.json(event);
     } catch (error) {
