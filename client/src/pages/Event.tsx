@@ -123,7 +123,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
   
   const deleteEventMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("DELETE", `/api/events/${eventId}`);
+      return apiRequest("DELETE", `/api/events/${eventId}`, {});
     },
     onSuccess: () => {
       toast({

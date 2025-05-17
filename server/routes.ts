@@ -282,6 +282,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update event" });
     }
   });
+  
+  // Rota para atualizar apenas o status do evento (PATCH)
+  app.patch('/api/events/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.id, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+      
+      // Check if user can access this event
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have access to this event" });
+      }
+      
+      // Get current event
+      const event = await storage.getEventById(eventId);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      // Verificar se há um status no body da requisição
+      if (!req.body.status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      
+      // Verificar se o status é válido
+      const validStatuses = ["planning", "confirmed", "in_progress", "completed", "cancelled"];
+      if (!validStatuses.includes(req.body.status)) {
+        return res.status(400).json({ 
+          message: "Invalid status", 
+          validValues: validStatuses 
+        });
+      }
+      
+      // Update event with new status
+      const updatedEvent = await storage.updateEvent(eventId, { 
+        status: req.body.status 
+      });
+      
+      // Log activity
+      await storage.createActivityLog({
+        eventId,
+        userId,
+        action: "status_updated",
+        details: { 
+          eventName: event.name,
+          oldStatus: event.status,
+          newStatus: req.body.status
+        }
+      });
+      
+      res.json(updatedEvent);
+    } catch (error) {
+      console.error("Error updating event status:", error);
+      res.status(500).json({ message: "Failed to update event status" });
+    }
+  });
 
   app.delete('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
