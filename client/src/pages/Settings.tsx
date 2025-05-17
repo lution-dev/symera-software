@@ -87,7 +87,7 @@ const Settings: React.FC = () => {
     mutationFn: async (data: Partial<ProfileForm>) => {
       return apiRequest("/api/user/profile", {
         method: "PUT",
-        body: JSON.stringify(data),
+        body: data, // Removed JSON.stringify - apiRequest already handles this
         headers: {
           "Content-Type": "application/json"
         }
@@ -100,7 +100,8 @@ const Settings: React.FC = () => {
         description: "Suas informações de perfil foram atualizadas com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Profile update error:", error);
       toast({
         title: "Erro ao atualizar perfil",
         description: "Ocorreu um erro ao atualizar seu perfil. Tente novamente.",
