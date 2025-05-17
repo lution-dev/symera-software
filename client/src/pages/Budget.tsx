@@ -1309,6 +1309,10 @@ const Budget: React.FC = () => {
                   </TabsList>
                   
                   <TabsContent value="items" className="pt-4">
+                    <div className="mb-6 text-sm text-muted-foreground px-1">
+                      Veja abaixo os itens planejados para o orçamento do seu evento. Aqui você gerencia o planejamento inicial de gastos.
+                    </div>
+                  
                     {isLoadingBudget ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
@@ -1645,6 +1649,10 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="categories" className="pt-4">
+                    <div className="mb-6 text-sm text-muted-foreground px-1">
+                      Visualize a distribuição do orçamento por categorias. Esta visão é útil para entender onde estão concentrados os recursos do seu evento.
+                    </div>
+                    
                     {Object.keys(stats.byCategory).length === 0 ? (
                       <div className="text-center py-8">
                         <PieChart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -1792,6 +1800,10 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="vendors" className="pt-4">
+                    <div className="mb-6 text-sm text-muted-foreground px-1">
+                      Gerencie os fornecedores do seu evento e seus respectivos custos. Eles podem estar associados a despesas e itens do orçamento.
+                    </div>
+                    
                     {isLoadingVendors ? (
                       <div className="text-center py-8">
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
