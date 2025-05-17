@@ -530,6 +530,29 @@ const Budget: React.FC = () => {
     },
   });
   
+  // Função para filtrar despesas com base nos filtros selecionados
+  const applyFilters = (expense: Expense) => {
+    const matchesSearch = searchTerm ? 
+      expense.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      BUDGET_CATEGORIES.find(c => c.value === expense.category)?.label?.toLowerCase().includes(searchTerm.toLowerCase()) :
+      true;
+      
+    const matchesCategory = categoryFilter && categoryFilter !== "all" ? 
+      expense.category === categoryFilter : 
+      true;
+      
+    const matchesStatus = statusFilter && statusFilter !== "all" ? 
+      (statusFilter === "paid" ? expense.paid : !expense.paid) : 
+      true;
+      
+    return matchesSearch && matchesCategory && matchesStatus;
+  };
+  
+  // Aplicar filtros às despesas
+  const filteredWithFilters = React.useMemo(() => {
+    return filteredExpenses.filter(applyFilters);
+  }, [filteredExpenses, searchTerm, categoryFilter, statusFilter]);
+  
   // Selecionar primeiro evento automaticamente se nenhum estiver selecionado
   React.useEffect(() => {
     if (events.length > 0 && !selectedEventId) {
@@ -1443,7 +1466,7 @@ const Budget: React.FC = () => {
                           <SelectValue placeholder="Categoria" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Todas categorias</SelectItem>
+                          <SelectItem value="all">Todas categorias</SelectItem>
                           {BUDGET_CATEGORIES.map((cat) => (
                             <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                           ))}
@@ -1455,7 +1478,7 @@ const Budget: React.FC = () => {
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Todos status</SelectItem>
+                          <SelectItem value="all">Todos status</SelectItem>
                           <SelectItem value="paid">Pago</SelectItem>
                           <SelectItem value="pending">Pendente</SelectItem>
                         </SelectContent>
@@ -1525,7 +1548,7 @@ const Budget: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody className="divide-y">
-                                {filteredExpenses.map((expense: Expense) => (
+                                {filteredWithFilters.map((expense: Expense) => (
                                   <tr key={expense.id} className="hover:bg-muted/30">
                                     <td className="p-3">
                                       <div>{expense.name}</div>
@@ -1596,6 +1619,25 @@ const Budget: React.FC = () => {
                                 ))}
                               </tbody>
                             </table>
+                            
+                            {/* Add button at the bottom of the table for better accessibility */}
+                            <div className="p-4 flex justify-center border-t">
+                              <Button onClick={() => {
+                                setSelectedItem(null);
+                                setItemForm({
+                                  name: "",
+                                  category: "",
+                                  amount: "",
+                                  paid: false,
+                                  dueDate: "",
+                                  notes: ""
+                                });
+                                setIsAddItemOpen(true);
+                              }}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Adicionar Nova Despesa
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
