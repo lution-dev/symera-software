@@ -135,7 +135,9 @@ const Budget: React.FC = () => {
   const [isEditBudgetOpen, setIsEditBudgetOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<BudgetItem | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [activeTab, setActiveTab] = React.useState("items");
+  const [activeTab, setActiveTab] = React.useState("expenses");
+  const [categoryFilter, setCategoryFilter] = React.useState<string>("");
+  const [statusFilter, setStatusFilter] = React.useState<string>("");
   
   // Form para item do orçamento
   const [itemForm, setItemForm] = React.useState({
@@ -1248,10 +1250,10 @@ const Budget: React.FC = () => {
                 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="items">Itens Orçamento</TabsTrigger>
-                    <TabsTrigger value="expenses">Despesas</TabsTrigger>
+                    <TabsTrigger value="expenses">Despesas {filteredExpenses.length > 0 ? `(${filteredExpenses.length})` : ""}</TabsTrigger>
+                    <TabsTrigger value="items">Itens Planejados {filteredBudgetItems.length > 0 ? `(${filteredBudgetItems.length})` : ""}</TabsTrigger>
+                    <TabsTrigger value="vendors">Fornecedores {filteredVendors.length > 0 ? `(${filteredVendors.length})` : ""}</TabsTrigger>
                     <TabsTrigger value="categories">Categorias</TabsTrigger>
-                    <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="items" className="pt-4">
