@@ -6,6 +6,7 @@ import {
   vendors,
   activityLogs,
   budgetItems,
+  expenses,
   type User,
   type Event,
   type Task,
@@ -13,6 +14,7 @@ import {
   type Vendor,
   type ActivityLog,
   type BudgetItem,
+  type Expense,
   type UpsertUser,
   type InsertEvent,
   type InsertTask,
@@ -20,9 +22,10 @@ import {
   type InsertVendor,
   type InsertActivityLog,
   type InsertBudgetItem,
+  type InsertExpense,
 } from "@shared/schema";
 import { db, executeWithRetry } from "./db";
-import { eq, and, or, desc, gte, lte } from "drizzle-orm";
+import { eq, and, or, desc, gte, lte, sql } from "drizzle-orm";
 
 // Sistema de cache em memória para reduzir consultas
 class MemoryCache {
