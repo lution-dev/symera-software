@@ -135,6 +135,7 @@ const Budget: React.FC = () => {
   const [isEditBudgetOpen, setIsEditBudgetOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<BudgetItem | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [activeTab, setActiveTab] = React.useState("items");
   
   // Form para item do orçamento
   const [itemForm, setItemForm] = React.useState({
@@ -398,6 +399,9 @@ const Budget: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "budget"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "expenses"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "vendors"] });
+      
+      // Resetar para a primeira aba quando mudar de evento
+      setActiveTab("items");
     }
   }, [selectedEventId]);
   
@@ -575,11 +579,13 @@ const Budget: React.FC = () => {
   
   // Adicionar campo para indicar se é um item de fornecedor ou não
   const regularItems = React.useMemo(() => {
-    return budgetItems.map((item: BudgetItem) => ({
+    // Garantir que todos os itens pertencem ao evento selecionado
+    const eventItems = budgetItems.filter((item: BudgetItem) => item.eventId === selectedEventId);
+    return eventItems.map((item: BudgetItem) => ({
       ...item,
       isVendor: false // Marcar como item regular (não-fornecedor)
     }));
-  }, [budgetItems]);
+  }, [budgetItems, selectedEventId]);
   
   // Calcular estatísticas do orçamento
   const calculateBudgetStats = () => {
@@ -1077,7 +1083,7 @@ const Budget: React.FC = () => {
                   </div>
                 </div>
                 
-                <Tabs defaultValue="items">
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="items">Itens Orçamento</TabsTrigger>
                     <TabsTrigger value="expenses">Despesas</TabsTrigger>
