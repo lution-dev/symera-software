@@ -167,6 +167,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create event
       const event = await storage.createEvent(createData);
       
+      // Adicionar o criador como membro da equipe (organizador)
+      await storage.addTeamMember({
+        eventId: event.id,
+        userId: userId,
+        role: "organizer",
+        permissions: { canDelete: true, canEdit: true, canInvite: true }
+      });
+      
       // Generate AI checklist if requested
       if (eventData.generateAIChecklist) {
         try {
