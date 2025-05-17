@@ -683,86 +683,113 @@ const Budget: React.FC = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1">
-          <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="px-4 py-3 border-b bg-muted/40">
-              <h3 className="font-semibold text-lg">Meus Eventos</h3>
-              <div className="mt-2 relative">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="search" 
-                    placeholder="Buscar eventos..." 
-                    className="pl-9 bg-background"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
+          <Card className="h-full overflow-hidden">
+            <CardHeader className="pb-3 pt-4 px-4">
+              <CardTitle className="text-lg">Meus Eventos</CardTitle>
+              <div className="relative mt-2">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Buscar eventos..." 
+                  className="pl-9 bg-background"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-            </div>
-            <div className="divide-y">
-              {isLoadingEvents ? (
-                <div className="p-4 text-center text-muted-foreground">Carregando eventos...</div>
-              ) : (
-                <>
-                  {filteredEvents.length === 0 ? (
-                    <div className="p-4 text-center text-muted-foreground">
-                      Nenhum evento encontrado
-                    </div>
-                  ) : (
-                    filteredEvents.map((event: Event) => (
-                      <div
-                        key={event.id}
-                        className={`p-3 cursor-pointer hover:bg-muted/50 ${
-                          selectedEventId === event.id ? "bg-muted" : ""
-                        }`}
-                        onClick={() => setSelectedEventId(event.id)}
-                      >
-                        <div className="font-medium">{event.name}</div>
-                        <div className="text-xs text-muted-foreground flex justify-between mt-1">
-                          <span>{event.type}</span>
-                          <span>{new Date(event.date).toLocaleDateString()}</span>
-                        </div>
-                        {event.budget ? (
-                          <div className="mt-2 text-sm">
-                            <div className="flex justify-between mb-1">
-                              <span>Orçamento: {formatCurrency(event.budget)}</span>
-                              <span>
-                                {Math.min(100, Math.floor((stats.totalExpenses / event.budget) * 100))}%
-                              </span>
-                            </div>
-                            <Progress
-                              value={Math.min(100, (stats.totalExpenses / event.budget) * 100)}
-                              className="h-2"
-                              indicatorClassName={`${
-                                stats.totalExpenses > event.budget ? "bg-destructive" : "bg-primary"
-                              }`}
-                            />
-                          </div>
-                        ) : (
-                          <div className="mt-2 text-xs text-muted-foreground italic">
-                            Nenhum orçamento definido
-                          </div>
-                        )}
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {isLoadingEvents ? (
+                  <div className="p-4 text-center text-muted-foreground">Carregando eventos...</div>
+                ) : (
+                  <>
+                    {filteredEvents.length === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground">
+                        Nenhum evento encontrado
                       </div>
-                    ))
-                  )}
-                </>
-              )}
-            </div>
-          </div>
+                    ) : (
+                      filteredEvents.map((event: Event) => (
+                        <div
+                          key={event.id}
+                          className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+                            selectedEventId === event.id ? "bg-muted/70 border-l-4 border-l-primary" : ""
+                          }`}
+                          onClick={() => setSelectedEventId(event.id)}
+                        >
+                          <div className="font-medium text-base">{event.name}</div>
+                          <div className="text-xs text-muted-foreground flex justify-between mt-1">
+                            <span className="flex items-center">
+                              <FileText className="h-3 w-3 mr-1" />
+                              {event.type}
+                            </span>
+                            <span className="flex items-center">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {new Date(event.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {event.budget ? (
+                            <div className="mt-3 text-sm">
+                              <div className="flex justify-between mb-1">
+                                <span className="flex items-center">
+                                  <DollarSign className="h-3 w-3 mr-1" />
+                                  {formatCurrency(event.budget)}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                  stats.totalExpenses > event.budget 
+                                    ? "bg-red-100 text-red-700" 
+                                    : "bg-green-100 text-green-700"
+                                }`}>
+                                  {Math.min(100, Math.floor((stats.totalExpenses / event.budget) * 100))}%
+                                </span>
+                              </div>
+                              <Progress
+                                value={Math.min(100, (stats.totalExpenses / event.budget) * 100)}
+                                className="h-2"
+                                indicatorClassName={`${
+                                  stats.totalExpenses > event.budget ? "bg-destructive" : "bg-primary"
+                                }`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="mt-2 text-xs text-muted-foreground flex items-center">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Nenhum orçamento definido
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
         
         <div className="lg:col-span-3">
           {!selectedEventId ? (
-            <div className="bg-card h-full flex items-center justify-center rounded-lg border p-8">
-              <div className="text-center">
-                <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhum evento selecionado</h3>
-                <p className="text-muted-foreground">
-                  Selecione um evento à esquerda para visualizar seu orçamento
+            <Card className="h-full flex items-center justify-center p-8">
+              <div className="text-center max-w-md">
+                <div className="bg-muted/30 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <AlertCircle className="h-8 w-8 text-primary/70" />
+                </div>
+                <h3 className="text-xl font-medium mb-3">Nenhum evento selecionado</h3>
+                <p className="text-muted-foreground mb-6">
+                  Selecione um evento na lista à esquerda para visualizar e gerenciar o orçamento detalhado do seu evento.
                 </p>
+                <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                  <span className="flex items-center">
+                    <DollarSign className="h-4 w-4 mr-1" />
+                    Gerencie custos
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30"></span>
+                  <span className="flex items-center">
+                    <Store className="h-4 w-4 mr-1" />
+                    Acompanhe fornecedores
+                  </span>
+                </div>
               </div>
-            </div>
+            </Card>
           ) : (
             <Card>
               <CardHeader className="pb-4">
