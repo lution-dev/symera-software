@@ -113,25 +113,25 @@ const Dashboard: React.FC = () => {
                         Você tem {activeEvents} eventos ativos
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent className="p-4 max-w-[250px]">
-                      <div className="text-center mb-1 font-medium">Distribuição dos eventos ativos:</div>
+                    <TooltipContent side="bottom" align="start" className="p-4 w-[300px] md:w-[320px]">
+                      <div className="text-left font-medium mb-2">Distribuição dos eventos ativos:</div>
                       <div className="space-y-2">
                         {planningEvents > 0 && (
                           <div className="flex items-center">
                             <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-planning))]"></span>
-                            <span className="text-sm">🟠 {planningEvents} em Planejamento</span>
+                            <span className="text-sm whitespace-nowrap">🟠 {planningEvents} em Planejamento</span>
                           </div>
                         )}
                         {confirmedEvents > 0 && (
                           <div className="flex items-center">
                             <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
-                            <span className="text-sm">🟢 {confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
+                            <span className="text-sm whitespace-nowrap">🟢 {confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
                           </div>
                         )}
                         {inProgressEvents > 0 && (
                           <div className="flex items-center">
                             <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                            <span className="text-sm">🔵 {inProgressEvents} Em andamento</span>
+                            <span className="text-sm whitespace-nowrap">🔵 {inProgressEvents} Em andamento</span>
                           </div>
                         )}
                       </div>
