@@ -70,7 +70,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
   
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/events/${eventId}/generate-checklist`, {});
+      return apiRequest(`/api/events/${eventId}/generate-checklist`, {
+        method: "POST"
+      });
     },
     onSuccess: () => {
       toast({
@@ -91,7 +93,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
   // Mutation para atualizar o status do evento
   const updateEventStatusMutation = useMutation({
     mutationFn: async (newStatus: string) => {
-      return apiRequest("PATCH", `/api/events/${eventId}`, { 
+      return apiRequest(`/api/events/${eventId}`, { 
+        method: "PATCH",
         body: { status: newStatus }
       });
     },
@@ -102,15 +105,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       
-      // Registrar atividade no feed
-      apiRequest("POST", `/api/events/${eventId}/activities`, { 
-        body: {
-          action: "status_updated",
-          details: { newStatus: event?.status }
-        }
-      }).then(() => {
-        queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
-      });
+      // O registro de atividade já é feito no backend
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
     },
     onError: () => {
       toast({
@@ -123,7 +119,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
   
   const deleteEventMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("DELETE", `/api/events/${eventId}`, {});
+      return apiRequest(`/api/events/${eventId}`, {
+        method: "DELETE"
+      });
     },
     onSuccess: () => {
       toast({

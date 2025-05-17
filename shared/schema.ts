@@ -62,6 +62,7 @@ export const eventStatusEnum = pgEnum("event_status", [
   "in_progress", // Em andamento
   "completed",  // Concluído
   "cancelled",  // Cancelado
+  "active",     // Legacy status (for compatibility)
 ]);
 
 // Events
