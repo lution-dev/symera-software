@@ -1611,9 +1611,7 @@ const Budget: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y">
-                            {Array.isArray(vendors) && vendors
-                              .filter((vendor: Vendor) => vendor.eventId === selectedEventId)
-                              .map((vendor: Vendor) => (
+                            {filteredVendors.map((vendor: Vendor) => (
                               <tr key={vendor.id} className="hover:bg-muted/50">
                                 <td className="p-3">
                                   <div className="font-medium">{vendor.name}</div>
