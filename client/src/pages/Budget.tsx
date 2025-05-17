@@ -1171,6 +1171,35 @@ const Budget: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent className="pb-6 px-6">
+                <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm mb-6">
+                  <h4 className="text-sm font-medium text-gray-300 mb-3">Progresso do Orçamento</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-300">
+                      {Math.min(100, Math.floor((stats.totalExpenses / stats.budget) * 100))}% do orçamento usado
+                    </span>
+                    <span className="text-sm text-gray-300">
+                      {formatCurrency(stats.totalExpenses)} de {formatCurrency(stats.budget)}
+                    </span>
+                  </div>
+                  <Progress
+                    value={Math.min(100, (stats.totalExpenses / stats.budget) * 100)}
+                    className="h-3 mb-2"
+                    indicatorClassName={`${
+                      stats.totalExpenses > stats.budget ? "bg-red-500" : "bg-blue-600"
+                    }`}
+                  />
+                  <div className="flex justify-between mt-2">
+                    <span className="text-sm text-gray-400">
+                      Saldo: {formatCurrency(Math.max(0, stats.budget - stats.totalExpenses))}
+                    </span>
+                    {stats.totalExpenses > stats.budget && (
+                      <span className="text-sm text-red-400">
+                        Excedente: {formatCurrency(stats.totalExpenses - stats.budget)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm">
                     <div className="flex justify-between items-start mb-3">
@@ -1394,6 +1423,45 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="expenses" className="pt-4">
+                    <div className="mb-6 text-sm text-muted-foreground px-1">
+                      Veja abaixo todas as despesas do evento, com status e datas de pagamento.
+                    </div>
+                    
+                    <div className="flex gap-4 mb-4 items-center flex-wrap">
+                      <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Buscar despesa..."
+                          className="pl-8"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      
+                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className="w-full sm:w-40">
+                          <SelectValue placeholder="Categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Todas categorias</SelectItem>
+                          {BUDGET_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-40">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Todos status</SelectItem>
+                          <SelectItem value="paid">Pago</SelectItem>
+                          <SelectItem value="pending">Pendente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
                     {isLoadingExpenses ? (
                       <div className="text-center py-8">
                         <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
@@ -1476,19 +1544,21 @@ const Budget: React.FC = () => {
                                         </div>
                                       )}
                                     </td>
-                                    <td className="p-3">
+                                    <td className="p-3 font-medium">
                                       {BUDGET_CATEGORIES.find(c => c.value === expense.category)?.label || expense.category}
                                     </td>
-                                    <td className="p-3 text-right">
+                                    <td className="p-3 text-right font-semibold">
                                       {formatCurrency(expense.amount)}
                                     </td>
                                     <td className="p-3 text-center">
                                       {expense.paid ? (
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-700">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-[#22C55E]">
+                                          <CheckCircle2 className="h-3 w-3 mr-1" />
                                           Pago
                                         </span>
                                       ) : (
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-700">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-[#F97316]">
+                                          <Calendar className="h-3 w-3 mr-1" />
                                           Pendente
                                         </span>
                                       )}
