@@ -163,7 +163,7 @@ const Budget: React.FC = () => {
     enabled: !!selectedEventId,
     // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false
   });
   
   const { data: budgetItems = [], isLoading: isLoadingBudget } = useQuery({
@@ -171,28 +171,30 @@ const Budget: React.FC = () => {
     enabled: !!selectedEventId,
     // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      console.log(`[Budget] Carregados ${data.length} itens de orçamento para o evento ${selectedEventId}`);
-    },
-    onError: (error) => {
-      console.error(`[Budget] Erro ao carregar itens de orçamento:`, error);
-    }
+    refetchOnWindowFocus: false
   });
+  
+  // Log de debug para budget items
+  React.useEffect(() => {
+    if (Array.isArray(budgetItems)) {
+      console.log(`[Budget] Carregados ${budgetItems.length} itens de orçamento para o evento ${selectedEventId}`);
+    }
+  }, [budgetItems, selectedEventId]);
   
   const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
     queryKey: ["/api/events", selectedEventId, "expenses"],
     enabled: !!selectedEventId,
     // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      console.log(`[Budget] Carregadas ${data.length} despesas para o evento ${selectedEventId}`);
-    },
-    onError: (error) => {
-      console.error(`[Budget] Erro ao carregar despesas:`, error);
-    }
+    refetchOnWindowFocus: false
   });
+  
+  // Log de debug para expenses
+  React.useEffect(() => {
+    if (Array.isArray(expenses)) {
+      console.log(`[Budget] Carregadas ${expenses.length} despesas para o evento ${selectedEventId}`);
+    }
+  }, [expenses, selectedEventId]);
   
   // Mutações
   const addBudgetItemMutation = useMutation({
