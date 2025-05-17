@@ -174,25 +174,38 @@ const Budget: React.FC = () => {
     refetchOnWindowFocus: false
   });
   
-  // Log de debug para budget items
+  // Adicionando logs e tratamento especial para os dados do orçamento
   React.useEffect(() => {
     if (Array.isArray(budgetItems)) {
       console.log(`[Budget] Carregados ${budgetItems.length} itens de orçamento para o evento ${selectedEventId}`);
+      // Vamos verificar se há itens para o evento selecionado
+      const itemsForEvent = budgetItems.filter((item: any) => item.eventId === selectedEventId);
+      console.log(`[Budget] Filtrados ${itemsForEvent.length} itens de orçamento para o evento ${selectedEventId}`);
+      if (itemsForEvent.length === 0 && budgetItems.length > 0) {
+        console.log("[Budget] ATENÇÃO: Existem itens, mas nenhum para este evento");
+        // Se tivermos itens mas nenhum para este evento, verificamos se os dados têm o formato correto
+        budgetItems.forEach((item: any, index: number) => {
+          if (index < 3) { // Mostrar apenas os primeiros 3 para não poluir o console
+            console.log(`[Budget] Item #${index}: eventId=${item.eventId}, name=${item.name}`);
+          }
+        });
+      }
     }
   }, [budgetItems, selectedEventId]);
   
   const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
     queryKey: ["/api/events", selectedEventId, "expenses"],
     enabled: !!selectedEventId,
-    // Força recarregamento dos dados quando o evento for alterado
     refetchOnMount: true,
     refetchOnWindowFocus: false
   });
   
-  // Log de debug para expenses
+  // Log detalhado para despesas
   React.useEffect(() => {
     if (Array.isArray(expenses)) {
       console.log(`[Budget] Carregadas ${expenses.length} despesas para o evento ${selectedEventId}`);
+      const expensesForEvent = expenses.filter((e: any) => e.eventId === selectedEventId);
+      console.log(`[Budget] Filtradas ${expensesForEvent.length} despesas para o evento ${selectedEventId}`);
     }
   }, [expenses, selectedEventId]);
   
@@ -1270,7 +1283,7 @@ const Budget: React.FC = () => {
                         <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando despesas...</h3>
                       </div>
-                    ) : expenses.length === 0 ? (
+                    ) : !Array.isArray(expenses) || expenses.filter((e: any) => e.eventId === selectedEventId).length === 0 ? (
                       <div className="text-center py-8">
                         <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhuma despesa registrada</h3>
@@ -1558,7 +1571,7 @@ const Budget: React.FC = () => {
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando fornecedores...</h3>
                       </div>
-                    ) : vendors.length === 0 ? (
+                    ) : !Array.isArray(vendors) || vendors.filter((v: any) => v.eventId === selectedEventId).length === 0 ? (
                       <div className="text-center py-8">
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum fornecedor cadastrado</h3>
