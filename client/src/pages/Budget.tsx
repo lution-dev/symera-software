@@ -564,7 +564,12 @@ const Budget: React.FC = () => {
   // Preparar itens do orçamento com distinção entre fornecedores e custos gerais
   const vendorItems = React.useMemo(() => {
     return vendors
-      .filter((v: Vendor) => v.cost && !isNaN(Number(v.cost)))
+      // Garantir que só incluímos fornecedores do evento selecionado
+      .filter((v: Vendor) => 
+        v.eventId === selectedEventId && 
+        v.cost && 
+        !isNaN(Number(v.cost))
+      )
       .map((v: Vendor) => ({
         id: `vendor-${v.id}`,
         eventId: v.eventId,
@@ -575,7 +580,7 @@ const Budget: React.FC = () => {
         createdAt: new Date().toISOString(),
         isVendor: true // Marcar como item de fornecedor
       }));
-  }, [vendors]);
+  }, [vendors, selectedEventId]);
   
   // Adicionar campo para indicar se é um item de fornecedor ou não
   const regularItems = React.useMemo(() => {
@@ -592,12 +597,19 @@ const Budget: React.FC = () => {
     const event = events.find((e: Event) => e.id === selectedEventId) as Event | undefined;
     const budget = event?.budget || 0;
     
+    // Garantir que apenas trabalhamos com itens do evento selecionado
+    // Primeiro, filtramos os itens regulares (já filtrados por evento em regularItems)
+    // Depois filtramos as despesas do evento atual
+    const eventExpenses = Array.isArray(expenses) 
+      ? expenses.filter((e: Expense) => e.eventId === selectedEventId)
+      : [];
+      
     // Coletamos todos os itens: itens do orçamento regular, despesas e custos de fornecedores
     const allItems = [
       ...regularItems,
-      ...expenses.map((e: Expense) => ({...e, isExpense: true})),
+      ...eventExpenses.map((e: Expense) => ({...e, isExpense: true})),
       // Excluímos os itens de fornecedores para não duplicar com as despesas que têm vendorId
-      ...vendorItems.filter(v => !expenses.some((e: Expense) => e.vendorId === parseInt(v.id.toString().replace('vendor-', ''))))
+      ...vendorItems.filter(v => !eventExpenses.some((e: Expense) => e.vendorId === parseInt(v.id.toString().replace('vendor-', ''))))
     ];
     
     const totalExpenses = allItems.reduce((sum, item: any) => {
@@ -1292,7 +1304,9 @@ const Budget: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody className="divide-y">
-                                {expenses.map((expense: Expense) => (
+                                {Array.isArray(expenses) && expenses
+                                  .filter((expense: Expense) => expense.eventId === selectedEventId)
+                                  .map((expense: Expense) => (
                                   <tr key={expense.id} className="hover:bg-muted/30">
                                     <td className="p-3">
                                       <div>{expense.name}</div>
@@ -1546,7 +1560,9 @@ const Budget: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y">
-                            {vendors.map((vendor: Vendor) => (
+                            {Array.isArray(vendors) && vendors
+                              .filter((vendor: Vendor) => vendor.eventId === selectedEventId)
+                              .map((vendor: Vendor) => (
                               <tr key={vendor.id} className="hover:bg-muted/50">
                                 <td className="p-3">
                                   <div className="font-medium">{vendor.name}</div>
