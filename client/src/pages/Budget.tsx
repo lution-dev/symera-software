@@ -1053,7 +1053,7 @@ const Budget: React.FC = () => {
                 
                 <Tabs defaultValue="items">
                   <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="items">Itens Orçamento</TabsTrigger>
+                    <TabsTrigger value="items">Itens Orçamento</TabsTrigger>
                     <TabsTrigger value="expenses">Despesas</TabsTrigger>
                     <TabsTrigger value="categories">Categorias</TabsTrigger>
                     <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
