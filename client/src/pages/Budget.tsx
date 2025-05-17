@@ -175,23 +175,29 @@ const Budget: React.FC = () => {
   });
   
   // Adicionando logs e tratamento especial para os dados do orçamento
-  React.useEffect(() => {
-    if (Array.isArray(budgetItems)) {
-      console.log(`[Budget] Carregados ${budgetItems.length} itens de orçamento para o evento ${selectedEventId}`);
-      // Vamos verificar se há itens para o evento selecionado
-      const itemsForEvent = budgetItems.filter((item: any) => item.eventId === selectedEventId);
-      console.log(`[Budget] Filtrados ${itemsForEvent.length} itens de orçamento para o evento ${selectedEventId}`);
-      if (itemsForEvent.length === 0 && budgetItems.length > 0) {
-        console.log("[Budget] ATENÇÃO: Existem itens, mas nenhum para este evento");
-        // Se tivermos itens mas nenhum para este evento, verificamos se os dados têm o formato correto
-        budgetItems.forEach((item: any, index: number) => {
-          if (index < 3) { // Mostrar apenas os primeiros 3 para não poluir o console
-            console.log(`[Budget] Item #${index}: eventId=${item.eventId}, name=${item.name}`);
-          }
-        });
-      }
+  // Dados filtrados para o evento atual
+  const filteredBudgetItems = React.useMemo(() => {
+    if (!Array.isArray(budgetItems) || !selectedEventId) return [];
+    console.log(`[Budget] Filtrando ${budgetItems.length} itens de orçamento para o evento ${selectedEventId}`);
+    
+    // Verificar se os itens têm o formato correto
+    if (budgetItems.length > 0) {
+      const sample = budgetItems[0];
+      console.log(`[Budget Debug] Formato do item: ${JSON.stringify(sample)}`);
     }
+    
+    return budgetItems.filter(item => {
+      const matches = item.eventId === selectedEventId;
+      if (!matches && item.eventId !== undefined) {
+        console.log(`[Budget] Item não corresponde - item.eventId: ${item.eventId}, selectedEventId: ${selectedEventId}`);
+      }
+      return matches;
+    });
   }, [budgetItems, selectedEventId]);
+  
+  React.useEffect(() => {
+    console.log(`[Budget] Filtrados ${filteredBudgetItems.length} de ${Array.isArray(budgetItems) ? budgetItems.length : 0} itens de orçamento para o evento ${selectedEventId}`);
+  }, [filteredBudgetItems, budgetItems, selectedEventId]);
   
   const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
     queryKey: ["/api/events", selectedEventId, "expenses"],
@@ -200,14 +206,17 @@ const Budget: React.FC = () => {
     refetchOnWindowFocus: false
   });
   
-  // Log detalhado para despesas
-  React.useEffect(() => {
-    if (Array.isArray(expenses)) {
-      console.log(`[Budget] Carregadas ${expenses.length} despesas para o evento ${selectedEventId}`);
-      const expensesForEvent = expenses.filter((e: any) => e.eventId === selectedEventId);
-      console.log(`[Budget] Filtradas ${expensesForEvent.length} despesas para o evento ${selectedEventId}`);
-    }
+  // Despesas filtradas para o evento atual
+  const filteredExpenses = React.useMemo(() => {
+    if (!Array.isArray(expenses) || !selectedEventId) return [];
+    console.log(`[Budget] Filtrando ${expenses.length} despesas para o evento ${selectedEventId}`);
+    
+    return expenses.filter(expense => expense.eventId === selectedEventId);
   }, [expenses, selectedEventId]);
+  
+  React.useEffect(() => {
+    console.log(`[Budget] Filtradas ${filteredExpenses.length} de ${Array.isArray(expenses) ? expenses.length : 0} despesas para o evento ${selectedEventId}`);
+  }, [filteredExpenses, expenses, selectedEventId]);
   
   // Mutações
   const addBudgetItemMutation = useMutation({
@@ -1144,7 +1153,7 @@ const Budget: React.FC = () => {
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando itens do orçamento...</h3>
                       </div>
-                    ) : !Array.isArray(budgetItems) || budgetItems.filter(i => i.eventId === selectedEventId).length === 0 ? (
+                    ) : !filteredBudgetItems || filteredBudgetItems.length === 0 ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
@@ -1170,7 +1179,7 @@ const Budget: React.FC = () => {
                           </thead>
                           <tbody className="divide-y">
                             {/* Itens regulares */}
-                            {Array.isArray(budgetItems) && budgetItems.filter((item: any) => item.eventId === selectedEventId).length > 0 && (
+                            {filteredBudgetItems.length > 0 && (
                               <tr className="bg-blue-50/50">
                                 <td colSpan={5} className="p-2 text-sm font-semibold text-blue-800">
                                   <div className="flex items-center">
@@ -1181,9 +1190,7 @@ const Budget: React.FC = () => {
                               </tr>
                             )}
                             
-                            {Array.isArray(budgetItems) && budgetItems
-                              .filter((item: any) => item.eventId === selectedEventId)
-                              .map((item: any) => (
+                            {filteredBudgetItems.map((item: any) => (
                               <tr key={item.id} className="hover:bg-muted/50">
                                 <td className="p-3">
                                   <div className="font-medium">{item.name}</div>
@@ -1283,7 +1290,7 @@ const Budget: React.FC = () => {
                         <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando despesas...</h3>
                       </div>
-                    ) : !Array.isArray(expenses) || expenses.filter((e: any) => e.eventId === selectedEventId).length === 0 ? (
+                    ) : !filteredExpenses || filteredExpenses.length === 0 ? (
                       <div className="text-center py-8">
                         <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhuma despesa registrada</h3>
