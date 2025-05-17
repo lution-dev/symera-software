@@ -1790,12 +1790,6 @@ const Budget: React.FC = () => {
                             </div>
                           </div>
                         )}
-                          </div>
-                          
-                          <div className="space-y-3 pl-7">
-                            {Object.entries(stats.byCategory)
-                              .filter(([category]) => {
-                                // Filtrar apenas categorias que não são tipicamente de fornecedores
                                 const nonVendorCategories = [
                                   'staff', 'permits', 'insurance', 'admin', 
                                   'marketing', 'fees', 'equipment', 'accommodation', 'entertainment'
