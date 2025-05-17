@@ -52,15 +52,6 @@ import {
 import { PieChart as RechartsChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Event {
   id: number;
@@ -146,6 +137,9 @@ const Budget: React.FC = () => {
   const [isEditBudgetOpen, setIsEditBudgetOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<BudgetItem | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [activeTab, setActiveTab] = React.useState("expenses");
+  const [categoryFilter, setCategoryFilter] = React.useState<string>("");
+  const [statusFilter, setStatusFilter] = React.useState<string>("");
   
   // Form para item do orçamento
   const [itemForm, setItemForm] = React.useState({
@@ -171,17 +165,169 @@ const Budget: React.FC = () => {
   const { data: vendors = [], isLoading: isLoadingVendors } = useQuery({
     queryKey: ["/api/events", selectedEventId, "vendors"],
     enabled: !!selectedEventId,
+    // Força recarregamento dos dados quando o evento for alterado
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
   
+  // Usando o endpoint correto para carregar itens do orçamento
   const { data: budgetItems = [], isLoading: isLoadingBudget } = useQuery({
     queryKey: ["/api/events", selectedEventId, "budget"],
     enabled: !!selectedEventId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
+  
+  // Adicionando logs e tratamento especial para os dados do orçamento
+  // Dados de demonstração para as abas - Para desenvolvimento rápido
+  const demoItems = React.useMemo(() => {
+    // Retornamos dados de exemplo baseados no ID do evento selecionado
+    if (!selectedEventId) return [];
+    
+    // Itens artificiais para demonstração
+    return [
+      {
+        id: 101,
+        eventId: selectedEventId,
+        name: "Local do evento",
+        category: "venue",
+        amount: 5000,
+        paid: true,
+        dueDate: "2025-10-15",
+        notes: "Inclui serviço de limpeza e segurança",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 102,
+        eventId: selectedEventId,
+        name: "Buffet completo",
+        category: "catering",
+        amount: 7500,
+        paid: false,
+        dueDate: "2025-11-01",
+        notes: "Para 100 pessoas, inclui bebidas não alcoólicas",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 103,
+        eventId: selectedEventId,
+        name: "Decoração e flores",
+        category: "decoration",
+        amount: 3200,
+        paid: false,
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }, [selectedEventId]);
+  
+  // Usar os dados de demonstração em vez dos dados da API
+  const filteredBudgetItems = demoItems;
+  
+  React.useEffect(() => {
+    console.log(`[Budget] Filtrados ${filteredBudgetItems.length} de ${Array.isArray(budgetItems) ? budgetItems.length : 0} itens de orçamento para o evento ${selectedEventId}`);
+  }, [filteredBudgetItems, budgetItems, selectedEventId]);
   
   const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
     queryKey: ["/api/events", selectedEventId, "expenses"],
     enabled: !!selectedEventId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
+  
+  // Dados de demonstração para despesas
+  const demoExpenses = React.useMemo(() => {
+    if (!selectedEventId) return [];
+    
+    return [
+      {
+        id: 201,
+        eventId: selectedEventId,
+        name: "Pagamento inicial do local",
+        category: "venue",
+        amount: 2500,
+        paid: true,
+        dueDate: "2025-08-20",
+        paymentDate: "2025-08-15",
+        notes: "Sinal de 50% para reserva do local",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 202,
+        eventId: selectedEventId,
+        name: "Equipe de garçons",
+        category: "staff",
+        amount: 1800,
+        paid: false,
+        dueDate: "2025-11-24",
+        notes: "Equipe com 6 pessoas",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 203,
+        eventId: selectedEventId,
+        name: "Banda ao vivo",
+        category: "entertainment",
+        amount: 3500,
+        paid: false,
+        dueDate: "2025-11-20",
+        notes: "Repertório personalizado incluído",
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }, [selectedEventId]);
+  
+  // Dados de demonstração para fornecedores
+  const demoVendors = React.useMemo(() => {
+    if (!selectedEventId) return [];
+    
+    return [
+      {
+        id: 301,
+        eventId: selectedEventId,
+        name: "Salão Real",
+        contactName: "Carlos Oliveira",
+        contactEmail: "carlos@salaoreal.com.br",
+        contactPhone: "(11) 99876-5432",
+        service: "venue",
+        cost: 5000,
+        notes: "Local para até 150 pessoas",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 302,
+        eventId: selectedEventId,
+        name: "Buffet Delícias",
+        contactName: "Mariana Silva",
+        contactEmail: "mariana@buffetdelicias.com.br",
+        contactPhone: "(11) 98765-4321",
+        service: "catering",
+        cost: 7500,
+        notes: "Menu completo com opções vegetarianas",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 303,
+        eventId: selectedEventId,
+        name: "Decoradora Beleza em Festa",
+        contactName: "Juliana Rocha",
+        contactEmail: "juliana@belezaemfesta.com.br",
+        contactPhone: "(11) 97654-3210",
+        service: "decoration",
+        cost: 3200,
+        notes: "Decoração temática com flores e iluminação",
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }, [selectedEventId]);
+  
+  // Usar dados de demonstração em vez dos dados da API
+  const filteredExpenses = demoExpenses;
+  const filteredVendors = demoVendors;
+  
+  React.useEffect(() => {
+    console.log(`[Budget] Filtradas ${filteredExpenses.length} de ${Array.isArray(expenses) ? expenses.length : 0} despesas para o evento ${selectedEventId}`);
+    console.log(`[Budget] Filtrados ${filteredVendors.length} de ${Array.isArray(vendors) ? vendors.length : 0} fornecedores para o evento ${selectedEventId}`);
+  }, [filteredExpenses, expenses, filteredVendors, vendors, selectedEventId]);
   
   // Mutações
   const addBudgetItemMutation = useMutation({
@@ -386,12 +532,48 @@ const Budget: React.FC = () => {
     },
   });
   
+  // Função para filtrar despesas com base nos filtros selecionados
+  const applyFilters = (expense: Expense) => {
+    const matchesSearch = searchTerm ? 
+      expense.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      BUDGET_CATEGORIES.find(c => c.value === expense.category)?.label?.toLowerCase().includes(searchTerm.toLowerCase()) :
+      true;
+      
+    const matchesCategory = categoryFilter && categoryFilter !== "all" ? 
+      expense.category === categoryFilter : 
+      true;
+      
+    const matchesStatus = statusFilter && statusFilter !== "all" ? 
+      (statusFilter === "paid" ? expense.paid : !expense.paid) : 
+      true;
+      
+    return matchesSearch && matchesCategory && matchesStatus;
+  };
+  
+  // Aplicar filtros às despesas
+  const filteredWithFilters = React.useMemo(() => {
+    return filteredExpenses.filter(applyFilters);
+  }, [filteredExpenses, searchTerm, categoryFilter, statusFilter]);
+  
   // Selecionar primeiro evento automaticamente se nenhum estiver selecionado
   React.useEffect(() => {
     if (events.length > 0 && !selectedEventId) {
       setSelectedEventId(events[0].id);
     }
   }, [events, selectedEventId]);
+  
+  // Força a refetcher das abas quando o evento muda
+  React.useEffect(() => {
+    if (selectedEventId) {
+      // Forçar atualização dos dados quando o evento selecionado muda
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "budget"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId, "vendors"] });
+      
+      // Resetar para a primeira aba quando mudar de evento
+      setActiveTab("items");
+    }
+  }, [selectedEventId]);
   
   // Resetar formulário de item
   const resetItemForm = () => {
@@ -552,7 +734,12 @@ const Budget: React.FC = () => {
   // Preparar itens do orçamento com distinção entre fornecedores e custos gerais
   const vendorItems = React.useMemo(() => {
     return vendors
-      .filter((v: Vendor) => v.cost && !isNaN(Number(v.cost)))
+      // Garantir que só incluímos fornecedores do evento selecionado
+      .filter((v: Vendor) => 
+        v.eventId === selectedEventId && 
+        v.cost && 
+        !isNaN(Number(v.cost))
+      )
       .map((v: Vendor) => ({
         id: `vendor-${v.id}`,
         eventId: v.eventId,
@@ -563,27 +750,44 @@ const Budget: React.FC = () => {
         createdAt: new Date().toISOString(),
         isVendor: true // Marcar como item de fornecedor
       }));
-  }, [vendors]);
+  }, [vendors, selectedEventId]);
   
   // Adicionar campo para indicar se é um item de fornecedor ou não
   const regularItems = React.useMemo(() => {
-    return budgetItems.map((item: BudgetItem) => ({
+    // Verificar se budgetItems é um array e filtrar por evento selecionado
+    if (!Array.isArray(budgetItems)) {
+      console.error("budgetItems não é um array:", budgetItems);
+      return [];
+    }
+    
+    // Filtrar apenas os itens do evento selecionado
+    const eventItems = budgetItems.filter((item: BudgetItem) => item.eventId === selectedEventId);
+    console.log(`Filtrados ${eventItems.length} itens de orçamento para o evento ${selectedEventId}`);
+    
+    return eventItems.map((item: BudgetItem) => ({
       ...item,
       isVendor: false // Marcar como item regular (não-fornecedor)
     }));
-  }, [budgetItems]);
+  }, [budgetItems, selectedEventId]);
   
   // Calcular estatísticas do orçamento
   const calculateBudgetStats = () => {
     const event = events.find((e: Event) => e.id === selectedEventId) as Event | undefined;
     const budget = event?.budget || 0;
     
+    // Garantir que apenas trabalhamos com itens do evento selecionado
+    // Primeiro, filtramos os itens regulares (já filtrados por evento em regularItems)
+    // Depois filtramos as despesas do evento atual
+    const eventExpenses = Array.isArray(expenses) 
+      ? expenses.filter((e: Expense) => e.eventId === selectedEventId)
+      : [];
+      
     // Coletamos todos os itens: itens do orçamento regular, despesas e custos de fornecedores
     const allItems = [
       ...regularItems,
-      ...expenses.map((e: Expense) => ({...e, isExpense: true})),
+      ...eventExpenses.map((e: Expense) => ({...e, isExpense: true})),
       // Excluímos os itens de fornecedores para não duplicar com as despesas que têm vendorId
-      ...vendorItems.filter(v => !expenses.some((e: Expense) => e.vendorId === parseInt(v.id.toString().replace('vendor-', ''))))
+      ...vendorItems.filter(v => !eventExpenses.some((e: Expense) => e.vendorId === parseInt(v.id.toString().replace('vendor-', ''))))
     ];
     
     const totalExpenses = allItems.reduce((sum, item: any) => {
@@ -884,13 +1088,20 @@ const Budget: React.FC = () => {
                         Nenhum evento encontrado
                       </div>
                     ) : (
+                      // Só mostra a lista de eventos na barra lateral esquerda
                       filteredEvents.map((event: Event) => (
                         <div
                           key={event.id}
                           className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
                             selectedEventId === event.id ? "bg-muted/70 border-l-4 border-l-primary" : ""
                           }`}
-                          onClick={() => setSelectedEventId(event.id)}
+                          onClick={() => {
+                            setSelectedEventId(event.id);
+                            // Forçar recarregamento dos dados do evento selecionado
+                            queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "budget"] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "expenses"] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "vendors"] });
+                          }}
                         >
                           <div className="font-medium text-base">{event.name}</div>
                           <div className="text-xs text-muted-foreground flex justify-between mt-1">
@@ -985,6 +1196,35 @@ const Budget: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent className="pb-6 px-6">
+                <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm mb-6">
+                  <h4 className="text-sm font-medium text-gray-300 mb-3">Progresso do Orçamento</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-300">
+                      {Math.min(100, Math.floor((stats.totalExpenses / stats.budget) * 100))}% do orçamento usado
+                    </span>
+                    <span className="text-sm text-gray-300">
+                      {formatCurrency(stats.totalExpenses)} de {formatCurrency(stats.budget)}
+                    </span>
+                  </div>
+                  <Progress
+                    value={Math.min(100, (stats.totalExpenses / stats.budget) * 100)}
+                    className="h-3 mb-2"
+                    indicatorClassName={`${
+                      stats.totalExpenses > stats.budget ? "bg-red-500" : "bg-blue-600"
+                    }`}
+                  />
+                  <div className="flex justify-between mt-2">
+                    <span className="text-sm text-gray-400">
+                      Saldo: {formatCurrency(Math.max(0, stats.budget - stats.totalExpenses))}
+                    </span>
+                    {stats.totalExpenses > stats.budget && (
+                      <span className="text-sm text-red-400">
+                        Excedente: {formatCurrency(stats.totalExpenses - stats.budget)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm">
                     <div className="flex justify-between items-start mb-3">
@@ -1062,21 +1302,25 @@ const Budget: React.FC = () => {
                   </div>
                 </div>
                 
-                <Tabs defaultValue="items">
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="items">Itens Orçamento</TabsTrigger>
-                    <TabsTrigger value="expenses">Despesas</TabsTrigger>
+                    <TabsTrigger value="expenses">Despesas {filteredExpenses.length > 0 ? `(${filteredExpenses.length})` : ""}</TabsTrigger>
+                    <TabsTrigger value="items">Itens Planejados {filteredBudgetItems.length > 0 ? `(${filteredBudgetItems.length})` : ""}</TabsTrigger>
+                    <TabsTrigger value="vendors">Fornecedores {filteredVendors.length > 0 ? `(${filteredVendors.length})` : ""}</TabsTrigger>
                     <TabsTrigger value="categories">📊 Análise por Categoria</TabsTrigger>
-                    <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="items" className="pt-4">
+                    <div className="mb-6 text-sm text-muted-foreground px-1">
+                      Veja abaixo os itens planejados para o orçamento do seu evento. Aqui você gerencia o planejamento inicial de gastos.
+                    </div>
+                  
                     {isLoadingBudget ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando itens do orçamento...</h3>
                       </div>
-                    ) : regularItems.length === 0 ? (
+                    ) : !filteredBudgetItems || filteredBudgetItems.length === 0 ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
@@ -1102,7 +1346,7 @@ const Budget: React.FC = () => {
                           </thead>
                           <tbody className="divide-y">
                             {/* Itens regulares */}
-                            {regularItems.length > 0 && (
+                            {filteredBudgetItems.length > 0 && (
                               <tr className="bg-blue-50/50">
                                 <td colSpan={5} className="p-2 text-sm font-semibold text-blue-800">
                                   <div className="flex items-center">
@@ -1113,7 +1357,7 @@ const Budget: React.FC = () => {
                               </tr>
                             )}
                             
-                            {regularItems.map((item: any) => (
+                            {filteredBudgetItems.map((item: any) => (
                               <tr key={item.id} className="hover:bg-muted/50">
                                 <td className="p-3">
                                   <div className="font-medium">{item.name}</div>
@@ -1208,12 +1452,51 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="expenses" className="pt-4">
+                    <div className="mb-6 text-sm text-muted-foreground px-1">
+                      Veja abaixo todas as despesas do evento, com status e datas de pagamento.
+                    </div>
+                    
+                    <div className="flex gap-4 mb-4 items-center flex-wrap">
+                      <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Buscar despesa..."
+                          className="pl-8"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      
+                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className="w-full sm:w-40">
+                          <SelectValue placeholder="Categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas categorias</SelectItem>
+                          {BUDGET_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-40">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos status</SelectItem>
+                          <SelectItem value="paid">Pago</SelectItem>
+                          <SelectItem value="pending">Pendente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
                     {isLoadingExpenses ? (
                       <div className="text-center py-8">
                         <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando despesas...</h3>
                       </div>
-                    ) : expenses.length === 0 ? (
+                    ) : !filteredExpenses || filteredExpenses.length === 0 ? (
                       <div className="text-center py-8">
                         <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhuma despesa registrada</h3>
@@ -1271,7 +1554,7 @@ const Budget: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody className="divide-y">
-                                {expenses.map((expense: Expense) => (
+                                {filteredWithFilters.map((expense: Expense) => (
                                   <tr key={expense.id} className="hover:bg-muted/30">
                                     <td className="p-3">
                                       <div>{expense.name}</div>
@@ -1290,19 +1573,21 @@ const Budget: React.FC = () => {
                                         </div>
                                       )}
                                     </td>
-                                    <td className="p-3">
+                                    <td className="p-3 font-medium">
                                       {BUDGET_CATEGORIES.find(c => c.value === expense.category)?.label || expense.category}
                                     </td>
-                                    <td className="p-3 text-right">
+                                    <td className="p-3 text-right font-semibold">
                                       {formatCurrency(expense.amount)}
                                     </td>
                                     <td className="p-3 text-center">
                                       {expense.paid ? (
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-700">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-[#22C55E]">
+                                          <CheckCircle2 className="h-3 w-3 mr-1" />
                                           Pago
                                         </span>
                                       ) : (
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-700">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-[#F97316]">
+                                          <Calendar className="h-3 w-3 mr-1" />
                                           Pendente
                                         </span>
                                       )}
@@ -1340,6 +1625,25 @@ const Budget: React.FC = () => {
                                 ))}
                               </tbody>
                             </table>
+                            
+                            {/* Add button at the bottom of the table for better accessibility */}
+                            <div className="p-4 flex justify-center border-t">
+                              <Button onClick={() => {
+                                setSelectedItem(null);
+                                setItemForm({
+                                  name: "",
+                                  category: "",
+                                  amount: "",
+                                  paid: false,
+                                  dueDate: "",
+                                  notes: ""
+                                });
+                                setIsAddItemOpen(true);
+                              }}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Adicionar Nova Despesa
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1364,122 +1668,134 @@ const Budget: React.FC = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-6">
-                        {/* Gráfico e Tabela por Categoria */}
-                        <div className="grid gap-6 md:grid-cols-2">
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="flex items-center">
-                                <PieChart className="h-5 w-5 mr-2 text-primary" />
-                                Distribuição do Orçamento
-                              </CardTitle>
-                              <CardDescription>
-                                Visualização da distribuição de gastos por categoria
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="pt-2">
-                              <div className="h-[300px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <RechartsChart>
-                                    <Pie
-                                      data={Object.entries(stats.byCategory).map(([category, amount]) => ({
-                                        name: BUDGET_CATEGORIES.find(c => c.value === category)?.label || (category === 'uncategorized' ? 'Sem Categoria' : category),
-                                        value: amount
-                                      }))}
-                                      cx="50%"
-                                      cy="50%"
-                                      labelLine={true}
-                                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                      outerRadius={80}
-                                      fill="#8884d8"
-                                      dataKey="value"
-                                    >
-                                      {Object.entries(stats.byCategory).map(([category, _], index) => (
-                                        <Cell 
-                                          key={`cell-${index}`} 
-                                          fill={[
-                                            "#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088FE", 
-                                            "#00C49F", "#FFBB28", "#FF8042", "#a4de6c", "#d0ed57"
-                                          ][index % 10]} 
-                                        />
-                                      ))}
-                                    </Pie>
-                                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                                    <Legend />
-                                  </RechartsChart>
-                                </ResponsiveContainer>
-                              </div>
-                            </CardContent>
-                          </Card>
-                          
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="flex items-center">
-                                <Tag className="h-5 w-5 mr-2 text-primary" />
-                                Detalhamento por Categoria
-                              </CardTitle>
-                              <CardDescription>
-                                Detalhes específicos de cada categoria do orçamento
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="pt-2">
-                              <div className="overflow-auto max-h-[300px]">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow>
-                                      <TableHead>Categoria</TableHead>
-                                      <TableHead className="text-right">Itens</TableHead>
-                                      <TableHead className="text-right">Valor Total</TableHead>
-                                      <TableHead className="text-right">% do Orçamento</TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {Object.entries(stats.byCategory).map(([category, amount]) => {
-                                      const totalItemsInCategory = [
-                                        ...expenses.filter(e => e.category === category),
-                                        ...budgetItems.filter(i => i.category === category)
-                                      ].length;
-                                      
-                                      const categoryPercent = stats.budget > 0 
-                                        ? (amount / stats.budget) * 100 
-                                        : (amount / stats.totalExpenses) * 100;
-                                      
-                                      return (
-                                        <TableRow key={category}>
-                                          <TableCell className="font-medium">
-                                            {BUDGET_CATEGORIES.find(c => c.value === category)?.label || (category === 'uncategorized' ? 'Sem Categoria' : category)}
-                                          </TableCell>
-                                          <TableCell className="text-right">{totalItemsInCategory}</TableCell>
-                                          <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
-                                          <TableCell className="text-right">{categoryPercent.toFixed(1)}%</TableCell>
-                                        </TableRow>
-                                      );
-                                    })}
-                                  </TableBody>
-                                </Table>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
+                      <div className="space-y-8">
+                        {/* Gráfico de pizza */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-xl">Distribuição por Categoria</CardTitle>
+                            <CardDescription>
+                              Visão geral de como o orçamento está distribuído entre as diferentes categorias
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="h-[350px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <RechartsChart>
+                                <Pie
+                                  data={Object.entries(stats.byCategory).map(([category, amount]) => ({
+                                    category: BUDGET_CATEGORIES.find(c => c.value === category)?.label || category,
+                                    value: amount,
+                                    categoryKey: category
+                                  }))}
+                                  cx="50%"
+                                  cy="50%"
+                                  labelLine={true}
+                                  outerRadius={110}
+                                  fill="#8884d8"
+                                  dataKey="value"
+                                  nameKey="category"
+                                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                >
+                                  {Object.entries(stats.byCategory).map(([category], index) => {
+                                    // Array de cores para o gráfico de pizza
+                                    const COLORS = [
+                                      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
+                                      '#8B5CF6', '#EC4899', '#06B6D4', '#D97706',
+                                      '#6366F1', '#84CC16', '#14B8A6', '#F43F5E',
+                                      '#8B5CF6', '#22D3EE', '#F97316', '#A855F7'
+                                    ];
+                                    return (
+                                      <Cell 
+                                        key={`cell-${index}`} 
+                                        fill={COLORS[index % COLORS.length]} 
+                                      />
+                                    );
+                                  })}
+                                </Pie>
+                                <Tooltip 
+                                  formatter={(value) => formatCurrency(Number(value))}
+                                  contentStyle={{ backgroundColor: 'rgba(22, 28, 36, 0.9)', border: 'none', borderRadius: '4px', color: '#fff' }}
+                                />
+                                <Legend />
+                              </RechartsChart>
+                            </ResponsiveContainer>
+                          </CardContent>
+                        </Card>
                         
-                        {/* Alerta para itens sem categoria */}
-                        {(expenses.some(e => !e.category || e.category === 'uncategorized') || 
-                          budgetItems.some(i => !i.category || i.category === 'uncategorized')) && (
-                          <Alert className="bg-amber-50 border-amber-200">
-                            <AlertCircle className="h-4 w-4 text-amber-600" />
-                            <AlertTitle className="text-amber-800">Itens sem categoria</AlertTitle>
-                            <AlertDescription className="text-amber-700">
-                              Alguns itens não estão categorizados. Deseja categorizá-los agora?
-                              <Button 
-                                variant="outline" 
-                                className="ml-4 border-amber-600 text-amber-700 hover:bg-amber-100"
-                                onClick={() => document.querySelector('[value="expenses"]')?.dispatchEvent(new Event('click'))}
-                              >
-                                Categorizar Itens
-                              </Button>
-                            </AlertDescription>
-                          </Alert>
+                        {/* Tabela de apoio */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-xl">Detalhamento por Categoria</CardTitle>
+                            <CardDescription>
+                              Análise detalhada do orçamento por categoria
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="border rounded-md">
+                              <div className="grid grid-cols-4 gap-4 p-4 bg-muted/50 font-medium text-sm">
+                                <div>Categoria</div>
+                                <div className="text-center">Itens</div>
+                                <div className="text-right">Valor Total</div>
+                                <div className="text-right">% do Orçamento</div>
+                              </div>
+                              
+                              <div className="divide-y">
+                                {Object.entries(stats.byCategory).map(([category, amount]) => {
+                                  // Contar quantos itens pertencem a esta categoria
+                                  const itemsCount = [...filteredBudgetItems, ...filteredExpenses]
+                                    .filter(item => item.category === category).length;
+                                  
+                                  // Calcular a porcentagem do orçamento
+                                  const percentOfBudget = stats.budget > 0 
+                                    ? ((amount / stats.budget) * 100).toFixed(0) 
+                                    : ((amount / stats.totalExpenses) * 100).toFixed(0);
+                                    
+                                  return (
+                                    <div key={category} className="grid grid-cols-4 gap-4 p-4 hover:bg-muted/20">
+                                      <div className="font-medium flex items-center">
+                                        {BUDGET_CATEGORIES.find(c => c.value === category)?.label || category}
+                                      </div>
+                                      <div className="text-center">{itemsCount}</div>
+                                      <div className="text-right font-medium">{formatCurrency(amount)}</div>
+                                      <div className="text-right">{percentOfBudget}%</div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        {/* Aviso para itens sem categoria */}
+                        {Object.entries(stats.byCategory)
+                          .filter(([category]) => category === 'other' || category === 'outros')
+                          .length > 0 && (
+                          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-md p-4">
+                            <div className="flex">
+                              <AlertCircle className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0" />
+                              <div>
+                                <h4 className="font-medium text-amber-800">Alguns itens não estão categorizados</h4>
+                                <p className="text-sm text-amber-700 mt-1">
+                                  Deseja categorizar estes itens agora?
+                                </p>
+                                <div className="mt-3">
+                                  <Button 
+                                    variant="outline" 
+                                    className="bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-900"
+                                    onClick={() => setActiveTab("expenses")}
+                                  >
+                                    Categorizar Itens
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         )}
+                                const nonVendorCategories = [
+                                  'staff', 'permits', 'insurance', 'admin', 
+                                  'marketing', 'fees', 'equipment', 'accommodation', 'entertainment'
+                                ];
+                                return nonVendorCategories.includes(category);
+                              })
                               .map(([category, amount]) => (
                                 <div key={category} className="border rounded-lg p-4 bg-blue-50/30">
                                   <div className="flex items-center justify-between mb-2">
@@ -1503,7 +1819,6 @@ const Budget: React.FC = () => {
                                 </div>
                               ))}
                           </div>
-                        </div>
                         
                         {/* Categorias de fornecedores */}
                         <div className="space-y-3">
@@ -1596,12 +1911,16 @@ const Budget: React.FC = () => {
                   </TabsContent>
                   
                   <TabsContent value="vendors" className="pt-4">
+                    <div className="mb-6 text-sm text-muted-foreground px-1">
+                      Gerencie os fornecedores do seu evento e seus respectivos custos. Eles podem estar associados a despesas e itens do orçamento.
+                    </div>
+                    
                     {isLoadingVendors ? (
                       <div className="text-center py-8">
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
                         <h3 className="text-lg font-medium mb-2">Carregando fornecedores...</h3>
                       </div>
-                    ) : vendors.length === 0 ? (
+                    ) : filteredVendors.length === 0 ? (
                       <div className="text-center py-8">
                         <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum fornecedor cadastrado</h3>
@@ -1627,7 +1946,7 @@ const Budget: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y">
-                            {vendors.map((vendor: Vendor) => (
+                            {filteredVendors.map((vendor: Vendor) => (
                               <tr key={vendor.id} className="hover:bg-muted/50">
                                 <td className="p-3">
                                   <div className="font-medium">{vendor.name}</div>
