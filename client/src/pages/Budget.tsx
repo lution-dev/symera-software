@@ -791,43 +791,43 @@ const Budget: React.FC = () => {
               </div>
             </Card>
           ) : (
-            <Card className="border-primary/10 shadow-md">
-              <CardHeader className="pb-4 bg-gradient-to-r from-primary/10 to-transparent rounded-t-2xl">
+            <Card className="border-none shadow-lg rounded-3xl overflow-hidden bg-[#1F1A29]">
+              <CardHeader className="pb-6 pt-6 bg-gradient-to-b from-purple-900/40 to-transparent">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>
+                    <CardTitle className="text-2xl font-bold text-white">
                       {events.find((e: Event) => e.id === selectedEventId)?.name}
                     </CardTitle>
-                    <CardDescription className="mt-1">
+                    <CardDescription className="mt-1 text-gray-300">
                       {events.find((e: Event) => e.id === selectedEventId)?.type} | {new Date(events.find((e: Event) => e.id === selectedEventId)?.date || "").toLocaleDateString()}
                     </CardDescription>
                   </div>
-                  <div className="bg-card p-3 rounded-lg border border-primary/20">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Orçamento Total</div>
-                    <div className="text-2xl font-bold text-primary">{formatCurrency(stats.budget)}</div>
+                  <div className="bg-[#2B2639] p-4 rounded-xl shadow-sm border border-primary/20">
+                    <div className="text-xs text-orange-300 uppercase tracking-wide font-medium">Orçamento Total</div>
+                    <div className="text-3xl font-bold text-orange-400 mt-1">{formatCurrency(stats.budget)}</div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pb-2">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-card/80 p-4 rounded-lg border border-muted">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="text-sm font-medium">Total de Despesas</div>
-                      <div className="p-2 rounded-full bg-primary/20">
-                        <DollarSign className="h-5 w-5 text-primary" />
+              <CardContent className="pb-6 px-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="text-sm font-medium text-gray-300">Total de Despesas</div>
+                      <div className="p-2 rounded-full bg-[#472A37]">
+                        <DollarSign className="h-5 w-5 text-orange-400" />
                       </div>
                     </div>
-                    <div className="text-2xl font-semibold mb-1">{formatCurrency(stats.totalExpenses)}</div>
-                    <div className="text-xs text-muted-foreground flex items-center">
+                    <div className="text-3xl font-bold text-white mb-2">{formatCurrency(stats.totalExpenses)}</div>
+                    <div className="text-xs text-gray-400 flex items-center">
                       {stats.budget > 0 && (
                         <>
                           {stats.totalExpenses <= stats.budget ? (
-                            <span className="flex items-center px-2 py-1 bg-green-950 text-green-400 rounded-full mr-2">
+                            <span className="flex items-center px-2 py-1 bg-green-900/40 text-green-400 rounded-full mr-2">
                               <TrendingDown className="h-3 w-3 mr-1" />
                               {((stats.totalExpenses / stats.budget) * 100).toFixed(1)}%
                             </span>
                           ) : (
-                            <span className="flex items-center px-2 py-1 bg-red-950 text-red-400 rounded-full mr-2">
+                            <span className="flex items-center px-2 py-1 bg-red-900/40 text-red-400 rounded-full mr-2">
                               <TrendingUp className="h-3 w-3 mr-1" />
                               {((stats.totalExpenses / stats.budget) * 100).toFixed(1)}%
                             </span>
@@ -838,16 +838,16 @@ const Budget: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-card/80 p-4 rounded-lg border border-muted">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="text-sm font-medium">Despesas Pagas</div>
-                      <div className="p-2 rounded-full bg-green-950">
+                  <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="text-sm font-medium text-gray-300">Despesas Pagas</div>
+                      <div className="p-2 rounded-full bg-[#1E4039]">
                         <CheckCircle2 className="h-5 w-5 text-green-400" />
                       </div>
                     </div>
-                    <div className="text-2xl font-semibold mb-1">{formatCurrency(stats.totalPaid)}</div>
-                    <div className="text-xs text-muted-foreground flex items-center">
-                      <span className="px-2 py-1 bg-blue-950 text-blue-400 rounded-full">
+                    <div className="text-3xl font-bold text-white mb-2">{formatCurrency(stats.totalPaid)}</div>
+                    <div className="text-xs text-gray-400 flex items-center">
+                      <span className="px-2 py-1 bg-blue-900/40 text-blue-400 rounded-full">
                         {stats.totalExpenses > 0 
                           ? `${((stats.totalPaid / stats.totalExpenses) * 100).toFixed(1)}% do total`
                           : "0% do total"}
@@ -855,28 +855,28 @@ const Budget: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-card/80 p-4 rounded-lg border border-muted">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="text-sm font-medium">
+                  <div className="bg-[#2B2639] p-5 rounded-xl shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="text-sm font-medium text-gray-300">
                         {stats.remaining >= 0 ? "Saldo Restante" : "Excedente"}
                       </div>
                       {stats.remaining >= 0 ? (
-                        <div className="p-2 rounded-full bg-blue-950">
+                        <div className="p-2 rounded-full bg-[#1E3349]">
                           <BarChart className="h-5 w-5 text-blue-400" />
                         </div>
                       ) : (
-                        <div className="p-2 rounded-full bg-red-950">
+                        <div className="p-2 rounded-full bg-[#472A37]">
                           <AlertCircle className="h-5 w-5 text-red-400" />
                         </div>
                       )}
                     </div>
-                    <div className={`text-2xl font-semibold mb-1 ${stats.remaining < 0 ? "text-red-400" : ""}`}>
+                    <div className={`text-3xl font-bold mb-2 ${stats.remaining < 0 ? "text-red-400" : "text-white"}`}>
                       {formatCurrency(Math.abs(stats.remaining))}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-gray-400">
                       {stats.budget > 0 && (
                         <span className={`px-2 py-1 rounded-full ${
-                          stats.remaining >= 0 ? "bg-blue-950 text-blue-400" : "bg-red-950 text-red-400"
+                          stats.remaining >= 0 ? "bg-blue-900/40 text-blue-400" : "bg-red-900/40 text-red-400"
                         }`}>
                           {Math.abs(((stats.remaining / stats.budget) * 100)).toFixed(1)}% 
                           {stats.remaining >= 0 ? " disponível" : " excedido"}
