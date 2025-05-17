@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,26 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectLabel, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface EventProps {
   id?: string;
@@ -50,7 +70,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
   
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/events/${eventId}/generate-checklist`);
+      return apiRequest("POST", `/api/events/${eventId}/generate-checklist`, {});
     },
     onSuccess: () => {
       toast({
@@ -63,6 +83,39 @@ const Event: React.FC<EventProps> = ({ id }) => {
       toast({
         title: "Erro",
         description: "Não foi possível regenerar o checklist. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutation para atualizar o status do evento
+  const updateEventStatusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      return apiRequest("PATCH", `/api/events/${eventId}`, { 
+        body: { status: newStatus }
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Status atualizado",
+        description: "O status do evento foi atualizado com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+      
+      // Registrar atividade no feed
+      apiRequest("POST", `/api/events/${eventId}/activities`, { 
+        body: {
+          action: "status_updated",
+          details: { newStatus: event?.status }
+        }
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do evento. Tente novamente.",
         variant: "destructive",
       });
     },
@@ -205,18 +258,91 @@ const Event: React.FC<EventProps> = ({ id }) => {
               {getEventTypeLabel(event.type)}
             </span>
             <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-              event.status === 'active' ? 'bg-green-500/10 text-green-500' : 
-              event.status === 'planning' ? 'bg-blue-500/10 text-blue-500' : 
-              event.status === 'completed' ? 'bg-gray-500/10 text-gray-400' : 
-              'bg-red-500/10 text-red-500'
+              event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
+              event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
+              event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+              event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
+              'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]'
             }`}>
-              {event.status === 'active' ? 'Ativo' : 
-              event.status === 'planning' ? 'Planejamento' : 
+              {event.status === 'planning' ? 'Planejamento' : 
+              event.status === 'confirmed' ? 'Confirmado' : 
+              event.status === 'in_progress' ? 'Em andamento' : 
               event.status === 'completed' ? 'Concluído' : 'Cancelado'}
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white drop-shadow-md">{event.name}</h1>
         </div>
+      </div>
+      
+      {/* Status Change Control */}
+      <div className="mb-6 flex justify-end">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <span>Alterar Status</span>
+              <span className={`h-2 w-2 rounded-full ${
+                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+                'bg-[hsl(var(--event-cancelled))]'
+              }`}></span>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
+              <AlertDialogDescription>
+                Selecione o novo status para o evento. Isso afetará como o evento é exibido em toda a plataforma.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4">
+              <Select
+                defaultValue={event.status}
+                onValueChange={(value) => {
+                  updateEventStatusMutation.mutate(value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Status</SelectLabel>
+                    <SelectItem value="planning" className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-planning))]"></span>
+                      <span>Planejamento</span>
+                      <span className="text-xs text-muted-foreground ml-2">- Evento em construção</span>
+                    </SelectItem>
+                    <SelectItem value="confirmed" className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
+                      <span>Confirmado</span>
+                      <span className="text-xs text-muted-foreground ml-2">- Planejamento completo</span>
+                    </SelectItem>
+                    <SelectItem value="in_progress" className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                      <span>Em andamento</span>
+                      <span className="text-xs text-muted-foreground ml-2">- Evento ocorrendo agora</span>
+                    </SelectItem>
+                    <SelectItem value="completed" className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-completed))]"></span>
+                      <span>Concluído</span>
+                      <span className="text-xs text-muted-foreground ml-2">- Evento finalizado</span>
+                    </SelectItem>
+                    <SelectItem value="cancelled" className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-cancelled))]"></span>
+                      <span>Cancelado</span>
+                      <span className="text-xs text-muted-foreground ml-2">- Evento não será realizado</span>
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       
       {/* Event Header */}
