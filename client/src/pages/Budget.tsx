@@ -1060,7 +1060,12 @@ const Budget: React.FC = () => {
                   </TabsList>
                   
                   <TabsContent value="items" className="pt-4">
-                    {regularItems.length === 0 ? (
+                    {isLoadingBudget ? (
+                      <div className="text-center py-8">
+                        <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
+                        <h3 className="text-lg font-medium mb-2">Carregando itens do orçamento...</h3>
+                      </div>
+                    ) : regularItems.length === 0 ? (
                       <div className="text-center py-8">
                         <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
@@ -1327,7 +1332,7 @@ const Budget: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                    )
+                    )}
                   </TabsContent>
                   
                   <TabsContent value="categories" className="pt-4">
