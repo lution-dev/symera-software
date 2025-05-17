@@ -44,11 +44,11 @@
   --status-completed: 120 70% 45%;
   
   /* Event status colors */
-  --event-planning: 30 100% 50%;    /* Laranja #FF8800 */
-  --event-confirmed: 120 70% 50%;   /* Verde */
-  --event-in-progress: 210 100% 60%;/* Azul */
-  --event-completed: 0 0% 40%;      /* Cinza */
-  --event-cancelled: 0 100% 60%;    /* Vermelho */
+  --event-planning: 210 100% 60%;   /* Azul #0080FF */
+  --event-confirmed: 270 75% 60%;   /* Roxo #9933FF */
+  --event-in-progress: 30 100% 50%; /* Laranja #FF8800 */
+  --event-completed: 120 70% 50%;   /* Verde #33CC66 */
+  --event-cancelled: 0 100% 60%;    /* Vermelho #FF3333 */
 }
 
 @layer base {
