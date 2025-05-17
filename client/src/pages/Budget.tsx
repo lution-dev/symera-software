@@ -1157,7 +1157,7 @@ const Budget: React.FC = () => {
                           </thead>
                           <tbody className="divide-y">
                             {/* Itens regulares */}
-                            {regularItems.length > 0 && (
+                            {Array.isArray(budgetItems) && budgetItems.filter((item: any) => item.eventId === selectedEventId).length > 0 && (
                               <tr className="bg-blue-50/50">
                                 <td colSpan={5} className="p-2 text-sm font-semibold text-blue-800">
                                   <div className="flex items-center">
@@ -1168,7 +1168,9 @@ const Budget: React.FC = () => {
                               </tr>
                             )}
                             
-                            {regularItems.map((item: any) => (
+                            {Array.isArray(budgetItems) && budgetItems
+                              .filter((item: any) => item.eventId === selectedEventId)
+                              .map((item: any) => (
                               <tr key={item.id} className="hover:bg-muted/50">
                                 <td className="p-3">
                                   <div className="font-medium">{item.name}</div>
