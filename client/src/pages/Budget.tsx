@@ -84,29 +84,35 @@ interface BudgetItem {
 // Categorias do orçamento
 const BUDGET_CATEGORIES = [
   // Fornecedores comuns
-  { value: "venue", label: "Local" },
-  { value: "catering", label: "Buffet" },
-  { value: "decoration", label: "Decoração" },
-  { value: "music", label: "Música" },
-  { value: "photography", label: "Fotografia" },
-  { value: "video", label: "Vídeo" },
-  { value: "invitations", label: "Convites" },
-  { value: "attire", label: "Vestuário" },
-  { value: "transportation", label: "Transporte" },
-  { value: "gifts", label: "Lembranças" },
+  { value: "venue", label: "Local", type: "vendor" },
+  { value: "catering", label: "Buffet", type: "vendor" },
+  { value: "decoration", label: "Decoração", type: "vendor" },
+  { value: "music", label: "Música", type: "vendor" },
+  { value: "photography", label: "Fotografia", type: "vendor" },
+  { value: "video", label: "Vídeo", type: "vendor" },
+  { value: "invitations", label: "Convites", type: "vendor" },
+  { value: "attire", label: "Vestuário", type: "vendor" },
+  { value: "transportation", label: "Transporte", type: "vendor" },
+  { value: "gifts", label: "Lembranças", type: "vendor" },
   
   // Custos não associados a fornecedores
-  { value: "staff", label: "Equipe/Funcionários" },
-  { value: "permits", label: "Licenças/Autorizações" },
-  { value: "insurance", label: "Seguro" },
-  { value: "admin", label: "Custos Administrativos" },
-  { value: "marketing", label: "Marketing/Divulgação" },
-  { value: "accommodation", label: "Hospedagem" },
-  { value: "entertainment", label: "Entretenimento" },
-  { value: "fees", label: "Taxas" },
-  { value: "equipment", label: "Equipamentos" },
-  { value: "other", label: "Outros" }
+  { value: "staff", label: "Equipe/Funcionários", type: "general" },
+  { value: "permits", label: "Licenças/Autorizações", type: "general" },
+  { value: "insurance", label: "Seguro", type: "general" },
+  { value: "admin", label: "Custos Administrativos", type: "general" },
+  { value: "marketing", label: "Marketing/Divulgação", type: "general" },
+  { value: "accommodation", label: "Hospedagem", type: "general" },
+  { value: "entertainment", label: "Entretenimento", type: "general" },
+  { value: "fees", label: "Taxas", type: "general" },
+  { value: "equipment", label: "Equipamentos", type: "general" },
+  { value: "other", label: "Outros", type: "other" }
 ];
+
+// Identifica o tipo de categoria (fornecedor ou geral)
+const getCategoryType = (category: string): "vendor" | "general" | "other" => {
+  const categoryItem = BUDGET_CATEGORIES.find(c => c.value === category);
+  return categoryItem?.type as "vendor" | "general" | "other" || "other";
+};
 
 const Budget: React.FC = () => {
   const { toast } = useToast();
@@ -407,7 +413,7 @@ const Budget: React.FC = () => {
   
   // Adicionar campo para indicar se é um item de fornecedor ou não
   const regularItems = React.useMemo(() => {
-    return budgetItems.map(item => ({
+    return budgetItems.map((item: BudgetItem) => ({
       ...item,
       isVendor: false // Marcar como item regular (não-fornecedor)
     }));
@@ -532,7 +538,7 @@ const Budget: React.FC = () => {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Adicionar Item
+                Adicionar Despesa
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
@@ -566,73 +572,94 @@ const Budget: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="item-name">Nome do Item</Label>
-                    <Input
-                      id="item-name"
-                      placeholder="Nome do item"
-                      value={itemForm.name}
-                      onChange={(e) => setItemForm({...itemForm, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="item-category">Categoria</Label>
-                    <Select 
-                      value={itemForm.category} 
-                      onValueChange={(value) => setItemForm({...itemForm, category: value})}
-                    >
-                      <SelectTrigger id="item-category">
-                        <SelectValue placeholder="Selecione a categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BUDGET_CATEGORIES.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-name">Nome da Despesa</Label>
+                  <Input
+                    id="item-name"
+                    value={itemForm.name}
+                    onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="item-amount">Valor (R$)</Label>
-                    <Input
-                      id="item-amount"
-                      type="number"
-                      placeholder="0,00"
-                      value={itemForm.amount}
-                      onChange={(e) => setItemForm({...itemForm, amount: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="item-duedate">Data de Vencimento</Label>
-                    <Input
-                      id="item-duedate"
-                      type="date"
-                      value={itemForm.dueDate}
-                      onChange={(e) => setItemForm({...itemForm, dueDate: e.target.value})}
-                    />
-                  </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-category">Categoria</Label>
+                  <Select
+                    value={itemForm.category}
+                    onValueChange={(value) => setItemForm({ ...itemForm, category: value })}
+                  >
+                    <SelectTrigger id="item-category">
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="header-vendor" disabled className="font-semibold text-amber-600">
+                        Fornecedores
+                      </SelectItem>
+                      {BUDGET_CATEGORIES.filter(c => c.type === "vendor").map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="header-general" disabled className="font-semibold text-blue-600 mt-2">
+                        Despesas Gerais
+                      </SelectItem>
+                      {BUDGET_CATEGORIES.filter(c => c.type === "general").map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="header-other" disabled className="font-semibold text-gray-600 mt-2">
+                        Outros
+                      </SelectItem>
+                      {BUDGET_CATEGORIES.filter(c => c.type === "other").map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-amount">Valor (R$)</Label>
+                  <Input
+                    id="item-amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0,00"
+                    value={itemForm.amount}
+                    onChange={(e) => setItemForm({ ...itemForm, amount: e.target.value })}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="item-date">Data de Vencimento (opcional)</Label>
+                  <Input
+                    id="item-date"
+                    type="date"
+                    value={itemForm.dueDate}
+                    onChange={(e) => setItemForm({ ...itemForm, dueDate: e.target.value })}
+                  />
+                </div>
+                
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     id="item-paid"
-                    className="rounded border-gray-300 text-primary focus:ring-primary"
                     checked={itemForm.paid}
-                    onChange={(e) => setItemForm({...itemForm, paid: e.target.checked})}
+                    onChange={(e) => setItemForm({ ...itemForm, paid: e.target.checked })}
+                    className="rounded border-gray-300 text-primary"
                   />
-                  <Label htmlFor="item-paid">Item já pago</Label>
+                  <Label htmlFor="item-paid">Pago</Label>
                 </div>
+                
                 <div className="grid gap-2">
-                  <Label htmlFor="item-notes">Observações</Label>
+                  <Label htmlFor="item-notes">Observações (opcional)</Label>
                   <Input
                     id="item-notes"
-                    placeholder="Detalhes adicionais sobre o item..."
                     value={itemForm.notes}
-                    onChange={(e) => setItemForm({...itemForm, notes: e.target.value})}
+                    onChange={(e) => setItemForm({ ...itemForm, notes: e.target.value })}
                   />
                 </div>
               </div>
@@ -642,8 +669,7 @@ const Budget: React.FC = () => {
                 </DialogClose>
                 <Button 
                   onClick={handleAddItem} 
-                  disabled={!selectedEventId || !itemForm.name || !itemForm.category || !itemForm.amount || 
-                    addBudgetItemMutation.isPending || updateBudgetItemMutation.isPending}
+                  disabled={!itemForm.name || !itemForm.category || !itemForm.amount || addBudgetItemMutation.isPending || updateBudgetItemMutation.isPending}
                 >
                   {selectedItem 
                     ? (updateBudgetItemMutation.isPending ? "Atualizando..." : "Atualizar Item")
@@ -673,410 +699,503 @@ const Budget: React.FC = () => {
                 </div>
               </div>
             </div>
-            
-            {isLoadingEvents ? (
-              <div className="flex items-center justify-center h-20">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary"></div>
-              </div>
-            ) : filteredEvents.length > 0 ? (
-              <div className="overflow-y-auto max-h-[400px]">
-                {filteredEvents.map((event: Event) => (
-                  <div
-                    key={event.id}
-                    className={`flex items-center border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-all ${
-                      selectedEventId === event.id
-                        ? "bg-primary/10"
-                        : ""
-                    }`}
-                    onClick={() => setSelectedEventId(event.id)}
-                  >
-                    <div 
-                      className={`w-1 self-stretch transition-colors ${
-                        selectedEventId === event.id ? "bg-primary" : "bg-transparent"
-                      }`}
-                    />
-                    <div className="flex-1 p-3 min-w-0">
-                      <div className="font-medium truncate">{event.name}</div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
-                        <div className="text-xs">
-                          {event.budget
-                            ? `Orçamento: ${formatCurrency(event.budget)}`
-                            : event.type}
-                        </div>
-                      </div>
+            <div className="divide-y">
+              {isLoadingEvents ? (
+                <div className="p-4 text-center text-muted-foreground">Carregando eventos...</div>
+              ) : (
+                <>
+                  {filteredEvents.length === 0 ? (
+                    <div className="p-4 text-center text-muted-foreground">
+                      Nenhum evento encontrado
                     </div>
-                    {selectedEventId === event.id && (
-                      <div className="pr-3 text-primary">
-                        <CheckCircle2 className="h-5 w-5" />
+                  ) : (
+                    filteredEvents.map((event: Event) => (
+                      <div
+                        key={event.id}
+                        className={`p-3 cursor-pointer hover:bg-muted/50 ${
+                          selectedEventId === event.id ? "bg-muted" : ""
+                        }`}
+                        onClick={() => setSelectedEventId(event.id)}
+                      >
+                        <div className="font-medium">{event.name}</div>
+                        <div className="text-xs text-muted-foreground flex justify-between mt-1">
+                          <span>{event.type}</span>
+                          <span>{new Date(event.date).toLocaleDateString()}</span>
+                        </div>
+                        {event.budget ? (
+                          <div className="mt-2 text-sm">
+                            <div className="flex justify-between mb-1">
+                              <span>Orçamento: {formatCurrency(event.budget)}</span>
+                              <span>
+                                {Math.min(100, Math.floor((stats.totalExpenses / event.budget) * 100))}%
+                              </span>
+                            </div>
+                            <Progress
+                              value={Math.min(100, (stats.totalExpenses / event.budget) * 100)}
+                              className="h-2"
+                              indicatorClassName={`${
+                                stats.totalExpenses > event.budget ? "bg-destructive" : "bg-primary"
+                              }`}
+                            />
+                          </div>
+                        ) : (
+                          <div className="mt-2 text-xs text-muted-foreground italic">
+                            Nenhum orçamento definido
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <Calendar className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-                <p className="font-medium">Nenhum evento encontrado</p>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Crie um evento para começar
-                </p>
-                <Button variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Criar Evento
-                </Button>
-              </div>
-            )}
+                    ))
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
         
-        <div className="lg:col-span-3 space-y-6">
-          {isLoadingBudget || isLoadingVendors ? (
-            <div className="flex items-center justify-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary"></div>
+        <div className="lg:col-span-3">
+          {!selectedEventId ? (
+            <div className="bg-card h-full flex items-center justify-center rounded-lg border p-8">
+              <div className="text-center">
+                <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Nenhum evento selecionado</h3>
+                <p className="text-muted-foreground">
+                  Selecione um evento à esquerda para visualizar seu orçamento
+                </p>
+              </div>
             </div>
-          ) : selectedEventId ? (
-            <>
-              {/* Resumo do Orçamento */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className={stats.remaining >= 0 ? "" : "border-red-500"}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Orçamento Total</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">{formatCurrency(stats.budget)}</div>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm text-muted-foreground">Utilizado</span>
-                      <span className="text-sm font-medium">
-                        {stats.percentUsed.toFixed(0)}%
-                      </span>
+          ) : (
+            <Card>
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>
+                      {events.find((e: Event) => e.id === selectedEventId)?.name}
+                    </CardTitle>
+                    <CardDescription>
+                      {events.find((e: Event) => e.id === selectedEventId)?.type} | {new Date(events.find((e: Event) => e.id === selectedEventId)?.date || "").toLocaleDateString()}
+                    </CardDescription>
+                  </div>
+                  <div className="bg-muted/40 p-3 rounded-lg">
+                    <div className="text-xs text-muted-foreground">Orçamento Total</div>
+                    <div className="text-2xl font-bold">{formatCurrency(stats.budget)}</div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-muted/20 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-medium text-muted-foreground">Total de Despesas</div>
+                      <DollarSign className="h-5 w-5 text-primary" />
                     </div>
-                    <Progress 
-                      value={stats.percentUsed > 100 ? 100 : stats.percentUsed} 
-                      className="h-2 mt-1"
-                      indicatorClassName={stats.percentUsed > 100 ? "bg-red-500" : ""}
-                    />
-                    {stats.budget === 0 && (
-                      <div className="flex items-center text-amber-500 mt-2 text-sm">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        Defina um orçamento
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Total de Despesas</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">{formatCurrency(stats.totalExpenses)}</div>
-                    <div className="flex justify-between mt-2">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Pago</span>
-                        <div className="font-medium">{formatCurrency(stats.totalPaid)}</div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm text-muted-foreground">Pendente</span>
-                        <div className="font-medium">{formatCurrency(stats.totalPending)}</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className={stats.remaining >= 0 ? "bg-green-500/10" : "bg-red-500/10"}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Saldo Restante</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold flex items-center">
-                      {stats.remaining >= 0 ? (
-                        <TrendingUp className="h-5 w-5 mr-2 text-green-500" />
-                      ) : (
-                        <TrendingDown className="h-5 w-5 mr-2 text-red-500" />
+                    <div className="text-2xl font-semibold mb-1">{formatCurrency(stats.totalExpenses)}</div>
+                    <div className="text-xs text-muted-foreground flex items-center">
+                      {stats.budget > 0 && (
+                        <>
+                          {stats.totalExpenses <= stats.budget ? (
+                            <TrendingDown className="h-4 w-4 mr-1 text-green-500" />
+                          ) : (
+                            <TrendingUp className="h-4 w-4 mr-1 text-red-500" />
+                          )}
+                          {((stats.totalExpenses / stats.budget) * 100).toFixed(1)}% do orçamento
+                        </>
                       )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-muted/20 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-medium text-muted-foreground">Despesas Pagas</div>
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    </div>
+                    <div className="text-2xl font-semibold mb-1">{formatCurrency(stats.totalPaid)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {stats.totalExpenses > 0 
+                        ? `${((stats.totalPaid / stats.totalExpenses) * 100).toFixed(1)}% do total de despesas`
+                        : "0% do total"}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-muted/20 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {stats.remaining >= 0 ? "Saldo Restante" : "Excedente"}
+                      </div>
+                      {stats.remaining >= 0 ? (
+                        <BarChart className="h-5 w-5 text-blue-500" />
+                      ) : (
+                        <AlertCircle className="h-5 w-5 text-destructive" />
+                      )}
+                    </div>
+                    <div className={`text-2xl font-semibold mb-1 ${stats.remaining < 0 ? "text-destructive" : ""}`}>
                       {formatCurrency(Math.abs(stats.remaining))}
                     </div>
-                    <div className="mt-2 text-sm">
-                      {stats.remaining >= 0 ? (
-                        <span className="text-green-600">Dentro do orçamento</span>
-                      ) : (
-                        <span className="text-red-600">Acima do orçamento</span>
-                      )}
+                    <div className="text-xs text-muted-foreground">
+                      {stats.budget > 0 
+                        ? `${Math.abs(((stats.remaining / stats.budget) * 100)).toFixed(1)}% do orçamento ${stats.remaining >= 0 ? "disponível" : "excedido"}`
+                        : (stats.remaining >= 0 ? "Sem orçamento definido" : "Orçamento excedido")}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              {/* Detalhes do Orçamento */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Detalhes do Orçamento</CardTitle>
-                  <CardDescription>Gerencie os itens do seu orçamento</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="items">
-                    <TabsList>
-                      <TabsTrigger value="items">Itens</TabsTrigger>
-                      <TabsTrigger value="categories">Por Categoria</TabsTrigger>
-                      <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="items" className="pt-4">
-                      {regularItems.length === 0 && vendorItems.length === 0 ? (
-                        <div className="text-center py-8">
-                          <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
-                          <p className="text-muted-foreground mb-4">
-                            Adicione custos de fornecedores e outras despesas ao orçamento
-                          </p>
-                          <Button onClick={() => setIsAddItemOpen(true)}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Adicionar Despesa
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="border rounded-md overflow-hidden">
-                          <table className="w-full">
-                            <thead className="bg-muted">
-                              <tr>
-                                <th className="text-left p-3 font-medium">Item</th>
-                                <th className="text-left p-3 font-medium">Categoria</th>
-                                <th className="text-right p-3 font-medium">Valor</th>
-                                <th className="text-center p-3 font-medium">Status</th>
-                                <th className="text-right p-3 font-medium">Ações</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                              {/* Itens regulares (não-fornecedores) */}
-                              {regularItems.length > 0 && (
-                                <tr className="bg-blue-50/50">
-                                  <td colSpan={5} className="p-2 text-sm font-semibold text-blue-800">
-                                    <div className="flex items-center">
-                                      <Users className="h-4 w-4 mr-2" />
-                                      Despesas Gerais
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
-                              
-                              {regularItems.map((item: any) => (
-                                <tr key={item.id} className="hover:bg-muted/50">
-                                  <td className="p-3">
-                                    <div className="font-medium">{item.name}</div>
-                                    {item.dueDate && (
-                                      <div className="text-xs text-muted-foreground">
-                                        Venc: {new Date(item.dueDate).toLocaleDateString()}
-                                      </div>
-                                    )}
-                                  </td>
-                                  <td className="p-3">
-                                    {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    {formatCurrency(item.amount)}
-                                  </td>
-                                  <td className="p-3 text-center">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      item.paid 
-                                        ? "bg-green-500/20 text-green-700" 
-                                        : "bg-amber-500/20 text-amber-700"
-                                    }`}>
-                                      {item.paid ? "Pago" : "Pendente"}
-                                    </span>
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    <div className="flex justify-end space-x-1">
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        onClick={() => handleEditItem(item)}
-                                      >
-                                        <Edit2 className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="text-destructive hover:text-destructive/80"
-                                        onClick={() => handleDeleteItem(item.id)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                              
-                              {/* Itens de fornecedores */}
-                              {vendorItems.length > 0 && (
-                                <tr className="bg-amber-50/50">
-                                  <td colSpan={5} className="p-2 text-sm font-semibold text-amber-800">
-                                    <div className="flex items-center">
-                                      <Store className="h-4 w-4 mr-2" />
-                                      Custos de Fornecedores
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
-                              
-                              {vendorItems.map((item: any) => (
-                                <tr key={item.id} className="hover:bg-muted/50">
-                                  <td className="p-3">
-                                    <div className="font-medium">{item.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      Fornecedor
-                                    </div>
-                                  </td>
-                                  <td className="p-3">
-                                    {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    {formatCurrency(item.amount)}
-                                  </td>
-                                  <td className="p-3 text-center">
-                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-700">
-                                      Fornecedor
-                                    </span>
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    {/* Não podemos editar/excluir itens de fornecedor aqui */}
-                                    <div className="text-xs text-muted-foreground">
-                                      Gerenciar em Fornecedores
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="categories" className="pt-4">
-                      {Object.keys(stats.byCategory).length === 0 ? (
-                        <div className="text-center py-8">
-                          <PieChart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
-                          <p className="text-muted-foreground mb-4">
-                            Adicione itens ao orçamento para visualizar as estatísticas por categoria
-                          </p>
-                          <Button onClick={() => setIsAddItemOpen(true)}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Adicionar Despesa
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-6">
-                          {/* Categorias de despesas gerais */}
-                          <div className="space-y-3">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <Users className="h-5 w-5 text-blue-600" />
-                              <h3 className="text-lg font-medium text-blue-800">Despesas Gerais</h3>
-                            </div>
-                            
-                            <div className="space-y-3 pl-7">
-                              {Object.entries(stats.byCategory)
-                                .filter(([category]) => {
-                                  // Filtrar apenas categorias que não são tipicamente de fornecedores
-                                  const nonVendorCategories = [
-                                    'staff', 'permits', 'insurance', 'admin', 
-                                    'marketing', 'fees', 'equipment', 'accommodation', 'entertainment'
-                                  ];
-                                  return nonVendorCategories.includes(category);
-                                })
-                                .map(([category, amount]) => (
-                                  <div key={category} className="border rounded-lg p-4 bg-blue-50/30">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <div className="font-medium">
-                                        {BUDGET_CATEGORIES.find(c => c.value === category)?.label || category}
-                                      </div>
-                                      <div className="text-right">
-                                        <div className="font-medium">{formatCurrency(amount)}</div>
-                                        <div className="text-sm text-muted-foreground">
-                                          {stats.budget > 0 
-                                            ? `${((amount / stats.budget) * 100).toFixed(1)}% do orçamento` 
-                                            : `${((amount / stats.totalExpenses) * 100).toFixed(1)}% do total`}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <Progress
-                                      value={stats.budget > 0 ? (amount / stats.budget) * 100 : (amount / stats.totalExpenses) * 100}
-                                      className="h-2"
-                                      indicatorClassName="bg-blue-500"
-                                    />
+                  </div>
+                </div>
+                
+                <Tabs defaultValue="items">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="items">Despesas</TabsTrigger>
+                    <TabsTrigger value="categories">Categorias</TabsTrigger>
+                    <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="items" className="pt-4">
+                    {regularItems.length === 0 && vendorItems.length === 0 ? (
+                      <div className="text-center py-8">
+                        <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Adicione custos de fornecedores e outras despesas ao orçamento
+                        </p>
+                        <Button onClick={() => setIsAddItemOpen(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Despesa
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="border rounded-md overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="text-left p-3">Item</th>
+                              <th className="text-left p-3">Categoria</th>
+                              <th className="text-right p-3">Valor</th>
+                              <th className="text-center p-3">Status</th>
+                              <th className="text-right p-3">Ações</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {/* Itens regulares */}
+                            {regularItems.length > 0 && (
+                              <tr className="bg-blue-50/50">
+                                <td colSpan={5} className="p-2 text-sm font-semibold text-blue-800">
+                                  <div className="flex items-center">
+                                    <Users className="h-4 w-4 mr-2" />
+                                    Despesas Gerais
                                   </div>
-                                ))}
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="vendors" className="pt-4">
-                      {vendors.length === 0 ? (
-                        <div className="text-center py-8">
-                          <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-medium mb-2">Nenhum fornecedor encontrado</h3>
-                          <p className="text-muted-foreground mb-4">
-                            Adicione fornecedores ao seu evento para visualizar custos no orçamento
-                          </p>
-                          <Button variant="outline">
-                            Ir para Fornecedores
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="border rounded-md overflow-hidden">
-                          <table className="w-full">
-                            <thead className="bg-muted">
-                              <tr>
-                                <th className="text-left p-3 font-medium">Fornecedor</th>
-                                <th className="text-left p-3 font-medium">Serviço</th>
-                                <th className="text-right p-3 font-medium">Custo</th>
+                                </td>
                               </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                              {vendors
-                                .filter((vendor: Vendor) => vendor.cost)
-                                .map((vendor: Vendor) => (
-                                <tr key={vendor.id} className="hover:bg-muted/50">
-                                  <td className="p-3">
-                                    <div className="font-medium">{vendor.name}</div>
-                                  </td>
-                                  <td className="p-3">
-                                    {vendor.service === "catering" ? "Buffet" :
-                                     vendor.service === "venue" ? "Local" :
-                                     vendor.service === "photography" ? "Fotografia" :
-                                     vendor.service === "decoration" ? "Decoração" :
-                                     vendor.service === "music" ? "Música" :
-                                     vendor.service === "invitation" ? "Convites" :
-                                     vendor.service === "transport" ? "Transporte" :
-                                     vendor.service === "cake" ? "Bolo e Doces" :
-                                     vendor.service === "costume" ? "Vestuário" : vendor.service}
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    {formatCurrency(vendor.cost || 0)}
-                                  </td>
-                                </tr>
+                            )}
+                            
+                            {regularItems.map((item: any) => (
+                              <tr key={item.id} className="hover:bg-muted/50">
+                                <td className="p-3">
+                                  <div className="font-medium">{item.name}</div>
+                                  {item.dueDate && (
+                                    <div className="text-xs text-muted-foreground flex items-center">
+                                      <Calendar className="h-3 w-3 mr-1" />
+                                      {new Date(item.dueDate).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="p-3">
+                                  {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
+                                </td>
+                                <td className="p-3 text-right">
+                                  {formatCurrency(item.amount)}
+                                </td>
+                                <td className="p-3 text-center">
+                                  {item.paid ? (
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-700">
+                                      Pago
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-700">
+                                      Pendente
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="p-3 text-right">
+                                  <div className="flex justify-end space-x-2">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleEditItem(item)}
+                                    >
+                                      <Edit2 className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDeleteItem(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                            
+                            {/* Itens de fornecedores */}
+                            {vendorItems.length > 0 && (
+                              <tr className="bg-amber-50/50">
+                                <td colSpan={5} className="p-2 text-sm font-semibold text-amber-800">
+                                  <div className="flex items-center">
+                                    <Store className="h-4 w-4 mr-2" />
+                                    Custos de Fornecedores
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                            
+                            {vendorItems.map((item: any) => (
+                              <tr key={item.id} className="hover:bg-muted/50">
+                                <td className="p-3">
+                                  <div className="font-medium">{item.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Fornecedor
+                                  </div>
+                                </td>
+                                <td className="p-3">
+                                  {BUDGET_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
+                                </td>
+                                <td className="p-3 text-right">
+                                  {formatCurrency(item.amount)}
+                                </td>
+                                <td className="p-3 text-center">
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-700">
+                                    Fornecedor
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right">
+                                  {/* Não podemos editar/excluir itens de fornecedor aqui */}
+                                  <div className="text-xs text-muted-foreground">
+                                    Gerenciar em Fornecedores
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="categories" className="pt-4">
+                    {Object.keys(stats.byCategory).length === 0 ? (
+                      <div className="text-center py-8">
+                        <PieChart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">Nenhum item no orçamento</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Adicione itens ao orçamento para visualizar as estatísticas por categoria
+                        </p>
+                        <Button onClick={() => setIsAddItemOpen(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Despesa
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Categorias de despesas gerais */}
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Users className="h-5 w-5 text-blue-600" />
+                            <h3 className="text-lg font-medium text-blue-800">Despesas Gerais</h3>
+                          </div>
+                          
+                          <div className="space-y-3 pl-7">
+                            {Object.entries(stats.byCategory)
+                              .filter(([category]) => {
+                                // Filtrar apenas categorias que não são tipicamente de fornecedores
+                                const nonVendorCategories = [
+                                  'staff', 'permits', 'insurance', 'admin', 
+                                  'marketing', 'fees', 'equipment', 'accommodation', 'entertainment'
+                                ];
+                                return nonVendorCategories.includes(category);
+                              })
+                              .map(([category, amount]) => (
+                                <div key={category} className="border rounded-lg p-4 bg-blue-50/30">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="font-medium">
+                                      {BUDGET_CATEGORIES.find(c => c.value === category)?.label || category}
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="font-medium">{formatCurrency(amount)}</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        {stats.budget > 0 
+                                          ? `${((amount / stats.budget) * 100).toFixed(1)}% do orçamento` 
+                                          : `${((amount / stats.totalExpenses) * 100).toFixed(1)}% do total`}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Progress
+                                    value={stats.budget > 0 ? (amount / stats.budget) * 100 : (amount / stats.totalExpenses) * 100}
+                                    className="h-2"
+                                    indicatorClassName="bg-blue-500"
+                                  />
+                                </div>
                               ))}
-                              {vendors.filter((vendor: Vendor) => vendor.cost).length === 0 && (
-                                <tr>
-                                  <td colSpan={3} className="p-4 text-center text-muted-foreground">
-                                    Nenhum fornecedor com custos definidos
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
+                          </div>
                         </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <div className="text-center py-10">
-              <DollarSign className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-medium mb-2">Selecione um evento</h3>
-              <p className="text-muted-foreground">
-                Selecione um evento para visualizar e gerenciar seu orçamento
-              </p>
-            </div>
+                        
+                        {/* Categorias de fornecedores */}
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Store className="h-5 w-5 text-amber-600" />
+                            <h3 className="text-lg font-medium text-amber-800">Custos de Fornecedores</h3>
+                          </div>
+                          
+                          <div className="space-y-3 pl-7">
+                            {Object.entries(stats.byCategory)
+                              .filter(([category]) => {
+                                // Filtrar apenas categorias típicas de fornecedores
+                                const vendorCategories = [
+                                  'venue', 'catering', 'decoration', 'music', 
+                                  'photography', 'video', 'invitations', 'attire',
+                                  'transportation', 'gifts'
+                                ];
+                                return vendorCategories.includes(category);
+                              })
+                              .map(([category, amount]) => (
+                                <div key={category} className="border rounded-lg p-4 bg-amber-50/30">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="font-medium">
+                                      {BUDGET_CATEGORIES.find(c => c.value === category)?.label || category}
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="font-medium">{formatCurrency(amount)}</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        {stats.budget > 0 
+                                          ? `${((amount / stats.budget) * 100).toFixed(1)}% do orçamento` 
+                                          : `${((amount / stats.totalExpenses) * 100).toFixed(1)}% do total`}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Progress
+                                    value={stats.budget > 0 ? (amount / stats.budget) * 100 : (amount / stats.totalExpenses) * 100}
+                                    className="h-2"
+                                    indicatorClassName="bg-amber-500"
+                                  />
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                        
+                        {/* Outras categorias */}
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <FileText className="h-5 w-5 text-gray-600" />
+                            <h3 className="text-lg font-medium text-gray-800">Outras Categorias</h3>
+                          </div>
+                          
+                          <div className="space-y-3 pl-7">
+                            {Object.entries(stats.byCategory)
+                              .filter(([category]) => {
+                                const allDefinedCategories = [
+                                  'venue', 'catering', 'decoration', 'music', 
+                                  'photography', 'video', 'invitations', 'attire',
+                                  'transportation', 'gifts', 'staff', 'permits', 
+                                  'insurance', 'admin', 'marketing', 'fees', 
+                                  'equipment', 'accommodation', 'entertainment'
+                                ];
+                                return !allDefinedCategories.includes(category);
+                              })
+                              .map(([category, amount]) => (
+                                <div key={category} className="border rounded-lg p-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="font-medium">
+                                      {BUDGET_CATEGORIES.find(c => c.value === category)?.label || category}
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="font-medium">{formatCurrency(amount)}</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        {stats.budget > 0 
+                                          ? `${((amount / stats.budget) * 100).toFixed(1)}% do orçamento` 
+                                          : `${((amount / stats.totalExpenses) * 100).toFixed(1)}% do total`}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Progress
+                                    value={stats.budget > 0 ? (amount / stats.budget) * 100 : (amount / stats.totalExpenses) * 100}
+                                    className="h-2"
+                                    indicatorClassName="bg-gray-500"
+                                  />
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="vendors" className="pt-4">
+                    {vendors.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Store className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">Nenhum fornecedor cadastrado</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Acesse a página de Fornecedores para adicionar fornecedores ao seu evento
+                        </p>
+                        <Button asChild>
+                          <a href={`/vendors?eventId=${selectedEventId}`}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Gerenciar Fornecedores
+                          </a>
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="border rounded-md overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="text-left p-3">Fornecedor</th>
+                              <th className="text-left p-3">Serviço</th>
+                              <th className="text-right p-3">Custo</th>
+                              <th className="text-right p-3">Ações</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {vendors.map((vendor: Vendor) => (
+                              <tr key={vendor.id} className="hover:bg-muted/50">
+                                <td className="p-3">
+                                  <div className="font-medium">{vendor.name}</div>
+                                </td>
+                                <td className="p-3">
+                                  {vendor.service}
+                                </td>
+                                <td className="p-3 text-right">
+                                  {vendor.cost ? formatCurrency(vendor.cost) : "Não definido"}
+                                </td>
+                                <td className="p-3 text-right">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    asChild
+                                  >
+                                    <a href={`/vendors?eventId=${selectedEventId}`}>
+                                      <Edit2 className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                            <tr className="bg-muted/30">
+                              <td colSpan={2} className="p-3 text-right font-medium">
+                                Total de Fornecedores:
+                              </td>
+                              <td className="p-3 text-right font-bold">
+                                {formatCurrency(
+                                  vendors.reduce((total: number, vendor: Vendor) => {
+                                    return total + (vendor.cost ? Number(vendor.cost) : 0);
+                                  }, 0)
+                                )}
+                              </td>
+                              <td></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
