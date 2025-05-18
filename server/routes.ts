@@ -696,7 +696,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/events/:eventId/tasks', ensureDevAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para buscar tarefas do evento:", req.params.eventId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        console.log("Verificando autenticação:");
+        console.log("- isAuthenticated:", req.isAuthenticated());
+        console.log("- session ID:", req.sessionID);
+        console.log("- user object:", req.user ? "Presente" : "Ausente");
+        console.log("Não autenticado ou usuário não encontrado");
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       const eventId = parseInt(req.params.eventId, 10);
       
       if (isNaN(eventId)) {
@@ -1214,7 +1231,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Team members routes
   app.get('/api/events/:eventId/team', ensureDevAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para buscar equipe do evento:", req.params.eventId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        console.log("Verificando autenticação:");
+        console.log("- isAuthenticated:", req.isAuthenticated());
+        console.log("- session ID:", req.sessionID);
+        console.log("- user object:", req.user ? "Presente" : "Ausente");
+        console.log("Não autenticado ou usuário não encontrado");
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       const eventId = parseInt(req.params.eventId, 10);
       
       if (isNaN(eventId)) {
@@ -1428,9 +1462,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activity log routes
-  app.get('/api/events/:eventId/activities', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events/:eventId/activities', ensureDevAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para buscar atividades do evento:", req.params.eventId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        console.log("Verificando autenticação:");
+        console.log("- isAuthenticated:", req.isAuthenticated());
+        console.log("- session ID:", req.sessionID);
+        console.log("- user object:", req.user ? "Presente" : "Ausente");
+        console.log("Não autenticado ou usuário não encontrado");
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       const eventId = parseInt(req.params.eventId, 10);
       
       if (isNaN(eventId)) {
