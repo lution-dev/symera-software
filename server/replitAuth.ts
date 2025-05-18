@@ -62,13 +62,16 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
-  await storage.upsertUser({
+  const userData = {
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
-  });
+  };
+  
+  console.log("Registrando/atualizando usuário:", userData.id, userData.email);
+  return await storage.upsertUser(userData);
 }
 
 export async function setupAuth(app: Express) {
@@ -85,7 +88,13 @@ export async function setupAuth(app: Express) {
   ) => {
     const user = {};
     updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
+    
+    // Certifique-se de salvar o usuário no banco de dados
+    const dbUser = await upsertUser(tokens.claims());
+    
+    // Adicione o ID do usuário do banco ao objeto de usuário da sessão para fácil referência
+    (user as any).dbUserId = dbUser.id;
+    
     verified(null, user);
   };
 
@@ -103,8 +112,16 @@ export async function setupAuth(app: Express) {
     passport.use(strategy);
   }
 
-  passport.serializeUser((user: Express.User, cb) => cb(null, user));
-  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+  // Serialização mais robusta para persistência de sessão
+  passport.serializeUser((user: Express.User, cb) => {
+    console.log("Serializando usuário:", (user as any).claims?.sub);
+    cb(null, user);
+  });
+  
+  passport.deserializeUser((user: Express.User, cb) => {
+    console.log("Desserializando usuário:", (user as any).claims?.sub);
+    cb(null, user);
+  });
 
   app.get("/api/login", (req, res, next) => {
     const domain = req.hostname;
@@ -177,9 +194,11 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 
   // Armazenar informações importantes na sessão
-  if (!req.session.userId && user.claims.sub) {
+  if (user.claims.sub) {
     req.session.userId = user.claims.sub;
-    req.session.save();
+    await new Promise<void>((resolve) => {
+      req.session.save(() => resolve());
+    });
   }
   
   // Se o token expirou, tente atualizar
