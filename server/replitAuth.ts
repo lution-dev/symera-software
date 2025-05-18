@@ -24,22 +24,25 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 dias
   
-  // Use memory store instead of PostgreSQL to avoid rate limit issues
-  const MemoryStore = memorystore(session);
-  const sessionStore = new MemoryStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
+  // Usar PostgreSQL para armazenar sessões persistentes
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: true,
+    ttl: sessionTtl,
+    tableName: "sessions",
   });
   
   return session({
     secret: process.env.SESSION_SECRET || 'replit-session-secret',
     store: sessionStore,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Desativamos secure para desenvolvimento
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: sessionTtl,
     },
