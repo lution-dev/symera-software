@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import MobileProfileCard from "@/components/profile/MobileProfileCard";
+import NovoPerfil from "@/components/profile/NovoPerfil";
 import { 
   Shield, 
   Bell, 
@@ -320,9 +320,12 @@ const Settings: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Versão para dispositivo móvel */}
+                  {/* NOVO COMPONENTE DE PERFIL - VERSÃO MÓVEL */}
                   <div className="block sm:hidden">
-                    <MobileProfileCard 
+                    <div className="bg-red-500 p-2 text-white font-bold text-center rounded-t-lg">
+                      NOVO DESIGN MOBILE
+                    </div>
+                    <NovoPerfil 
                       firstName={profileForm.firstName}
                       lastName={profileForm.lastName}
                       profileImageUrl={profileForm.profileImageUrl}
