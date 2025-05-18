@@ -433,7 +433,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
         {/* Info Grid com ações integradas */}
         <div className="p-4 sm:p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-start">
-            <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
+            <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-1.5 text-primary">
               <i className="fas fa-calendar-day text-sm"></i>
             </div>
             <div className="ml-3">
@@ -444,7 +444,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
           
           {event.location && (
             <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
+              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-1.5 text-primary">
                 <i className="fas fa-map-marker-alt text-sm"></i>
               </div>
               <div className="ml-3">
@@ -456,7 +456,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
           
           {event.attendees && (
             <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
+              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-1.5 text-primary">
                 <i className="fas fa-user-friends text-sm"></i>
               </div>
               <div className="ml-3">
@@ -468,7 +468,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
           
           {event.budget && (
             <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
+              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-1.5 text-primary">
                 <i className="fas fa-coins text-sm"></i>
               </div>
               <div className="ml-3">
