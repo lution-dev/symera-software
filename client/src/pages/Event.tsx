@@ -243,12 +243,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </ol>
       </nav>
       
-      {/* Link para voltar - Visível apenas em mobile bem pequeno */}
-      <div className="xs:hidden mb-3">
-        <Link href="/events" className="text-primary text-sm flex items-center">
-          <i className="fas fa-chevron-left mr-1.5"></i> Voltar para Eventos
-        </Link>
-      </div>
+      
       
       {/* Event Cover Image - Ajustado para mobile */}
       <div className="relative w-full h-48 sm:h-64 md:h-80 mb-4 sm:mb-6 rounded-xl overflow-hidden shadow-md">
