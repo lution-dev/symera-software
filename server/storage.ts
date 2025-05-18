@@ -145,6 +145,25 @@ export class DatabaseStorage implements IStorage {
       return user;
     });
   }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    // Verificar cache pelo email
+    const cacheKey = `user:email:${email}`;
+    const cachedUser = userCache.get<User>(cacheKey);
+    if (cachedUser) return cachedUser;
+    
+    return executeWithRetry(async () => {
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      
+      // Armazenar em cache para futuras requisições
+      if (user) {
+        userCache.set(cacheKey, user);
+        userCache.set(`user:${user.id}`, user);
+      }
+      
+      return user;
+    });
+  }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     return executeWithRetry(async () => {
