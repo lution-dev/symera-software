@@ -150,22 +150,25 @@ const Profile: React.FC = () => {
     <div className="container mx-auto px-4 py-6 space-y-6 max-w-5xl">
       {/* Cabeçalho do perfil - Sempre visível */}
       <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-row items-center">
-            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mr-4 border-2 border-background">
-              {userData?.profileImageUrl ? (
-                <AvatarImage src={userData.profileImageUrl} alt={`${userData.firstName} ${userData.lastName}`} />
-              ) : null}
-              <AvatarFallback className="bg-gradient-primary text-white text-lg">
-                {getInitials(`${userData?.firstName || ""} ${userData?.lastName || ""}`)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start relative">
+            <div className="flex flex-col items-center mb-4 sm:mb-0">
+              <Avatar className="h-20 w-20 border-2 border-background">
+                {userData?.profileImageUrl ? (
+                  <AvatarImage src={userData.profileImageUrl} alt={`${userData.firstName} ${userData.lastName}`} />
+                ) : null}
+                <AvatarFallback className="bg-gradient-primary text-white text-lg">
+                  {getInitials(`${userData?.firstName || ""} ${userData?.lastName || ""}`)}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            
+            <div className="flex-1 text-center sm:text-left sm:ml-6">
               <h2 className="text-xl font-bold">
                 {userData?.firstName} {userData?.lastName}
               </h2>
               <p className="text-sm text-muted-foreground">{userData?.email}</p>
-              <div className="flex space-x-2 mt-2">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
                 <Badge variant="outline" className="bg-primary/10">
                   {userData?.phone || 'Sem telefone'}
                 </Badge>
@@ -174,13 +177,17 @@ const Profile: React.FC = () => {
                 </Badge>
               </div>
             </div>
-            <Link href="/settings">
-              <Button variant="outline" size="icon" className="ml-2">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </Link>
+            
+            <div className="absolute top-0 right-0 sm:static sm:ml-2">
+              <Link href="/settings">
+                <Button variant="outline" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="mt-4 text-xs text-muted-foreground text-right">
+          
+          <div className="mt-4 text-xs text-muted-foreground text-center sm:text-right">
             Membro desde {userData?.createdAt ? getFormattedDate(userData.createdAt) : "data desconhecida"}
           </div>
         </CardContent>
