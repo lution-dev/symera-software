@@ -153,9 +153,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Events routes
-  app.get('/api/events', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events', ensureDevAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para buscar eventos:", userId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+        console.log("Usando ID de autenticação Replit para buscar eventos:", userId);
+      } else {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       const events = await storage.getEventsByUser(userId);
       
       // Para cada evento, buscar os fornecedores e adicionar a contagem
@@ -172,14 +186,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events/:id', ensureDevAuth, async (req: any, res) => {
     try {
-      if (!req.user || !req.user.claims || !req.user.claims.sub) {
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para acessar evento:", req.params.id);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
         console.log("Erro na autenticação do usuário ao acessar evento:", req.params.id);
         return res.status(401).json({ message: "User not authenticated properly" });
       }
       
-      const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.id, 10);
       
       if (isNaN(eventId)) {
@@ -500,9 +523,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/events/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/events/:id', ensureDevAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       const eventId = parseInt(req.params.id, 10);
       
       if (isNaN(eventId)) {
@@ -1210,10 +1245,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard data route
-  app.get('/api/dashboard', isAuthenticated, async (req: any, res) => {
+  app.get('/api/dashboard', ensureDevAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      console.log(`Buscando dados do dashboard para o usuário: ${userId}`);
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log(`Buscando dados do dashboard para o usuário de desenvolvimento: ${userId}`);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+        console.log(`Buscando dados do dashboard para o usuário autenticado: ${userId}`);
+      } else {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       // Get all events for the user
       const events = await storage.getEventsByUser(userId);
