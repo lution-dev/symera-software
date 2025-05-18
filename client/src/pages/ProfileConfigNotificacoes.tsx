@@ -87,11 +87,7 @@ const ProfileConfigNotificacoes: React.FC = () => {
   
   return (
     <div className="container mx-auto px-4 py-6 max-w-3xl space-y-6">
-      <div className="flex items-center mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/profile/configuracoes")} className="mr-2">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Voltar
-        </Button>
+      <div className="text-center mb-6">
         <h1 className="text-2xl font-bold">Notificações</h1>
       </div>
       
