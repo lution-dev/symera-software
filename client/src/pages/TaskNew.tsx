@@ -162,13 +162,7 @@ const TaskNew: React.FC = () => {
       
       {/* Form */}
       <Card>
-        <CardHeader>
-          <CardTitle>Detalhes da Tarefa</CardTitle>
-          <CardDescription>
-            Preencha todos os campos necessários para criar uma nova tarefa
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleCreateTask)} className="space-y-4">
               <FormField
