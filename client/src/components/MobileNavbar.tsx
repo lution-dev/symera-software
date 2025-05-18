@@ -217,12 +217,17 @@ const MobileNavbar: React.FC = () => {
               <Separator className="my-4" />
               
               <SheetClose asChild>
-                <Link href="/logout" className="block w-full">
+                <button 
+                  className="block w-full"
+                  onClick={() => {
+                    window.location.href = "/api/logout";
+                  }}
+                >
                   <div className="flex items-center py-3 px-2 rounded-md min-h-[44px] touch-action-manipulation text-destructive">
                     <i className="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
                     <span>Sair</span>
                   </div>
-                </Link>
+                </button>
               </SheetClose>
             </div>
           </SheetContent>
