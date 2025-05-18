@@ -81,21 +81,19 @@ const Profile: React.FC = () => {
     return (
       <div className="space-y-4">
         {upcomingEvents.map((event) => (
-          <Card key={event.id} className="overflow-hidden">
-            <Link href={`/events/${event.id}`}>
-              <div className="flex items-center p-4 cursor-pointer group">
-                <div className="mr-4 bg-primary/10 rounded-full p-3">
-                  <Calendar className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-medium group-hover:text-primary transition-colors">{event.name}</h4>
-                  <p className="text-xs text-muted-foreground">
-                    {format(event.date, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                  </p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+          <Card key={event.id} className="overflow-hidden" onClick={() => navigate(`/events/${event.id}`)}>
+            <div className="flex items-center p-4 cursor-pointer group">
+              <div className="mr-4 bg-primary/10 rounded-full p-3">
+                <Calendar className="h-5 w-5 text-primary" />
               </div>
-            </Link>
+              <div className="flex-1">
+                <h4 className="font-medium group-hover:text-primary transition-colors">{event.name}</h4>
+                <p className="text-xs text-muted-foreground">
+                  {format(event.date, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
           </Card>
         ))}
       </div>
@@ -111,25 +109,38 @@ const Profile: React.FC = () => {
       );
     }
 
+    const getNavigationPath = (activity: any) => {
+      if (activity.type === "event") return `/profile/eventos`;
+      if (activity.type === "task") return `/profile/lembretes`;
+      if (activity.type === "team") return `/profile/equipe`;
+      return '';
+    };
+
     return (
       <div className="space-y-4">
         {activities.map((activity, index) => (
-          <div key={index} className="flex items-start space-x-4">
-            <div className="bg-primary/10 rounded-full p-2 mt-1">
-              {activity.type === "event" && <Calendar className="h-4 w-4 text-primary" />}
-              {activity.type === "task" && <Clock className="h-4 w-4 text-primary" />}
-              {activity.type === "team" && <Users className="h-4 w-4 text-primary" />}
+          <Card key={index} className="overflow-hidden p-0">
+            <div 
+              className="flex items-start space-x-4 p-4 cursor-pointer hover:bg-muted/20 transition-colors"
+              onClick={() => navigate(getNavigationPath(activity))}
+            >
+              <div className="bg-primary/10 rounded-full p-2 mt-1 flex-shrink-0">
+                {activity.type === "event" && <Calendar className="h-4 w-4 text-primary" />}
+                {activity.type === "task" && <Clock className="h-4 w-4 text-primary" />}
+                {activity.type === "team" && <Users className="h-4 w-4 text-primary" />}
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm">
+                  <span className="font-medium">Você</span> {activity.action}{" "}
+                  <span className="font-medium">{activity.target}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {format(activity.date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                </p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground mt-2 flex-shrink-0" />
             </div>
-            <div className="flex-1 space-y-1">
-              <p className="text-sm">
-                <span className="font-medium">Você</span> {activity.action}{" "}
-                <span className="font-medium">{activity.target}</span>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {format(activity.date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-              </p>
-            </div>
-          </div>
+          </Card>
         ))}
       </div>
     );
