@@ -214,9 +214,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex mb-4" aria-label="Breadcrumb">
+    <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
+      {/* Breadcrumb Navigation - ocultado em telas muito pequenas para economizar espaço */}
+      <nav className="hidden xs:flex mb-4" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
           <li className="inline-flex items-center">
             <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
@@ -235,13 +235,20 @@ const Event: React.FC<EventProps> = ({ id }) => {
           <li aria-current="page">
             <div className="flex items-center">
               <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-              <span className="text-sm font-medium text-primary">
+              <span className="text-sm font-medium text-primary truncate max-w-[150px]">
                 {event.name}
               </span>
             </div>
           </li>
         </ol>
       </nav>
+      
+      {/* Link para voltar - Visível apenas em mobile bem pequeno */}
+      <div className="xs:hidden mb-3">
+        <Link href="/events" className="text-primary text-sm flex items-center">
+          <i className="fas fa-chevron-left mr-1.5"></i> Voltar para Eventos
+        </Link>
+      </div>
       
       {/* Event Cover Image */}
       <div className="relative w-full h-64 md:h-80 mb-6 rounded-xl overflow-hidden shadow-md">

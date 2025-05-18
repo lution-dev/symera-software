@@ -142,9 +142,9 @@ const EventCard: React.FC<EventCardProps> = ({
           <div className="flex flex-wrap gap-y-3">
             <div className="w-full sm:w-1/2 flex items-center">
               <i className="fas fa-calendar-day text-primary mr-2 min-w-[16px]"></i>
-              <span className="text-sm text-gray-300 truncate">
+              <span className="text-sm text-gray-300 truncate max-w-full">
                 {startDate && endDate && startDate !== endDate ? (
-                  <>De {formatDate(startDate)} até {formatDate(endDate)}</>
+                  <span className="inline-block truncate max-w-full">De {formatDate(startDate)} até {formatDate(endDate)}</span>
                 ) : startDate ? (
                   formatDate(startDate)
                 ) : (
@@ -157,7 +157,7 @@ const EventCard: React.FC<EventCardProps> = ({
             {location && (
               <div className="w-full sm:w-1/2 flex items-center">
                 <i className="fas fa-map-marker-alt text-primary mr-2 min-w-[16px]"></i>
-                <span className="text-sm text-gray-300 truncate">{location}</span>
+                <span className="text-sm text-gray-300 truncate max-w-full">{location}</span>
               </div>
             )}
             {attendees && (
@@ -170,8 +170,8 @@ const EventCard: React.FC<EventCardProps> = ({
             {/* Progress indicator - full width and more visible on mobile */}
             <div className="w-full sm:w-1/2 flex items-center mt-1 sm:mt-0">
               <i className="fas fa-tasks text-primary mr-2 min-w-[16px]"></i>
-              <div className="flex items-center flex-1">
-                <span className="text-sm text-gray-300 mr-2">{progressPercentage}%</span>
+              <div className="flex items-center flex-1 max-w-full overflow-hidden">
+                <span className="text-sm text-gray-300 mr-2 whitespace-nowrap">{progressPercentage}%</span>
                 <div className="flex-1 h-2 bg-muted rounded-full max-w-[100px]">
                   <div className="h-full gradient-primary rounded-full" style={{ width: `${progressPercentage}%` }}></div>
                 </div>

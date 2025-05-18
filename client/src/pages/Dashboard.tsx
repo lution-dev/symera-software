@@ -225,11 +225,11 @@ const Dashboard: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Mobile carousel view */}
-            <div className="sm:hidden mobile-scroll-container overflow-x-auto">
-              <div className="mobile-scroll-items flex space-x-4 pb-4 w-max">
+            {/* Mobile carousel view - com largura limitada para evitar quebrar o layout */}
+            <div className="sm:hidden mobile-scroll-container overflow-x-auto custom-scrollbar">
+              <div className="mobile-scroll-items flex pb-4 w-max">
                 {activeEventsList.slice(0, 6).map((event: any) => (
-                  <div key={event.id} className="w-[280px] flex-shrink-0">
+                  <div key={event.id} className="w-[260px] flex-shrink-0 pr-4">
                     <EventCard
                       id={event.id}
                       name={event.name}
