@@ -191,11 +191,61 @@ const Dashboard: React.FC = () => {
               <span>Convide membros para sua equipe do evento</span>
             </li>
           </ul>
-          {/* Link textual em vez de botão redundante */}
-          <Link href="/help" className="text-primary text-xs sm:text-sm font-medium hover:underline flex items-center">
-            <span>Ver todas as dicas</span>
-            <i className="fas fa-arrow-right ml-1.5 text-xs"></i>
-          </Link>
+          {/* Modal de dicas em vez de link para página não existente */}
+          <Dialog>
+            <DialogTrigger className="text-primary text-xs sm:text-sm font-medium hover:underline flex items-center bg-transparent border-0 p-0 cursor-pointer">
+              <span>Ver todas as dicas</span>
+              <i className="fas fa-arrow-right ml-1.5 text-xs"></i>
+            </DialogTrigger>
+            <DialogContent className="w-[90%] sm:max-w-[500px] rounded-xl">
+              <DialogHeader>
+                <DialogTitle>Dicas para organizar eventos</DialogTitle>
+              </DialogHeader>
+              <div className="py-3 space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3 flex-shrink-0">
+                      <i className="fas fa-lightbulb"></i>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm sm:text-base">Planejamento completo</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Use o assistente de IA para criar listas de tarefas personalizadas com base no tipo e tamanho do seu evento.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3 flex-shrink-0">
+                      <i className="fas fa-users"></i>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm sm:text-base">Colaboração em equipe</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Convide colaboradores e atribua tarefas específicas para manter todos atualizados sobre suas responsabilidades.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3 flex-shrink-0">
+                      <i className="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm sm:text-base">Controle de orçamento</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Registre fornecedores e custos para acompanhar seu orçamento e evitar gastos excessivos.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3 flex-shrink-0">
+                      <i className="fas fa-calendar-check"></i>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm sm:text-base">Cronograma inteligente</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Organize tarefas por prioridade e data para garantir que nada importante seja esquecido.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         {/* Abstract decoration - hidden on small mobile */}
         <div className="absolute top-0 right-0 w-28 sm:w-64 h-full opacity-10 hidden sm:block">
