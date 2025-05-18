@@ -14,6 +14,7 @@ import Team from "@/pages/Team";
 import Vendors from "@/pages/Vendors";
 import Budget from "@/pages/Budget";
 import Settings from "@/pages/Settings";
+import Profile from "@/pages/Profile";
 import Auth from "@/pages/Auth";
 import LoginPage from "@/pages/LoginPage";
 import NotFound from "@/pages/not-found";
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/team" component={() => <ProtectedRoute component={Team} />} />
       <Route path="/vendors" component={() => <ProtectedRoute component={Vendors} />} />
       <Route path="/budget" component={() => <ProtectedRoute component={Budget} />} />
+      <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route component={NotFound} />
     </Switch>
