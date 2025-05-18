@@ -9,6 +9,7 @@ import Events from "@/pages/Events";
 import Event from "@/pages/Event";
 import CreateEvent from "@/pages/CreateEvent";
 import Checklist from "@/pages/Checklist";
+import TaskNew from "@/pages/TaskNew";
 import Schedule from "@/pages/Schedule";
 import Team from "@/pages/Team";
 import Vendors from "@/pages/Vendors";

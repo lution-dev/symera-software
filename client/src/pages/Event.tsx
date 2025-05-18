@@ -646,16 +646,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Checklist do Evento</h2>
             <div className="flex gap-2">
-              <Button onClick={handleRegenerateChecklist} disabled={regenerateChecklistMutation.isPending}>
-                {regenerateChecklistMutation.isPending ? (
-                  <>
-                    <i className="fas fa-spinner animate-spin mr-2"></i> Gerando...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-magic mr-2"></i> Regenerar com IA
-                  </>
-                )}
+              <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default">
+                <i className="fas fa-plus mr-2"></i> Nova Tarefa
               </Button>
               <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
                 <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
