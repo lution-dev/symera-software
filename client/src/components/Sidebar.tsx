@@ -184,7 +184,7 @@ const Sidebar: React.FC = () => {
           collapsed ? "justify-center" : "justify-between"
         )}>
           {!collapsed && (
-            <Link href="/settings">
+            <Link href="/profile">
               <div className="flex items-center flex-grow cursor-pointer hover:opacity-80 transition-opacity">
                 <Avatar className="h-10 w-10 flex-shrink-0">
                   {user?.profileImageUrl ? (

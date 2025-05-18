@@ -40,9 +40,10 @@ const Profile: React.FC = () => {
   });
 
   // Queries para estatísticas (podem ser implementadas conforme necessário)
-  const { data: userEvents, isLoading: isLoadingEvents } = useQuery({
+  const { data: userEvents, isLoading: isLoadingEvents } = useQuery<any[]>({
     queryKey: ["/api/events", "user"],
     enabled: !!user,
+    initialData: [],
   });
 
   const getFormattedDate = (dateString: string) => {
