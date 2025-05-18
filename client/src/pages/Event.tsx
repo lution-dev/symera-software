@@ -215,8 +215,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
 
   return (
     <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
-      {/* Breadcrumb Navigation - ocultado em telas muito pequenas para economizar espaço */}
-      <nav className="hidden xs:flex mb-4" aria-label="Breadcrumb">
+      {/* Breadcrumb Navigation - visível em desktop e tablet, mas oculto em mobile */}
+      <nav className="hidden sm:flex mb-4" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
           <li className="inline-flex items-center">
             <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
