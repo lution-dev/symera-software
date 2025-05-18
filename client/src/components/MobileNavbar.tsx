@@ -112,7 +112,7 @@ const MobileNavbar: React.FC = () => {
             <Link href={item.path}>
               <div className="flex flex-col items-center cursor-pointer min-w-[48px] min-h-[44px] justify-center py-1">
                 {item.highlight ? (
-                  <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6">
+                  <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
                     <i className={`fas fa-${item.icon} text-white`}></i>
                   </div>
                 ) : (
