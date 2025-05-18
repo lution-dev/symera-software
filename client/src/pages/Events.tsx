@@ -76,72 +76,70 @@ const Events: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile: Apenas espaçamento, título já está na navbar */}
-      <div className="h-2 sm:hidden"></div>
-
+      {/* Mobile: Filtros simples e integrados - sem duplicação com navbar */}
+      <div className="pt-1 pb-3 sm:hidden">
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Buscar eventos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-10 text-sm bg-muted/50 border-0"
+              />
+              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       {/* Filters - Redesenhado para mobile */}
       <div className="bg-card rounded-lg mb-6 sm:mb-8 overflow-hidden">
-        {/* Versão Mobile: Layout mais compacto */}
-        <div className="sm:hidden px-4 pt-3 pb-4">
-          <div className="flex gap-3 mb-3">
-            <div className="flex-1">
-              <div className="relative">
-                <Input
-                  type="text"
-                  placeholder="Buscar eventos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-10 text-sm"
-                />
-                <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
-              </div>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-10 px-3 flex items-center gap-1"
-              onClick={() => {
-                setSearchTerm("");
-                setEventTypeFilter("all");
-                setSortBy("date");
-              }}
-            >
-              <i className="fas fa-sync-alt text-xs"></i>
-              <span className="text-xs">Limpar</span>
-            </Button>
+        {/* Versão Mobile: Layout mais compacto apenas com filtros essenciais */}
+        <div className="sm:hidden px-4 py-3 flex gap-3">
+          <div className="flex-1">
+            <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                <SelectItem value="wedding">Casamento</SelectItem>
+                <SelectItem value="corporate">Corporativo</SelectItem>
+                <SelectItem value="birthday">Aniversário</SelectItem>
+                <SelectItem value="conference">Conferência</SelectItem>
+                <SelectItem value="social">Social</SelectItem>
+                <SelectItem value="other">Outros</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os tipos</SelectItem>
-                  <SelectItem value="wedding">Casamento</SelectItem>
-                  <SelectItem value="corporate">Corporativo</SelectItem>
-                  <SelectItem value="birthday">Aniversário</SelectItem>
-                  <SelectItem value="conference">Conferência</SelectItem>
-                  <SelectItem value="social">Social</SelectItem>
-                  <SelectItem value="other">Outros</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex-1">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Ordenar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="date">Data</SelectItem>
-                  <SelectItem value="name">Nome (A-Z)</SelectItem>
-                  <SelectItem value="progress">Progresso</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex-1">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="Ordenar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Data</SelectItem>
+                <SelectItem value="name">Nome (A-Z)</SelectItem>
+                <SelectItem value="progress">Progresso</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-9 w-9 flex items-center justify-center p-0"
+            onClick={() => {
+              setSearchTerm("");
+              setEventTypeFilter("all");
+              setSortBy("date");
+            }}
+          >
+            <i className="fas fa-sync-alt text-xs"></i>
+          </Button>
         </div>
         
         {/* Versão Desktop: Layout original */}

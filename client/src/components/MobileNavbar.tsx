@@ -156,20 +156,8 @@ const MobileNavbar: React.FC = () => {
             )}
           </div>
           
-          {/* Perfil do usuário ou ações do contexto */}
-          <div className="flex items-center gap-3">
-            {location === '/events' || location === '/' ? (
-              <button className="h-9 w-9 flex items-center justify-center text-muted-foreground">
-                <i className="fas fa-search"></i>
-              </button>
-            ) : null}
-            
-            {location === '/' && (
-              <button className="h-9 w-9 flex items-center justify-center text-primary">
-                <i className="fas fa-plus"></i>
-              </button>
-            )}
-            
+          {/* Perfil do usuário - interface simplificada */}
+          <div className="flex items-center">
             <Link href="/profile">
               <Avatar className="h-8 w-8 cursor-pointer">
                 {user?.profileImageUrl ? (
@@ -182,20 +170,6 @@ const MobileNavbar: React.FC = () => {
             </Link>
           </div>
         </div>
-        
-        {/* Barra de pesquisa - visível apenas em algumas páginas */}
-        {(location === '/events' || location === '/') && (
-          <div className="px-4 pb-3">
-            <div className="relative">
-              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
-              <input 
-                type="text" 
-                placeholder="Pesquisar..." 
-                className="w-full bg-muted/50 border-0 rounded-md pl-9 h-10 text-sm"
-              />
-            </div>
-          </div>
-        )}
       </div>
       
       {/* Barra de navegação inferior - redesenhada para evitar duplicação com menu lateral */}

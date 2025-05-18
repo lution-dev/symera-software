@@ -169,16 +169,15 @@ const Dashboard: React.FC = () => {
         upcomingEventDays={upcomingEventDays}
       />
 
-      {/* Create Event Banner */}
-      <div className="mb-8 bg-card rounded-xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
+      {/* Create Event Banner - Simplificado e compacto no mobile */}
+      <div className="mb-6 sm:mb-8 bg-card rounded-xl p-3 sm:p-6 shadow-lg relative overflow-hidden">
         <div className="relative z-10">
-          <h2 className="text-lg sm:text-xl font-bold mb-2">Crie seu próximo evento com inteligência</h2>
-          <p className="text-muted-foreground text-sm sm:text-base mb-4 max-w-xl">
-            Use nosso checklist inteligente com IA para organizar qualquer tipo de evento 
-            de forma profissional, sem esquecer nenhum detalhe.
+          <h2 className="text-base sm:text-xl font-bold mb-1 sm:mb-2">Crie seu próximo evento</h2>
+          <p className="text-muted-foreground text-xs sm:text-base mb-3 sm:mb-4 max-w-xl">
+            Use IA para organizar qualquer tipo de evento sem esquecer nenhum detalhe.
           </p>
           <Link href="/events/new">
-            <Button className="gradient-primary w-full sm:w-auto touch-target min-h-[44px]">
+            <Button className="gradient-primary h-9 sm:h-10 text-sm sm:text-base w-full sm:w-auto">
               <i className="fas fa-plus mr-2"></i> Criar Novo Evento
             </Button>
           </Link>
@@ -196,43 +195,43 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Events Section - Horizontal scroll on mobile */}
-      <div className="mb-10">
-        <div className="flex justify-between items-center mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-bold">Seus Eventos</h2>
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-3 sm:mb-5">
+          <h2 className="text-sm sm:text-xl font-medium sm:font-bold">Seus Eventos</h2>
           <Link href="/events">
-            <div className="text-primary hover:text-primary/80 flex items-center text-sm font-medium cursor-pointer touch-target">
+            <div className="text-primary hover:text-primary/80 flex items-center text-xs sm:text-sm font-medium cursor-pointer touch-target">
               Ver todos
-              <i className="fas fa-chevron-right ml-2 text-xs"></i>
+              <i className="fas fa-chevron-right ml-1 sm:ml-2 text-xs"></i>
             </div>
           </Link>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="flex justify-center py-8 sm:py-12">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : activeEventsList.length === 0 ? (
-          <div className="bg-card rounded-xl p-6 sm:p-8 text-center">
-            <div className="mb-4 flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                <i className="fas fa-calendar text-primary text-2xl"></i>
+          <div className="bg-card rounded-xl p-4 sm:p-8 text-center">
+            <div className="mb-3 sm:mb-4 flex justify-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-muted flex items-center justify-center">
+                <i className="fas fa-calendar text-primary text-xl sm:text-2xl"></i>
               </div>
             </div>
-            <h3 className="text-lg font-medium mb-2">Nenhum evento</h3>
-            <p className="text-muted-foreground mb-6">Você ainda não tem eventos. Crie seu primeiro evento agora!</p>
+            <h3 className="text-base sm:text-lg font-medium mb-1 sm:mb-2">Nenhum evento</h3>
+            <p className="text-muted-foreground text-sm mb-4 sm:mb-6">Você ainda não tem eventos. Crie seu primeiro evento agora!</p>
             <Link href="/events/new">
-              <Button className="gradient-primary w-full sm:w-auto touch-target min-h-[44px]">
+              <Button className="gradient-primary h-9 sm:h-10 text-sm sm:text-base w-full sm:w-auto">
                 <i className="fas fa-plus mr-2"></i> Criar Evento
               </Button>
             </Link>
           </div>
         ) : (
           <>
-            {/* Mobile carousel view - com largura limitada para evitar quebrar o layout */}
-            <div className="sm:hidden mobile-scroll-container overflow-x-auto custom-scrollbar">
-              <div className="mobile-scroll-items flex pb-4 w-max">
+            {/* Mobile carousel view - otimizado */}
+            <div className="sm:hidden mobile-scroll-container overflow-x-auto pb-1 custom-scrollbar">
+              <div className="flex pb-2 w-max">
                 {activeEventsList.slice(0, 6).map((event: any) => (
-                  <div key={event.id} className="w-[260px] flex-shrink-0 pr-4">
+                  <div key={event.id} className="w-[240px] flex-shrink-0 pr-3">
                     <EventCard
                       id={event.id}
                       name={event.name}
