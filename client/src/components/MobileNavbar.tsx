@@ -197,7 +197,7 @@ const MobileNavbar: React.FC = () => {
         {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
               <i className={cn(
                 "fas fa-home h-6 w-6",
                 isActivePath('/') ? "text-primary" : "text-foreground"
@@ -214,7 +214,7 @@ const MobileNavbar: React.FC = () => {
         
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/events" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
               <i className={cn(
                 "fas fa-calendar-alt h-6 w-6",
                 isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
@@ -237,7 +237,7 @@ const MobileNavbar: React.FC = () => {
                 <i className="fas fa-plus text-white"></i>
               </div>
               <span className={cn(
-                "text-xs mt-1",
+                "text-xs mt-1 text-center",
                 isActivePath('/events/new') ? "text-primary" : "text-foreground"
               )}>
                 Novo
@@ -248,7 +248,7 @@ const MobileNavbar: React.FC = () => {
         
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/schedule" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
               <i className={cn(
                 "fas fa-calendar-day h-6 w-6",
                 isActivePath('/schedule') ? "text-primary" : "text-foreground"
@@ -265,7 +265,7 @@ const MobileNavbar: React.FC = () => {
         
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/profile" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
               {user?.profileImageUrl ? (
                 <div className={cn(
                   "h-6 w-6 rounded-full overflow-hidden border-2",
@@ -283,12 +283,6 @@ const MobileNavbar: React.FC = () => {
                   </span>
                 </div>
               )}
-              <span className={cn(
-                "text-xs mt-1",
-                isActivePath('/profile') ? "text-primary" : "text-foreground"
-              )}>
-                Perfil
-              </span>
             </div>
           </Link>
         </div>
