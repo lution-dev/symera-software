@@ -17,6 +17,8 @@ import Settings from "@/pages/Settings";
 import Profile from "@/pages/Profile";
 import Auth from "@/pages/Auth";
 import LoginPage from "@/pages/LoginPage";
+import DevLogin from "@/pages/DevLogin";
+import SimpleLogin from "@/pages/SimpleLogin";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -45,6 +47,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
+      <Route path="/dev-login" component={DevLogin} />
+      <Route path="/simple-login" component={SimpleLogin} />
       <Route path="/auth" component={Auth} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
