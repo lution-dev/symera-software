@@ -64,8 +64,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (process.env.REPL_ID) {
         if (req.session.devIsAuthenticated && req.session.devUserId) {
           console.log("- Usando autenticação de desenvolvimento no ambiente Replit");
-          const user = await storage.getUser(req.session.devUserId);
+          // Buscar o usuário completo do banco de dados
+          let user = await storage.getUser(req.session.devUserId);
+          
+          // Garantir que o usuário tenha todos os campos preenchidos
           if (user) {
+            // Se faltar algum campo, atualizar o usuário no banco
+            await storage.upsertUser({
+              id: user.id,
+              email: user.email || "applution@gmail.com",
+              firstName: user.firstName || "Usuário",
+              lastName: user.lastName || "Desenvolvimento",
+              phone: user.phone || "+55 (11) 99999-9999",
+              profileImageUrl: user.profileImageUrl || "https://i.pravatar.cc/300",
+              updatedAt: new Date(),
+            });
+            
+            // Buscar o usuário atualizado
+            user = await storage.getUser(req.session.devUserId);
+            console.log("- Dados completos do usuário disponibilizados");
             return res.json(user);
           }
         }
@@ -74,8 +91,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar login alternativo primeiro
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         console.log("- Usando autenticação de desenvolvimento");
-        const user = await storage.getUser(req.session.devUserId);
+        // Buscar o usuário completo do banco de dados
+        let user = await storage.getUser(req.session.devUserId);
+        
+        // Garantir que o usuário tenha todos os campos preenchidos
         if (user) {
+          // Se faltar algum campo, atualizar o usuário no banco
+          await storage.upsertUser({
+            id: user.id,
+            email: user.email || "applution@gmail.com",
+            firstName: user.firstName || "Usuário",
+            lastName: user.lastName || "Desenvolvimento",
+            phone: user.phone || "+55 (11) 99999-9999",
+            profileImageUrl: user.profileImageUrl || "https://i.pravatar.cc/300",
+            updatedAt: new Date(),
+          });
+          
+          // Buscar o usuário atualizado
+          user = await storage.getUser(req.session.devUserId);
+          console.log("- Dados completos do usuário disponibilizados");
           return res.json(user);
         }
       }
