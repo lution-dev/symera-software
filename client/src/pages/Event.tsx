@@ -292,36 +292,122 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       )}
       
-      {/* Event Header - Otimizado para mobile */}
+      {/* Event Header - Redesenhado para melhor distribuição de espaço */}
       <div className="bg-card p-4 sm:p-6 rounded-xl mb-6 shadow-sm">
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <div className="flex items-center">
-              <i className="fas fa-calendar-day mr-2 text-primary min-w-[16px]"></i>
-              <span className="text-sm sm:text-base truncate">{formatDate(event.date)}</span>
-            </div>
-            {event.location && (
-              <div className="flex items-center">
-                <i className="fas fa-map-marker-alt mr-2 text-primary min-w-[16px]"></i>
-                <span className="text-sm sm:text-base truncate">{event.location}</span>
+        {/* Cabeçalho com status à direita */}
+        <div className="flex justify-between items-start mb-4">
+          <h2 className="text-lg sm:text-xl font-medium">Detalhes do Evento</h2>
+          
+          {/* Status Change Button - Posicionado à direita */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="h-9 sm:h-10 text-sm sm:text-base flex items-center gap-2">
+                <i className="fas fa-flag mr-1 sm:mr-2"></i>
+                <span className="hidden xs:inline">Alterar Status</span>
+                <span className={`h-2 w-2 rounded-full ${
+                  event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+                  event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                  event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+                  event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+                  'bg-[hsl(var(--event-planning))]'
+                }`}></span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Selecione o novo status para o evento. Isso afetará como o evento é exibido em toda a plataforma.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="py-4">
+                <Select
+                  defaultValue={event.status}
+                  onValueChange={(value) => {
+                    updateEventStatusMutation.mutate(value);
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Status</SelectLabel>
+                      <SelectItem value="planning" className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-planning))]"></span>
+                        <span>Planejamento</span>
+                        <span className="text-xs text-muted-foreground ml-2">- Evento em construção</span>
+                      </SelectItem>
+                      <SelectItem value="confirmed" className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
+                        <span>Confirmado</span>
+                        <span className="text-xs text-muted-foreground ml-2">- Planejamento completo</span>
+                      </SelectItem>
+                      <SelectItem value="in_progress" className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                        <span>Em andamento</span>
+                        <span className="text-xs text-muted-foreground ml-2">- Evento ocorrendo agora</span>
+                      </SelectItem>
+                      <SelectItem value="active" className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                        <span>Ativo</span>
+                        <span className="text-xs text-muted-foreground ml-2">- Status legado</span>
+                      </SelectItem>
+                      <SelectItem value="completed" className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-completed))]"></span>
+                        <span>Concluído</span>
+                        <span className="text-xs text-muted-foreground ml-2">- Evento finalizado</span>
+                      </SelectItem>
+                      <SelectItem value="cancelled" className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-cancelled))]"></span>
+                        <span>Cancelado</span>
+                        <span className="text-xs text-muted-foreground ml-2">- Evento não será realizado</span>
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-            {event.attendees && (
-              <div className="flex items-center">
-                <i className="fas fa-user-friends mr-2 text-primary min-w-[16px]"></i>
-                <span className="text-sm sm:text-base truncate">{event.attendees} convidados</span>
-              </div>
-            )}
-            {event.budget && (
-              <div className="flex items-center">
-                <i className="fas fa-coins mr-2 text-primary min-w-[16px]"></i>
-                <span className="text-sm sm:text-base truncate">{formatCurrency(event.budget)}</span>
-              </div>
-            )}
-          </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
         
-          {/* Botões de ação - mais compactos no mobile, agora inclui botão de status */}
-          <div className="flex flex-wrap gap-2 mt-1 sm:mt-2">
+        {/* Duas colunas: informações à esquerda, botões à direita */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Coluna de informações */}
+          <div className="flex-1">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
+              <div className="flex items-center">
+                <i className="fas fa-calendar-day mr-2 text-primary min-w-[16px]"></i>
+                <span className="text-sm sm:text-base truncate">{formatDate(event.date)}</span>
+              </div>
+              {event.location && (
+                <div className="flex items-center">
+                  <i className="fas fa-map-marker-alt mr-2 text-primary min-w-[16px]"></i>
+                  <span className="text-sm sm:text-base truncate">{event.location}</span>
+                </div>
+              )}
+              {event.attendees && (
+                <div className="flex items-center">
+                  <i className="fas fa-user-friends mr-2 text-primary min-w-[16px]"></i>
+                  <span className="text-sm sm:text-base truncate">{event.attendees} convidados</span>
+                </div>
+              )}
+              {event.budget && (
+                <div className="flex items-center">
+                  <i className="fas fa-coins mr-2 text-primary min-w-[16px]"></i>
+                  <span className="text-sm sm:text-base truncate">{formatCurrency(event.budget)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Coluna de botões - alinhados à direita */}
+          <div className="flex gap-2 flex-wrap justify-start sm:justify-end">
             <Link href={`/events/${eventId}/checklist`}>
               <Button variant="outline" className="h-9 sm:h-10 text-sm sm:text-base">
                 <i className="fas fa-tasks mr-1 sm:mr-2"></i> <span className="hidden xs:inline">Checklist</span><span className="xs:hidden">Lista</span>
@@ -332,84 +418,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 <i className="fas fa-edit mr-1 sm:mr-2"></i> Editar
               </Button>
             </Link>
-            
-            {/* Status Change Button - Incorporado com os outros botões */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="h-9 sm:h-10 text-sm sm:text-base flex items-center gap-2">
-                  <i className="fas fa-flag mr-1 sm:mr-2"></i>
-                  <span className="hidden xs:inline">Status</span>
-                  <span className={`h-2 w-2 rounded-full ${
-                    event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
-                    event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
-                    event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                    event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                    event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
-                    event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
-                    'bg-[hsl(var(--event-planning))]'
-                  }`}></span>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Selecione o novo status para o evento. Isso afetará como o evento é exibido em toda a plataforma.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="py-4">
-                  <Select
-                    defaultValue={event.status}
-                    onValueChange={(value) => {
-                      updateEventStatusMutation.mutate(value);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione o status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Status</SelectLabel>
-                        <SelectItem value="planning" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-planning))]"></span>
-                          <span>Planejamento</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Evento em construção</span>
-                        </SelectItem>
-                        <SelectItem value="confirmed" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
-                          <span>Confirmado</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Planejamento completo</span>
-                        </SelectItem>
-                        <SelectItem value="in_progress" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                          <span>Em andamento</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Evento ocorrendo agora</span>
-                        </SelectItem>
-                        <SelectItem value="active" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                          <span>Ativo</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Status legado</span>
-                        </SelectItem>
-                        <SelectItem value="completed" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-completed))]"></span>
-                          <span>Concluído</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Evento finalizado</span>
-                        </SelectItem>
-                        <SelectItem value="cancelled" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-cancelled))]"></span>
-                          <span>Cancelado</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Evento não será realizado</span>
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            
             <Button variant="destructive" onClick={handleDeleteEvent} className="h-9 sm:h-10 text-sm sm:text-base">
               <i className="fas fa-trash-alt mr-1 sm:mr-2"></i> <span className="hidden xs:inline">Excluir</span><span className="xs:hidden">Del</span>
             </Button>
