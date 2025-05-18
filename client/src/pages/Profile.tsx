@@ -178,13 +178,7 @@ const Profile: React.FC = () => {
               </div>
             </div>
 
-            <div className="absolute top-0 right-0 sm:static sm:ml-2">
-              <Link href="/settings">
-                <Button variant="outline" size="icon">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
+            {/* Removido o botão de configurações para usar o card na visão mobile */}
           </div>
 
           <div className="mt-4 text-xs text-muted-foreground text-center sm:text-right">
@@ -238,7 +232,7 @@ const Profile: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 mb-4">
                 <div onClick={() => navigate("/profile/eventos")} className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
                   <Calendar className="h-5 w-5 text-primary mx-auto mb-2" />
                   <h3 className="text-xl font-bold">{Array.isArray(userEvents) ? userEvents.length : 0}</h3>
@@ -250,19 +244,20 @@ const Profile: React.FC = () => {
                   <h3 className="text-xl font-bold">0</h3>
                   <p className="text-xs text-muted-foreground">Equipe</p>
                 </div>
-
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
                 <div onClick={() => navigate("/profile/lembretes")} className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
                   <Bell className="h-5 w-5 text-primary mx-auto mb-2" />
                   <h3 className="text-xl font-bold">0</h3>
                   <p className="text-xs text-muted-foreground">Lembretes</p>
                 </div>
-              </div>
-              
-              <div className="mt-4">
-                <Button variant="outline" className="w-full" onClick={() => navigate("/settings")}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Ver todas as configurações
-                </Button>
+                
+                <div onClick={() => navigate("/profile/configuracoes")} className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
+                  <Settings className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <h3 className="text-xl font-bold">4</h3>
+                  <p className="text-xs text-muted-foreground">Configurações</p>
+                </div>
               </div>
             </CardContent>
           </Card>

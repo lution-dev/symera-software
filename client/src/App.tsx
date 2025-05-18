@@ -70,6 +70,11 @@ function Router() {
       <Route path="/profile/eventos" component={() => <ProtectedRoute component={ProfileEventos} />} />
       <Route path="/profile/equipe" component={() => <ProtectedRoute component={ProfileEquipe} />} />
       <Route path="/profile/lembretes" component={() => <ProtectedRoute component={ProfileLembretes} />} />
+      <Route path="/profile/configuracoes" component={() => <ProtectedRoute component={ProfileConfiguracoes} />} />
+      <Route path="/profile/configuracoes/perfil" component={() => <ProtectedRoute component={ProfileConfigPerfil} />} />
+      <Route path="/profile/configuracoes/notificacoes" component={() => <ProtectedRoute component={ProfileConfigNotificacoes} />} />
+      <Route path="/profile/configuracoes/aparencia" component={() => <ProtectedRoute component={ProfileConfigAparencia} />} />
+      <Route path="/profile/configuracoes/seguranca" component={() => <ProtectedRoute component={ProfileConfigSeguranca} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route component={NotFound} />
     </Switch>
