@@ -181,11 +181,11 @@ const Sidebar: React.FC = () => {
       )}>
         <div className={cn(
           "flex items-center",
-          collapsed ? "justify-center" : "justify-between"
+          collapsed ? "justify-center" : "justify-between gap-2 w-full"
         )}>
           {!collapsed && (
             <Link href="/profile">
-              <div className="flex items-center flex-grow cursor-pointer hover:opacity-80 transition-opacity">
+              <div className="flex items-center w-full cursor-pointer hover:opacity-80 transition-opacity">
                 <Avatar className="h-10 w-10 flex-shrink-0">
                   {user?.profileImageUrl ? (
                     <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
@@ -194,11 +194,11 @@ const Sidebar: React.FC = () => {
                     {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="ml-3 min-w-0 overflow-hidden">
-                  <p className="text-sm font-medium truncate">
+                <div className="ml-3 min-w-0 flex-1 overflow-hidden">
+                  <p className="text-sm font-medium truncate max-w-[calc(100%-10px)]">
                     {user?.firstName || ''} {user?.lastName || ''}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+                  <p className="text-xs text-muted-foreground truncate max-w-[calc(100%-10px)]">{user?.email || ''}</p>
                 </div>
               </div>
             </Link>
@@ -212,8 +212,8 @@ const Sidebar: React.FC = () => {
                   <AlertDialogTrigger asChild>
                     <div
                       className={cn(
-                        "text-muted-foreground hover:text-foreground cursor-pointer",
-                        collapsed ? "" : "ml-2 flex-shrink-0"
+                        "text-muted-foreground hover:text-foreground cursor-pointer flex-shrink-0",
+                        collapsed ? "" : "ml-2"
                       )}
                       title="Sair"
                     >
