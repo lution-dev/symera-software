@@ -162,7 +162,7 @@ const Profile: React.FC = () => {
                 </AvatarFallback>
               </Avatar>
             </div>
-            
+
             <div className="flex-1 text-center sm:text-left sm:ml-6">
               <h2 className="text-xl font-bold">
                 {userData?.firstName} {userData?.lastName}
@@ -177,7 +177,7 @@ const Profile: React.FC = () => {
                 </Badge>
               </div>
             </div>
-            
+
             <div className="absolute top-0 right-0 sm:static sm:ml-2">
               <Link href="/settings">
                 <Button variant="outline" size="icon">
@@ -186,7 +186,7 @@ const Profile: React.FC = () => {
               </Link>
             </div>
           </div>
-          
+
           <div className="mt-4 text-xs text-muted-foreground text-center sm:text-right">
             Membro desde {userData?.createdAt ? getFormattedDate(userData.createdAt) : "data desconhecida"}
           </div>
@@ -198,9 +198,9 @@ const Profile: React.FC = () => {
         <TabsList className="flex mb-6">
           <TabsTrigger value="activities" className="min-w-[80px] flex-1">Atividades</TabsTrigger>
           <TabsTrigger value="upcoming" className="min-w-[80px] flex-1">Eventos</TabsTrigger>
-          <TabsTrigger value="stats" className="min-w-[80px] flex-1">Stats</TabsTrigger>
+          <TabsTrigger value="stats" className="min-w-[80px] flex-1">Estatísticas</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="activities" className="space-y-4 mt-0">
           <Card>
             <CardHeader className="pb-3">
@@ -214,7 +214,7 @@ const Profile: React.FC = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="upcoming" className="space-y-4 mt-0">
           <Card>
             <CardHeader className="pb-3">
@@ -228,7 +228,7 @@ const Profile: React.FC = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="stats" className="space-y-4 mt-0">
           <Card>
             <CardHeader className="pb-3">
@@ -244,13 +244,13 @@ const Profile: React.FC = () => {
                   <h3 className="text-xl font-bold">{Array.isArray(userEvents) ? userEvents.length : 0}</h3>
                   <p className="text-xs text-muted-foreground">Eventos</p>
                 </div>
-                
+
                 <div className="text-center p-3 bg-background border rounded-lg">
                   <Users className="h-5 w-5 text-primary mx-auto mb-2" />
                   <h3 className="text-xl font-bold">0</h3>
                   <p className="text-xs text-muted-foreground">Equipe</p>
                 </div>
-                
+
                 <div className="text-center p-3 bg-background border rounded-lg">
                   <Bell className="h-5 w-5 text-primary mx-auto mb-2" />
                   <h3 className="text-xl font-bold">0</h3>
