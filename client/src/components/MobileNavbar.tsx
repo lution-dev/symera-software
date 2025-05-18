@@ -120,10 +120,10 @@ const MobileNavbar: React.FC = () => {
             <Link href="/profile">
               <Avatar className="h-8 w-8 cursor-pointer">
                 {user?.profileImageUrl ? (
-                  <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
+                  <AvatarImage src={user.profileImageUrl} alt={user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Usuário'} />
                 ) : null}
                 <AvatarFallback className="bg-gradient-primary text-white text-xs">
-                  {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
+                  {getInitials(user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || '')}
                 </AvatarFallback>
               </Avatar>
             </Link>
@@ -175,10 +175,10 @@ const MobileNavbar: React.FC = () => {
               <div className="flex items-center mb-6">
                 <Avatar className="h-10 w-10 mr-3">
                   {user?.profileImageUrl ? (
-                    <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
+                    <AvatarImage src={user.profileImageUrl} alt={user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Usuário'} />
                   ) : null}
                   <AvatarFallback className="bg-gradient-primary text-white">
-                    {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
+                    {getInitials(user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || '')}
                   </AvatarFallback>
                 </Avatar>
                 <div>
