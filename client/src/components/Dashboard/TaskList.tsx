@@ -212,7 +212,10 @@ const TaskList: React.FC<TaskListProps> = ({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => navigate(`/events/${task.eventId}/tasks/${task.id}/edit`)}
+                      onClick={() => {
+                        console.log(`Navegando para: /events/${task.eventId}/tasks/${task.id}/edit`);
+                        navigate(`/events/${task.eventId}/tasks/${task.id}/edit`);
+                      }}
                     >
                       <i className="fas fa-pencil-alt text-amber-400"></i>
                     </Button>
