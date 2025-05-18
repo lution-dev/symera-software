@@ -64,9 +64,9 @@ const MobileNavbar: React.FC = () => {
       {/* Topo do App (estilo iOS/Android) */}
       <div 
         className={cn(
-          "fixed top-0 inset-x-0 md:hidden z-40 transition-all duration-300", 
+          "fixed top-0 inset-x-0 md:hidden z-40 transition-all duration-300 bg-card border-b border-border", 
           showNavbarTop ? "translate-y-0" : "-translate-y-full",
-          hasScrolled ? "bg-card/90 backdrop-blur-md shadow-md border-b border-border" : ""
+          hasScrolled ? "shadow-md" : ""
         )}
       >
         <div className="flex items-center justify-between h-14 px-4">
