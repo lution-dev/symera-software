@@ -80,7 +80,22 @@ const MobileNavbar: React.FC = () => {
     if (location === '/schedule') return 'Agenda';
     if (location === '/settings') return 'Configurações';
     if (location === '/profile') return 'Meu Perfil';
+    if (location === '/profile/configuracoes') return 'Configurações';
+    if (location === '/profile/configuracoes/perfil') return 'Perfil';
+    if (location === '/profile/configuracoes/notificacoes') return 'Notificações';
+    if (location === '/profile/configuracoes/aparencia') return 'Aparência';
+    if (location === '/profile/configuracoes/seguranca') return 'Segurança';
     return 'Symera';
+  };
+  
+  // Determinar o destino do botão de voltar
+  const getBackButtonDestination = () => {
+    if (location === '/events/new') return '/events';
+    if (location.startsWith('/events/')) return '/events';
+    if (location.startsWith('/profile/configuracoes/')) return '/profile/configuracoes';
+    if (location === '/profile/configuracoes') return '/profile';
+    if (location.startsWith('/settings/')) return '/settings';
+    return '/';
   };
   
   // Todas as páginas terão título na navbar, seguindo o padrão de apps profissionais
@@ -101,7 +116,9 @@ const MobileNavbar: React.FC = () => {
         {/* Header Principal - sempre visível */}
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center">
-            {!location.includes('/events/') && location !== '/events/new' ? (
+            {/* Verificamos se deve mostrar o menu hamburguer ou o botão de voltar */}
+            {!location.includes('/events/') && location !== '/events/new' && 
+              !location.includes('/profile/configuracoes/') && !location.includes('/settings/') ? (
               <>
                 {/* Menu toggle no estilo dos exemplos */}
                 <Sheet>
@@ -147,10 +164,20 @@ const MobileNavbar: React.FC = () => {
                 </h1>
               </>
             ) : (
-              <Link href={location === '/events/new' ? '/events' : '/events'}>
+              <Link href={location === '/events/new' 
+                  ? '/events' 
+                  : location.startsWith('/events/') 
+                  ? '/events'
+                  : location.startsWith('/profile/configuracoes/') 
+                  ? '/profile/configuracoes'
+                  : location === '/profile/configuracoes' 
+                  ? '/profile'
+                  : location.startsWith('/settings/') 
+                  ? '/settings'
+                  : '/'}>
                 <div className="flex items-center">
                   <i className="fas fa-chevron-left mr-2 text-primary"></i>
-                  <span>{location === '/events/new' ? 'Eventos' : 'Voltar'}</span>
+                  <span>Voltar</span>
                 </div>
               </Link>
             )}
