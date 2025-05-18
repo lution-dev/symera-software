@@ -18,22 +18,22 @@ const MetricCard: React.FC<MetricCardProps> = ({
   change,
 }) => {
   return (
-    <div className="bg-card rounded-lg p-5 shadow-lg">
+    <div className="bg-card rounded-lg p-4 sm:p-5 shadow-lg">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-muted-foreground text-sm">{title}</p>
-          <h2 className="text-3xl font-bold text-white mt-1">{value}</h2>
+          <p className="text-muted-foreground text-xs sm:text-sm">{title}</p>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-1">{value}</h2>
         </div>
-        <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-          <i className={`fas fa-${icon} text-primary text-xl`}></i>
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full flex items-center justify-center">
+          <i className={`fas fa-${icon} text-primary text-lg sm:text-xl`}></i>
         </div>
       </div>
       {change && (
-        <div className="mt-4 flex items-center">
-          <span className={`text-sm flex items-center ${change.trend === "up" ? "text-green-400" : change.trend === "down" ? "text-red-400" : "text-gray-400"}`}>
+        <div className="mt-3 sm:mt-4 flex items-center flex-wrap">
+          <span className={`text-xs sm:text-sm flex items-center ${change.trend === "up" ? "text-green-400" : change.trend === "down" ? "text-red-400" : "text-gray-400"}`}>
             <i className={`fas fa-arrow-${change.trend} mr-1`}></i> {change.value}
           </span>
-          <span className="text-muted-foreground text-sm ml-2">{change.text}</span>
+          <span className="text-muted-foreground text-xs sm:text-sm ml-2">{change.text}</span>
         </div>
       )}
     </div>
@@ -56,7 +56,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
   upcomingEventDays = 5
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
       <MetricCard
         title="Total de Eventos"
         value={totalEvents}
@@ -79,16 +79,19 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
         }}
       />
       
-      <MetricCard
-        title="Eventos Este Mês"
-        value={upcomingEvents}
-        icon="calendar-alt"
-        change={{
-          value: upcomingEventDays > 0 ? `Próximo em ${upcomingEventDays} dias` : "Não há eventos próximos",
-          trend: "neutral",
-          text: ""
-        }}
-      />
+      {/* Em telas pequenas, este cartão ocupa toda a largura */}
+      <div className="col-span-2 md:col-span-1">
+        <MetricCard
+          title="Eventos Este Mês"
+          value={upcomingEvents}
+          icon="calendar-alt"
+          change={{
+            value: upcomingEventDays > 0 ? `Próximo em ${upcomingEventDays} dias` : "Não há eventos próximos",
+            trend: "neutral",
+            text: ""
+          }}
+        />
+      </div>
     </div>
   );
 };
