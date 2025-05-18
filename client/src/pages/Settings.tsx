@@ -370,42 +370,46 @@ const Settings: React.FC = () => {
                   <div className="grid gap-4">
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName">Nome</Label>
+                        <Label htmlFor="firstName" className="font-medium">Nome</Label>
                         <Input
                           id="firstName"
                           value={profileForm.firstName}
                           onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})}
+                          className="h-10"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="lastName">Sobrenome</Label>
+                        <Label htmlFor="lastName" className="font-medium">Sobrenome</Label>
                         <Input
                           id="lastName"
                           value={profileForm.lastName}
                           onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})}
+                          className="h-10"
                         />
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="email">E-mail</Label>
+                        <Label htmlFor="email" className="font-medium">E-mail</Label>
                         <Input
                           id="email"
                           type="email"
                           value={profileForm.email}
                           disabled
+                          className="h-10 opacity-80"
                         />
                         <p className="text-xs text-muted-foreground">
                           O e-mail não pode ser alterado
                         </p>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Telefone</Label>
+                        <Label htmlFor="phone" className="font-medium">Telefone</Label>
                         <Input
                           id="phone"
                           value={profileForm.phone}
                           onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
                           placeholder="(00) 00000-0000"
+                          className="h-10"
                         />
                       </div>
                     </div>
