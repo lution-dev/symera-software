@@ -430,8 +430,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
           </div>
         </div>
         
-        {/* Info Grid */}
-        <div className="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-border/40">
+        {/* Info Grid com ações integradas */}
+        <div className="p-4 sm:p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-start">
             <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
               <i className="fas fa-calendar-day text-sm"></i>
@@ -477,27 +477,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
               </div>
             </div>
           )}
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="flex p-4 sm:p-5 items-center justify-between">
-          <div className="flex gap-2">
-            <Link href={`/events/${eventId}/checklist`}>
-              <Button variant="outline" className="h-9 sm:h-10 text-sm">
-                <i className="fas fa-tasks mr-1.5"></i> Checklist
-              </Button>
-            </Link>
-            
-            <Button variant="outline" onClick={() => navigate(`/events/${eventId}/vendors`)} className="h-9 sm:h-10 text-sm">
-              <i className="fas fa-store mr-1.5"></i> Fornecedores
-            </Button>
-          </div>
-          
-          <div>
-            <Button variant="default" className="h-9 sm:h-10 text-sm">
-              <i className="fas fa-user-plus mr-1.5"></i> Convidar
-            </Button>
-          </div>
         </div>
       </div>
       
