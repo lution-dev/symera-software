@@ -98,11 +98,11 @@ const EventCard: React.FC<EventCardProps> = ({
     <Link href={`/events/${id}`}>
       <div className="bg-card rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow animate-fadeIn cursor-pointer mobile-card">
         {/* Cover image with status badge */}
-        <div className="relative overflow-hidden">
+        <div className="relative">
           <img 
             src={coverImage || getDefaultCover()} 
             alt={`${name} - ${getEventTypeLabel(type)}`} 
-            className="w-full object-cover rounded-t-lg"
+            className="w-full h-36 object-cover"
           />
           
           {/* Status badge - more prominent on mobile */}
