@@ -319,8 +319,8 @@ const Settings: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                    <Avatar className="h-20 w-20">
+                  <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-center">
+                    <Avatar className="h-20 w-20 mx-auto sm:mx-0">
                       {profileForm.profileImageUrl ? (
                         <AvatarImage 
                           src={profileForm.profileImageUrl} 
@@ -331,12 +331,12 @@ const Settings: React.FC = () => {
                         {getInitials(`${profileForm.firstName} ${profileForm.lastName}`)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 text-center sm:text-left w-full">
                       <h3 className="font-semibold text-lg">Foto de Perfil</h3>
                       <p className="text-sm text-muted-foreground">
                         Sua foto será exibida em seu perfil e nas notificações
                       </p>
-                      <div className="flex gap-2 mt-2">
+                      <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
                         <input
                           type="file"
                           ref={fileInputRef}
@@ -348,6 +348,7 @@ const Settings: React.FC = () => {
                           variant="outline" 
                           size="sm"
                           onClick={handleChooseImage}
+                          className="w-full sm:w-auto"
                         >
                           Alterar
                         </Button>
@@ -356,6 +357,7 @@ const Settings: React.FC = () => {
                           size="sm" 
                           onClick={() => setProfileForm({...profileForm, profileImageUrl: ""})}
                           disabled={!profileForm.profileImageUrl}
+                          className="w-full sm:w-auto"
                         >
                           Remover
                         </Button>
@@ -775,17 +777,17 @@ const Settings: React.FC = () => {
                     <div className="mt-8">
                       <h3 className="text-lg font-semibold text-destructive mb-4">Zona de Perigo</h3>
                       <div className="rounded-xl border border-destructive/15 bg-destructive/5 p-5">
-                        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                          <div className="bg-destructive/10 p-3 rounded-full sm:mt-1">
+                        <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+                          <div className="bg-destructive/10 p-3 rounded-full">
                             <Trash2 className="h-5 w-5 text-destructive" />
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 text-center sm:text-left">
                             <h4 className="font-medium text-destructive text-lg">Excluir Conta</h4>
                             <p className="text-sm text-muted-foreground mt-2">
                               Ao excluir sua conta, todos os seus dados serão permanentemente removidos de nossos servidores. 
                               Esta ação não pode ser desfeita, então tenha certeza antes de prosseguir.
                             </p>
-                            <div className="mt-4">
+                            <div className="mt-4 flex justify-center sm:justify-start">
                               <Button 
                                 variant="destructive" 
                                 size="sm"
