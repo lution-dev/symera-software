@@ -197,13 +197,13 @@ const MobileNavbar: React.FC = () => {
         {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
               <i className={cn(
-                "fas fa-home h-6 w-6",
+                "fas fa-home h-6 w-6 mb-1",
                 isActivePath('/') ? "text-primary" : "text-foreground"
               )}></i>
               <span className={cn(
-                "text-xs mt-1",
+                "text-xs text-center w-full",
                 isActivePath('/') ? "text-primary" : "text-foreground"
               )}>
                 Início
@@ -214,13 +214,13 @@ const MobileNavbar: React.FC = () => {
         
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/events" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
               <i className={cn(
-                "fas fa-calendar-alt h-6 w-6",
+                "fas fa-calendar-alt h-6 w-6 mb-1",
                 isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
               )}></i>
               <span className={cn(
-                "text-xs mt-1",
+                "text-xs text-center w-full",
                 isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
               )}>
                 Eventos
@@ -232,12 +232,12 @@ const MobileNavbar: React.FC = () => {
         {/* Botão de adicionar no centro */}
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/events/new" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
               <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
                 <i className="fas fa-plus text-white"></i>
               </div>
               <span className={cn(
-                "text-xs mt-1 text-center",
+                "text-xs mt-1 text-center w-full",
                 isActivePath('/events/new') ? "text-primary" : "text-foreground"
               )}>
                 Novo
@@ -248,13 +248,13 @@ const MobileNavbar: React.FC = () => {
         
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/schedule" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
               <i className={cn(
-                "fas fa-calendar-day h-6 w-6",
+                "fas fa-calendar-day h-6 w-6 mb-1",
                 isActivePath('/schedule') ? "text-primary" : "text-foreground"
               )}></i>
               <span className={cn(
-                "text-xs mt-1",
+                "text-xs text-center w-full",
                 isActivePath('/schedule') ? "text-primary" : "text-foreground"
               )}>
                 Agenda
@@ -265,17 +265,17 @@ const MobileNavbar: React.FC = () => {
         
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/profile" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
               {user?.profileImageUrl ? (
                 <div className={cn(
-                  "h-6 w-6 rounded-full overflow-hidden border-2",
+                  "h-8 w-8 rounded-full overflow-hidden border-2",
                   isActivePath('/profile') ? "border-primary" : "border-transparent"
                 )}>
                   <img src={user.profileImageUrl} alt="Perfil" className="h-full w-full object-cover" />
                 </div>
               ) : (
                 <div className={cn(
-                  "h-6 w-6 rounded-full overflow-hidden flex items-center justify-center bg-gradient-primary",
+                  "h-8 w-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-primary",
                   isActivePath('/profile') ? "border-2 border-primary" : ""
                 )}>
                   <span className="text-xs text-white">
