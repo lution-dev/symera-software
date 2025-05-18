@@ -49,6 +49,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   
+  // Estados para controle do modal de tarefas
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [taskIdToEdit, setTaskIdToEdit] = useState<number | undefined>(undefined);
+  
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
   
@@ -647,7 +651,13 @@ const Event: React.FC<EventProps> = ({ id }) => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Checklist do Evento</h2>
             <div className="flex gap-2">
-              <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default">
+              <Button 
+                onClick={() => {
+                  setTaskIdToEdit(undefined);  // Modo de criação
+                  setTaskModalOpen(true);
+                }} 
+                variant="default"
+              >
                 <i className="fas fa-plus mr-2"></i> Nova Tarefa
               </Button>
               <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
@@ -661,6 +671,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
             tasks={tasks}
             loading={tasksLoading}
             showEventName={false}
+            onTaskEdit={(taskId) => {
+              setTaskIdToEdit(taskId);
+              setTaskModalOpen(true);
+            }}
           />
         </TabsContent>
         
@@ -858,6 +872,21 @@ const getTaskPriorityClass = (priority: string) => {
     case "low": return "bg-green-500/10 text-green-500";
     default: return "bg-gray-500/10 text-gray-400";
   }
+};
+
+      {/* Modal de criação/edição de tarefa */}
+      <TaskFormModal
+        open={taskModalOpen}
+        onOpenChange={setTaskModalOpen}
+        eventId={Number(eventId)}
+        taskId={taskIdToEdit}
+        onSuccess={() => {
+          // Recarregar as tarefas após sucesso
+          queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] })
+        }}
+      />
+    </>
+  );
 };
 
 export default Event;
