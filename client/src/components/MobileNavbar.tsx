@@ -118,7 +118,7 @@ const MobileNavbar: React.FC = () => {
           <div className="flex items-center w-12">
             {/* Verificamos se deve mostrar o menu hamburguer ou o botão de voltar */}
             {!location.includes('/events/') && location !== '/events/new' && 
-              !location.includes('/profile/configuracoes/') && !location.includes('/settings/') ? (
+              !location.includes('/profile/configuracoes') && !location.includes('/settings/') ? (
               <>
                 {/* Menu toggle no estilo dos exemplos */}
                 <Sheet>
@@ -167,6 +167,8 @@ const MobileNavbar: React.FC = () => {
                   : location.startsWith('/profile/configuracoes/') 
                   ? '/profile/configuracoes'
                   : location === '/profile/configuracoes' 
+                  ? '/profile'
+                  : location.startsWith('/profile/configuracoes') 
                   ? '/profile'
                   : location.startsWith('/settings/') 
                   ? '/settings'
