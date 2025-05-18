@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { devModeAuth, ensureDevAuth } from "./devMode";
 import { 
   CreateEventData, 
   CreateTaskData, 
@@ -16,6 +17,9 @@ import { generateEventChecklist } from "./openai";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  
+  // Ativar autenticação de desenvolvimento para ambiente de preview
+  app.use(devModeAuth);
   
   // Login alternativo temporário para contornar problemas do Replit Auth
   app.post('/api/auth/dev-login', async (req, res) => {
@@ -49,12 +53,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - Versão melhorada com suporte a persistência de sessão
-  app.get('/api/auth/user', async (req: any, res) => {
+  app.get('/api/auth/user', ensureDevAuth, async (req: any, res) => {
     try {
       console.log("Verificando autenticação do usuário:");
       console.log("- Session ID:", req.sessionID);
       console.log("- Is Authenticated:", req.isAuthenticated());
       console.log("- Session dev auth:", req.session.devIsAuthenticated);
+      
+      // Em ambiente de preview do Replit, sempre usar o modo de desenvolvimento
+      if (process.env.REPL_ID) {
+        if (req.session.devIsAuthenticated && req.session.devUserId) {
+          console.log("- Usando autenticação de desenvolvimento no ambiente Replit");
+          const user = await storage.getUser(req.session.devUserId);
+          if (user) {
+            return res.json(user);
+          }
+        }
+      }
       
       // Verificar login alternativo primeiro
       if (req.session.devIsAuthenticated && req.session.devUserId) {
