@@ -75,8 +75,8 @@ const TIP_SETS = [
         description: "Adapte a plataforma às necessidades específicas do seu evento com configurações avançadas."
       }
     ],
-    ctaText: "Explorar recursos avançados",
-    ctaLink: "/settings"
+    ctaText: "Criar novo evento",
+    ctaLink: "/events/new"
   },
   
   // Set 3: Dicas de produtividade e controle
@@ -108,8 +108,8 @@ const TIP_SETS = [
         description: "Estime e controle o tempo necessário para cada tarefa para garantir prazos realistas."
       }
     ],
-    ctaText: "Ver minhas tarefas pendentes",
-    ctaLink: "/tasks"
+    ctaText: "Criar novo evento",
+    ctaLink: "/events/new"
   }
 ];
 
