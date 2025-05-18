@@ -55,6 +55,20 @@ const Settings: React.FC = () => {
   const { user } = useAuth();
   const [activeTheme, setActiveTheme] = React.useState<"light" | "dark" | "system">("system");
   
+  // Get the initial tab from URL query parameter
+  const getInitialTab = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab && ['profile', 'notifications', 'appearance', 'security'].includes(tab)) {
+        return tab;
+      }
+    }
+    return 'profile';
+  };
+  
+  const initialTab = getInitialTab();
+  
   // Formulário de perfil
   const [profileForm, setProfileForm] = React.useState<ProfileForm>({
     firstName: "",
@@ -87,7 +101,7 @@ const Settings: React.FC = () => {
     mutationFn: async (data: Partial<ProfileForm>) => {
       return apiRequest("/api/user/profile", {
         method: "PUT",
-        body: data, // Removed JSON.stringify - apiRequest already handles this
+        body: data,
         headers: {
           "Content-Type": "application/json"
         }
@@ -269,7 +283,7 @@ const Settings: React.FC = () => {
         <h1 className="text-3xl font-bold">Configurações</h1>
       </div>
       
-      <Tabs defaultValue="profile" className="w-full">
+      <Tabs defaultValue={initialTab} className="w-full">
         <div className="flex flex-col md:flex-row gap-6">
           <div className="md:w-64 shrink-0">
             <Card className="border shadow-sm">
