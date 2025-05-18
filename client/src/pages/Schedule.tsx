@@ -330,12 +330,12 @@ const Schedule: React.FC = () => {
         </div>
       </div>
       
-      {/* Mobile: Barra de controle compacta com ícones */}
-      <div className="flex sm:hidden justify-between items-center mb-3">
-        <div className="flex gap-2">
+      {/* Mobile: Controles superiores reajustados */}
+      <div className="flex sm:hidden justify-between items-center bg-card rounded-md p-2 mb-3 shadow-sm">
+        <div className="flex gap-1.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md">
                 <Filter className="h-3.5 w-3.5" />
                 {(statusFilter || priorityFilter || eventFilter) && (
                   <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-[0.6rem] flex items-center justify-center">
@@ -383,67 +383,71 @@ const Schedule: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Dialog open={showNewItemDialog} onOpenChange={setShowNewItemDialog}>
-            <DialogTrigger asChild>
-              <Button size="icon" className="h-8 w-8">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[90%] sm:w-auto">
-              <DialogHeader>
-                <DialogTitle>Adicionar item</DialogTitle>
-                <DialogDescription>
-                  {formatDate(selectedDate)}
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4 py-4">
-                <div className="flex justify-center space-x-4 w-full">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => {
-                      try {
-                        setShowNewItemDialog(false);
-                        localStorage.setItem('selectedEventDate', selectedDate.toISOString().split('T')[0]);
-                        navigate("/events/new");
-                      } catch (err) {
-                        console.error("Erro ao navegar:", err);
-                      }
-                    }}
-                  >
-                    Evento
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => {
-                      setShowNewItemDialog(false);
-                      navigate("/events");
-                    }}
-                  >
-                    Tarefa
-                  </Button>
-                </div>
-              </div>
-              
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowNewItemDialog(false)}>Cancelar</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-2 text-[0.65rem] text-muted-foreground">
+          {/* Legenda compacta em mobile */}
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-primary/70"></span>
-            <span>Evento</span>
+            <span className="text-xs">Evento</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-red-500/70"></span>
-            <span>Tarefa</span>
+            <span className="text-xs">Tarefa</span>
           </div>
         </div>
+        
+        <Dialog open={showNewItemDialog} onOpenChange={setShowNewItemDialog}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 rounded-md gap-1 px-2 text-xs"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Criar</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="w-[90%] sm:w-auto">
+            <DialogHeader>
+              <DialogTitle>Adicionar item</DialogTitle>
+              <DialogDescription>
+                {formatDate(selectedDate)}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="flex justify-center space-x-4 w-full">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    try {
+                      setShowNewItemDialog(false);
+                      localStorage.setItem('selectedEventDate', selectedDate.toISOString().split('T')[0]);
+                      navigate("/events/new");
+                    } catch (err) {
+                      console.error("Erro ao navegar:", err);
+                    }
+                  }}
+                >
+                  Evento
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setShowNewItemDialog(false);
+                    navigate("/events");
+                  }}
+                >
+                  Tarefa
+                </Button>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowNewItemDialog(false)}>Cancelar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1">

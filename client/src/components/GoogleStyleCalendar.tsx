@@ -178,15 +178,11 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
     }
 
     return (
-      <div className="flex flex-col justify-between gap-3 mb-4 sm:mb-6 px-1">
-        <div className="flex items-center justify-between w-full">
-          {/* Título e data - Simplificado */}
-          <h2 className="text-base sm:text-xl font-bold capitalize">
-            {title}
-          </h2>
-          
-          {/* Navegação mais compacta */}
-          <div className="flex items-center gap-1">
+      <div className="mb-3 sm:mb-6 px-1">
+        {/* Cabeçalho redesenhado para mobile - mais compacto e organizado */}
+        <div className="flex items-center justify-between w-full mb-3">
+          {/* Título e navegação na mesma linha */}
+          <div className="flex items-center gap-1.5">
             <Button 
               variant="ghost"
               size="icon"
@@ -195,14 +191,13 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7 sm:h-8 px-2 sm:px-3"
-              onClick={goToToday}
-            >
-              Hoje
-            </Button>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <h2 className="text-sm sm:text-xl font-medium sm:font-bold capitalize leading-tight">
+                {title}
+              </h2>
+            </div>
+            
             <Button 
               variant="ghost"
               size="icon"
@@ -212,37 +207,52 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
+          
+          {/* Botões de ação na direita */}
+          <div className="flex items-center gap-1.5">
+            <Button 
+              variant="outline"
+              size="sm"
+              className="text-xs h-7 px-2.5"
+              onClick={goToToday}
+            >
+              Hoje
+            </Button>
+            
+            {/* Seletor de visualização integrado na linha principal */}
+            <div className="bg-muted/20 rounded-md border flex h-7">
+              <Button 
+                variant={view === 'day' ? "default" : "ghost"}
+                size="sm"
+                className="h-7 w-7 p-0 rounded-none"
+                onClick={() => setView('day')}
+              >
+                <CalendarIcon className="h-3.5 w-3.5" />
+              </Button>
+              <Button 
+                variant={view === 'week' ? "default" : "ghost"}
+                size="sm"
+                className="h-7 w-7 p-0 rounded-none"
+                onClick={() => setView('week')}
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+              </Button>
+              <Button 
+                variant={view === 'month' ? "default" : "ghost"}
+                size="sm"
+                className="h-7 w-7 p-0 rounded-none"
+                onClick={() => setView('month')}
+              >
+                <CalendarRange className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
         </div>
         
-        {/* Seletor de visualização - Otimizado para mobile */}
-        <div className="bg-muted/20 p-0.5 rounded-md border flex self-center sm:self-end">
-          <Button 
-            variant={view === 'day' ? "default" : "ghost"}
-            size="sm"
-            className="h-8 px-2 sm:px-3 text-xs"
-            onClick={() => setView('day')}
-          >
-            <CalendarIcon className="h-3.5 w-3.5 sm:mr-1.5" />
-            <span className="hidden sm:inline">Dia</span>
-          </Button>
-          <Button 
-            variant={view === 'week' ? "default" : "ghost"}
-            size="sm"
-            className="h-8 px-2 sm:px-3 text-xs"
-            onClick={() => setView('week')}
-          >
-            <CalendarDays className="h-3.5 w-3.5 sm:mr-1.5" />
-            <span className="hidden sm:inline">Semana</span>
-          </Button>
-          <Button 
-            variant={view === 'month' ? "default" : "ghost"}
-            size="sm"
-            className="h-8 px-2 sm:px-3 text-xs"
-            onClick={() => setView('month')}
-          >
-            <CalendarRange className="h-3.5 w-3.5 sm:mr-1.5" />
-            <span className="hidden sm:inline">Mês</span>
-          </Button>
+        {/* Texto explicativo da visualização - apenas em desktop */}
+        <div className="hidden sm:block text-xs text-muted-foreground mb-2">
+          {view === 'day' ? 'Visualização diária' : 
+           view === 'week' ? 'Visualização semanal' : 'Visualização mensal'}
         </div>
       </div>
     );
@@ -514,12 +524,12 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
         // Verificar se tem tarefa pendente
         const hasPendingTask = dayTasks.some(task => task.status !== "completed");
         
-        // Célula do dia
+        // Célula do dia - altura reduzida no mobile
         days.push(
           <div
             key={day.toString()}
             className={cn(
-              "min-h-[8rem] p-1 relative cursor-pointer transition-colors border-r group",
+              "min-h-[4.5rem] sm:min-h-[8rem] p-1 relative cursor-pointer transition-colors border-r group",
               !isSameMonth(day, monthStart) && "text-muted-foreground bg-muted/5",
               isSameDay(day, selectedDate) && !isToday(day) && "bg-accent/30",
               isToday(day) && "bg-primary/5",
@@ -527,11 +537,12 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
             )}
             onClick={() => onDateSelect(cloneDay)}
           >
-            {/* Número do dia */}
-            <div className="flex justify-between items-start mb-1">
+            {/* Número do dia - menor no mobile */}
+            <div className="flex justify-between items-start mb-0.5 sm:mb-1">
               <div
                 className={cn(
-                  "flex items-center justify-center h-7 w-7 text-sm",
+                  "flex items-center justify-center text-xs sm:text-sm",
+                  "h-5 w-5 sm:h-7 sm:w-7",
                   isToday(day) && "bg-primary text-primary-foreground rounded-full font-bold",
                   !isToday(day) && isSameDay(day, selectedDate) && "font-semibold"
                 )}
@@ -539,64 +550,94 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
                 {formattedDate}
               </div>
               
-              {/* Botão de adicionar (visível apenas em hover) */}
+              {/* Botão de adicionar (apenas em desktop) */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:bg-accent/50"
+                className="h-5 w-5 sm:h-6 sm:w-6 hidden sm:inline-flex opacity-0 group-hover:opacity-100 hover:bg-accent/50"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onAddItem) onAddItem(cloneDay);
                 }}
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-3 w-3" />
               </Button>
             </div>
             
             {/* Eventos e tarefas */}
-            <div className="flex flex-col gap-1 max-h-[calc(100%-1.75rem)] overflow-hidden">
-              {/* Primeiro eventos (até 2) */}
-              {dayEvents
-                .slice(0, 2)
-                .map((event, idx) => (
+            <div className="flex flex-col gap-0.5 sm:gap-1 max-h-[calc(100%-1.5rem)] overflow-hidden">
+              {/* Eventos - exibição diferente para mobile e desktop */}
+              <div className="hidden sm:block">
+                {dayEvents
+                  .slice(0, 2)
+                  .map((event, idx) => (
+                    <div 
+                      key={`event-${idx}`}
+                      className="px-1.5 py-0.5 text-xs font-medium rounded truncate bg-primary/80 text-primary-foreground"
+                    >
+                      {event.name}
+                    </div>
+                  ))}
+                  
+                {/* Tarefas em desktop */}
+                {dayTasks
+                  .slice(0, 2)
+                  .map((task, idx) => {
+                    // Determinar a cor da tarefa baseada no status e prioridade
+                    let bgColorClass = task.status === "completed" 
+                      ? "bg-green-500/80 text-white" 
+                      : task.priority === "high" 
+                        ? "bg-red-500/80 text-white" 
+                        : task.status === "in_progress" 
+                          ? "bg-amber-500/80 text-white" 
+                          : "bg-blue-500/80 text-white";
+                    
+                    return (
+                      <div 
+                        key={`task-${idx}`}
+                        className={cn(
+                          "px-1.5 py-0.5 text-xs font-medium rounded truncate flex items-center",
+                          bgColorClass
+                        )}
+                      >
+                        <span className="mr-1">▢</span> {task.title}
+                      </div>
+                    );
+                  })}
+              </div>
+              
+              {/* Mobile: versão compacta com pontos indicadores */}
+              <div className="sm:hidden flex flex-col gap-0.5">
+                {dayEvents.slice(0, 1).map((event, idx) => (
                   <div 
-                    key={`event-${idx}`}
-                    className="px-1.5 py-0.5 text-xs font-medium rounded truncate bg-primary/80 text-primary-foreground"
-                  >
-                    {event.name}
-                  </div>
+                    key={`event-m-${idx}`}
+                    className="h-1.5 rounded-full bg-primary/80"
+                  />
                 ))}
                 
-              {/* Depois tarefas (até 2) */}
-              {dayTasks
-                .slice(0, 2)
-                .map((task, idx) => {
-                  // Determinar a cor da tarefa baseada no status e prioridade
+                {dayTasks.slice(0, 1).map((task, idx) => {
                   let bgColorClass = task.status === "completed" 
-                    ? "bg-green-500/80 text-white" 
+                    ? "bg-green-500/80" 
                     : task.priority === "high" 
-                      ? "bg-red-500/80 text-white" 
-                      : task.status === "in_progress" 
-                        ? "bg-amber-500/80 text-white" 
-                        : "bg-blue-500/80 text-white";
+                      ? "bg-red-500/80" 
+                      : "bg-blue-500/80";
                   
                   return (
                     <div 
-                      key={`task-${idx}`}
-                      className={cn(
-                        "px-1.5 py-0.5 text-xs font-medium rounded truncate flex items-center",
-                        bgColorClass
-                      )}
-                    >
-                      <span className="mr-1">▢</span> {task.title}
-                    </div>
+                      key={`task-m-${idx}`}
+                      className={cn("h-1.5 rounded-full", bgColorClass)}
+                    />
                   );
                 })}
+              </div>
               
-              {/* Indicador de mais itens */}
-              {totalItems > 3 && (
-                <div className="text-xs text-muted-foreground pl-1 mt-0.5">
-                  + {totalItems - 3} mais
+              {/* Indicador de mais itens - adaptado para mobile */}
+              {totalItems > 2 && (
+                <div className={cn(
+                  "text-muted-foreground mt-0.5",
+                  "text-[0.6rem] sm:text-xs"
+                )}>
+                  +{totalItems - 2}
                 </div>
               )}
             </div>
