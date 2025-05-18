@@ -60,10 +60,8 @@ const MobileNavbar: React.FC = () => {
   const menuItems = [
     { path: "/vendors", label: "Fornecedores", icon: "truck" },
     { path: "/budget", label: "Orçamento", icon: "money-bill-wave" },
-    { path: "/teams", label: "Equipes", icon: "users" },
-    { path: "/notifications", label: "Notificações", icon: "bell" },
+    { path: "/team", label: "Equipe", icon: "users" },
     { path: "/settings", label: "Configurações", icon: "cog" },
-    { path: "/help", label: "Ajuda", icon: "question-circle" },
   ];
   
   const isActivePath = (path: string) => {
