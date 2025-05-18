@@ -567,10 +567,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Task routes
   // Endpoint para buscar todas as tarefas do usuário
-  app.get('/api/tasks', isAuthenticated, async (req: any, res) => {
+  app.get('/api/tasks', ensureDevAuth, async (req: any, res) => {
     try {
       console.log('Buscando todas as tarefas do usuário');
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para buscar tarefas:", userId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+        console.log("Usando ID de autenticação Replit para buscar tarefas:", userId);
+      } else {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       // Buscar todos os eventos que o usuário tem acesso
       const events = await storage.getEventsByUser(userId);
