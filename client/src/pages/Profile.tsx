@@ -188,10 +188,10 @@ const Profile: React.FC = () => {
 
       {/* Abas agora vêm após o cabeçalho do perfil */}
       <Tabs defaultValue="activities" className="w-full">
-        <TabsList className="flex mb-6">
-          <TabsTrigger value="activities" className="min-w-[80px] flex-1">Atividades</TabsTrigger>
-          <TabsTrigger value="upcoming" className="min-w-[80px] flex-1">Eventos</TabsTrigger>
-          <TabsTrigger value="stats" className="min-w-[80px] flex-1">Stats</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="activities" className="text-xs sm:text-sm py-2 px-1">Atividades</TabsTrigger>
+          <TabsTrigger value="upcoming" className="text-xs sm:text-sm py-2 px-1">Eventos</TabsTrigger>
+          <TabsTrigger value="stats" className="text-xs sm:text-sm py-2 px-1">Estatísticas</TabsTrigger>
         </TabsList>
         
         <TabsContent value="activities" className="space-y-4 mt-0">
@@ -231,23 +231,29 @@ const Profile: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center p-3 bg-background border rounded-lg">
-                  <Calendar className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <h3 className="text-xl font-bold">{Array.isArray(userEvents) ? userEvents.length : 0}</h3>
-                  <p className="text-xs text-muted-foreground">Eventos</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="flex flex-col items-center justify-center bg-accent/30 rounded-lg py-5 px-3">
+                  <div className="bg-primary/10 rounded-full p-3 mb-3">
+                    <Calendar className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-1">{Array.isArray(userEvents) ? userEvents.length : 0}</h3>
+                  <p className="text-sm text-muted-foreground">Eventos</p>
                 </div>
                 
-                <div className="text-center p-3 bg-background border rounded-lg">
-                  <Users className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <h3 className="text-xl font-bold">0</h3>
-                  <p className="text-xs text-muted-foreground">Equipe</p>
+                <div className="flex flex-col items-center justify-center bg-accent/30 rounded-lg py-5 px-3">
+                  <div className="bg-primary/10 rounded-full p-3 mb-3">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-1">0</h3>
+                  <p className="text-sm text-muted-foreground">Equipe</p>
                 </div>
                 
-                <div className="text-center p-3 bg-background border rounded-lg">
-                  <Bell className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <h3 className="text-xl font-bold">0</h3>
-                  <p className="text-xs text-muted-foreground">Lembretes</p>
+                <div className="flex flex-col items-center justify-center bg-accent/30 rounded-lg py-5 px-3">
+                  <div className="bg-primary/10 rounded-full p-3 mb-3">
+                    <Bell className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-1">0</h3>
+                  <p className="text-sm text-muted-foreground">Lembretes</p>
                 </div>
               </div>
             </CardContent>
