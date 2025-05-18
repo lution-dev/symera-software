@@ -694,7 +694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get('/api/events/:eventId/tasks', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events/:eventId/tasks', ensureDevAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
@@ -1212,7 +1212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Team members routes
-  app.get('/api/events/:eventId/team', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events/:eventId/team', ensureDevAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
