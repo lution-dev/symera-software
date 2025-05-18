@@ -4,6 +4,7 @@ import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from "@/components/Dashboard/TaskList";
+import TaskFormModal from "@/components/Dashboard/TaskFormModal";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
