@@ -633,12 +633,14 @@ const Event: React.FC<EventProps> = ({ id }) => {
       
       {/* Tabs for Tasks, Timeline, etc. */}
       <Tabs defaultValue="tasks" className="mb-8">
-        <TabsList className="mb-4">
-          <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-          <TabsTrigger value="team">Equipe Completa</TabsTrigger>
-          <TabsTrigger value="timeline">Cronograma do Evento</TabsTrigger>
-          <TabsTrigger value="activity">Atividade</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-2 -mb-2">
+          <TabsList className="mb-4 flex-nowrap w-auto min-w-max">
+            <TabsTrigger value="tasks">Tarefas</TabsTrigger>
+            <TabsTrigger value="team">Equipe Completa</TabsTrigger>
+            <TabsTrigger value="timeline">Cronograma do Evento</TabsTrigger>
+            <TabsTrigger value="activity">Atividade</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="tasks" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
