@@ -181,8 +181,27 @@ const Profile: React.FC = () => {
             {/* Removido o botão de configurações para usar o card na visão mobile */}
           </div>
 
-          <div className="mt-4 text-xs text-muted-foreground text-center sm:text-right">
-            Membro desde {userData?.createdAt ? getFormattedDate(userData.createdAt) : "data desconhecida"}
+          <div className="flex flex-col space-y-3">
+            <div className="text-xs text-muted-foreground text-center sm:text-right">
+              Membro desde {userData?.createdAt ? getFormattedDate(userData.createdAt) : "data desconhecida"}
+            </div>
+            
+            {/* Card de configurações para dispositivos móveis */}
+            <div className="sm:hidden w-full">
+              <div 
+                onClick={() => navigate("/profile/configuracoes")} 
+                className="flex items-center p-2 border rounded-lg hover:border-primary cursor-pointer transition-colors bg-background"
+              >
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                  <Settings className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Configurações</p>
+                  <p className="text-xs text-muted-foreground">Gerencie seu perfil e preferências</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
