@@ -47,9 +47,6 @@ const ProfileConfigSeguranca: React.FC = () => {
   
   return (
     <div className="container mx-auto px-4 py-6 max-w-3xl space-y-6">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold">Segurança</h1>
-      </div>
       
       <Card>
         <CardHeader>

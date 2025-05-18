@@ -115,7 +115,7 @@ const MobileNavbar: React.FC = () => {
       >
         {/* Header Principal - sempre visível */}
         <div className="flex items-center justify-between h-14 px-4">
-          <div className="flex items-center">
+          <div className="flex items-center w-12">
             {/* Verificamos se deve mostrar o menu hamburguer ou o botão de voltar */}
             {!location.includes('/events/') && location !== '/events/new' && 
               !location.includes('/profile/configuracoes/') && !location.includes('/settings/') ? (
@@ -123,7 +123,7 @@ const MobileNavbar: React.FC = () => {
                 {/* Menu toggle no estilo dos exemplos */}
                 <Sheet>
                   <SheetTrigger asChild>
-                    <button className="h-9 w-9 flex items-center justify-center mr-3 text-foreground">
+                    <button className="h-9 w-9 flex items-center justify-center text-foreground">
                       <i className="fas fa-bars"></i>
                     </button>
                   </SheetTrigger>
@@ -158,10 +158,6 @@ const MobileNavbar: React.FC = () => {
                     </div>
                   </SheetContent>
                 </Sheet>
-              
-                <h1 className="text-lg font-semibold">
-                  {getPageTitle()}
-                </h1>
               </>
             ) : (
               <Link href={location === '/events/new' 
@@ -177,18 +173,20 @@ const MobileNavbar: React.FC = () => {
                   : '/'}>
                 <div className="flex items-center">
                   <i className="fas fa-chevron-left mr-2 text-primary"></i>
-                  <span>Voltar</span>
                 </div>
               </Link>
             )}
           </div>
           
-          {/* Removemos a foto de perfil da navbar superior, conforme sugestão do cliente */}
-          <div className="flex items-center">
-            <button className="h-9 w-9 flex items-center justify-center text-foreground">
-              <i className="fas fa-bell"></i>
-            </button>
+          {/* Título centralizado */}
+          <div className="flex-1 text-center">
+            <h1 className="text-lg font-semibold truncate max-w-[200px] mx-auto">
+              {getPageTitle()}
+            </h1>
           </div>
+          
+          {/* Espaço vazio à direita para manter o equilíbrio */}
+          <div className="w-12"></div>
         </div>
       </div>
       
