@@ -124,6 +124,7 @@ export async function setupAuth(app: Express) {
     cb(null, user);
   });
 
+  // Rota principal de login (sem referência ao Replit)
   app.get("/api/login", (req, res, next) => {
     const domain = req.hostname;
     console.log("Autenticando com domínio:", domain);
@@ -133,16 +134,37 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
+  // Rotas específicas para provedores de login
+  app.get("/api/login/google", (req, res, next) => {
+    // Esta rota usa a mesma autenticação, apenas é uma entrada dedicada para Google
+    const domain = req.hostname;
+    // Redirecionar para autenticação principal com um parâmetro especial
+    passport.authenticate(`replitauth:${domain}`, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"],
+      login_hint: "google" // Isso não faz nada no Replit Auth, mas mantemos por consistência
+    })(req, res, next);
+  });
+
+  app.get("/api/login/apple", (req, res, next) => {
+    // Esta rota usa a mesma autenticação, apenas é uma entrada dedicada para Apple
+    const domain = req.hostname;
+    // Redirecionar para autenticação principal com um parâmetro especial
+    passport.authenticate(`replitauth:${domain}`, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"],
+      login_hint: "apple" // Isso não faz nada no Replit Auth, mas mantemos por consistência
+    })(req, res, next);
+  });
+  
   app.get("/api/callback", (req, res, next) => {
     const domain = req.hostname;
     console.log("Callback com domínio:", domain);
-    
-    // Adicionar mais logs para debug
     console.log("Parâmetros de callback:", req.query);
     
     passport.authenticate(`replitauth:${domain}`, {
       successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
+      failureRedirect: "/login",
       failureMessage: true
     })(req, res, next);
   });
@@ -162,11 +184,16 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/logout", (req, res) => {
+    // Limpar informações de sessão personalizadas
+    req.session.devUserId = undefined;
+    req.session.devIsAuthenticated = undefined;
+    
+    // Logout padrão
     req.logout(() => {
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+          post_logout_redirect_uri: `${req.protocol}://${req.hostname}/login`,
         }).href
       );
     });

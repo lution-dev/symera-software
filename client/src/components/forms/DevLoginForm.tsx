@@ -3,21 +3,19 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocation } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -26,7 +24,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const DevLoginForm: React.FC = () => {
+const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -41,7 +39,6 @@ const DevLoginForm: React.FC = () => {
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
-      // Corrigir o erro de tipagem do body
       const response = await fetch("/api/auth/dev-login", {
         method: "POST",
         headers: {
@@ -56,7 +53,7 @@ const DevLoginForm: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
         toast({
           title: "Login bem-sucedido!",
-          description: "Você foi autenticado com sucesso.",
+          description: "Bem-vindo de volta ao EventMaster.",
         });
         navigate("/");
       } else {
@@ -74,58 +71,66 @@ const DevLoginForm: React.FC = () => {
     }
   };
 
-  return (
-    <div className="w-full max-w-md p-6 mx-auto bg-white rounded-lg shadow-md">
-      <h2 className="mb-6 text-2xl font-bold text-center">Entre na sua conta</h2>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>E-mail</FormLabel>
-                <FormControl>
-                  <Input placeholder="seu@email.com" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Use qualquer e-mail para login em ambiente de desenvolvimento
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+  // Opção alternativa para login institucional (escondida e sem referência ao Replit)
+  const handleAlternativeLogin = () => {
+    window.location.href = "/api/login";
+  };
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Entrando...
-              </>
-            ) : (
-              "Entrar"
-            )}
-          </Button>
-        </form>
-      </Form>
-      
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Esse é um método simplificado de login para testes.
-          <br />
-          <Button
-            variant="link"
-            className="p-0 h-auto"
-            onClick={() => {
-              window.location.href = "/api/login";
-            }}
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-gray-700">E-mail</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input 
+                    placeholder="seu@email.com" 
+                    className="pl-10 py-6" 
+                    {...field}
+                  />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button 
+          type="submit" 
+          className="w-full py-6 text-base font-medium transition-all bg-purple-600 hover:bg-purple-700" 
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Entrando...
+            </>
+          ) : (
+            "Entrar"
+          )}
+        </Button>
+        
+        <div className="text-center space-y-3">
+          <p className="text-sm text-gray-500">
+            Sem cadastro? Entre com seu e-mail para criar uma conta.
+          </p>
+          
+          {/* Link escondido para login alternativo */}
+          <button 
+            type="button"
+            onClick={handleAlternativeLogin}
+            className="text-xs text-gray-400 hover:text-gray-500 hover:underline hidden"
           >
-            Usar autenticação Replit
-          </Button>
-        </p>
-      </div>
-    </div>
+            Login institucional
+          </button>
+        </div>
+      </form>
+    </Form>
   );
 };
 
-export default DevLoginForm;
+export default LoginForm;
