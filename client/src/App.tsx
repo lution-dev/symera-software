@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, [key: string]: any }) {
   const { isAuthenticated, isLoading } = useAuth();
+  const [, navigate] = useLocation();
 
   if (isLoading) {
     return (
@@ -31,7 +32,8 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
   }
 
   if (!isAuthenticated) {
-    window.location.href = "/auth";
+    // Usar navigate em vez de window.location para manter a SPA
+    navigate("/login");
     return null;
   }
 
@@ -41,12 +43,13 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
 function Router() {
   return (
     <Switch>
+      <Route path="/login" component={LoginPage} />
       <Route path="/auth" component={Auth} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
       <Route path="/events/new" component={() => <ProtectedRoute component={CreateEvent} />} />
-      <Route path="/events/:id" component={(params) => <ProtectedRoute component={Event} id={params.id} />} />
-      <Route path="/events/:id/checklist" component={(params) => <ProtectedRoute component={Checklist} id={params.id} />} />
+      <Route path="/events/:id" component={(params: any) => <ProtectedRoute component={Event} id={params.id} />} />
+      <Route path="/events/:id/checklist" component={(params: any) => <ProtectedRoute component={Checklist} id={params.id} />} />
       <Route path="/schedule" component={() => <ProtectedRoute component={Schedule} />} />
       <Route path="/team" component={() => <ProtectedRoute component={Team} />} />
       <Route path="/vendors" component={() => <ProtectedRoute component={Vendors} />} />

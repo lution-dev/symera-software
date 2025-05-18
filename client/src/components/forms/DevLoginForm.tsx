@@ -41,9 +41,14 @@ const DevLoginForm: React.FC = () => {
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest("/api/auth/dev-login", {
+      // Corrigir o erro de tipagem do body
+      const response = await fetch("/api/auth/dev-login", {
         method: "POST",
-        body: values,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(values),
+        credentials: "include"
       });
       
       if (response.ok) {
@@ -53,7 +58,9 @@ const DevLoginForm: React.FC = () => {
           title: "Login bem-sucedido!",
           description: "Você foi autenticado com sucesso.",
         });
-        navigate("/dashboard");
+        navigate("/");
+      } else {
+        throw new Error("Falha no login");
       }
     } catch (error) {
       console.error("Erro no login:", error);
