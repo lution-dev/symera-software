@@ -220,11 +220,14 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
             </Button>
             
             {/* Seletor de visualização integrado na linha principal */}
-            <div className="bg-muted/20 rounded-md border flex h-7">
+            <div className="bg-muted/20 rounded-md border flex h-7 overflow-hidden">
               <Button 
                 variant={view === 'day' ? "default" : "ghost"}
                 size="sm"
-                className="h-7 w-7 p-0 rounded-none"
+                className={cn(
+                  "h-7 w-7 p-0 relative",
+                  view === 'day' ? "rounded-md" : "rounded-none"
+                )}
                 onClick={() => setView('day')}
               >
                 <CalendarIcon className="h-3.5 w-3.5" />
@@ -232,7 +235,10 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
               <Button 
                 variant={view === 'week' ? "default" : "ghost"}
                 size="sm"
-                className="h-7 w-7 p-0 rounded-none"
+                className={cn(
+                  "h-7 w-7 p-0 relative",
+                  view === 'week' ? "rounded-md" : "rounded-none"
+                )}
                 onClick={() => setView('week')}
               >
                 <CalendarDays className="h-3.5 w-3.5" />
@@ -240,7 +246,10 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
               <Button 
                 variant={view === 'month' ? "default" : "ghost"}
                 size="sm"
-                className="h-7 w-7 p-0 rounded-none"
+                className={cn(
+                  "h-7 w-7 p-0 relative",
+                  view === 'month' ? "rounded-md" : "rounded-none"
+                )}
                 onClick={() => setView('month')}
               >
                 <CalendarRange className="h-3.5 w-3.5" />
