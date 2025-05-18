@@ -71,16 +71,16 @@ const MobileNavbar: React.FC = () => {
     return location === path;
   };
 
-  // Determinar título da página atual
-  const getPageTitle = () => {
-    if (location === '/') return 'Dashboard';
-    if (location === '/events') return 'Meus Eventos';
-    if (location === '/events/new') return 'Criar Evento';
-    if (location.startsWith('/events/')) return 'Detalhes do Evento';
-    if (location === '/schedule') return 'Agenda';
-    if (location === '/settings') return 'Configurações';
-    if (location === '/profile') return 'Meu Perfil';
-    return 'Symera';
+  // Determinar título da página atual e se deve mostrar na navbar
+  const getPageInfo = () => {
+    if (location === '/') return { title: 'Dashboard', showInNavbar: false };
+    if (location === '/events') return { title: 'Meus Eventos', showInNavbar: true };
+    if (location === '/events/new') return { title: 'Criar Evento', showInNavbar: true };
+    if (location.startsWith('/events/')) return { title: 'Detalhes do Evento', showInNavbar: true };
+    if (location === '/schedule') return { title: 'Agenda', showInNavbar: true };
+    if (location === '/settings') return { title: 'Configurações', showInNavbar: true };
+    if (location === '/profile') return { title: 'Meu Perfil', showInNavbar: true };
+    return { title: 'Symera', showInNavbar: true };
   };
 
   return (
@@ -96,7 +96,9 @@ const MobileNavbar: React.FC = () => {
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center">
             {!location.includes('/events/') && location !== '/events/new' ? (
-              <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
+              <h1 className={cn("text-lg font-semibold", getPageInfo().showInNavbar ? "" : "opacity-0")}>
+                {getPageInfo().title}
+              </h1>
             ) : (
               <Link href={location === '/events/new' ? '/events' : '/events'}>
                 <div className="flex items-center">
