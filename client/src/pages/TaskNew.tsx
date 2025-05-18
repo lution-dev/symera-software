@@ -65,7 +65,7 @@ const TaskNew: React.FC = () => {
       status: "todo",
       priority: "medium",
       eventId: Number(eventId),
-      assigneeId: "",
+      assigneeId: "unassigned",
     },
   });
   
@@ -102,7 +102,12 @@ const TaskNew: React.FC = () => {
   });
   
   const handleCreateTask = (data: any) => {
-    createTaskMutation.mutate(data);
+    // Converter o valor "unassigned" para string vazia, conforme esperado pelo backend
+    const formattedData = {
+      ...data,
+      assigneeId: data.assigneeId === "unassigned" ? "" : data.assigneeId
+    };
+    createTaskMutation.mutate(formattedData);
   };
   
   if (eventLoading) {
@@ -269,7 +274,7 @@ const TaskNew: React.FC = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Não atribuído</SelectItem>
+                        <SelectItem value="unassigned">Não atribuído</SelectItem>
                         {team?.map((member: any) => (
                           <SelectItem key={member.userId} value={member.userId}>
                             {member.user.firstName} {member.user.lastName}
