@@ -4,10 +4,26 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetTrigger,
+  SheetClose
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+
+// Define User interface based on what we found in the codebase
+interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+}
 
 const MobileNavbar: React.FC = () => {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: User | null | undefined };
   const [hasScrolled, setHasScrolled] = useState(false);
   const [showNavbarTop, setShowNavbarTop] = useState(true);
   const [lastScrollTop, setLastScrollTop] = useState(0);
@@ -32,12 +48,22 @@ const MobileNavbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollTop]);
 
-  const navItems = [
+  // Items que estarão sempre na barra de navegação principal
+  const mainNavItems = [
     { path: "/", label: "Home", icon: "home" },
     { path: "/events", label: "Eventos", icon: "calendar-alt" },
     { path: "/events/new", label: "Novo", icon: "plus", highlight: true },
     { path: "/schedule", label: "Agenda", icon: "calendar-day" },
-    { path: "/settings", label: "Ajustes", icon: "cog" },
+  ];
+  
+  // Items adicionais que aparecerão no menu de hambúrguer
+  const menuItems = [
+    { path: "/vendors", label: "Fornecedores", icon: "truck" },
+    { path: "/budget", label: "Orçamento", icon: "money-bill-wave" },
+    { path: "/teams", label: "Equipes", icon: "users" },
+    { path: "/notifications", label: "Notificações", icon: "bell" },
+    { path: "/settings", label: "Configurações", icon: "cog" },
+    { path: "/help", label: "Ajuda", icon: "question-circle" },
   ];
   
   const isActivePath = (path: string) => {
@@ -107,7 +133,7 @@ const MobileNavbar: React.FC = () => {
       
       {/* Navbar inferior - estilo de apps */}
       <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-40 flex items-center justify-around shadow-lg border-t border-border">
-        {navItems.map((item) => (
+        {mainNavItems.map((item) => (
           <div key={item.path} className="touch-target">
             <Link href={item.path}>
               <div className="flex flex-col items-center cursor-pointer min-w-[48px] min-h-[44px] justify-center py-1">
@@ -131,6 +157,78 @@ const MobileNavbar: React.FC = () => {
             </Link>
           </div>
         ))}
+        
+        {/* Menu de hambúrguer */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <div className="touch-target">
+              <div className="flex flex-col items-center cursor-pointer min-w-[48px] min-h-[44px] justify-center py-1">
+                <i className="fas fa-bars h-6 w-6 text-foreground"></i>
+                <span className="text-xs mt-1 text-foreground">
+                  Menu
+                </span>
+              </div>
+            </div>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[85%] sm:w-[350px] overflow-y-auto">
+            <div className="py-6">
+              <div className="flex items-center mb-6">
+                <Avatar className="h-10 w-10 mr-3">
+                  {user?.profileImageUrl ? (
+                    <AvatarImage src={user.profileImageUrl} alt={`${user.firstName || ''} ${user.lastName || ''}`} />
+                  ) : null}
+                  <AvatarFallback className="bg-gradient-primary text-white">
+                    {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-medium">
+                    {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email}
+                  </h3>
+                  <Link href="/profile">
+                    <span className="text-sm text-primary">Ver perfil</span>
+                  </Link>
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="space-y-4 mt-4">
+                {menuItems.map((item) => (
+                  <SheetClose asChild key={item.path}>
+                    <Link href={item.path}>
+                      <div className={cn(
+                        "flex items-center py-3 px-2 rounded-md",
+                        isActivePath(item.path) && "bg-muted"
+                      )}>
+                        <i className={cn(
+                          `fas fa-${item.icon} w-5 h-5 mr-3`,
+                          isActivePath(item.path) ? "text-primary" : "text-foreground"
+                        )}></i>
+                        <span className={cn(
+                          isActivePath(item.path) ? "text-primary" : "text-foreground"
+                        )}>
+                          {item.label}
+                        </span>
+                      </div>
+                    </Link>
+                  </SheetClose>
+                ))}
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <SheetClose asChild>
+                <Link href="/logout">
+                  <div className="flex items-center py-3 px-2 rounded-md text-destructive">
+                    <i className="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
+                    <span>Sair</span>
+                  </div>
+                </Link>
+              </SheetClose>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </>
   );
