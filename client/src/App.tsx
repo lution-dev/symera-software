@@ -15,6 +15,9 @@ import Vendors from "@/pages/Vendors";
 import Budget from "@/pages/Budget";
 import Settings from "@/pages/Settings";
 import Profile from "@/pages/Profile";
+import ProfileEventos from "@/pages/ProfileEventos";
+import ProfileEquipe from "@/pages/ProfileEquipe";
+import ProfileLembretes from "@/pages/ProfileLembretes";
 import Auth from "@/pages/Auth";
 import LoginPage from "@/pages/LoginPage";
 import DevLogin from "@/pages/DevLogin";
@@ -64,6 +67,9 @@ function Router() {
       <Route path="/vendors" component={() => <ProtectedRoute component={Vendors} />} />
       <Route path="/budget" component={() => <ProtectedRoute component={Budget} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
+      <Route path="/profile/eventos" component={() => <ProtectedRoute component={ProfileEventos} />} />
+      <Route path="/profile/equipe" component={() => <ProtectedRoute component={ProfileEquipe} />} />
+      <Route path="/profile/lembretes" component={() => <ProtectedRoute component={ProfileLembretes} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route component={NotFound} />
     </Switch>

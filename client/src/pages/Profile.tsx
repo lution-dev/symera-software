@@ -239,38 +239,30 @@ const Profile: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-2">
-                <Link href="/settings?tab=profile" className="block">
-                  <div className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
-                    <Calendar className="h-5 w-5 text-primary mx-auto mb-2" />
-                    <h3 className="text-xl font-bold">{Array.isArray(userEvents) ? userEvents.length : 0}</h3>
-                    <p className="text-xs text-muted-foreground">Eventos</p>
-                  </div>
-                </Link>
+                <div onClick={() => navigate("/profile/eventos")} className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
+                  <Calendar className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <h3 className="text-xl font-bold">{Array.isArray(userEvents) ? userEvents.length : 0}</h3>
+                  <p className="text-xs text-muted-foreground">Eventos</p>
+                </div>
 
-                <Link href="/settings?tab=security" className="block">
-                  <div className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
-                    <Users className="h-5 w-5 text-primary mx-auto mb-2" />
-                    <h3 className="text-xl font-bold">0</h3>
-                    <p className="text-xs text-muted-foreground">Equipe</p>
-                  </div>
-                </Link>
+                <div onClick={() => navigate("/profile/equipe")} className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
+                  <Users className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <h3 className="text-xl font-bold">0</h3>
+                  <p className="text-xs text-muted-foreground">Equipe</p>
+                </div>
 
-                <Link href="/settings?tab=notifications" className="block">
-                  <div className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
-                    <Bell className="h-5 w-5 text-primary mx-auto mb-2" />
-                    <h3 className="text-xl font-bold">0</h3>
-                    <p className="text-xs text-muted-foreground">Lembretes</p>
-                  </div>
-                </Link>
+                <div onClick={() => navigate("/profile/lembretes")} className="text-center p-3 bg-background border rounded-lg hover:border-primary transition-colors cursor-pointer">
+                  <Bell className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <h3 className="text-xl font-bold">0</h3>
+                  <p className="text-xs text-muted-foreground">Lembretes</p>
+                </div>
               </div>
               
               <div className="mt-4">
-                <Link href="/settings" className="w-full">
-                  <Button variant="outline" className="w-full">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Ver todas as configurações
-                  </Button>
-                </Link>
+                <Button variant="outline" className="w-full" onClick={() => navigate("/settings")}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Ver todas as configurações
+                </Button>
               </div>
             </CardContent>
           </Card>
