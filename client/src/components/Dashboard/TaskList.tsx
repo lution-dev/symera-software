@@ -25,7 +25,6 @@ interface TaskListProps {
   showEventName?: boolean;
   onTaskUpdate?: (taskId: number, data: Partial<Task>) => void;
   onTaskDelete?: (taskId: number) => void;
-  onTaskEdit?: (taskId: number) => void;
 }
 
 const TaskList: React.FC<TaskListProps> = ({
@@ -34,8 +33,7 @@ const TaskList: React.FC<TaskListProps> = ({
   loading: propLoading,
   showEventName = true,
   onTaskUpdate,
-  onTaskDelete,
-  onTaskEdit
+  onTaskDelete
 }) => {
   const [, navigate] = useLocation();
   // If tasks are not provided via props, fetch them from the API
@@ -214,7 +212,7 @@ const TaskList: React.FC<TaskListProps> = ({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => onTaskEdit ? onTaskEdit(task.id) : navigate(`/events/${task.eventId}/tasks/${task.id}/edit`)}
+                      onClick={() => navigate(`/events/${task.eventId}/tasks/${task.id}/edit`)}
                     >
                       <i className="fas fa-pencil-alt text-amber-400"></i>
                     </Button>
