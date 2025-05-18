@@ -319,48 +319,50 @@ const Settings: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-center">
-                    <Avatar className="h-20 w-20 mx-auto sm:mx-0">
-                      {profileForm.profileImageUrl ? (
-                        <AvatarImage 
-                          src={profileForm.profileImageUrl} 
-                          alt={`${profileForm.firstName} ${profileForm.lastName}`} 
-                        />
-                      ) : null}
-                      <AvatarFallback className="text-lg bg-gradient-primary text-white">
-                        {getInitials(`${profileForm.firstName} ${profileForm.lastName}`)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-1.5 text-center sm:text-left w-full">
-                      <h3 className="font-semibold text-lg">Foto de Perfil</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Sua foto será exibida em seu perfil e nas notificações
-                      </p>
-                      <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={handleChooseImage}
-                          className="w-full sm:w-auto"
-                        >
-                          Alterar
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setProfileForm({...profileForm, profileImageUrl: ""})}
-                          disabled={!profileForm.profileImageUrl}
-                          className="w-full sm:w-auto"
-                        >
-                          Remover
-                        </Button>
+                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <div className="flex flex-col gap-6 items-center">
+                      <Avatar className="h-28 w-28 ring-4 ring-primary/20 ring-offset-2">
+                        {profileForm.profileImageUrl ? (
+                          <AvatarImage 
+                            src={profileForm.profileImageUrl} 
+                            alt={`${profileForm.firstName} ${profileForm.lastName}`} 
+                          />
+                        ) : null}
+                        <AvatarFallback className="text-2xl bg-gradient-primary text-white">
+                          {getInitials(`${profileForm.firstName} ${profileForm.lastName}`)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-3 text-center w-full">
+                        <h3 className="font-bold text-lg text-primary">Foto de Perfil</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Sua foto será exibida em seu perfil e nas notificações
+                        </p>
+                        <div className="flex flex-col gap-2 mt-3 w-full px-4">
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                          <Button 
+                            variant="default" 
+                            size="sm"
+                            onClick={handleChooseImage}
+                            className="w-full py-5"
+                          >
+                            Alterar Foto
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setProfileForm({...profileForm, profileImageUrl: ""})}
+                            disabled={!profileForm.profileImageUrl}
+                            className="w-full py-5"
+                          >
+                            Remover Foto
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
