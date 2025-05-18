@@ -151,7 +151,8 @@ const Dashboard: React.FC = () => {
             </p>
           )}
         </div>
-        <div className="mt-3 md:mt-0">
+        {/* Botão de criar evento removido no mobile, mantido apenas em telas maiores */}
+        <div className="mt-3 md:mt-0 hidden sm:block">
           <Link href="/events/new">
             <Button className="gradient-primary w-full sm:w-auto touch-target min-h-[48px] text-sm sm:text-base px-3 sm:px-4">
               <i className="fas fa-plus mr-2"></i> Criar Novo Evento
@@ -169,21 +170,35 @@ const Dashboard: React.FC = () => {
         upcomingEventDays={upcomingEventDays}
       />
 
-      {/* Create Event Banner - Muito mais compacto no mobile */}
+      {/* Card de dicas/recursos - Mais informativo, sem botão redundante */}
       <div className="mb-5 sm:mb-8 bg-card rounded-xl p-3 sm:p-6 shadow-lg relative overflow-hidden">
         <div className="relative z-10">
-          <h2 className="text-sm sm:text-xl font-semibold sm:font-bold mb-1 sm:mb-2">Crie seu próximo evento</h2>
-          <p className="text-muted-foreground text-xs sm:text-base mb-2 sm:mb-4 max-w-xl">
-            Use IA para organizar eventos sem esquecer detalhes.
-          </p>
-          <Link href="/events/new">
-            <Button className="gradient-primary h-9 sm:h-10 text-xs sm:text-base w-full sm:w-auto px-3 sm:px-4">
-              <i className="fas fa-plus mr-1 sm:mr-2"></i> Criar Evento
-            </Button>
+          <div className="flex items-center mb-1 sm:mb-2">
+            <i className="fas fa-lightbulb text-primary mr-2 text-sm sm:text-base"></i>
+            <h2 className="text-sm sm:text-xl font-semibold sm:font-bold">Dicas para o seu evento</h2>
+          </div>
+          <ul className="text-muted-foreground text-xs sm:text-sm space-y-1 sm:space-y-2 ml-1 mb-2 sm:mb-3 max-w-xl">
+            <li className="flex items-start">
+              <i className="fas fa-check text-primary mt-0.5 mr-1.5 text-xs"></i>
+              <span>Use o assistente IA para criar listas de tarefas completas</span>
+            </li>
+            <li className="flex items-start">
+              <i className="fas fa-check text-primary mt-0.5 mr-1.5 text-xs"></i>
+              <span>Adicione fornecedores para controlar o orçamento</span>
+            </li>
+            <li className="flex items-start">
+              <i className="fas fa-check text-primary mt-0.5 mr-1.5 text-xs"></i>
+              <span>Convide membros para sua equipe do evento</span>
+            </li>
+          </ul>
+          {/* Link textual em vez de botão redundante */}
+          <Link href="/help" className="text-primary text-xs sm:text-sm font-medium hover:underline flex items-center">
+            <span>Ver todas as dicas</span>
+            <i className="fas fa-arrow-right ml-1.5 text-xs"></i>
           </Link>
         </div>
         {/* Abstract decoration - hidden on small mobile */}
-        <div className="absolute top-0 right-0 w-32 sm:w-64 h-full opacity-10 hidden sm:block">
+        <div className="absolute top-0 right-0 w-28 sm:w-64 h-full opacity-10 hidden sm:block">
           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <path
               fill="currentColor"
