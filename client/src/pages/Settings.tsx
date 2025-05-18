@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import MobileProfileCard from "@/components/profile/MobileProfileCard";
 import { 
   Shield, 
   Bell, 
@@ -319,49 +320,63 @@ const Settings: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                    <div className="flex flex-col gap-6 items-center">
-                      <Avatar className="h-28 w-28 ring-4 ring-primary/20 ring-offset-2">
-                        {profileForm.profileImageUrl ? (
-                          <AvatarImage 
-                            src={profileForm.profileImageUrl} 
-                            alt={`${profileForm.firstName} ${profileForm.lastName}`} 
-                          />
-                        ) : null}
-                        <AvatarFallback className="text-2xl bg-gradient-primary text-white">
-                          {getInitials(`${profileForm.firstName} ${profileForm.lastName}`)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-3 text-center w-full">
-                        <h3 className="font-bold text-lg text-primary">Foto de Perfil</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Sua foto será exibida em seu perfil e nas notificações
-                        </p>
-                        <div className="flex flex-col gap-2 mt-3 w-full px-4">
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                          <Button 
-                            variant="default" 
-                            size="sm"
-                            onClick={handleChooseImage}
-                            className="w-full py-5"
-                          >
-                            Alterar Foto
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setProfileForm({...profileForm, profileImageUrl: ""})}
-                            disabled={!profileForm.profileImageUrl}
-                            className="w-full py-5"
-                          >
-                            Remover Foto
-                          </Button>
+                  {/* Versão para dispositivo móvel */}
+                  <div className="block sm:hidden">
+                    <MobileProfileCard 
+                      firstName={profileForm.firstName}
+                      lastName={profileForm.lastName}
+                      profileImageUrl={profileForm.profileImageUrl}
+                      onChooseImage={handleChooseImage}
+                      onRemoveImage={() => setProfileForm({...profileForm, profileImageUrl: ""})}
+                      fileInputRef={fileInputRef}
+                      handleImageUpload={handleImageUpload}
+                    />
+                  </div>
+                  
+                  {/* Versão para desktop */}
+                  <div className="hidden sm:block">
+                    <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+                      <div className="flex flex-row gap-6 items-center">
+                        <Avatar className="h-24 w-24 ring-2 ring-primary/20 ring-offset-2">
+                          {profileForm.profileImageUrl ? (
+                            <AvatarImage 
+                              src={profileForm.profileImageUrl} 
+                              alt={`${profileForm.firstName} ${profileForm.lastName}`} 
+                            />
+                          ) : null}
+                          <AvatarFallback className="text-2xl bg-gradient-primary text-white">
+                            {getInitials(`${profileForm.firstName} ${profileForm.lastName}`)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-2 w-full">
+                          <h3 className="font-bold text-lg text-primary">Foto de Perfil</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Sua foto será exibida em seu perfil e nas notificações
+                          </p>
+                          <div className="flex gap-2 mt-2">
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                            <Button 
+                              variant="default"
+                              size="sm"
+                              onClick={handleChooseImage}
+                            >
+                              Alterar Foto
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setProfileForm({...profileForm, profileImageUrl: ""})}
+                              disabled={!profileForm.profileImageUrl}
+                            >
+                              Remover Foto
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
