@@ -156,18 +156,11 @@ const MobileNavbar: React.FC = () => {
             )}
           </div>
           
-          {/* Perfil do usuário - interface simplificada */}
+          {/* Removemos a foto de perfil da navbar superior, conforme sugestão do cliente */}
           <div className="flex items-center">
-            <Link href="/profile">
-              <Avatar className="h-8 w-8 cursor-pointer">
-                {user?.profileImageUrl ? (
-                  <AvatarImage src={user.profileImageUrl} alt={user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Usuário'} />
-                ) : null}
-                <AvatarFallback className="bg-gradient-primary text-white text-xs">
-                  {getInitials(user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || '')}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
+            <button className="h-9 w-9 flex items-center justify-center text-foreground">
+              <i className="fas fa-bell"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -246,10 +239,23 @@ const MobileNavbar: React.FC = () => {
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <Link href="/profile" className="w-full flex justify-center">
             <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
-              <i className={cn(
-                "fas fa-user h-6 w-6",
-                isActivePath('/profile') ? "text-primary" : "text-foreground"
-              )}></i>
+              {user?.profileImageUrl ? (
+                <div className={cn(
+                  "h-6 w-6 rounded-full overflow-hidden border-2",
+                  isActivePath('/profile') ? "border-primary" : "border-transparent"
+                )}>
+                  <img src={user.profileImageUrl} alt="Perfil" className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <div className={cn(
+                  "h-6 w-6 rounded-full overflow-hidden flex items-center justify-center bg-gradient-primary",
+                  isActivePath('/profile') ? "border-2 border-primary" : ""
+                )}>
+                  <span className="text-xs text-white">
+                    {getInitials(user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || '')}
+                  </span>
+                </div>
+              )}
               <span className={cn(
                 "text-xs mt-1",
                 isActivePath('/profile') ? "text-primary" : "text-foreground"
