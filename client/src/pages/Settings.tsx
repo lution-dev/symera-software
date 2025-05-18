@@ -18,7 +18,6 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import NovoPerfil from "@/components/profile/NovoPerfil";
 import { 
   Shield, 
   Bell, 
@@ -320,67 +319,46 @@ const Settings: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* NOVO COMPONENTE DE PERFIL - VERSÃO MÓVEL */}
-                  <div className="block sm:hidden">
-                    <div className="bg-red-500 p-2 text-white font-bold text-center rounded-t-lg">
-                      NOVO DESIGN MOBILE
-                    </div>
-                    <NovoPerfil 
-                      firstName={profileForm.firstName}
-                      lastName={profileForm.lastName}
-                      profileImageUrl={profileForm.profileImageUrl}
-                      onChooseImage={handleChooseImage}
-                      onRemoveImage={() => setProfileForm({...profileForm, profileImageUrl: ""})}
-                      fileInputRef={fileInputRef}
-                      handleImageUpload={handleImageUpload}
-                    />
-                  </div>
-                  
-                  {/* Versão para desktop */}
-                  <div className="hidden sm:block">
-                    <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                      <div className="flex flex-row gap-6 items-center">
-                        <Avatar className="h-24 w-24 ring-2 ring-primary/20 ring-offset-2">
-                          {profileForm.profileImageUrl ? (
-                            <AvatarImage 
-                              src={profileForm.profileImageUrl} 
-                              alt={`${profileForm.firstName} ${profileForm.lastName}`} 
-                            />
-                          ) : null}
-                          <AvatarFallback className="text-2xl bg-gradient-primary text-white">
-                            {getInitials(`${profileForm.firstName} ${profileForm.lastName}`)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-2 w-full">
-                          <h3 className="font-bold text-lg text-primary">Foto de Perfil</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Sua foto será exibida em seu perfil e nas notificações
-                          </p>
-                          <div className="flex gap-2 mt-2">
-                            <input
-                              type="file"
-                              ref={fileInputRef}
-                              accept="image/*"
-                              onChange={handleImageUpload}
-                              className="hidden"
-                            />
-                            <Button 
-                              variant="default"
-                              size="sm"
-                              onClick={handleChooseImage}
-                            >
-                              Alterar Foto
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setProfileForm({...profileForm, profileImageUrl: ""})}
-                              disabled={!profileForm.profileImageUrl}
-                            >
-                              Remover Foto
-                            </Button>
-                          </div>
-                        </div>
+                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                    <Avatar className="h-20 w-20">
+                      {profileForm.profileImageUrl ? (
+                        <AvatarImage 
+                          src={profileForm.profileImageUrl} 
+                          alt={`${profileForm.firstName} ${profileForm.lastName}`} 
+                        />
+                      ) : null}
+                      <AvatarFallback className="text-lg bg-gradient-primary text-white">
+                        {getInitials(`${profileForm.firstName} ${profileForm.lastName}`)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-1.5">
+                      <h3 className="font-semibold text-lg">Foto de Perfil</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Sua foto será exibida em seu perfil e nas notificações
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleChooseImage}
+                        >
+                          Alterar
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setProfileForm({...profileForm, profileImageUrl: ""})}
+                          disabled={!profileForm.profileImageUrl}
+                        >
+                          Remover
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -390,46 +368,42 @@ const Settings: React.FC = () => {
                   <div className="grid gap-4">
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName" className="font-medium">Nome</Label>
+                        <Label htmlFor="firstName">Nome</Label>
                         <Input
                           id="firstName"
                           value={profileForm.firstName}
                           onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})}
-                          className="h-10"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="lastName" className="font-medium">Sobrenome</Label>
+                        <Label htmlFor="lastName">Sobrenome</Label>
                         <Input
                           id="lastName"
                           value={profileForm.lastName}
                           onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})}
-                          className="h-10"
                         />
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="font-medium">E-mail</Label>
+                        <Label htmlFor="email">E-mail</Label>
                         <Input
                           id="email"
                           type="email"
                           value={profileForm.email}
                           disabled
-                          className="h-10 opacity-80"
                         />
                         <p className="text-xs text-muted-foreground">
                           O e-mail não pode ser alterado
                         </p>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone" className="font-medium">Telefone</Label>
+                        <Label htmlFor="phone">Telefone</Label>
                         <Input
                           id="phone"
                           value={profileForm.phone}
                           onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
                           placeholder="(00) 00000-0000"
-                          className="h-10"
                         />
                       </div>
                     </div>
@@ -801,17 +775,17 @@ const Settings: React.FC = () => {
                     <div className="mt-8">
                       <h3 className="text-lg font-semibold text-destructive mb-4">Zona de Perigo</h3>
                       <div className="rounded-xl border border-destructive/15 bg-destructive/5 p-5">
-                        <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
-                          <div className="bg-destructive/10 p-3 rounded-full">
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                          <div className="bg-destructive/10 p-3 rounded-full sm:mt-1">
                             <Trash2 className="h-5 w-5 text-destructive" />
                           </div>
-                          <div className="flex-1 text-center sm:text-left">
+                          <div className="flex-1">
                             <h4 className="font-medium text-destructive text-lg">Excluir Conta</h4>
                             <p className="text-sm text-muted-foreground mt-2">
                               Ao excluir sua conta, todos os seus dados serão permanentemente removidos de nossos servidores. 
                               Esta ação não pode ser desfeita, então tenha certeza antes de prosseguir.
                             </p>
-                            <div className="mt-4 flex justify-center sm:justify-start">
+                            <div className="mt-4">
                               <Button 
                                 variant="destructive" 
                                 size="sm"
