@@ -166,8 +166,9 @@ const Schedule: React.FC = () => {
   };
   
   return (
-    <div className="container max-w-full px-2 sm:px-4 py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="container max-w-full px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 mobile-spacing">
+      {/* Cabeçalho em Desktop */}
+      <div className="hidden sm:flex flex-row justify-between items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Agenda</h1>
           <p className="text-muted-foreground mt-1">Organize seus eventos e tarefas no calendário</p>
@@ -329,11 +330,128 @@ const Schedule: React.FC = () => {
         </div>
       </div>
       
+      {/* Mobile: Barra de controle compacta com ícones */}
+      <div className="flex sm:hidden justify-between items-center mb-3">
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <Filter className="h-3.5 w-3.5" />
+                {(statusFilter || priorityFilter || eventFilter) && (
+                  <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-[0.6rem] flex items-center justify-center">
+                    {(statusFilter ? 1 : 0) + (priorityFilter ? 1 : 0) + (eventFilter ? 1 : 0)}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Filtros</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 inline-block mr-2" />
+                  Status
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setStatusFilter("todo")}>
+                  <span className="w-3 h-3 rounded-full bg-slate-300 mr-2"></span>
+                  A fazer
+                  {statusFilter === "todo" && " ✓"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("in_progress")}>
+                  <span className="w-3 h-3 rounded-full bg-amber-300 mr-2"></span>
+                  Em andamento
+                  {statusFilter === "in_progress" && " ✓"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("completed")}>
+                  <span className="w-3 h-3 rounded-full bg-green-300 mr-2"></span>
+                  Concluído
+                  {statusFilter === "completed" && " ✓"}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              
+              <DropdownMenuSeparator />
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-center mt-2"
+                onClick={resetFilters}
+              >
+                Limpar filtros
+              </Button>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Dialog open={showNewItemDialog} onOpenChange={setShowNewItemDialog}>
+            <DialogTrigger asChild>
+              <Button size="icon" className="h-8 w-8">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[90%] sm:w-auto">
+              <DialogHeader>
+                <DialogTitle>Adicionar item</DialogTitle>
+                <DialogDescription>
+                  {formatDate(selectedDate)}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="flex justify-center space-x-4 w-full">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      try {
+                        setShowNewItemDialog(false);
+                        localStorage.setItem('selectedEventDate', selectedDate.toISOString().split('T')[0]);
+                        navigate("/events/new");
+                      } catch (err) {
+                        console.error("Erro ao navegar:", err);
+                      }
+                    }}
+                  >
+                    Evento
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setShowNewItemDialog(false);
+                      navigate("/events");
+                    }}
+                  >
+                    Tarefa
+                  </Button>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowNewItemDialog(false)}>Cancelar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2 text-[0.65rem] text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-primary/70"></span>
+            <span>Evento</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-red-500/70"></span>
+            <span>Tarefa</span>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1">
         {/* Calendário estilo Google - ocupa a tela toda */}
         <Card className="overflow-hidden">
-          <CardContent className="p-3 sm:p-6 pt-6">
-            <div className="flex justify-between items-center mb-4">
+          <CardContent className="p-2 sm:p-6 pt-4 sm:pt-6">
+            {/* Legenda no desktop */}
+            <div className="hidden sm:flex justify-between items-center mb-4">
               <div>
                 <CardTitle>Calendário</CardTitle>
                 <CardDescription>

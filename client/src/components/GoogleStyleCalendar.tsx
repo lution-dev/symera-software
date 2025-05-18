@@ -169,82 +169,80 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
       const weekStart = startOfWeek(currentDate);
       const weekEnd = endOfWeek(currentDate);
       if (weekStart.getMonth() === weekEnd.getMonth()) {
-        title = `${format(weekStart, 'd')} - ${format(weekEnd, 'd')} de ${format(weekStart, 'MMMM', { locale: ptBR })}`;
+        title = `${format(weekStart, 'd')} - ${format(weekEnd, 'd')} ${format(weekStart, 'MMM', { locale: ptBR })}`;
       } else {
         title = `${format(weekStart, 'd MMM', { locale: ptBR })} - ${format(weekEnd, 'd MMM', { locale: ptBR })}`;
       }
     } else { // day view
-      title = format(currentDate, 'EEEE, d MMMM', { locale: ptBR });
+      title = format(currentDate, 'EEE, d MMM', { locale: ptBR });
     }
 
     return (
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 px-1">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-bold capitalize">
+      <div className="flex flex-col justify-between gap-3 mb-4 sm:mb-6 px-1">
+        <div className="flex items-center justify-between w-full">
+          {/* Título e data - Simplificado */}
+          <h2 className="text-base sm:text-xl font-bold capitalize">
             {title}
           </h2>
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Seletor de visualização */}
-          <div className="bg-muted/20 p-0.5 rounded-md border flex">
-            <Button 
-              variant={view === 'day' ? "default" : "ghost"}
-              size="sm"
-              className="h-8 px-3 text-xs"
-              onClick={() => setView('day')}
-            >
-              <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
-              Dia
-            </Button>
-            <Button 
-              variant={view === 'week' ? "default" : "ghost"}
-              size="sm"
-              className="h-8 px-3 text-xs"
-              onClick={() => setView('week')}
-            >
-              <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-              Semana
-            </Button>
-            <Button 
-              variant={view === 'month' ? "default" : "ghost"}
-              size="sm"
-              className="h-8 px-3 text-xs"
-              onClick={() => setView('month')}
-            >
-              <CalendarRange className="h-3.5 w-3.5 mr-1.5" />
-              Mês
-            </Button>
-          </div>
           
-          {/* Navegação */}
+          {/* Navegação mais compacta */}
           <div className="flex items-center gap-1">
             <Button 
               variant="ghost"
-              size="sm"
-              className="text-sm h-8"
-              onClick={goToToday}
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Hoje
-            </Button>
-            <Button 
-              variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-7 w-7 sm:h-8 sm:w-8"
               onClick={goToPrevious}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button 
               variant="ghost"
+              size="sm"
+              className="text-xs h-7 sm:h-8 px-2 sm:px-3"
+              onClick={goToToday}
+            >
+              Hoje
+            </Button>
+            <Button 
+              variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-7 w-7 sm:h-8 sm:w-8"
               onClick={goToNext}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+        
+        {/* Seletor de visualização - Otimizado para mobile */}
+        <div className="bg-muted/20 p-0.5 rounded-md border flex self-center sm:self-end">
+          <Button 
+            variant={view === 'day' ? "default" : "ghost"}
+            size="sm"
+            className="h-8 px-2 sm:px-3 text-xs"
+            onClick={() => setView('day')}
+          >
+            <CalendarIcon className="h-3.5 w-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">Dia</span>
+          </Button>
+          <Button 
+            variant={view === 'week' ? "default" : "ghost"}
+            size="sm"
+            className="h-8 px-2 sm:px-3 text-xs"
+            onClick={() => setView('week')}
+          >
+            <CalendarDays className="h-3.5 w-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">Semana</span>
+          </Button>
+          <Button 
+            variant={view === 'month' ? "default" : "ghost"}
+            size="sm"
+            className="h-8 px-2 sm:px-3 text-xs"
+            onClick={() => setView('month')}
+          >
+            <CalendarRange className="h-3.5 w-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">Mês</span>
+          </Button>
         </div>
       </div>
     );
@@ -473,15 +471,16 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
     );
   };
 
-  // Renderizar dias da semana para o calendário mensal
+  // Renderizar dias da semana para o calendário mensal - Otimizado para mobile
   const renderDaysOfWeek = () => {
     const days = [];
+    // Usar formato mais curto para mobile
     const dateFormat = 'EEEEE';
     let startDate = startOfWeek(new Date(), { weekStartsOn: 0 });
 
     for (let i = 0; i < 7; i++) {
       days.push(
-        <div className="w-full py-2 text-center" key={i}>
+        <div className="w-full py-1 sm:py-2 text-center" key={i}>
           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             {format(addDays(startDate, i), dateFormat, { locale: ptBR })}
           </div>
