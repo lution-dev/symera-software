@@ -71,9 +71,9 @@ const MobileNavbar: React.FC = () => {
     return location === path;
   };
 
-  // Determinar título da página atual
+  // Determinar título da página atual - mostrando sempre para garantir consistência visual
   const getPageTitle = () => {
-    if (location === '/') return 'Dashboard';
+    if (location === '/') return 'Symera'; // Mostrar Symera na home/dashboard
     if (location === '/events') return 'Meus Eventos';
     if (location === '/events/new') return 'Criar Evento';
     if (location.startsWith('/events/')) return 'Detalhes do Evento';
@@ -83,12 +83,8 @@ const MobileNavbar: React.FC = () => {
     return 'Symera';
   };
   
-  // Verificar se o título deve ser mostrado na navbar (para evitar duplicação com a página)
+  // Todas as páginas terão título na navbar, seguindo o padrão de apps profissionais
   const shouldShowNavbarTitle = () => {
-    // Esconder o título na navbar nas páginas que já têm título próprio
-    if (location === '/') return false; // Dashboard já tem título próprio
-    if (location === '/events') return true;
-    if (location === '/events/new') return true;
     return true;
   };
 
@@ -102,12 +98,54 @@ const MobileNavbar: React.FC = () => {
           hasScrolled ? "shadow-md" : ""
         )}
       >
+        {/* Header Principal - sempre visível */}
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center">
             {!location.includes('/events/') && location !== '/events/new' ? (
-              <h1 className={cn("text-lg font-semibold", shouldShowNavbarTitle() ? "" : "opacity-0")}>
-                {getPageTitle()}
-              </h1>
+              <>
+                {/* Menu toggle no estilo dos exemplos */}
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <button className="h-9 w-9 flex items-center justify-center mr-3 text-foreground">
+                      <i className="fas fa-bars"></i>
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
+                    <div className="p-4 bg-primary/10">
+                      <h2 className="text-lg font-semibold">Symera</h2>
+                      <p className="text-sm text-muted-foreground">Gerenciamento de Eventos</p>
+                    </div>
+                    <div className="p-3">
+                      <div className="space-y-1">
+                        {mainNavItems.concat(menuItems).map((item) => (
+                          <SheetClose asChild key={item.path}>
+                            <Link href={item.path}>
+                              <div className={cn(
+                                "flex items-center py-2 px-3 rounded-md",
+                                isActivePath(item.path) && "bg-primary/10"
+                              )}>
+                                <i className={cn(
+                                  `fas fa-${item.icon} w-5 h-5 mr-3`,
+                                  isActivePath(item.path) ? "text-primary" : "text-foreground"
+                                )}></i>
+                                <span className={cn(
+                                  isActivePath(item.path) ? "text-primary" : "text-foreground"
+                                )}>
+                                  {item.label}
+                                </span>
+                              </div>
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              
+                <h1 className="text-lg font-semibold">
+                  {getPageTitle()}
+                </h1>
+              </>
             ) : (
               <Link href={location === '/events/new' ? '/events' : '/events'}>
                 <div className="flex items-center">
@@ -119,10 +157,16 @@ const MobileNavbar: React.FC = () => {
           </div>
           
           {/* Perfil do usuário ou ações do contexto */}
-          <div className="flex items-center">
-            {location === '/events' && (
-              <button className="mr-4 w-8 h-8 flex items-center justify-center text-muted-foreground">
+          <div className="flex items-center gap-3">
+            {location === '/events' || location === '/' ? (
+              <button className="h-9 w-9 flex items-center justify-center text-muted-foreground">
                 <i className="fas fa-search"></i>
+              </button>
+            ) : null}
+            
+            {location === '/' && (
+              <button className="h-9 w-9 flex items-center justify-center text-primary">
+                <i className="fas fa-plus"></i>
               </button>
             )}
             
@@ -138,6 +182,20 @@ const MobileNavbar: React.FC = () => {
             </Link>
           </div>
         </div>
+        
+        {/* Barra de pesquisa - visível apenas em algumas páginas */}
+        {(location === '/events' || location === '/') && (
+          <div className="px-4 pb-3">
+            <div className="relative">
+              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
+              <input 
+                type="text" 
+                placeholder="Pesquisar..." 
+                className="w-full bg-muted/50 border-0 rounded-md pl-9 h-10 text-sm"
+              />
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Navbar inferior - estilo de apps */}
