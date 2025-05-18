@@ -134,9 +134,9 @@ const MobileNavbar: React.FC = () => {
       {/* Navbar inferior - estilo de apps */}
       <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-40 flex items-center justify-around shadow-lg border-t border-border">
         {mainNavItems.map((item) => (
-          <div key={item.path} className="touch-target">
-            <Link href={item.path}>
-              <div className="flex flex-col items-center cursor-pointer min-w-[48px] min-h-[44px] justify-center py-1">
+          <div key={item.path} className="flex-1 flex justify-center touch-action-manipulation">
+            <Link href={item.path} className="w-full flex justify-center">
+              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
                 {item.highlight ? (
                   <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
                     <i className={`fas fa-${item.icon} text-white`}></i>
@@ -161,8 +161,8 @@ const MobileNavbar: React.FC = () => {
         {/* Menu de hambúrguer */}
         <Sheet>
           <SheetTrigger asChild>
-            <div className="touch-target">
-              <div className="flex flex-col items-center cursor-pointer min-w-[48px] min-h-[44px] justify-center py-1">
+            <div className="flex-1 flex justify-center touch-action-manipulation">
+              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
                 <i className="fas fa-bars h-6 w-6 text-foreground"></i>
                 <span className="text-xs mt-1 text-foreground">
                   Menu
@@ -196,9 +196,9 @@ const MobileNavbar: React.FC = () => {
               <div className="space-y-4 mt-4">
                 {menuItems.map((item) => (
                   <SheetClose asChild key={item.path}>
-                    <Link href={item.path}>
+                    <Link href={item.path} className="block w-full">
                       <div className={cn(
-                        "flex items-center py-3 px-2 rounded-md",
+                        "flex items-center py-3 px-2 rounded-md min-h-[44px] touch-action-manipulation",
                         isActivePath(item.path) && "bg-muted"
                       )}>
                         <i className={cn(
@@ -219,8 +219,8 @@ const MobileNavbar: React.FC = () => {
               <Separator className="my-4" />
               
               <SheetClose asChild>
-                <Link href="/logout">
-                  <div className="flex items-center py-3 px-2 rounded-md text-destructive">
+                <Link href="/logout" className="block w-full">
+                  <div className="flex items-center py-3 px-2 rounded-md min-h-[44px] touch-action-manipulation text-destructive">
                     <i className="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
                     <span>Sair</span>
                   </div>
