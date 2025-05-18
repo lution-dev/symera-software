@@ -198,109 +198,93 @@ const MobileNavbar: React.FC = () => {
         )}
       </div>
       
-      {/* Navbar inferior - estilo de apps */}
+      {/* Barra de navegação inferior - redesenhada para evitar duplicação com menu lateral */}
       <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-40 flex items-center justify-around shadow-lg border-t border-border">
-        {mainNavItems.map((item) => (
-          <div key={item.path} className="flex-1 flex justify-center touch-action-manipulation">
-            <Link href={item.path} className="w-full flex justify-center">
-              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
-                {item.highlight ? (
-                  <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
-                    <i className={`fas fa-${item.icon} text-white`}></i>
-                  </div>
-                ) : (
-                  <i className={cn(
-                    `fas fa-${item.icon} h-6 w-6`,
-                    isActivePath(item.path) ? "text-primary" : "text-foreground"
-                  )}></i>
-                )}
-                <span className={cn(
-                  "text-xs mt-1",
-                  isActivePath(item.path) ? "text-primary" : "text-foreground"
-                )}>
-                  {item.label}
-                </span>
-              </div>
-            </Link>
-          </div>
-        ))}
+        {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
+        <div className="flex-1 flex justify-center touch-action-manipulation">
+          <Link href="/" className="w-full flex justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
+              <i className={cn(
+                "fas fa-home h-6 w-6",
+                isActivePath('/') ? "text-primary" : "text-foreground"
+              )}></i>
+              <span className={cn(
+                "text-xs mt-1",
+                isActivePath('/') ? "text-primary" : "text-foreground"
+              )}>
+                Início
+              </span>
+            </div>
+          </Link>
+        </div>
         
-        {/* Menu de hambúrguer */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <div className="flex-1 flex justify-center touch-action-manipulation">
-              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
-                <i className="fas fa-bars h-6 w-6 text-foreground"></i>
-                <span className="text-xs mt-1 text-foreground">
-                  Menu
-                </span>
-              </div>
+        <div className="flex-1 flex justify-center touch-action-manipulation">
+          <Link href="/events" className="w-full flex justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
+              <i className={cn(
+                "fas fa-calendar-alt h-6 w-6",
+                isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
+              )}></i>
+              <span className={cn(
+                "text-xs mt-1",
+                isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
+              )}>
+                Eventos
+              </span>
             </div>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[85%] sm:w-[350px] overflow-y-auto">
-            <div className="py-6">
-              <div className="flex items-center mb-6">
-                <Avatar className="h-10 w-10 mr-3">
-                  {user?.profileImageUrl ? (
-                    <AvatarImage src={user.profileImageUrl} alt={user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Usuário'} />
-                  ) : null}
-                  <AvatarFallback className="bg-gradient-primary text-white">
-                    {getInitials(user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || '')}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-medium">
-                    {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email}
-                  </h3>
-                  <Link href="/profile">
-                    <span className="text-sm text-primary">Ver perfil</span>
-                  </Link>
-                </div>
+          </Link>
+        </div>
+        
+        {/* Botão de adicionar no centro */}
+        <div className="flex-1 flex justify-center touch-action-manipulation">
+          <Link href="/events/new" className="w-full flex justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center">
+              <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
+                <i className="fas fa-plus text-white"></i>
               </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="space-y-4 mt-4">
-                {menuItems.map((item) => (
-                  <SheetClose asChild key={item.path}>
-                    <Link href={item.path} className="block w-full">
-                      <div className={cn(
-                        "flex items-center py-3 px-2 rounded-md min-h-[44px] touch-action-manipulation",
-                        isActivePath(item.path) && "bg-muted"
-                      )}>
-                        <i className={cn(
-                          `fas fa-${item.icon} w-5 h-5 mr-3`,
-                          isActivePath(item.path) ? "text-primary" : "text-foreground"
-                        )}></i>
-                        <span className={cn(
-                          isActivePath(item.path) ? "text-primary" : "text-foreground"
-                        )}>
-                          {item.label}
-                        </span>
-                      </div>
-                    </Link>
-                  </SheetClose>
-                ))}
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <SheetClose asChild>
-                <button 
-                  className="block w-full"
-                  onClick={() => {
-                    window.location.href = "/api/logout";
-                  }}
-                >
-                  <div className="flex items-center py-3 px-2 rounded-md min-h-[44px] touch-action-manipulation text-destructive">
-                    <i className="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
-                    <span>Sair</span>
-                  </div>
-                </button>
-              </SheetClose>
+              <span className={cn(
+                "text-xs mt-1",
+                isActivePath('/events/new') ? "text-primary" : "text-foreground"
+              )}>
+                Novo
+              </span>
             </div>
-          </SheetContent>
-        </Sheet>
+          </Link>
+        </div>
+        
+        <div className="flex-1 flex justify-center touch-action-manipulation">
+          <Link href="/schedule" className="w-full flex justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
+              <i className={cn(
+                "fas fa-calendar-day h-6 w-6",
+                isActivePath('/schedule') ? "text-primary" : "text-foreground"
+              )}></i>
+              <span className={cn(
+                "text-xs mt-1",
+                isActivePath('/schedule') ? "text-primary" : "text-foreground"
+              )}>
+                Agenda
+              </span>
+            </div>
+          </Link>
+        </div>
+        
+        <div className="flex-1 flex justify-center touch-action-manipulation">
+          <Link href="/profile" className="w-full flex justify-center">
+            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
+              <i className={cn(
+                "fas fa-user h-6 w-6",
+                isActivePath('/profile') ? "text-primary" : "text-foreground"
+              )}></i>
+              <span className={cn(
+                "text-xs mt-1",
+                isActivePath('/profile') ? "text-primary" : "text-foreground"
+              )}>
+                Perfil
+              </span>
+            </div>
+          </Link>
+        </div>
       </div>
     </>
   );

@@ -62,12 +62,15 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
-      {/* Header */}
+      {/* Header - Removido título duplicado no mobile, mantido apenas para tablets/desktop */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 sm:mb-8">
         <div>
-          <h1 className="mobile-header text-2xl md:text-3xl font-bold">
+          <h1 className="mobile-header hidden sm:block text-2xl md:text-3xl font-bold">
             Seja bem-vindo(a), {user?.firstName || ""}!
           </h1>
+          <h2 className="text-lg sm:hidden font-medium text-muted-foreground">
+            Olá, {user?.firstName || ""}!
+          </h2>
           {activeEvents > 0 ? (
             <p className="text-muted-foreground mt-1 mobile-text">
               {isMobile ? (

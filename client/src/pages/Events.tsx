@@ -58,9 +58,9 @@ const Events: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+    <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
+      {/* Header - Visível apenas em tablets e desktop */}
+      <div className="hidden sm:flex flex-col md:flex-row md:items-center md:justify-between mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Meus Eventos</h1>
           <p className="text-muted-foreground mt-1">
@@ -76,50 +76,119 @@ const Events: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-card p-4 rounded-lg mb-8">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Buscar eventos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-              <i className="fas fa-search absolute left-3 top-2.5 text-muted-foreground"></i>
+      {/* Mobile: Apenas espaçamento, título já está na navbar */}
+      <div className="h-2 sm:hidden"></div>
+
+      {/* Filters - Redesenhado para mobile */}
+      <div className="bg-card rounded-lg mb-6 sm:mb-8 overflow-hidden">
+        {/* Versão Mobile: Layout mais compacto */}
+        <div className="sm:hidden px-4 pt-3 pb-4">
+          <div className="flex gap-3 mb-3">
+            <div className="flex-1">
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="Buscar eventos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-10 text-sm"
+                />
+                <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-10 px-3 flex items-center gap-1"
+              onClick={() => {
+                setSearchTerm("");
+                setEventTypeFilter("all");
+                setSortBy("date");
+              }}
+            >
+              <i className="fas fa-sync-alt text-xs"></i>
+              <span className="text-xs">Limpar</span>
+            </Button>
+          </div>
+          
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value="wedding">Casamento</SelectItem>
+                  <SelectItem value="corporate">Corporativo</SelectItem>
+                  <SelectItem value="birthday">Aniversário</SelectItem>
+                  <SelectItem value="conference">Conferência</SelectItem>
+                  <SelectItem value="social">Social</SelectItem>
+                  <SelectItem value="other">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex-1">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date">Data</SelectItem>
+                  <SelectItem value="name">Nome (A-Z)</SelectItem>
+                  <SelectItem value="progress">Progresso</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          
-          <div className="w-full md:w-48">
-            <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de evento" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os tipos</SelectItem>
-                <SelectItem value="wedding">Casamento</SelectItem>
-                <SelectItem value="corporate">Corporativo</SelectItem>
-                <SelectItem value="birthday">Aniversário</SelectItem>
-                <SelectItem value="conference">Conferência</SelectItem>
-                <SelectItem value="social">Social</SelectItem>
-                <SelectItem value="other">Outros</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="w-full md:w-48">
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date">Data (mais próximo)</SelectItem>
-                <SelectItem value="name">Nome (A-Z)</SelectItem>
-                <SelectItem value="progress">Progresso</SelectItem>
-              </SelectContent>
-            </Select>
+        </div>
+        
+        {/* Versão Desktop: Layout original */}
+        <div className="hidden sm:block p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="Buscar eventos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+                <i className="fas fa-search absolute left-3 top-2.5 text-muted-foreground"></i>
+              </div>
+            </div>
+            
+            <div className="w-full md:w-48">
+              <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo de evento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value="wedding">Casamento</SelectItem>
+                  <SelectItem value="corporate">Corporativo</SelectItem>
+                  <SelectItem value="birthday">Aniversário</SelectItem>
+                  <SelectItem value="conference">Conferência</SelectItem>
+                  <SelectItem value="social">Social</SelectItem>
+                  <SelectItem value="other">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="w-full md:w-48">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date">Data (mais próximo)</SelectItem>
+                  <SelectItem value="name">Nome (A-Z)</SelectItem>
+                  <SelectItem value="progress">Progresso</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
