@@ -46,26 +46,38 @@ export function formatTaskDueDate(date: string | Date | undefined) {
 }
 
 // Format timestamp for activity feeds
-export function formatActivityTimestamp(date: string | Date) {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffTime = now.getTime() - dateObj.getTime();
-  const diffMinutes = Math.floor(diffTime / (1000 * 60));
-  const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+export function formatActivityTimestamp(date: string | Date | undefined) {
+  // Se não houver data, retorna string padrão
+  if (!date) return 'Recentemente';
   
-  if (diffMinutes < 60) {
-    return `${diffMinutes} min atrás`;
-  } else if (diffHours < 24) {
-    return `${diffHours}h atrás`;
-  } else if (diffDays < 7) {
-    return `${diffDays} dias atrás`;
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const now = new Date();
+    
+    // Verificação extra para garantir que a data é válida
+    if (isNaN(dateObj.getTime())) return 'Recentemente';
+    
+    const diffTime = now.getTime() - dateObj.getTime();
+    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffMinutes < 60) {
+      return `${diffMinutes} min atrás`;
+    } else if (diffHours < 24) {
+      return `${diffHours}h atrás`;
+    } else if (diffDays < 7) {
+      return `${diffDays} dias atrás`;
+    }
+    
+    return dateObj.toLocaleDateString('pt-BR', {
+      day: 'numeric',
+      month: 'short'
+    });
+  } catch (error) {
+    // Em caso de erro na formatação, retornar string padrão
+    return 'Recentemente';
   }
-  
-  return dateObj.toLocaleDateString('pt-BR', {
-    day: 'numeric',
-    month: 'short'
-  });
 }
 
 // Calculate progress percentage based on completed tasks
