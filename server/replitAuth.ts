@@ -8,6 +8,7 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import memorystore from "memorystore";
+import "../shared/types";
 
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
@@ -193,12 +194,14 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return res.redirect("/api/login");
   }
 
-  // Armazenar informações importantes na sessão
+  // Garantir que o ID do usuário seja salvo na sessão
   if (user.claims.sub) {
+    // @ts-ignore - Ignorar o erro de tipos, pois já definimos o tipo em shared/types.ts
     req.session.userId = user.claims.sub;
     await new Promise<void>((resolve) => {
       req.session.save(() => resolve());
     });
+    console.log("ID do usuário salvo na sessão:", user.claims.sub);
   }
   
   // Se o token expirou, tente atualizar

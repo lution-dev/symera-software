@@ -48,25 +48,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth routes - Modificada para verificar login alternativo primeiro
+  // Auth routes - Versão melhorada com suporte a persistência de sessão
   app.get('/api/auth/user', async (req: any, res) => {
     try {
+      console.log("Verificando autenticação do usuário:");
+      console.log("- Session ID:", req.sessionID);
+      console.log("- Is Authenticated:", req.isAuthenticated());
+      console.log("- Session dev auth:", req.session.devIsAuthenticated);
+      
       // Verificar login alternativo primeiro
       if (req.session.devIsAuthenticated && req.session.devUserId) {
+        console.log("- Usando autenticação de desenvolvimento");
         const user = await storage.getUser(req.session.devUserId);
         if (user) {
           return res.json(user);
         }
       }
       
-      // Cair para autenticação normal se login alternativo não funcionar
-      if (req.isAuthenticated() && req.user?.claims?.sub) {
-        const userId = req.user.claims.sub;
-        const user = await storage.getUser(userId);
-        return res.json(user);
+      // Verificar autenticação normal do Replit
+      if (req.isAuthenticated()) {
+        console.log("- Usuário autenticado via Replit Auth");
+        
+        if (req.user?.claims?.sub) {
+          const userId = req.user.claims.sub;
+          console.log("- ID do usuário:", userId);
+          const user = await storage.getUser(userId);
+          
+          if (user) {
+            return res.json(user);
+          } else {
+            console.log("- Usuário não encontrado no banco de dados");
+          }
+        } else {
+          console.log("- Usuário autenticado mas sem ID (sub)");
+        }
+      }
+      
+      // Última chance: verificar se temos userId na sessão
+      if (req.session.userId) {
+        console.log("- Tentando recuperar via session.userId:", req.session.userId);
+        const user = await storage.getUser(req.session.userId);
+        if (user) {
+          console.log("- Usuário recuperado com sucesso via session.userId");
+          return res.json(user);
+        }
       }
       
       // Se não conseguiu autenticar de nenhuma forma
+      console.log("- Nenhum método de autenticação funcionou");
       return res.status(401).json({ message: "Unauthorized" });
     } catch (error) {
       console.error("Error fetching user:", error);
