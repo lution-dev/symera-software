@@ -3,6 +3,7 @@ import { formatTaskDueDate, getTaskPriorityColor, getTaskStatusColor } from "@/l
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 interface Task {
   id: number;
@@ -34,6 +35,7 @@ const TaskList: React.FC<TaskListProps> = ({
   onTaskUpdate,
   onTaskDelete
 }) => {
+  const [, navigate] = useLocation();
   // If tasks are not provided via props, fetch them from the API
   const { data: apiTasks, isLoading: apiLoading } = useQuery({
     queryKey: ['/api/dashboard'],
@@ -205,6 +207,14 @@ const TaskList: React.FC<TaskListProps> = ({
                             ? 'green' 
                             : 'yellow'
                       }-400`}></i>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => navigate(`/events/${task.eventId}/tasks/${task.id}/edit`)}
+                    >
+                      <i className="fas fa-pencil-alt text-amber-400"></i>
                     </Button>
                     <Button
                       variant="ghost"

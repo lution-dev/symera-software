@@ -10,6 +10,7 @@ import Event from "@/pages/Event";
 import CreateEvent from "@/pages/CreateEvent";
 import Checklist from "@/pages/Checklist";
 import TaskNew from "@/pages/TaskNew";
+import TaskEdit from "@/pages/TaskEdit";
 import Schedule from "@/pages/Schedule";
 import Team from "@/pages/Team";
 import Vendors from "@/pages/Vendors";
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/events/:id" component={(params: any) => <ProtectedRoute component={Event} id={params.id} />} />
       <Route path="/events/:id/checklist" component={(params: any) => <ProtectedRoute component={Checklist} id={params.id} />} />
       <Route path="/events/:id/tasks/new" component={(params: any) => <ProtectedRoute component={TaskNew} />} />
+      <Route path="/events/:id/tasks/:taskId/edit" component={(params: any) => <ProtectedRoute component={TaskEdit} />} />
       <Route path="/schedule" component={() => <ProtectedRoute component={Schedule} />} />
       <Route path="/team" component={() => <ProtectedRoute component={Team} />} />
       <Route path="/vendors" component={() => <ProtectedRoute component={Vendors} />} />
