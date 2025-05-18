@@ -10,6 +10,12 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Select, 
   SelectContent, 
@@ -292,62 +298,43 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       )}
       
-      {/* Event Header - Otimizado para mobile */}
-      <div className="bg-card p-4 sm:p-6 rounded-xl mb-6 shadow-sm">
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <div className="flex items-center">
-              <i className="fas fa-calendar-day mr-2 text-primary min-w-[16px]"></i>
-              <span className="text-sm sm:text-base truncate">{formatDate(event.date)}</span>
-            </div>
-            {event.location && (
-              <div className="flex items-center">
-                <i className="fas fa-map-marker-alt mr-2 text-primary min-w-[16px]"></i>
-                <span className="text-sm sm:text-base truncate">{event.location}</span>
-              </div>
-            )}
-            {event.attendees && (
-              <div className="flex items-center">
-                <i className="fas fa-user-friends mr-2 text-primary min-w-[16px]"></i>
-                <span className="text-sm sm:text-base truncate">{event.attendees} convidados</span>
-              </div>
-            )}
-            {event.budget && (
-              <div className="flex items-center">
-                <i className="fas fa-coins mr-2 text-primary min-w-[16px]"></i>
-                <span className="text-sm sm:text-base truncate">{formatCurrency(event.budget)}</span>
-              </div>
-            )}
-          </div>
-        
-          {/* Botões de ação - mais compactos no mobile, agora inclui botão de status */}
-          <div className="flex flex-wrap gap-2 mt-1 sm:mt-2">
-            <Link href={`/events/${eventId}/checklist`}>
-              <Button variant="outline" className="h-9 sm:h-10 text-sm sm:text-base">
-                <i className="fas fa-tasks mr-1 sm:mr-2"></i> <span className="hidden xs:inline">Checklist</span><span className="xs:hidden">Lista</span>
-              </Button>
-            </Link>
-            <Link href={`/events/${eventId}/edit`}>
-              <Button variant="outline" className="h-9 sm:h-10 text-sm sm:text-base">
-                <i className="fas fa-edit mr-1 sm:mr-2"></i> Editar
-              </Button>
-            </Link>
+      {/* Event Header - Design inspirado em aplicativos de alta qualidade */}
+      <div className="bg-card rounded-xl mb-6 shadow-sm overflow-hidden">
+        {/* Cabeçalho com status */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/40">
+          <div className="flex items-center space-x-2">
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+              event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
+              event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-[hsl(var(--event-confirmed))]' : 
+              event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+              event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+              event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-[hsl(var(--event-completed))]' : 
+              event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-[hsl(var(--event-cancelled))]' : 
+              'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]'
+            }`}>
+              <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+                'bg-[hsl(var(--event-planning))]'
+              }`}></span>
+              {event.status === 'planning' ? 'Planejamento' : 
+              event.status === 'confirmed' ? 'Confirmado' : 
+              event.status === 'in_progress' ? 'Em andamento' : 
+              event.status === 'active' ? 'Ativo' : 
+              event.status === 'completed' ? 'Concluído' : 
+              event.status === 'cancelled' ? 'Cancelado' : 
+              'Planejamento'}
+            </span>
             
-            {/* Status Change Button - Incorporado com os outros botões */}
+            {/* Status Change Button */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" className="h-9 sm:h-10 text-sm sm:text-base flex items-center gap-2">
-                  <i className="fas fa-flag mr-1 sm:mr-2"></i>
-                  <span className="hidden xs:inline">Status</span>
-                  <span className={`h-2 w-2 rounded-full ${
-                    event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
-                    event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
-                    event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                    event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                    event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
-                    event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
-                    'bg-[hsl(var(--event-planning))]'
-                  }`}></span>
+                <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                  <i className="fas fa-pencil-alt text-xs"></i>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -409,9 +396,106 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+          </div>
+          
+          {/* Desktop Actions */}
+          <div className="hidden sm:flex items-center gap-2">
+            <Link href={`/events/${eventId}/edit`}>
+              <Button variant="outline" size="sm" className="h-9">
+                <i className="fas fa-edit mr-2"></i> Editar
+              </Button>
+            </Link>
+            <Button variant="destructive" onClick={handleDeleteEvent} size="sm" className="h-9">
+              <i className="fas fa-trash-alt mr-2"></i> Excluir
+            </Button>
+          </div>
+          
+          {/* Mobile More Options - Fix for dropdown menu */}
+          <div className="sm:hidden flex">
+            <div className="flex gap-2">
+              <Link href={`/events/${eventId}/edit`}>
+                <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full">
+                  <i className="fas fa-edit"></i>
+                </Button>
+              </Link>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-8 h-8 p-0 text-destructive rounded-full" 
+                onClick={handleDeleteEvent}
+              >
+                <i className="fas fa-trash-alt"></i>
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Info Grid */}
+        <div className="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-border/40">
+          <div className="flex items-start">
+            <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
+              <i className="fas fa-calendar-day text-sm"></i>
+            </div>
+            <div className="ml-3">
+              <p className="text-xs text-muted-foreground">Data</p>
+              <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
+            </div>
+          </div>
+          
+          {event.location && (
+            <div className="flex items-start">
+              <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
+                <i className="fas fa-map-marker-alt text-sm"></i>
+              </div>
+              <div className="ml-3">
+                <p className="text-xs text-muted-foreground">Local</p>
+                <p className="mt-0.5 text-sm font-medium">{event.location}</p>
+              </div>
+            </div>
+          )}
+          
+          {event.attendees && (
+            <div className="flex items-start">
+              <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
+                <i className="fas fa-user-friends text-sm"></i>
+              </div>
+              <div className="ml-3">
+                <p className="text-xs text-muted-foreground">Convidados</p>
+                <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
+              </div>
+            </div>
+          )}
+          
+          {event.budget && (
+            <div className="flex items-start">
+              <div className="mt-0.5 flex-shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
+                <i className="fas fa-coins text-sm"></i>
+              </div>
+              <div className="ml-3">
+                <p className="text-xs text-muted-foreground">Orçamento</p>
+                <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex p-4 sm:p-5 items-center justify-between">
+          <div className="flex gap-2">
+            <Link href={`/events/${eventId}/checklist`}>
+              <Button variant="outline" className="h-9 sm:h-10 text-sm">
+                <i className="fas fa-tasks mr-1.5"></i> Checklist
+              </Button>
+            </Link>
             
-            <Button variant="destructive" onClick={handleDeleteEvent} className="h-9 sm:h-10 text-sm sm:text-base">
-              <i className="fas fa-trash-alt mr-1 sm:mr-2"></i> <span className="hidden xs:inline">Excluir</span><span className="xs:hidden">Del</span>
+            <Button variant="outline" onClick={() => navigate(`/events/${eventId}/vendors`)} className="h-9 sm:h-10 text-sm">
+              <i className="fas fa-store mr-1.5"></i> Fornecedores
+            </Button>
+          </div>
+          
+          <div>
+            <Button variant="default" className="h-9 sm:h-10 text-sm">
+              <i className="fas fa-user-plus mr-1.5"></i> Convidar
             </Button>
           </div>
         </div>
