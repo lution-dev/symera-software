@@ -97,34 +97,38 @@ const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <Link href={`/events/${id}`}>
-      <div className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-        <img 
-          src={coverImage || getDefaultCover()} 
-          alt={`${name} event`}
-          className="w-full h-48 object-cover"
-        />
-        
-        <div className="absolute top-3 right-3">
-          <span className={`px-2 py-1 rounded-full text-xs text-white font-medium ${
-            status === 'planning' ? 'bg-blue-500' : 
-            status === 'confirmed' ? 'bg-green-500' : 
-            status === 'in_progress' ? 'bg-amber-500' : 
-            status === 'completed' ? 'bg-green-700' : 
-            status === 'cancelled' ? 'bg-red-500' : 
-            'bg-blue-500'
-          }`}>
-            {status === 'planning' ? 'Planejamento' : 
-            status === 'confirmed' ? 'Confirmado' : 
-            status === 'in_progress' ? 'Em andamento' : 
-            status === 'completed' ? 'Concluído' : 
-            status === 'cancelled' ? 'Cancelado' : 
-            'Planejamento'}
-          </span>
+      <div className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
+        {/* Image container optimized for small screens */}
+        <div className="relative">
+          <img 
+            src={coverImage || getDefaultCover()} 
+            alt={`${name} event`}
+            className="w-full h-28 sm:h-36 object-cover"
+          />
+          
+          <div className="absolute top-2 right-2">
+            <span className={`px-2 py-0.5 rounded-full text-xs text-white font-medium ${
+              status === 'planning' ? 'bg-blue-500' : 
+              status === 'confirmed' ? 'bg-green-500' : 
+              status === 'in_progress' ? 'bg-amber-500' : 
+              status === 'completed' ? 'bg-green-700' : 
+              status === 'cancelled' ? 'bg-red-500' : 
+              'bg-blue-500'
+            }`}>
+              {status === 'planning' ? 'Planejamento' : 
+              status === 'confirmed' ? 'Confirmado' : 
+              status === 'in_progress' ? 'Em andamento' : 
+              status === 'completed' ? 'Concluído' : 
+              status === 'cancelled' ? 'Cancelado' : 
+              'Planejamento'}
+            </span>
+          </div>
         </div>
         
-        <div className="p-4">
+        {/* Content container with compact mobile-first layout */}
+        <div className="p-3 flex-1 flex flex-col">
           <div className="flex items-center mb-2">
-            <div className={`w-10 h-10 rounded-full mr-3 flex items-center justify-center ${
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2 sm:mr-3 flex-shrink-0 flex items-center justify-center ${
               type === 'wedding' ? 'bg-pink-100' : 
               type === 'corporate' ? 'bg-blue-100' : 
               type === 'birthday' ? 'bg-purple-100' : 
@@ -143,41 +147,42 @@ const EventCard: React.FC<EventCardProps> = ({
                 type === 'birthday' ? 'text-purple-500' : 
                 type === 'social' ? 'text-green-500' : 
                 'text-gray-500'
-              }`}></i>
+              } text-xs sm:text-sm`}></i>
             </div>
-            <div>
-              <h3 className="font-bold text-white text-lg">{name}</h3>
-              <p className="text-gray-400 text-sm">{getEventTypeLabel(type)}</p>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-bold text-white text-base truncate">{name}</h3>
+              <p className="text-gray-400 text-xs">{getEventTypeLabel(type)}</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-2 mt-3">
+          {/* Compact information layout */}
+          <div className="grid grid-cols-2 gap-x-1 gap-y-1.5 mt-1.5">
             <div className="flex items-center">
-              <i className="fas fa-calendar-day text-primary mr-2"></i>
-              <span className="text-gray-300 text-sm">
+              <i className="fas fa-calendar-day text-primary mr-1.5 w-4 text-center text-xs"></i>
+              <span className="text-gray-300 text-xs truncate">
                 {formatDate(date)}
               </span>
             </div>
             
             {location && (
               <div className="flex items-center">
-                <i className="fas fa-map-marker-alt text-primary mr-2"></i>
-                <span className="text-gray-300 text-sm truncate">{location}</span>
+                <i className="fas fa-map-marker-alt text-primary mr-1.5 w-4 text-center text-xs"></i>
+                <span className="text-gray-300 text-xs truncate">{location}</span>
               </div>
             )}
             
             {attendees && (
               <div className="flex items-center">
-                <i className="fas fa-user-friends text-primary mr-2"></i>
-                <span className="text-gray-300 text-sm">{attendees} convidados</span>
+                <i className="fas fa-user-friends text-primary mr-1.5 w-4 text-center text-xs"></i>
+                <span className="text-gray-300 text-xs truncate">{attendees} convidados</span>
               </div>
             )}
             
             <div className="flex items-center">
-              <i className="fas fa-tasks text-primary mr-2"></i>
-              <div className="flex items-center w-full">
-                <span className="text-gray-300 text-sm mr-2">{progressPercentage}%</span>
-                <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+              <i className="fas fa-tasks text-primary mr-1.5 w-4 text-center text-xs"></i>
+              <div className="flex items-center w-full min-w-0">
+                <span className="text-gray-300 text-xs mr-1.5">{progressPercentage}%</span>
+                <div className="w-12 sm:w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden flex-shrink-0">
                   <div 
                     className="h-full bg-gradient-to-r from-blue-500 to-purple-500" 
                     style={{ width: `${progressPercentage}%` }}
@@ -187,12 +192,13 @@ const EventCard: React.FC<EventCardProps> = ({
             </div>
           </div>
           
-          <div className="mt-4 flex justify-between items-center">
+          {/* Team members - optimized size for mobile */}
+          <div className="mt-3 flex">
             <div className="flex">
               {teamData.slice(0, 3).map((member, idx) => (
                 <Avatar
                   key={member.id}
-                  className={`w-8 h-8 border-2 border-card ${idx > 0 ? '-ml-2' : ''}`}
+                  className={`w-6 h-6 sm:w-7 sm:h-7 border-2 border-card ${idx > 0 ? '-ml-1.5' : ''}`}
                   style={{ zIndex: 10 - idx }}
                 >
                   <AvatarImage 
@@ -200,14 +206,14 @@ const EventCard: React.FC<EventCardProps> = ({
                          generateProfileImageUrl(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)} 
                     alt={`${member.user?.firstName || ''} ${member.user?.lastName || ''}`}
                   />
-                  <AvatarFallback className="text-xs">
+                  <AvatarFallback className="text-[10px]">
                     {getInitials(`${member.user?.firstName || ''} ${member.user?.lastName || ''}`)}
                   </AvatarFallback>
                 </Avatar>
               ))}
               {teamData.length > 3 && (
-                <Avatar className="w-8 h-8 border-2 border-card -ml-2">
-                  <AvatarFallback className="text-xs font-medium">
+                <Avatar className="w-6 h-6 sm:w-7 sm:h-7 border-2 border-card -ml-1.5">
+                  <AvatarFallback className="text-[10px]">
                     +{teamData.length - 3}
                   </AvatarFallback>
                 </Avatar>
