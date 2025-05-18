@@ -148,135 +148,110 @@ const Profile: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6 max-w-5xl">
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Coluna da esquerda - Informações do perfil */}
-        <div className="md:w-1/3 space-y-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 mt-2">
-                  <Avatar className="h-24 w-24 border-4 border-background">
-                    {userData?.profileImageUrl ? (
-                      <AvatarImage src={userData.profileImageUrl} alt={`${userData.firstName} ${userData.lastName}`} />
-                    ) : null}
-                    <AvatarFallback className="bg-gradient-primary text-white text-xl">
-                      {getInitials(`${userData?.firstName || ""} ${userData?.lastName || ""}`)}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                <h2 className="text-xl font-bold">
-                  {userData?.firstName} {userData?.lastName}
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">{userData?.email}</p>
-                
-                <div className="w-full mt-6">
-                  <Link href="/settings">
-                    <Button variant="outline" className="w-full">
-                      <Settings className="mr-2 h-4 w-4" /> Configurações
-                    </Button>
-                  </Link>
-                </div>
+      {/* Cabeçalho do perfil - Sempre visível */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-row items-center">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mr-4 border-2 border-background">
+              {userData?.profileImageUrl ? (
+                <AvatarImage src={userData.profileImageUrl} alt={`${userData.firstName} ${userData.lastName}`} />
+              ) : null}
+              <AvatarFallback className="bg-gradient-primary text-white text-lg">
+                {getInitials(`${userData?.firstName || ""} ${userData?.lastName || ""}`)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold">
+                {userData?.firstName} {userData?.lastName}
+              </h2>
+              <p className="text-sm text-muted-foreground">{userData?.email}</p>
+              <div className="flex space-x-2 mt-2">
+                <Badge variant="outline" className="bg-primary/10">
+                  {userData?.phone || 'Sem telefone'}
+                </Badge>
+                <Badge variant="outline" className="bg-primary/10">
+                  {Array.isArray(userEvents) ? `${userEvents.length} eventos` : '0 eventos'}
+                </Badge>
               </div>
-              
-              <Separator className="my-6" />
-              
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Membro desde</h3>
-                  <p>{userData?.createdAt ? getFormattedDate(userData.createdAt) : "Data desconhecida"}</p>
+            </div>
+            <Link href="/settings">
+              <Button variant="outline" size="icon" className="ml-2">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+          <div className="mt-4 text-xs text-muted-foreground text-right">
+            Membro desde {userData?.createdAt ? getFormattedDate(userData.createdAt) : "data desconhecida"}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Abas agora vêm após o cabeçalho do perfil */}
+      <Tabs defaultValue="activities" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="activities" className="text-xs sm:text-sm py-2 px-1">Atividades</TabsTrigger>
+          <TabsTrigger value="upcoming" className="text-xs sm:text-sm py-2 px-1">Eventos</TabsTrigger>
+          <TabsTrigger value="stats" className="text-xs sm:text-sm py-2 px-1">Estatísticas</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="activities" className="space-y-4 mt-0">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Atividades Recentes</CardTitle>
+              <CardDescription className="text-sm">
+                Histórico das suas últimas ações na plataforma
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderActivities()}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="upcoming" className="space-y-4 mt-0">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Próximos Eventos</CardTitle>
+              <CardDescription className="text-sm">
+                Eventos que você organizará em breve
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderUpcomingEvents()}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="stats" className="space-y-4 mt-0">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Estatísticas</CardTitle>
+              <CardDescription className="text-sm">
+                Resumo da sua atividade na plataforma
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 border rounded-lg">
+                  <Calendar className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <h3 className="text-xl font-bold">{Array.isArray(userEvents) ? userEvents.length : 0}</h3>
+                  <p className="text-xs text-muted-foreground">Eventos</p>
                 </div>
-                
-                {userData?.phone && (
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">Telefone</h3>
-                    <p>{userData.phone}</p>
-                  </div>
-                )}
-                
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Eventos organizados</h3>
-                  <p>{Array.isArray(userEvents) ? userEvents.length : 0}</p>
+                <div className="text-center p-4 border rounded-lg">
+                  <Users className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <h3 className="text-xl font-bold">0</h3>
+                  <p className="text-xs text-muted-foreground">Equipe</p>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <Bell className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <h3 className="text-xl font-bold">0</h3>
+                  <p className="text-xs text-muted-foreground">Lembretes</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </div>
-        
-        {/* Coluna da direita - Abas com conteúdo dinâmico */}
-        <div className="md:w-2/3">
-          <Tabs defaultValue="activities" className="w-full">
-            <TabsList className="grid grid-cols-3 mb-6">
-              <TabsTrigger value="activities">Atividades</TabsTrigger>
-              <TabsTrigger value="upcoming">Próximos Eventos</TabsTrigger>
-              <TabsTrigger value="stats">Estatísticas</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="activities" className="space-y-4 mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Atividades Recentes</CardTitle>
-                  <CardDescription>
-                    Histórico das suas últimas ações na plataforma
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderActivities()}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="upcoming" className="space-y-4 mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Próximos Eventos</CardTitle>
-                  <CardDescription>
-                    Eventos que você organizará em breve
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderUpcomingEvents()}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="stats" className="space-y-4 mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Estatísticas</CardTitle>
-                  <CardDescription>
-                    Resumo da sua atividade na plataforma
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <Calendar className="h-8 w-8 text-primary mx-auto mb-2 mt-2" />
-                        <h3 className="text-2xl font-bold">{Array.isArray(userEvents) ? userEvents.length : 0}</h3>
-                        <p className="text-sm text-muted-foreground">Eventos</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <Users className="h-8 w-8 text-primary mx-auto mb-2 mt-2" />
-                        <h3 className="text-2xl font-bold">0</h3>
-                        <p className="text-sm text-muted-foreground">Membros de Equipe</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <MessageSquare className="h-8 w-8 text-primary mx-auto mb-2 mt-2" />
-                        <h3 className="text-2xl font-bold">0</h3>
-                        <p className="text-sm text-muted-foreground">Mensagens</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
