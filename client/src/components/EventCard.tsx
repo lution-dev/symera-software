@@ -96,17 +96,19 @@ const EventCard: React.FC<EventCardProps> = ({
   
   return (
     <Link href={`/events/${id}`}>
-      <div className="bg-card rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow animate-fadeIn cursor-pointer mobile-card">
-        {/* Cover image with status badge */}
-        <div className="relative h-32 sm:h-40 overflow-hidden">
+      <div className="rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow animate-fadeIn cursor-pointer mobile-card">
+        {/* Full card cover image */}
+        <div className="relative h-[220px] overflow-hidden">
           <img 
             src={coverImage || getDefaultCover()} 
             alt={`${name} - ${getEventTypeLabel(type)}`} 
             className="w-full h-full object-cover"
           />
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-background opacity-80"></div>
           
-          {/* Status badge - more prominent on mobile */}
+          {/* Dark overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
+          
+          {/* Status badge - top right */}
           <div className={`absolute top-3 right-3 ${
             status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
             status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
@@ -124,68 +126,68 @@ const EventCard: React.FC<EventCardProps> = ({
              status === 'cancelled' ? 'Cancelado' : 
              'Planejamento'}
           </div>
-        </div>
-        
-        <div className="p-4 sm:p-5">
-          {/* Event title and type - more compact on mobile */}
-          <div className="flex items-center mb-3">
-            <div className={`min-w-[44px] w-10 h-10 rounded-full touch-target ${type === 'wedding' ? 'bg-pink-100' : type === 'corporate' ? 'bg-blue-100' : type === 'birthday' ? 'bg-purple-100' : 'bg-green-100'} flex items-center justify-center mr-3`}>
-              <i className={`fas fa-${type === 'wedding' ? 'heart' : type === 'corporate' ? 'briefcase' : type === 'birthday' ? 'birthday-cake' : 'glass-cheers'} ${type === 'wedding' ? 'text-pink-500' : type === 'corporate' ? 'text-blue-500' : type === 'birthday' ? 'text-purple-500' : 'text-green-500'}`}></i>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-white truncate">{name}</h3>
-              <p className="text-muted-foreground text-sm">{getEventTypeLabel(type)}</p>
-            </div>
-          </div>
           
-          {/* Event details - stack on small mobile, 2-column on larger screens */}
-          <div className="flex flex-wrap gap-y-3">
-            <div className="w-full sm:w-1/2 flex items-center">
-              <i className="fas fa-calendar-day text-primary mr-2 min-w-[16px]"></i>
-              <span className="text-sm text-gray-300 truncate max-w-full">
-                {startDate && endDate && startDate !== endDate ? (
-                  <span className="inline-block truncate max-w-full">De {formatDate(startDate)} até {formatDate(endDate)}</span>
-                ) : startDate ? (
-                  formatDate(startDate)
-                ) : (
-                  formatDate(date)
-                )}
-                {startTime && <> às {startTime}</>}
-                {endTime && startTime !== endTime && <> - {endTime}</>}
-              </span>
+          {/* Content positioned on top of the image */}
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            {/* Event icon and title */}
+            <div className="flex items-center mb-3">
+              <div className={`min-w-[40px] w-9 h-9 rounded-full flex items-center justify-center mr-3 ${
+                type === 'wedding' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                type === 'corporate' ? 'bg-[hsl(var(--event-planning))]' : 
+                type === 'birthday' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                'bg-[hsl(var(--event-completed))]'
+              }`}>
+                <i className={`fas fa-${
+                  type === 'wedding' ? 'heart' : 
+                  type === 'corporate' ? 'briefcase' : 
+                  type === 'birthday' ? 'birthday-cake' : 
+                  'glass-cheers'
+                } text-white text-sm`}></i>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-white truncate">{name}</h3>
+                <p className="text-gray-300 text-sm">{getEventTypeLabel(type)}</p>
+              </div>
             </div>
-            {location && (
-              <div className="w-full sm:w-1/2 flex items-center">
-                <i className="fas fa-map-marker-alt text-primary mr-2 min-w-[16px]"></i>
-                <span className="text-sm text-gray-300 truncate max-w-full">{location}</span>
-              </div>
-            )}
-            {attendees && (
-              <div className="w-full sm:w-1/2 flex items-center">
-                <i className="fas fa-user-friends text-primary mr-2 min-w-[16px]"></i>
-                <span className="text-sm text-gray-300">{attendees} convidados</span>
-              </div>
-            )}
             
-            {/* Progress indicator - full width and more visible on mobile */}
-            <div className="w-full sm:w-1/2 flex items-center mt-1 sm:mt-0">
-              <i className="fas fa-tasks text-primary mr-2 min-w-[16px]"></i>
-              <div className="flex items-center flex-1 max-w-full overflow-hidden">
-                <span className="text-sm text-gray-300 mr-2 whitespace-nowrap">{progressPercentage}%</span>
-                <div className="flex-1 h-2 bg-muted rounded-full max-w-[100px]">
-                  <div className="h-full gradient-primary rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+            {/* Event details in grid layout */}
+            <div className="grid grid-cols-2 gap-y-2 gap-x-3 mb-3">
+              <div className="flex items-center">
+                <i className="fas fa-calendar-day text-orange-400 mr-2 min-w-[14px]"></i>
+                <span className="text-xs text-gray-300 truncate max-w-full">
+                  {startDate ? formatDate(startDate) : formatDate(date)}
+                </span>
+              </div>
+              
+              {location && (
+                <div className="flex items-center">
+                  <i className="fas fa-map-marker-alt text-orange-400 mr-2 min-w-[14px]"></i>
+                  <span className="text-xs text-gray-300 truncate max-w-full">{location}</span>
+                </div>
+              )}
+              
+              {attendees && (
+                <div className="flex items-center">
+                  <i className="fas fa-user-friends text-orange-400 mr-2 min-w-[14px]"></i>
+                  <span className="text-xs text-gray-300">{attendees} convidados</span>
+                </div>
+              )}
+              
+              {/* Progress indicator */}
+              <div className="flex items-center">
+                <span className="text-xs text-gray-300 mr-2 whitespace-nowrap">{progressPercentage}%</span>
+                <div className="flex-1 h-2 bg-gray-700 rounded-full">
+                  <div className="h-full bg-orange-400 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          {/* Team members and last updated - compact on mobile */}
-          <div className="mt-4 flex justify-between items-center">
+            
+            {/* Team members avatars */}
             <div className="flex">
               {teamData.slice(0, 3).map((member, idx) => (
                 <Avatar
                   key={member.id}
-                  className="w-8 h-8 border-2 border-card -ml-2 first:ml-0"
+                  className="w-7 h-7 border-2 border-black -ml-2 first:ml-0"
                   style={{ zIndex: 10 - idx }}
                 >
                   <AvatarImage 
@@ -199,23 +201,11 @@ const EventCard: React.FC<EventCardProps> = ({
                 </Avatar>
               ))}
               {teamData.length > 3 && (
-                <Avatar className="w-8 h-8 border-2 border-card -ml-2">
+                <Avatar className="w-7 h-7 border-2 border-black -ml-2">
                   <AvatarFallback className="text-xs font-medium">
                     +{teamData.length - 3}
                   </AvatarFallback>
                 </Avatar>
-              )}
-            </div>
-            
-            <div className="flex items-center">
-              {lastUpdated && (
-                <span className="text-xs text-muted-foreground hidden sm:inline">Atualizado: {lastUpdated}</span>
-              )}
-              {/* Show just the icon on mobile for last updated */}
-              {lastUpdated && (
-                <span className="text-xs text-muted-foreground sm:hidden">
-                  <i className="fas fa-history mr-1"></i>
-                </span>
               )}
             </div>
           </div>
