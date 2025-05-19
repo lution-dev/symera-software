@@ -53,80 +53,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - Versão melhorada com suporte a persistência de sessão
-  app.get('/api/auth/user', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      console.log("Verificando autenticação do usuário:");
+      console.log("DESATIVANDO COMPLETAMENTE LOGIN AUTOMÁTICO:");
       console.log("- Session ID:", req.sessionID);
-      console.log("- Is Authenticated:", req.isAuthenticated());
-      console.log("- Session dev auth:", req.session.devIsAuthenticated);
       
-      // Em ambiente de preview do Replit, sempre usar o modo de desenvolvimento
-      if (process.env.REPL_ID) {
-        if (req.session.devIsAuthenticated && req.session.devUserId) {
-          console.log("- Usando autenticação de desenvolvimento no ambiente Replit");
-          // Buscar o usuário completo do banco de dados
-          let user = await storage.getUser(req.session.devUserId);
-          
-          // Garantir que o usuário tenha todos os campos preenchidos
-          if (user) {
-            // Se faltar algum campo, atualizar o usuário no banco
-            await storage.upsertUser({
-              id: user.id,
-              email: user.email || "applution@gmail.com",
-              firstName: user.firstName || "Usuário",
-              lastName: user.lastName || "Desenvolvimento",
-              phone: user.phone || "+55 (11) 99999-9999",
-              profileImageUrl: user.profileImageUrl || "https://i.pravatar.cc/300",
-              updatedAt: new Date(),
-            });
-            
-            // Buscar o usuário atualizado
-            user = await storage.getUser(req.session.devUserId);
-            console.log("- Dados completos do usuário disponibilizados");
-            return res.json(user);
-          }
-        }
-      }
+      // LOGOUT FORÇADO: Limpamos qualquer autenticação que possa existir
+      req.session.devIsAuthenticated = false;
+      req.session.devUserId = undefined;
+      req.logout(() => {
+        console.log("- Logout forçado executado");
+      });
       
-      // Autenticação automática desativada para forçar a tela de login
-      // Login alternativo removido para garantir que todos vejam a tela de login
-      console.log("- Login automático desativado");
-      
-      // Verificar autenticação normal do Replit
-      if (req.isAuthenticated()) {
-        console.log("- Usuário autenticado via Replit Auth");
-        
-        if (req.user?.claims?.sub) {
-          const userId = req.user.claims.sub;
-          console.log("- ID do usuário:", userId);
-          const user = await storage.getUser(userId);
-          
-          if (user) {
-            return res.json(user);
-          } else {
-            console.log("- Usuário não encontrado no banco de dados");
-          }
-        } else {
-          console.log("- Usuário autenticado mas sem ID (sub)");
-        }
-      }
-      
-      // Última chance: verificar se temos userId na sessão
-      if (req.session.userId) {
-        console.log("- Tentando recuperar via session.userId:", req.session.userId);
-        const user = await storage.getUser(req.session.userId);
-        if (user) {
-          console.log("- Usuário recuperado com sucesso via session.userId");
-          return res.json(user);
-        }
-      }
-      
-      // Se não conseguiu autenticar de nenhuma forma
-      console.log("- Nenhum método de autenticação funcionou");
-      return res.status(401).json({ message: "Unauthorized" });
+      // FORÇA TELA DE LOGIN: Sempre retornamos 401 para forçar a tela de login
+      console.log("- Forçando tela de login para todos os usuários");
+      return res.status(401).json({ message: "Unauthorized - Login Required" });
     } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error" });
     }
   });
 
