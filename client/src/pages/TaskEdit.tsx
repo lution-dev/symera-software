@@ -171,12 +171,22 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
     <div className="container mx-auto px-4 py-6 mobile-spacing">
       {/* Header */}
       <div className="mb-6">
+        {/* Desktop back button */}
         <Button 
           variant="link" 
           onClick={() => navigate(`/events/${eventId}`)} 
-          className="text-primary hover:underline flex items-center mb-2 p-0"
+          className="hidden sm:flex text-primary hover:underline items-center mb-2 p-0"
         >
           <i className="fas fa-arrow-left mr-2"></i> Voltar para {event.name}
+        </Button>
+        
+        {/* Mobile back button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate(`/events/${eventId}`)}
+          className="sm:hidden flex items-center mb-2 h-8 w-8 p-0"
+        >
+          <i className="fas fa-arrow-left"></i>
         </Button>
         <h1 className="text-2xl md:text-3xl font-bold">Editar Tarefa</h1>
         <p className="text-muted-foreground mt-1">
