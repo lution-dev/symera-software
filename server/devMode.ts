@@ -77,19 +77,12 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
 
 // Verifica se a requisição vem do ambiente Replit "interno"
 function isReplitEnvironment(req: Request): boolean {
-  // Usamos o hostname e caminho da requisição para determinar se o acesso é interno ou externo
-  const isReplitDomain = req.hostname && (
-    req.hostname.includes('.replit.dev') || 
-    req.hostname.includes('.repl.co')
-  );
+  // Hostnames internos do Replit
+  const replit_internal = req.hostname ? req.hostname.includes('.kirk.replit.dev') : false;
   
-  // Se estiver usando o domínio .replit.app (externo), não considerar como ambiente interno
-  const isExternalAccess = req.hostname && (
-    req.hostname.includes('.replit.app')
-  );
-  
-  // Requisição interna: é domínio Replit mas NÃO é o domínio público .replit.app
-  return isReplitDomain && !isExternalAccess;
+  // SEMPRE considere como ambiente interno se estiver acessando pelo domínio kirk.replit.dev
+  // O domínio replit.app (público) NUNCA será considerado como interno
+  return replit_internal;
 }
 
 // Middleware para garantir autenticação no modo dev
