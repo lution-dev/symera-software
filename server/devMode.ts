@@ -77,15 +77,19 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
 
 // Verifica se a requisição vem do ambiente Replit "interno"
 function isReplitEnvironment(req: Request): boolean {
-  // No caso de dúvidas, verificar se a requisição vem dos endereços internos do Replit
-  return Boolean(process.env.REPL_ID) && Boolean(
-    req.hostname === 'localhost' || 
-    req.hostname.includes('0.0.0.0') ||
-    (req.ip && req.ip === '127.0.0.1') ||
-    (req.ip && req.ip.startsWith('10.')) ||
-    (req.ip && req.ip.startsWith('172.')) ||
-    req.headers['x-forwarded-for'] === '127.0.0.1'
+  // Usamos o hostname e caminho da requisição para determinar se o acesso é interno ou externo
+  const isReplitDomain = req.hostname && (
+    req.hostname.includes('.replit.dev') || 
+    req.hostname.includes('.repl.co')
   );
+  
+  // Se estiver usando o domínio .replit.app (externo), não considerar como ambiente interno
+  const isExternalAccess = req.hostname && (
+    req.hostname.includes('.replit.app')
+  );
+  
+  // Requisição interna: é domínio Replit mas NÃO é o domínio público .replit.app
+  return isReplitDomain && !isExternalAccess;
 }
 
 // Middleware para garantir autenticação no modo dev
