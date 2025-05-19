@@ -320,6 +320,7 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
                   type="button"
                   variant="outline"
                   onClick={() => navigate(`/events/${eventId}`)}
+                  className="hidden sm:inline-flex"
                 >
                   Cancelar
                 </Button>
