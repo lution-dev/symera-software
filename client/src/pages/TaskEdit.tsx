@@ -179,15 +179,6 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
         >
           <i className="fas fa-arrow-left mr-2"></i> Voltar para {event.name}
         </Button>
-        
-        {/* Mobile back button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate(`/events/${eventId}`)}
-          className="sm:hidden flex items-center mb-2 h-8 w-8 p-0"
-        >
-          <i className="fas fa-arrow-left"></i>
-        </Button>
         <h1 className="text-2xl md:text-3xl font-bold">Editar Tarefa</h1>
         <p className="text-muted-foreground mt-1">
           Editando a tarefa "{task.title}" do evento {event.name}
