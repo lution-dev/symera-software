@@ -9,68 +9,8 @@ const DEV_USER_EMAIL = "applution@gmail.com";
 
 // Middleware para ativar autenticação automática no ambiente de desenvolvimento
 export const devModeAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // Se for ambiente de desenvolvimento ou preview e estiver dentro do Replit
-  if ((process.env.NODE_ENV === 'development' || process.env.REPL_ID) && isReplitEnvironment(req)) {
-    // Primeiramente, verificar se o usuário com o email especificado já existe
-    const existingUserByEmail = await storage.getUserByEmail(DEV_USER_EMAIL);
-    
-    if (existingUserByEmail) {
-      console.log(`Usando usuário existente com email ${DEV_USER_EMAIL}...`);
-      
-      // Atualizar todos os dados do perfil para garantir que estejam completos
-      await storage.upsertUser({
-        id: existingUserByEmail.id,
-        email: DEV_USER_EMAIL,
-        firstName: "Usuário",
-        lastName: "Desenvolvimento",
-        phone: "+55 (11) 99999-9999",
-        profileImageUrl: "https://i.pravatar.cc/300",
-        updatedAt: new Date(),
-      });
-      
-      // Definir o ID do usuário existente para a sessão
-      req.session.devUserId = existingUserByEmail.id;
-      req.session.devIsAuthenticated = true;
-    } else {
-      // Se não existe um usuário com esse email, verificar se temos o usuário de dev padrão
-      const existingUser = await storage.getUser(DEV_USER_ID);
-      
-      if (!existingUser) {
-        // Criar um novo usuário com o email específico e todos os dados do perfil
-        console.log(`Criando usuário de desenvolvimento com email ${DEV_USER_EMAIL}...`);
-        await storage.upsertUser({
-          id: DEV_USER_ID,
-          email: DEV_USER_EMAIL,
-          firstName: "Usuário",
-          lastName: "Desenvolvimento",
-          phone: "+55 (11) 99999-9999", 
-          profileImageUrl: "https://i.pravatar.cc/300",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-      } else {
-        // Atualizar usuário existente para garantir que todos os dados do perfil estejam presentes
-        await storage.upsertUser({
-          id: DEV_USER_ID,
-          email: DEV_USER_EMAIL,
-          firstName: "Usuário",
-          lastName: "Desenvolvimento",
-          phone: "+55 (11) 99999-9999",
-          profileImageUrl: "https://i.pravatar.cc/300",
-          updatedAt: new Date(),
-        });
-      }
-    }
-    
-    // Definir o usuário na sessão
-    if (!req.session.devUserId) {
-      req.session.devUserId = DEV_USER_ID;
-      req.session.devIsAuthenticated = true;
-      await new Promise<void>((resolve) => {
-        req.session.save(() => resolve());
-      });
-    }
-  }
+  // COMENTADO: Desativamos o login automático para forçar todos a verem a tela de login
+  // Este middleware agora apenas passa a requisição adiante
   
   return next();
 };
