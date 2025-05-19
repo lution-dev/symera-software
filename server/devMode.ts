@@ -77,7 +77,7 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
 
 // Verifica se a requisição vem do ambiente Replit
 function isReplitEnvironment(req: Request): boolean {
-  // Sempre retornar true para ativar login automático no Replit
+  // No ambiente Replit, sempre retornar true para ativar login automático
   return true;
 }
 
