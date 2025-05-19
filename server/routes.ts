@@ -567,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Task routes
   // Endpoint para buscar uma tarefa específica pelo ID
-  app.get('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/tasks/:id', ensureDevAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.id, 10);
@@ -598,7 +598,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint para atualizar uma tarefa específica
-  app.put('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/tasks/:id', ensureDevAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.id, 10);

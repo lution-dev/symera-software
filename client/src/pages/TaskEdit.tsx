@@ -28,16 +28,29 @@ import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { createTaskSchema } from "@shared/schema";
 
-const TaskEdit: React.FC = () => {
+interface TaskEditProps {
+  eventId?: string;
+  taskId?: string;
+}
+
+const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: propsTaskId }) => {
   const [location] = useLocation();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   
-  // Extrair os IDs da URL
-  const urlParts = location.split('/');
-  const eventId = urlParts[2];
-  const taskId = urlParts[4];
+  // Extrair os IDs dos props ou da URL se não estiverem disponíveis
+  let eventId = propsEventId;
+  let taskId = propsTaskId;
+  
+  // Caso os props não tenham sido passados, extrair da URL
+  if (!eventId || !taskId) {
+    console.log("IDs não recebidos via props, tentando extrair da URL...");
+    const urlParts = location.split('/');
+    eventId = eventId || urlParts[2];
+    taskId = taskId || urlParts[4];
+    console.log("IDs extraídos da URL:", { eventId, taskId });
+  }
   
   // Buscar detalhes do evento
   const { data: event, isLoading: eventLoading } = useQuery({
