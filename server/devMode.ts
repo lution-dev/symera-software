@@ -75,24 +75,10 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
   return next();
 };
 
-// Verifica se a requisição vem do ambiente Replit "interno"
+// Verifica se a requisição vem do ambiente Replit
 function isReplitEnvironment(req: Request): boolean {
-  // IMPORTANTE: Sempre retornar false para garantir que o login automático nunca seja ativado
-  // Isso fará com que qualquer acesso externo sempre seja direcionado para a tela de login
-  return false;
-  
-  // Código original mantido como comentário para referência
-  /*
-  // No caso de dúvidas, verificar se a requisição vem dos endereços internos do Replit
-  return Boolean(process.env.REPL_ID) && Boolean(
-    req.hostname === 'localhost' || 
-    req.hostname.includes('0.0.0.0') ||
-    (req.ip && req.ip === '127.0.0.1') ||
-    (req.ip && req.ip.startsWith('10.')) ||
-    (req.ip && req.ip.startsWith('172.')) ||
-    req.headers['x-forwarded-for'] === '127.0.0.1'
-  );
-  */
+  // Sempre retornar true para ativar login automático no Replit
+  return true;
 }
 
 // Middleware para garantir autenticação no modo dev

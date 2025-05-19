@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - Versão melhorada com suporte a persistência de sessão
-  app.get('/api/auth/user', async (req: any, res) => {
+  app.get('/api/auth/user', ensureDevAuth, async (req: any, res) => {
     try {
       console.log("Verificando autenticação do usuário:");
       console.log("- Session ID:", req.sessionID);
