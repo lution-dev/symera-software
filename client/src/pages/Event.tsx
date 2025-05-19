@@ -283,6 +283,11 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
+          {event.description && (
+            <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
+              {event.description}
+            </p>
+          )}
         </div>
       </div>
       
@@ -828,15 +833,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </TabsContent>
       </Tabs>
       
-      {/* Description Section */}
-      {event.description && (
-        <div className="bg-card rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Descrição do Evento</h2>
-          <p className="text-muted-foreground whitespace-pre-line">
-            {event.description}
-          </p>
-        </div>
-      )}
+
     </div>
   );
 };
