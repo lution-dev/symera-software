@@ -184,18 +184,23 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/logout", (req, res) => {
+    console.log("Realizando logout - destruindo sessão");
+    
     // Limpar informações de sessão personalizadas
     req.session.devUserId = undefined;
     req.session.devIsAuthenticated = undefined;
     
-    // Logout padrão
-    req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}/login`,
-        }).href
-      );
+    // Destruir completamente a sessão
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Erro ao destruir sessão:", err);
+      }
+      
+      // Limpar cookies do navegador
+      res.clearCookie('connect.sid');
+      
+      // Redirecionar para a página de login com um parâmetro para evitar cache
+      res.redirect('/login?nocache=' + Date.now());
     });
   });
 }

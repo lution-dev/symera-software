@@ -8,7 +8,8 @@ export function useAuth() {
 
   // Função de logout - redireciona para a API de logout
   const logout = () => {
-    window.location.href = "/api/logout";
+    // Adiciona um parâmetro para forçar o cache a ser ignorado
+    window.location.href = "/api/logout?t=" + new Date().getTime();
   };
 
   return {
