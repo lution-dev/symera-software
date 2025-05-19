@@ -9,8 +9,8 @@ const DEV_USER_EMAIL = "applution@gmail.com";
 
 // Middleware para ativar autenticação automática no ambiente de desenvolvimento
 export const devModeAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // Se for ambiente de desenvolvimento ou preview
-  if (process.env.NODE_ENV === 'development' || process.env.REPL_ID) {
+  // Se for ambiente de desenvolvimento ou preview e estiver dentro do Replit
+  if ((process.env.NODE_ENV === 'development' || process.env.REPL_ID) && isReplitEnvironment(req)) {
     // Primeiramente, verificar se o usuário com o email especificado já existe
     const existingUserByEmail = await storage.getUserByEmail(DEV_USER_EMAIL);
     
@@ -75,10 +75,25 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
   return next();
 };
 
+// Verifica se a requisição vem do ambiente Replit
+function isReplitEnvironment(req: Request): boolean {
+  // Verificar se é ambiente interno Replit (acessado dentro do Replit)
+  return Boolean(process.env.REPL_ID) && Boolean(
+    req.hostname.includes('.replit.') || 
+     req.hostname === 'localhost' || 
+     req.hostname.includes('0.0.0.0') ||
+     req.ip === '127.0.0.1' ||
+     // Verificar referrer para confirmar origem
+     (req.headers.referer && 
+      (req.headers.referer.includes('.replit.') || 
+       req.headers.referer.includes('localhost')))
+     );
+}
+
 // Middleware para garantir autenticação no modo dev
 export const ensureDevAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // Verificar autenticação em desenvolvimento
-  if (process.env.NODE_ENV === 'development' || process.env.REPL_ID) {
+  // Verificar autenticação em desenvolvimento apenas se for ambiente Replit interno
+  if ((process.env.NODE_ENV === 'development' || process.env.REPL_ID) && isReplitEnvironment(req)) {
     if (req.session.devUserId && req.session.devIsAuthenticated) {
       const user = await storage.getUser(req.session.devUserId);
       if (user) {
