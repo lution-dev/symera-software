@@ -91,15 +91,8 @@ function Router() {
 }
 
 function App() {
-  // Verificar se a URL contém o parâmetro visitante
-  const isVisitor = window.location.search.includes('visitante=true') || 
-                    window.location.search.includes('visitor=true');
-                    
-  // Se for visitante, redirecionar para a página de login
-  if (isVisitor) {
-    window.location.href = '/login';
-    return null;
-  }
+  // Removido o código de redirecionamento para visitantes, 
+  // agora tudo será tratado pelo middleware no servidor
   
   return (
     <QueryClientProvider client={queryClient}>

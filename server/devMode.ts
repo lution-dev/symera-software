@@ -77,23 +77,12 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
 
 // Verifica se a requisição vem do ambiente Replit "interno"
 function isReplitEnvironment(req: Request): boolean {
-  // Verificar se há o parâmetro que indica "visitante" na query
-  if (req.query.visitor === 'true' || req.query.visitante === 'true') {
-    return false;
-  }
+  // IMPORTANTE: Sempre retornar false para garantir que o login automático nunca seja ativado
+  // Isso fará com que qualquer acesso externo sempre seja direcionado para a tela de login
+  return false;
   
-  // Verificar agente do usuário - um indicador de acesso externo vs. interno
-  const userAgent = req.headers['user-agent'] || '';
-  if (userAgent.includes('Chrome') || userAgent.includes('Firefox') || userAgent.includes('Safari')) {
-    // Se tiver um user-agent de navegador normal, assumir que é acesso externo
-    return false;
-  }
-  
-  // Verificar headers de referência
-  if (req.headers.referer && req.headers.referer.includes('?visitante=true')) {
-    return false;
-  }
-  
+  // Código original mantido como comentário para referência
+  /*
   // No caso de dúvidas, verificar se a requisição vem dos endereços internos do Replit
   return Boolean(process.env.REPL_ID) && Boolean(
     req.hostname === 'localhost' || 
@@ -103,6 +92,7 @@ function isReplitEnvironment(req: Request): boolean {
     (req.ip && req.ip.startsWith('172.')) ||
     req.headers['x-forwarded-for'] === '127.0.0.1'
   );
+  */
 }
 
 // Middleware para garantir autenticação no modo dev
