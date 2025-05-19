@@ -105,6 +105,8 @@ const EventCard: React.FC<EventCardProps> = ({
             alt={`${name} event`}
             className="w-full h-28 sm:h-36 object-cover"
           />
+          {/* Added gradient overlay with higher opacity to improve readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/95 to-background/30"></div>
           
           <div className="absolute top-2 right-2">
             <span className={`px-2 py-0.5 rounded-full text-xs text-white font-medium ${
@@ -150,8 +152,8 @@ const EventCard: React.FC<EventCardProps> = ({
               } text-xs sm:text-sm`}></i>
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-white text-base truncate">{name}</h3>
-              <p className="text-gray-400 text-xs">{getEventTypeLabel(type)}</p>
+              <h3 className="font-bold text-foreground text-base truncate">{name}</h3>
+              <p className="text-muted-foreground text-xs">{getEventTypeLabel(type)}</p>
             </div>
           </div>
           
@@ -159,7 +161,7 @@ const EventCard: React.FC<EventCardProps> = ({
           <div className="grid grid-cols-2 gap-x-1 gap-y-1.5 mt-1.5">
             <div className="flex items-center">
               <i className="fas fa-calendar-day text-primary mr-1.5 w-4 text-center text-xs"></i>
-              <span className="text-gray-300 text-xs truncate">
+              <span className="text-muted-foreground text-xs truncate">
                 {formatDate(date)}
               </span>
             </div>
@@ -167,21 +169,21 @@ const EventCard: React.FC<EventCardProps> = ({
             {location && (
               <div className="flex items-center">
                 <i className="fas fa-map-marker-alt text-primary mr-1.5 w-4 text-center text-xs"></i>
-                <span className="text-gray-300 text-xs truncate">{location}</span>
+                <span className="text-muted-foreground text-xs truncate">{location}</span>
               </div>
             )}
             
             {attendees && (
               <div className="flex items-center">
                 <i className="fas fa-user-friends text-primary mr-1.5 w-4 text-center text-xs"></i>
-                <span className="text-gray-300 text-xs truncate">{attendees} convidados</span>
+                <span className="text-muted-foreground text-xs truncate">{attendees} convidados</span>
               </div>
             )}
             
             <div className="flex items-center">
               <i className="fas fa-tasks text-primary mr-1.5 w-4 text-center text-xs"></i>
               <div className="flex items-center w-full min-w-0">
-                <span className="text-gray-300 text-xs mr-1.5">{progressPercentage}%</span>
+                <span className="text-muted-foreground text-xs mr-1.5">{progressPercentage}%</span>
                 <div className="w-12 sm:w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden flex-shrink-0">
                   <div 
                     className="h-full bg-gradient-to-r from-blue-500 to-purple-500" 
