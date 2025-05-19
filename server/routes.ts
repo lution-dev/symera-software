@@ -55,18 +55,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes - Versão melhorada com suporte a persistência de sessão
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      console.log("DESATIVANDO COMPLETAMENTE LOGIN AUTOMÁTICO:");
+      console.log("Verificando autenticação do usuário:");
       console.log("- Session ID:", req.sessionID);
+      console.log("- Is Authenticated:", req.isAuthenticated());
       
-      // LOGOUT FORÇADO: Limpamos qualquer autenticação que possa existir
+      // Limpar qualquer autenticação de desenvolvimento
       req.session.devIsAuthenticated = false;
       req.session.devUserId = undefined;
-      req.logout(() => {
-        console.log("- Logout forçado executado");
-      });
       
-      // FORÇA TELA DE LOGIN: Sempre retornamos 401 para forçar a tela de login
-      console.log("- Forçando tela de login para todos os usuários");
+      // Verificar se o usuário está autenticado via Replit Auth
+      if (req.isAuthenticated() && req.user?.claims?.sub) {
+        console.log("- Usuário autenticado via Replit Auth");
+        const userId = req.user.claims.sub;
+        console.log("- ID do usuário:", userId);
+        const user = await storage.getUser(userId);
+        
+        if (user) {
+          console.log("- Usuário encontrado no banco de dados");
+          return res.json(user);
+        } else {
+          console.log("- Usuário não encontrado no banco de dados");
+        }
+      }
+      
+      // Se chegou aqui, não está autenticado
+      console.log("- Usuário não autenticado");
       return res.status(401).json({ message: "Unauthorized - Login Required" });
     } catch (error) {
       console.error("Error:", error);
