@@ -75,19 +75,34 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
   return next();
 };
 
-// Verifica se a requisição vem do ambiente Replit
+// Verifica se a requisição vem do ambiente Replit "interno"
 function isReplitEnvironment(req: Request): boolean {
-  // Verificar se é ambiente interno Replit (acessado dentro do Replit)
+  // Verificar se há o parâmetro que indica "visitante" na query
+  if (req.query.visitor === 'true' || req.query.visitante === 'true') {
+    return false;
+  }
+  
+  // Verificar agente do usuário - um indicador de acesso externo vs. interno
+  const userAgent = req.headers['user-agent'] || '';
+  if (userAgent.includes('Chrome') || userAgent.includes('Firefox') || userAgent.includes('Safari')) {
+    // Se tiver um user-agent de navegador normal, assumir que é acesso externo
+    return false;
+  }
+  
+  // Verificar headers de referência
+  if (req.headers.referer && req.headers.referer.includes('?visitante=true')) {
+    return false;
+  }
+  
+  // No caso de dúvidas, verificar se a requisição vem dos endereços internos do Replit
   return Boolean(process.env.REPL_ID) && Boolean(
-    req.hostname.includes('.replit.') || 
-     req.hostname === 'localhost' || 
-     req.hostname.includes('0.0.0.0') ||
-     req.ip === '127.0.0.1' ||
-     // Verificar referrer para confirmar origem
-     (req.headers.referer && 
-      (req.headers.referer.includes('.replit.') || 
-       req.headers.referer.includes('localhost')))
-     );
+    req.hostname === 'localhost' || 
+    req.hostname.includes('0.0.0.0') ||
+    (req.ip && req.ip === '127.0.0.1') ||
+    (req.ip && req.ip.startsWith('10.')) ||
+    (req.ip && req.ip.startsWith('172.')) ||
+    req.headers['x-forwarded-for'] === '127.0.0.1'
+  );
 }
 
 // Middleware para garantir autenticação no modo dev
