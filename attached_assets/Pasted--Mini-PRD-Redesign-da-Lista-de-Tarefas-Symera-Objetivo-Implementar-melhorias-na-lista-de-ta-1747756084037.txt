@@ -1,0 +1,71 @@
+📄 Mini PRD — Redesign da Lista de Tarefas (Symera)
+🧭 Objetivo
+Implementar melhorias na lista de tarefas dentro da tela de detalhe do evento, sem alterar nenhum outro componente ou layout da tela. O foco é adicionar funcionalidades e informações relevantes na seção do checklist, mantendo a consistência visual atual.
+
+🧱 Escopo
+A) Exibição por tarefa (por linha)
+Cada tarefa na lista deve exibir as seguintes informações e ações, organizadas horizontalmente:
+
+Campo	Detalhes
+Ícone da tarefa	Mantido como no design atual
+Nome da tarefa	Ex: “Contratar buffet”
+Data limite	Data formatada, ex: “14 de out. de 2025”
+Prioridade	Alta / Média / Baixa (badge colorida)
+Status	A fazer / Em andamento / Concluído / Atrasado
+Responsáveis	Avatares (ícones circulares) dos usuários atribuídos
+Lembretes enviados	Ícone 🔔 com contador (ex: 🔔 2)
+Configurar lembretes	Ícone ⚙️ — abre modal para visualizar ou editar os lembretes
+Ações	Botões ✏️ (editar), 🗑️ (deletar), ✅ (concluir) — conforme o design atual
+
+B) Nova funcionalidade: lembretes via WhatsApp
+Cada tarefa deve ter pelo menos um responsável com número de WhatsApp obrigatório
+
+Ao clicar no ícone ⚙️ (configurar lembrete), deve abrir um modal ou drawer com:
+
+Lista de responsáveis da tarefa
+
+Horários programados dos lembretes
+
+Canal: WhatsApp (fixo)
+
+Botão de editar ou adicionar lembrete
+
+Botão "Enviar lembrete agora" (se possível)
+
+C) Validações obrigatórias
+Ao adicionar um responsável a uma tarefa, exigir o número de WhatsApp
+
+Se uma tarefa não tiver nenhum lembrete configurado, mostrar ⚠️ ao lado do ícone 🔔
+
+D) Comportamento esperado
+Avatares devem mostrar apenas a imagem (sem nomes), e devem empilhar caso ultrapassem o espaço
+
+Os lembretes são exibidos por contador: ex: 🔔 3 significa “3 lembretes enviados”
+
+Modal de configuração pode ser simples, mas deve mostrar claramente:
+
+Quando o lembrete será enviado
+
+Para quem
+
+Quantos já foram enviados
+
+Estilo visual deve seguir o padrão Symera já existente
+
+E) Responsividade
+No mobile, cada tarefa vira um card colapsável
+
+Os elementos devem aparecer empilhados com título, status, data e avatares em destaque
+
+Ícones de lembrete e ações podem aparecer em uma linha inferior com rolagem horizontal ou agrupados em menu
+
+🧪 Observações finais
+Não alterar nenhum outro componente ou layout da tela. Todas as modificações devem se restringir à lista de tarefas.
+
+A integração com envio real via WhatsApp (ex: Evolution API) será configurada depois. Neste momento, é importante:
+
+Exibir os dados corretamente
+
+Permitir edição e visualização dos lembretes de forma funcional
+
+Caso deseje usar referências, existe um wireframe antigo disponível como base visual, mas a prioridade é a estrutura funcional.
