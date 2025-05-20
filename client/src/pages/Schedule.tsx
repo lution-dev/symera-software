@@ -394,16 +394,15 @@ const Schedule: React.FC = () => {
           </div>
         </div>
         
-        <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-7 rounded-md gap-1 px-2 text-xs"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Criar</span>
-            </Button>
-          </DialogTrigger>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-7 rounded-md gap-1 px-2 text-xs"
+          onClick={() => setShowNewItemDialog(true)}
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>Criar</span>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1">
