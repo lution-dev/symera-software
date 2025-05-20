@@ -320,7 +320,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Activity Feed - Versão mobile mais compacta */}
+        {/* Timeline de Atividades Recentes */}
         <div className="order-2 mt-3 sm:mt-0">
           <div className="bg-card rounded-lg shadow-sm p-3 sm:p-5">
             <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 flex items-center">
@@ -337,13 +337,16 @@ const Dashboard: React.FC = () => {
                 <p className="text-muted-foreground text-xs sm:text-sm">Nenhuma atividade registrada.</p>
               </div>
             ) : (
-              <div className="space-y-2 sm:space-y-3">
+              <div className="relative pb-2">
                 {/* Texto informativo sobre as 5 atividades mais recentes */}
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 text-center">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-4 text-center">
                   Exibindo suas 5 atividades mais recentes
                 </p>
                 
-                {recentActivities.slice(0, 5).map((activity: any) => {
+                {/* Linha de tempo vertical */}
+                <div className="absolute left-3.5 sm:left-4 top-2 bottom-0 w-0.5 bg-border/50 z-0"></div>
+                
+                {recentActivities.slice(0, 5).map((activity: any, index: number) => {
                   // Determinar o texto de cada atividade com base no tipo de ação
                   const getActivityText = () => {
                     const { action, details } = activity;
@@ -381,6 +384,26 @@ const Dashboard: React.FC = () => {
                   // Pegar o nome do evento da API ou dos detalhes
                   const eventName = activeEventsList.find(e => e.id === activity.eventId)?.name || activity.details?.eventName || '';
                   
+                  // Determinar cor do ícone e bolinha com base no tipo de ação
+                  const getActivityColorClass = () => {
+                    switch (activity.action) {
+                      case "created_event":
+                      case "event_created":
+                        return "bg-green-500/10 text-green-500 border-green-500/50";
+                      case "task_completed":
+                        return "bg-blue-500/10 text-blue-500 border-blue-500/50";
+                      case "added_team_member":
+                      case "team_member_added":
+                        return "bg-purple-500/10 text-purple-500 border-purple-500/50";
+                      case "vendor_added":
+                        return "bg-amber-500/10 text-amber-500 border-amber-500/50";
+                      case "generated_ai_checklist":
+                        return "bg-teal-500/10 text-teal-500 border-teal-500/50";
+                      default:
+                        return "bg-primary/10 text-primary border-primary/50";
+                    }
+                  };
+                  
                   // Ícones usando classes do Font Awesome padrão
                   const getActivityIconClass = () => {
                     switch (activity.action) {
@@ -413,19 +436,25 @@ const Dashboard: React.FC = () => {
                   };
                   
                   return (
-                    <div key={activity.id} className="flex items-start py-1 sm:py-2 border-b border-border/30 last:border-0">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                        <i className={`${getActivityIconClass()} text-primary text-xs sm:text-sm`}></i>
+                    <div key={activity.id} className="relative mb-4 last:mb-0 pl-10 sm:pl-12">
+                      {/* Nó na timeline */}
+                      <div className={`absolute left-0 top-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full border ${getActivityColorClass()} flex items-center justify-center flex-shrink-0 z-10`}>
+                        <i className={`${getActivityIconClass()} text-xs sm:text-sm`}></i>
                       </div>
-                      <div className="ml-2 sm:ml-3 flex-1">
-                        <p className="text-xs sm:text-sm">
-                          <span className="font-medium">{getActivityText()}</span>
+                      
+                      {/* Conteúdo da atividade */}
+                      <div className={`p-2 sm:p-3 rounded-lg border ${index === 0 ? 'border-primary/20 bg-primary/5' : 'border-border/30 bg-muted/30'}`}>
+                        <p className="text-xs sm:text-sm font-medium">
+                          {getActivityText()}
                         </p>
-                        <div className="flex items-center justify-between mt-0.5">
-                          <span className="text-[10px] sm:text-xs text-muted-foreground">
+                        
+                        <div className="flex items-center justify-between mt-1.5">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center">
+                            <i className="fas fa-folder-open text-[8px] sm:text-[10px] mr-1"></i>
                             {eventName}
                           </span>
-                          <span className="text-[10px] sm:text-xs text-muted-foreground">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center">
+                            <i className="fas fa-clock text-[8px] sm:text-[10px] mr-1"></i>
                             {formatActivityTimestamp(activity.createdAt)}
                           </span>
                         </div>
