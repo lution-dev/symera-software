@@ -37,7 +37,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Calendar, MapPin, DollarSign, Users, MoreVertical, CheckSquare, UserPlus, Clock, Activity } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface EventProps {
   id?: string;
@@ -48,1183 +49,663 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
-  
-  // Extrair o ID da URL se não recebido como prop
-  const eventId = id || location.split('/')[2];
-  
-  console.log("[Debug] ID do evento recebido como prop:", id);
-  console.log("[Debug] ID do evento extraído da URL:", eventId);
-  
-  const { data: event, isLoading, error } = useQuery({
-    queryKey: [`/api/events/${eventId}`],
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [activeTab, setActiveTab] = useState("tasks");
+
+  // Extract ID from URL if not provided as prop
+  const eventId = id || location.split("/").pop();
+
+  // Event data query
+  const { 
+    data: event,
+    error: eventError,
+    isLoading: eventLoading,
+  } = useQuery({
+    queryKey: ['/api/events', eventId],
     enabled: !!eventId && isAuthenticated,
-    retry: 1
+    refetchOnWindowFocus: false,
   });
-  
-  const { data: tasks, isLoading: tasksLoading } = useQuery({
-    queryKey: [`/api/events/${eventId}/tasks`],
-    enabled: !!eventId && !!event,
+
+  // Vendors query
+  const { 
+    data: vendors = [],
+    error: vendorsError,
+  } = useQuery({
+    queryKey: ['/api/events', eventId, 'vendors'],
+    enabled: !!eventId && isAuthenticated,
+    refetchOnWindowFocus: false,
   });
-  
-  const { data: team, isLoading: teamLoading } = useQuery({
-    queryKey: [`/api/events/${eventId}/team`],
-    enabled: !!eventId && !!event,
+
+  // Budget items query
+  const { 
+    data: budgetItems = [],
+    error: budgetError,
+  } = useQuery({
+    queryKey: ['/api/events', eventId, 'budget'],
+    enabled: !!eventId && isAuthenticated,
+    refetchOnWindowFocus: false,
   });
-  
-  const { data: activities, isLoading: activitiesLoading } = useQuery({
-    queryKey: [`/api/events/${eventId}/activities`],
-    enabled: !!eventId && !!event,
+
+  // Task query
+  const { 
+    data: tasks = [],
+    error: tasksError,
+  } = useQuery({
+    queryKey: ['/api/events', eventId, 'tasks'],
+    enabled: !!eventId && isAuthenticated,
+    refetchOnWindowFocus: false,
   });
-  
-  const regenerateChecklistMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest(`/api/events/${eventId}/generate-checklist`, {
-        method: "POST"
+
+  // Team members query
+  const { 
+    data: teamMembers = [],
+    error: teamError,
+  } = useQuery({
+    queryKey: ['/api/events', eventId, 'team'],
+    enabled: !!eventId && isAuthenticated,
+    refetchOnWindowFocus: false,
+  });
+
+  // Activity logs query
+  const { 
+    data: activityLogs = [],
+    error: logsError,
+  } = useQuery({
+    queryKey: ['/api/events', eventId, 'activities'],
+    enabled: !!eventId && isAuthenticated,
+    refetchOnWindowFocus: false,
+  });
+
+  // Status update mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: (status: string) => {
+      return apiRequest(`/api/events/${eventId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
       });
     },
     onSuccess: () => {
-      toast({
-        title: "Checklist regenerado",
-        description: "O checklist foi regenerado com sucesso usando IA",
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível regenerar o checklist. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
-  
-  // Mutation para atualizar o status do evento
-  const updateEventStatusMutation = useMutation({
-    mutationFn: async (newStatus: string) => {
-      return apiRequest(`/api/events/${eventId}`, { 
-        method: "PATCH",
-        body: { status: newStatus }
-      });
-    },
-    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
       toast({
         title: "Status atualizado",
-        description: "O status do evento foi atualizado com sucesso",
+        description: "O status do evento foi atualizado com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
-      
-      // O registro de atividade já é feito no backend
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
+      setStatusDialogOpen(false);
     },
-    onError: () => {
+    onError: (error) => {
       toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o status do evento. Tente novamente.",
+        title: "Erro ao atualizar status",
+        description: "Não foi possível atualizar o status do evento.",
         variant: "destructive",
       });
     },
   });
-  
+
+  // Delete event mutation
   const deleteEventMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: () => {
       return apiRequest(`/api/events/${eventId}`, {
-        method: "DELETE"
+        method: 'DELETE',
       });
     },
     onSuccess: () => {
+      navigate("/events");
       toast({
         title: "Evento excluído",
-        description: "O evento foi excluído com sucesso",
+        description: "O evento foi excluído com sucesso.",
       });
-      navigate("/events");
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
     },
-    onError: () => {
+    onError: (error) => {
       toast({
-        title: "Erro",
-        description: "Não foi possível excluir o evento. Tente novamente.",
+        title: "Erro ao excluir evento",
+        description: "Não foi possível excluir o evento.",
         variant: "destructive",
       });
     },
   });
-  
-  const handleDeleteEvent = () => {
-    if (window.confirm("Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.")) {
-      deleteEventMutation.mutate();
-    }
-  };
-  
-  const handleRegenerateChecklist = () => {
-    if (window.confirm("Tem certeza que deseja regenerar o checklist? Isso criará novas tarefas baseadas na IA.")) {
-      regenerateChecklistMutation.mutate();
-    }
-  };
-  
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!event) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="bg-card rounded-xl p-8 text-center">
-          <div className="mb-4 flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-              <i className="fas fa-calendar-times text-destructive text-2xl"></i>
-            </div>
-          </div>
-          <h3 className="text-lg font-medium mb-2">Evento não encontrado</h3>
-          <p className="text-muted-foreground mb-6">
-            O evento que você está procurando não existe ou você não tem permissão para acessá-lo.
-          </p>
-          <Link href="/events">
-            <Button>
-              <i className="fas fa-arrow-left mr-2"></i> Voltar para Eventos
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-  
-  // Calculate progress
-  const progress = calculateTaskProgress(tasks || []);
-  
-  // Count tasks by status
-  const totalTasks = tasks?.length || 0;
-  const completedTasks = tasks?.filter((task: any) => task.status === 'completed').length || 0;
-  const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
-  const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
 
-  // Função para obter imagem de capa padrão com base no tipo de evento - usando as mesmas do EventCard
-  const getDefaultCover = () => {
-    switch (event.type) {
-      case 'wedding':
-        return 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
-      case 'corporate':
-        return 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
-      case 'birthday':
-        return 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
-      case 'conference':
-        return 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
-      case 'social':
-        return 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
-      default:
-        return 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+  // Loading state
+  if (eventLoading) {
+    return (
+      <div className="container mx-auto pt-6 px-4 sm:px-6">
+        <div className="flex flex-col gap-6 animate-pulse">
+          <div className="h-60 bg-muted rounded-xl"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="h-20 bg-muted rounded-xl"></div>
+            <div className="h-20 bg-muted rounded-xl"></div>
+            <div className="h-20 bg-muted rounded-xl"></div>
+          </div>
+          <div className="h-96 bg-muted rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (eventError || !event) {
+    return (
+      <div className="container mx-auto pt-6 px-4 sm:px-6">
+        <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
+          <p className="font-medium">Erro ao carregar dados do evento</p>
+          <p>Não foi possível obter as informações deste evento. Tente novamente mais tarde.</p>
+          <Button variant="outline" className="mt-4" onClick={() => navigate("/events")}>
+            Voltar para eventos
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate task progress
+  const progress = calculateTaskProgress(tasks);
+  
+  // Calculate total budget and expenses
+  const totalBudget = budgetItems.reduce((sum, item) => sum + Number(item.estimatedCost), 0);
+  const totalExpenses = budgetItems.reduce((sum, item) => sum + Number(item.actualCost || 0), 0);
+
+  // Handle status change
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus(status);
+  };
+
+  const confirmStatusChange = () => {
+    if (selectedStatus) {
+      updateStatusMutation.mutate(selectedStatus);
     }
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
   };
 
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
-      {/* Breadcrumb Navigation - visível em desktop e tablet, mas oculto em mobile */}
-      <nav className="hidden sm:flex mb-4" aria-label="Breadcrumb">
-        <ol className="inline-flex items-center space-x-1 md:space-x-3">
-          <li className="inline-flex items-center">
-            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
-              <i className="fas fa-home mr-2"></i>
-              Início
-            </Link>
-          </li>
-          <li>
-            <div className="flex items-center">
-              <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-              <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
-                Eventos
-              </Link>
-            </div>
-          </li>
-          <li aria-current="page">
-            <div className="flex items-center">
-              <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-              <span className="text-sm font-medium text-primary truncate max-w-[150px]">
-                {event.name}
-              </span>
-            </div>
-          </li>
-        </ol>
-      </nav>
-      
-      {/* Novo layout com dois cards lado a lado */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
-        {/* Card da esquerda - Imagem de capa e informações básicas */}
-        <div className="relative w-full h-64 sm:h-72 rounded-xl overflow-hidden shadow-md">
-          <img 
-            src={event.coverImageUrl || getDefaultCover()}
-            alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
-          <div className="absolute bottom-0 left-0 p-3 sm:p-6">
-            <div className="flex flex-wrap gap-2 mb-2">
-              <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
-                {getEventTypeLabel(event.type)}
-              </span>
-              <span className={`inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${
-                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
-                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
-                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
-                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
-                'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
-              }`}>
-                {event.status === 'planning' ? 'Planejamento' : 
-                event.status === 'confirmed' ? 'Confirmado' : 
-                event.status === 'in_progress' ? 'Em andamento' : 
-                event.status === 'active' ? 'Ativo' : 
-                event.status === 'completed' ? 'Concluído' : 
-                event.status === 'cancelled' ? 'Cancelado' : 
-                'Planejamento'}
-              </span>
-            </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
-            {event.description && (
-              <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
-                {event.description}
-              </p>
-            )}
-          </div>
-        </div>
-        
-        {/* Card da direita - Informações do evento */}
-        <div className="bg-card rounded-xl overflow-hidden shadow-md">
-          <div className="p-4 sm:p-6 h-full flex flex-col">
-            <h2 className="text-xl font-semibold mb-4">Dados do Evento</h2>
-            
-            <div className="space-y-4">
-              {/* Data e Horário */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <i className="fas fa-calendar-day text-primary"></i>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Data e Horário</p>
-                  <p className="font-medium">{formatDate(event.date)}</p>
-                </div>
-              </div>
-              
-              {/* Local */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <i className="fas fa-map-marker-alt text-primary"></i>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Local</p>
-                  <p className="font-medium">{event.location || "Não definido"}</p>
-                </div>
-              </div>
-              
-              {/* Orçamento */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <i className="fas fa-wallet text-primary"></i>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Orçamento Estimado</p>
-                  <p className="font-medium">{formatCurrency(event.budget || 0)}</p>
-                </div>
-              </div>
-              
-              {/* Número de Convidados */}
-              {event.guestCount !== undefined && (
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <i className="fas fa-users text-primary"></i>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Convidados</p>
-                    <p className="font-medium">{event.guestCount} pessoas</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Ações Rápidas */}
-            <div className="mt-auto pt-6">
-              <div className="flex items-center justify-between">
-                <Select
-                  defaultValue={event.status}
-                  onValueChange={(value) => {
-                    updateEventStatusMutation.mutate(value);
-                  }}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Status do Evento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Status</SelectLabel>
-                      <SelectItem value="planning">Planejamento</SelectItem>
-                      <SelectItem value="confirmed">Confirmado</SelectItem>
-                      <SelectItem value="in_progress">Em andamento</SelectItem>
-                      <SelectItem value="completed">Concluído</SelectItem>
-                      <SelectItem value="cancelled">Cancelado</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <i className="fas fa-ellipsis-v"></i>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/edit`)}>
-                      <i className="fas fa-edit mr-2"></i> Editar Evento
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleRegenerateChecklist}>
-                      <i className="fas fa-sync-alt mr-2"></i> Regenerar Checklist
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive" onClick={handleDeleteEvent}>
-                      <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Alerta para tarefas pendentes quando evento está próximo */}
-      {(event as any).warningMessage && (
-        <div className="mb-6 p-4 bg-amber-950/30 border-l-4 border-amber-500 rounded-lg text-amber-100">
+    <div className="container mx-auto px-4 sm:px-6 py-6">
+      {event.needsAttention && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
           <div className="flex items-center">
             <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
             <p>{(event as any).warningMessage}</p>
           </div>
         </div>
       )}
-      
-      {/* Event Header - Design inspirado em aplicativos de alta qualidade */}
-      <div className="bg-card rounded-xl mb-6 shadow-sm overflow-hidden">
-        {/* Cabeçalho com status */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/40">
-          <div className="flex items-center space-x-2">
-            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-              event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
-              event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-[hsl(var(--event-confirmed))]' : 
-              event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
-              event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
-              event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-[hsl(var(--event-completed))]' : 
-              event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-[hsl(var(--event-cancelled))]' : 
-              'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]'
-            }`}>
-              <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
-                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
-                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
-                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
-                'bg-[hsl(var(--event-planning))]'
-              }`}></span>
-              {event.status === 'planning' ? 'Planejamento' : 
-              event.status === 'confirmed' ? 'Confirmado' : 
-              event.status === 'in_progress' ? 'Em andamento' : 
-              event.status === 'active' ? 'Ativo' : 
-              event.status === 'completed' ? 'Concluído' : 
-              event.status === 'cancelled' ? 'Cancelado' : 
-              'Planejamento'}
-            </span>
-            
-            {/* Status Change Button */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                  <i className="fas fa-pencil-alt text-xs"></i>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Selecione o novo status para o evento. Isso afetará como o evento é exibido em toda a plataforma.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="py-4">
-                  <Select
-                    defaultValue={event.status}
-                    onValueChange={(value) => {
-                      updateEventStatusMutation.mutate(value);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione o status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Status</SelectLabel>
-                        <SelectItem value="planning" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-planning))]"></span>
-                          <span>Planejamento</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Evento em construção</span>
-                        </SelectItem>
-                        <SelectItem value="confirmed" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
-                          <span>Confirmado</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Planejamento completo</span>
-                        </SelectItem>
-                        <SelectItem value="in_progress" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                          <span>Em andamento</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Evento ocorrendo agora</span>
-                        </SelectItem>
-                        <SelectItem value="active" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                          <span>Ativo</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Status legado</span>
-                        </SelectItem>
-                        <SelectItem value="completed" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-completed))]"></span>
-                          <span>Concluído</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Evento finalizado</span>
-                        </SelectItem>
-                        <SelectItem value="cancelled" className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-[hsl(var(--event-cancelled))]"></span>
-                          <span>Cancelado</span>
-                          <span className="text-xs text-muted-foreground ml-2">- Evento não será realizado</span>
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+
+      {/* Two-card layout at the top */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Left Card - Event Banner with Info */}
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+          <div 
+            className="relative h-[200px] bg-cover bg-center" 
+            style={{ backgroundImage: event.coverImage ? `url(${event.coverImage})` : 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary-foreground)))' }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80 flex flex-col justify-end p-5">
+              <div className="space-y-1 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                      event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-white' : 
+                      event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-white' : 
+                      event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-white' : 
+                      event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-white' : 
+                      event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-white' : 
+                      event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-white' : 
+                      'bg-[hsl(var(--event-planning))]/15 text-white'
+                    }`}>
+                      <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                        event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+                        event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                        event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                        event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                        event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+                        event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+                        'bg-[hsl(var(--event-planning))]'
+                      }`}></span>
+                      {event.status === 'planning' ? 'Planejamento' : 
+                      event.status === 'confirmed' ? 'Confirmado' : 
+                      event.status === 'in_progress' ? 'Em andamento' : 
+                      event.status === 'active' ? 'Ativo' : 
+                      event.status === 'completed' ? 'Concluído' : 
+                      event.status === 'cancelled' ? 'Cancelado' : 
+                      'Planejamento'}
+                    </span>
+                  </div>
                 </div>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                <h1 className="text-2xl font-semibold tracking-tight">{event.name}</h1>
+                <div className="text-sm opacity-80">{getEventTypeLabel(event.type)}</div>
+                {event.description && (
+                  <p className="text-sm opacity-80 line-clamp-2 mt-2">{event.description}</p>
+                )}
+              </div>
+            </div>
           </div>
-          
-          {/* Desktop Actions */}
-          <div className="hidden sm:flex items-center gap-2">
-            <Link href={`/events/${eventId}/edit`}>
-              <Button variant="outline" size="sm" className="h-9">
-                <i className="fas fa-edit mr-2"></i> Editar
-              </Button>
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9">
-                  <i className="fas fa-ellipsis-h"></i>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleRegenerateChecklist}>
-                  <i className="fas fa-sync-alt mr-2"></i> Regenerar Checklist
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDeleteEvent} className="text-destructive">
-                  <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          
-          {/* Mobile More Options */}
-          <div className="sm:hidden flex">
-            <div className="flex gap-2">
-              <Link href={`/events/${eventId}/edit`}>
-                <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full">
-                  <i className="fas fa-edit"></i>
-                </Button>
-              </Link>
+        </div>
+
+        {/* Right Card - Event Details */}
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+          <div className="p-5 h-full flex flex-col justify-between">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Detalhes do Evento</h2>
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <Calendar className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Data e Hora</div>
+                    <div className="text-muted-foreground text-sm">
+                      {formatDate(new Date(event.date))}
+                      {event.time && <span> às {event.time}</span>}
+                    </div>
+                  </div>
+                </li>
+                {event.location && (
+                  <li className="flex items-start">
+                    <MapPin className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-medium">Local</div>
+                      <div className="text-muted-foreground text-sm">{event.location}</div>
+                    </div>
+                  </li>
+                )}
+                <li className="flex items-start">
+                  <DollarSign className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Orçamento Estimado</div>
+                    <div className="text-muted-foreground text-sm">{formatCurrency(event.budget || 0)}</div>
+                  </div>
+                </li>
+                {event.guestCount && (
+                  <li className="flex items-start">
+                    <Users className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-medium">Convidados</div>
+                      <div className="text-muted-foreground text-sm">{event.guestCount} pessoas</div>
+                    </div>
+                  </li>
+                )}
+              </ul>
+            </div>
+            <div className="mt-6 flex justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full">
-                    <i className="fas fa-ellipsis-v"></i>
+                  <Button variant="outline" size="icon">
+                    <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleRegenerateChecklist}>
-                    <i className="fas fa-sync-alt mr-2"></i> Regenerar Checklist
+                  <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/edit`)}>
+                    Editar Evento
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDeleteEvent} className="text-destructive">
-                    <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
-                  </DropdownMenuItem>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        Alterar Status
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Selecione o novo status para o evento. Isso afetará como o evento é exibido em toda a plataforma.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <div className="py-4">
+                        <Select defaultValue={event.status} onValueChange={handleStatusChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Status do Evento</SelectLabel>
+                              <SelectItem value="planning">Planejamento</SelectItem>
+                              <SelectItem value="confirmed">Confirmado</SelectItem>
+                              <SelectItem value="in_progress">Em andamento</SelectItem>
+                              <SelectItem value="active">Ativo</SelectItem>
+                              <SelectItem value="completed">Concluído</SelectItem>
+                              <SelectItem value="cancelled">Cancelado</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmStatusChange}>Confirmar</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                        Excluir Evento
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação não pode ser desfeita. Isso excluirá permanentemente o evento e todos os dados associados.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => deleteEventMutation.mutate()}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
         </div>
-        
-        {/* Info Grid com ações integradas */}
-        <div className="p-4 sm:p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="flex items-start">
-            <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-              <i className="fas fa-calendar-day text-sm"></i>
-            </div>
-            <div className="ml-3">
-              <p className="text-xs text-muted-foreground">Data</p>
-              <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
-            </div>
-          </div>
-          
-          {event.location && (
-            <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                <i className="fas fa-map-marker-alt text-sm"></i>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs text-muted-foreground">Local</p>
-                <p className="mt-0.5 text-sm font-medium">{event.location}</p>
-              </div>
-            </div>
-          )}
-          
-          {event.attendees && (
-            <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                <i className="fas fa-user-friends text-sm"></i>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs text-muted-foreground">Convidados</p>
-                <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
-              </div>
-            </div>
-          )}
-          
-          {event.budget && (
-            <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                <i className="fas fa-coins text-sm"></i>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs text-muted-foreground">Orçamento</p>
-                <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
-      
-      {/* Painel de Gestão Estratégica do Evento */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
-        
-        {/* Card de Progresso & Etapas */}
-        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-primary/70 flex flex-col h-full">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center mr-2 sm:mr-3">
-              <i className="fas fa-tasks text-primary text-sm sm:text-base"></i>
-            </div>
-            <h3 className="font-semibold text-base sm:text-lg">Progresso do Projeto</h3>
-          </div>
-          
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <div className={`w-3 h-3 rounded-full mr-2 ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
-              <span className="text-xs sm:text-sm font-medium">{progress}% completo</span>
-            </div>
-            <span className="text-primary font-medium text-xs sm:text-sm">{completedTasks}/{totalTasks} tarefas</span>
-          </div>
-          
-          <div className="w-full h-2 bg-muted rounded-full mb-4 sm:mb-5 overflow-hidden">
-            <div 
-              className={`h-full rounded-full ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-3 text-center mb-4">
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
-              <div className={`text-base sm:text-lg font-bold ${todoTasks > 0 ? 'text-red-500' : 'text-muted-foreground'}`}>{todoTasks}</div>
-              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Pendentes</div>
-            </div>
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
-              <div className={`text-base sm:text-lg font-bold ${inProgressTasks > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>{inProgressTasks}</div>
-              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Em progr.</div>
-            </div>
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
-              <div className={`text-base sm:text-lg font-bold ${completedTasks > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{completedTasks}</div>
-              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Concluídas</div>
-            </div>
-          </div>
-          
-          <div className="mt-auto pt-2">
-            <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => navigate(`/events/${eventId}/tasks`)}>
-              <i className="fas fa-chart-line mr-1 sm:mr-2"></i> Análise Detalhada
-            </Button>
-          </div>
-        </div>
-        
-        {/* Card de Orçamento & Financeiro */}
-        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-blue-500/70 flex flex-col h-full">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-2 sm:mr-3">
-              <i className="fas fa-wallet text-blue-500 text-sm sm:text-base"></i>
-            </div>
-            <h3 className="font-semibold text-base sm:text-lg">Gestão Financeira</h3>
-          </div>
-          
-          {event.budget ? (
-            <>
-              <div className="space-y-4 sm:space-y-6 mb-4">
-                {/* Valores principais com formatação abreviada para valores grandes */}
-                <div className="flex justify-between items-center flex-wrap gap-y-3 sm:gap-y-4">
-                  <div className="min-w-[100px] sm:min-w-[110px]">
-                    <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Orçamento</div>
-                    <div className="text-base sm:text-xl font-bold">
-                      {event.budget >= 10000 
-                        ? `R$ ${(event.budget / 1000).toFixed(0)}${event.budget >= 1000000 ? 'M' : 'K'}`
-                        : formatCurrency(event.budget)
-                      }
-                    </div>
-                  </div>
-                  <div className="min-w-[100px] sm:min-w-[110px] text-right">
-                    <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Gasto atual</div>
-                    <div className="text-base sm:text-xl font-bold">
-                      {(event.expenses || 0) >= 10000 
-                        ? `R$ ${((event.expenses || 0) / 1000).toFixed(0)}${(event.expenses || 0) >= 1000000 ? 'M' : 'K'}`
-                        : formatCurrency(event.expenses || 0)
-                      }
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Barra de progresso e status */}
-                <div>
-                  <div className="flex flex-wrap justify-between mb-2 text-xs sm:text-sm gap-2">
-                    <span className={`font-medium whitespace-nowrap ${(event.expenses || 0) / event.budget > 0.8 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                      {Math.round((event.expenses || 0) / event.budget * 100)}% utilizado
-                    </span>
-                    <span className="font-medium whitespace-nowrap">
-                      {(event.budget - (event.expenses || 0)) >= 10000 
-                        ? `R$ ${((event.budget - (event.expenses || 0)) / 1000).toFixed(0)}${(event.budget - (event.expenses || 0)) >= 1000000 ? 'M' : 'K'} disponível`
-                        : `${formatCurrency(event.budget - (event.expenses || 0))} disponível`
-                      }
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2 sm:h-3 overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${
-                        (event.expenses || 0) / event.budget > 0.9 ? 'bg-red-500' : 
-                        (event.expenses || 0) / event.budget > 0.7 ? 'bg-amber-500' : 
-                        'bg-blue-500'
-                      }`}
-                      style={{ width: `${Math.min(100, Math.round((event.expenses || 0) / event.budget * 100))}%` }}
-                    ></div>
-                  </div>
-                </div>
+
+      {/* Indicator Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* Progress Card */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Progresso</CardTitle>
+            <CardDescription>Tarefas do evento</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  {tasks.filter(t => t.completed).length} de {tasks.length} tarefas concluídas
+                </span>
+                <span className="text-sm font-medium">
+                  {progress}%
+                </span>
               </div>
-              
-              <div className="mt-auto pt-2">
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => navigate(`/events/${eventId}/budget`)}>
-                  <i className="fas fa-chart-pie mr-1 sm:mr-2"></i> Análise de Gastos
-                </Button>
+              <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary" 
+                  style={{ width: `${progress}%` }}
+                ></div>
               </div>
-            </>
-          ) : (
-            <div className="text-center py-4 sm:py-6 flex flex-col items-center flex-grow">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-muted flex items-center justify-center mb-3">
-                <i className="fas fa-money-bill-wave text-muted-foreground text-base sm:text-xl"></i>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Budget Card */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Orçamento</CardTitle>
+            <CardDescription>Gastos vs. Planejado</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Gasto {formatCurrency(totalExpenses)} de {formatCurrency(totalBudget)}
+                </span>
+                <span className="text-sm font-medium">
+                  {totalBudget > 0 ? Math.round((totalExpenses / totalBudget) * 100) : 0}%
+                </span>
               </div>
-              <p className="text-muted-foreground text-xs sm:text-sm mb-4">Nenhum orçamento definido</p>
-              <Button variant="outline" size="sm" className="mt-auto text-xs sm:text-sm">
-                <i className="fas fa-plus mr-1 sm:mr-2"></i> Adicionar Orçamento
-              </Button>
+              <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className={`h-full ${totalExpenses <= totalBudget ? 'bg-emerald-500' : 'bg-destructive'}`}
+                  style={{ width: `${totalBudget > 0 ? Math.min((totalExpenses / totalBudget) * 100, 100) : 0}%` }}
+                ></div>
+              </div>
             </div>
-          )}
-        </div>
-        
-        {/* Card de Cronograma & Prazos */}
-        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-purple-500/70 flex flex-col h-full">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-2 sm:mr-3">
-              <i className="fas fa-calendar-alt text-purple-500 text-sm sm:text-base"></i>
-            </div>
-            <h3 className="font-semibold text-base sm:text-lg">Cronograma</h3>
-          </div>
-          
-          {event.date ? (() => {
-            const eventDate = new Date(event.date);
-            const today = new Date();
-            const diffTime = eventDate.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays < 0) {
-              // Evento já realizado
-              return (
-                <div className="flex flex-col items-center justify-center flex-grow text-center py-3 sm:py-4">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-2 sm:mb-3">
-                    <i className="fas fa-flag-checkered text-blue-500 text-base sm:text-xl"></i>
+          </CardContent>
+        </Card>
+
+        {/* Timeline Card */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Cronograma</CardTitle>
+            <CardDescription>Status do evento</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <div className="w-full">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-muted-foreground">Data do evento</span>
+                    <span className="text-sm font-medium">{formatDate(new Date(event.date))}</span>
                   </div>
-                  <h4 className="text-base sm:text-lg font-medium text-blue-500 mb-1">Evento Realizado</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">em {formatDate(event.date)}</p>
-                  <Button variant="outline" size="sm" className="mt-3 sm:mt-4 text-xs sm:text-sm">
-                    <i className="fas fa-clipboard-check mr-1 sm:mr-2"></i> Gerar Relatório
-                  </Button>
-                </div>
-              );
-            } else if (diffDays === 0) {
-              // Evento é hoje
-              return (
-                <div className="flex flex-col items-center justify-center flex-grow text-center">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-green-500/20 flex items-center justify-center mb-2 sm:mb-3 animate-pulse">
-                    <i className="fas fa-calendar-day text-green-500 text-2xl sm:text-3xl"></i>
-                  </div>
-                  <h4 className="text-xl sm:text-2xl font-bold text-green-500 mb-1">HOJE!</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">{formatDate(event.date)}</p>
-                  
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full mt-2">
-                    <div className="bg-muted/50 p-1.5 sm:p-2 rounded-md text-center">
-                      <div className="text-[0.65rem] sm:text-xs text-muted-foreground">Pendentes</div>
-                      <div className="text-base sm:text-lg font-bold text-red-500">{todoTasks}</div>
-                    </div>
-                    <div className="bg-muted/50 p-1.5 sm:p-2 rounded-md text-center">
-                      <div className="text-[0.65rem] sm:text-xs text-muted-foreground">Prontos</div>
-                      <div className="text-base sm:text-lg font-bold text-green-500">{completedTasks}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            } else {
-              // Evento futuro
-              const urgency = diffDays <= 7 ? 'text-amber-500' : (diffDays <= 30 ? 'text-blue-500' : 'text-purple-500');
-              
-              return (
-                <div className="flex flex-col items-center flex-grow">
-                  <div className="text-center mb-3 sm:mb-4">
-                    <span className={`text-4xl sm:text-5xl font-bold block ${urgency}`}>
-                      {diffDays}
-                    </span>
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {diffDays === 1 ? "dia restante" : "dias restantes"}
-                    </span>
-                  </div>
-                  
-                  <div className="w-full bg-muted/50 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <i className="fas fa-calendar-week text-muted-foreground mr-1 sm:mr-2"></i>
-                        <span className="text-xs sm:text-sm font-medium">{formatDate(event.date)}</span>
-                      </div>
-                      <Badge variant="outline" className={`text-xs ${diffDays <= 7 ? 'border-amber-500 text-amber-500' : ''}`}>
-                        {diffDays <= 7 ? 'Próximo' : 'Planejado'}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="w-full mt-auto">
-                    <div className="mb-1 sm:mb-2 text-xs sm:text-sm font-medium">Progresso da preparação</div>
-                    <div className="flex items-center justify-between text-[0.65rem] sm:text-xs text-muted-foreground mb-1">
-                      <span>0%</span>
-                      <span>50%</span>
-                      <span>100%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-1.5 sm:h-2">
+                  <div className="h-1.5 w-full bg-secondary rounded-full">
+                    {event.status !== 'cancelled' && (
                       <div 
                         className={`h-full rounded-full ${
-                          progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-amber-500' : 'bg-green-500'
+                          event.status === 'completed' ? 'bg-green-500' : 'bg-primary'
                         }`}
-                        style={{ width: `${progress}%` }}
+                        style={{ 
+                          width: `${
+                            event.status === 'planning' ? '20%' : 
+                            event.status === 'confirmed' ? '40%' : 
+                            event.status === 'in_progress' ? '60%' : 
+                            event.status === 'active' ? '80%' : 
+                            event.status === 'completed' ? '100%' : '20%'
+                          }`
+                        }}
                       ></div>
-                    </div>
+                    )}
                   </div>
                 </div>
-              );
-            }
-          })() : (
-            <div className="text-center py-4 sm:py-6 flex flex-col items-center flex-grow">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-muted flex items-center justify-center mb-2 sm:mb-3">
-                <i className="fas fa-calendar-plus text-muted-foreground text-base sm:text-xl"></i>
               </div>
-              <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4">Data do evento não definida</p>
-              <Button variant="outline" size="sm" className="mt-auto text-xs sm:text-sm">
-                <i className="fas fa-calendar-plus mr-1 sm:mr-2"></i> Definir Data
-              </Button>
             </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
       </div>
-      
-      {/* Cards de indicadores */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
-        {/* Card 1: Progresso do Projeto */}
-        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-5 flex flex-col h-full">
-            <h3 className="text-sm font-semibold mb-3 flex items-center">
-              <i className="fas fa-tasks text-primary mr-2"></i>
-              Progresso do Projeto
-            </h3>
-            
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-muted-foreground">Tarefas concluídas</span>
-              <span className="font-semibold">{completedTasks} de {totalTasks}</span>
-            </div>
-            
-            <div className="w-full bg-muted rounded-full h-2 mb-4">
-              <div 
-                className={`h-full rounded-full ${
-                  progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-amber-500' : 'bg-green-500'
-                }`}
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-            
-            <div className="flex justify-between text-xs">
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-[hsl(var(--status-completed))] mr-1.5"></div>
-                <span>Concluídas ({completedTasks})</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-[hsl(var(--status-in-progress))] mr-1.5"></div>
-                <span>Em andamento ({inProgressTasks})</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-[hsl(var(--status-todo))] mr-1.5"></div>
-                <span>Pendentes ({todoTasks})</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Card 2: Gestão Financeira */}
-        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-5 flex flex-col h-full">
-            <h3 className="text-sm font-semibold mb-3 flex items-center">
-              <i className="fas fa-wallet text-primary mr-2"></i>
-              Gestão Financeira
-            </h3>
-            
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-muted-foreground">Orçamento total</span>
-              <span className="font-semibold">{formatCurrency(event.budget || 0)}</span>
-            </div>
-            
-            <div className="w-full bg-muted rounded-full h-2 mb-4">
-              <div 
-                className={`h-full rounded-full ${
-                  !event.budget || !event.expenses || event.expenses / event.budget < 0.5 ? 'bg-green-500' : 
-                  event.expenses / event.budget < 0.85 ? 'bg-amber-500' : 'bg-red-500'
-                }`}
-                style={{ width: `${event.budget ? Math.min(100, (event.expenses || 0) / event.budget * 100) : 0}%` }}
-              ></div>
-            </div>
-            
-            <div className="flex justify-between items-center text-xs">
-              <span>Gastos: {formatCurrency(event.expenses || 0)}</span>
-              <span className={`${
-                !event.budget || !event.expenses ? 'text-green-500' : 
-                event.expenses / event.budget < 0.5 ? 'text-green-500' : 
-                event.expenses / event.budget < 0.85 ? 'text-amber-500' : 
-                'text-red-500'
-              }`}>
-                {event.budget && event.expenses ? 
-                  `${Math.round(event.expenses / event.budget * 100)}% do orçamento` : 
-                  'Sem gastos'}
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Card 3: Cronograma */}
-        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-5 flex flex-col h-full">
-            <h3 className="text-sm font-semibold mb-3 flex items-center">
-              <i className="fas fa-calendar-alt text-primary mr-2"></i>
-              Cronograma do Evento
-            </h3>
-            
-            {event.date ? (() => {
-              // Calcular dias até o evento
-              const eventDate = new Date(event.date);
-              const currentDate = new Date();
-              const diffTime = eventDate.getTime() - currentDate.getTime();
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              
-              return (
-                <>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-muted-foreground">Data do evento</span>
-                    <span className="font-semibold">{formatDate(event.date)}</span>
-                  </div>
-                  
-                  <div className="bg-muted/50 rounded-lg p-3 mb-3 flex items-center justify-between">
-                    <div className="flex items-center">
-                      <i className="fas fa-clock text-primary mr-2"></i>
-                      <span className="text-sm font-medium">
-                        {diffDays > 0 ? `Faltam ${diffDays} dias` : diffDays === 0 ? 'Hoje!' : 'Evento realizado'}
-                      </span>
-                    </div>
-                    <Badge variant="outline" className={`${diffDays <= 7 && diffDays >= 0 ? 'border-amber-500 text-amber-500' : ''}`}>
-                      {diffDays <= 7 && diffDays >= 0 ? 'Próximo' : diffDays < 0 ? 'Realizado' : 'Planejado'}
-                    </Badge>
-                  </div>
-                </>
-              );
-            })() : (
-              <div className="text-center py-4 flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-2">
-                  <i className="fas fa-calendar-plus text-muted-foreground text-base"></i>
-                </div>
-                <p className="text-muted-foreground text-sm mb-3">Data do evento não definida</p>
-                <Button variant="outline" size="sm" className="text-xs">
-                  <i className="fas fa-calendar-plus mr-2"></i> Definir Data
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      {/* Novo layout de abas com menu vertical */}
-      <div className="mb-8">
-        <Tabs defaultValue="tasks">
-          <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-4 sm:gap-6">
-            {/* Menu vertical - visível apenas em desktop */}
-            <div className="hidden md:block bg-card rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4">
-                <h3 className="text-sm font-semibold mb-4 px-3">Seções</h3>
-                <TabsList className="flex flex-col w-full bg-transparent space-y-1">
-                  <TabsTrigger value="tasks" className="w-full justify-start gap-3 px-3 py-2 h-10">
-                    <i className="fas fa-tasks"></i>
-                    <span>Tarefas</span>
-                    <Badge className="ml-auto">{totalTasks}</Badge>
-                  </TabsTrigger>
-                  <TabsTrigger value="team" className="w-full justify-start gap-3 px-3 py-2 h-10">
-                    <i className="fas fa-users"></i>
-                    <span>Equipe</span>
-                    <Badge className="ml-auto">{team?.length || 0}</Badge>
-                  </TabsTrigger>
-                  <TabsTrigger value="timeline" className="w-full justify-start gap-3 px-3 py-2 h-10">
-                    <i className="fas fa-calendar-day"></i>
-                    <span>Cronograma</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="activity" className="w-full justify-start gap-3 px-3 py-2 h-10">
-                    <i className="fas fa-history"></i>
-                    <span>Atividades</span>
-                    <Badge className="ml-auto">{activities?.length || 0}</Badge>
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-            </div>
 
-            {/* Conteúdo das abas */}
-            <div className="bg-card rounded-xl shadow-sm overflow-hidden">
-              {/* Navegação em abas no mobile */}
-              <div className="md:hidden overflow-x-auto pb-2 border-b border-border/40">
-                <TabsList className="mb-0 flex-nowrap w-auto min-w-max p-2">
-                  <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-                  <TabsTrigger value="team">Equipe</TabsTrigger>
-                  <TabsTrigger value="timeline">Cronograma</TabsTrigger>
-                  <TabsTrigger value="activity">Atividade</TabsTrigger>
-                </TabsList>
-              </div>
-              
-              {/* Conteúdo da aba Tarefas */}
-              <TabsContent value="tasks" className="space-y-4 p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-            <h2 className="text-xl font-semibold">Checklist do Evento</h2>
-            <div className="flex flex-wrap w-full sm:w-auto gap-2">
-              <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
-                <i className="fas fa-plus mr-2"></i> Nova Tarefa
-              </Button>
-              <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
-              </Button>
-            </div>
-          </div>
-          
-          <TaskList
-            title=""
-            tasks={tasks}
-            loading={tasksLoading}
-            showEventName={false}
-          />
-        </TabsContent>
-        
-        <TabsContent value="team">
-          <div className="bg-card rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
-            
-            {teamLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-              </div>
-            ) : team?.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {team.map((member: any) => (
-                  <div key={member.id} className="bg-muted p-4 rounded-lg">
-                    <div className="flex items-center">
-                      {member.user.profileImageUrl ? (
-                        <img 
-                          src={member.user.profileImageUrl} 
-                          alt={`${member.user.firstName} ${member.user.lastName}`}
-                          className="w-12 h-12 rounded-full object-cover mr-4"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
-                          <span className="text-primary font-medium">
-                            {member.user.firstName?.charAt(0) || ''}
-                            {member.user.lastName?.charAt(0) || ''}
-                          </span>
+      {/* Vertical Tabs Navigation and Content */}
+      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
+        {/* Mobile View: Dropdown for Tabs on small screens */}
+        <div className="md:hidden">
+          <Select defaultValue={activeTab} onValueChange={handleTabChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione uma seção" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="tasks">
+                  <div className="flex items-center">
+                    <CheckSquare className="mr-2 h-4 w-4" />
+                    <span>Tarefas</span>
+                    {tasks.length > 0 && <Badge className="ml-2">{tasks.length}</Badge>}
+                  </div>
+                </SelectItem>
+                <SelectItem value="team">
+                  <div className="flex items-center">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    <span>Equipe</span>
+                    {teamMembers.length > 0 && <Badge className="ml-2">{teamMembers.length}</Badge>}
+                  </div>
+                </SelectItem>
+                <SelectItem value="schedule">
+                  <div className="flex items-center">
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span>Cronograma</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="activities">
+                  <div className="flex items-center">
+                    <Activity className="mr-2 h-4 w-4" />
+                    <span>Atividades</span>
+                  </div>
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Desktop View: Vertical Tabs */}
+        <div className="hidden md:block">
+          <Card className="h-full">
+            <CardContent className="p-4">
+              <nav className="space-y-2">
+                <Button 
+                  variant={activeTab === "tasks" ? "default" : "ghost"} 
+                  className="w-full justify-start" 
+                  onClick={() => handleTabChange("tasks")}
+                >
+                  <CheckSquare className="mr-2 h-4 w-4" />
+                  <span>Tarefas</span>
+                  {tasks.length > 0 && <Badge className="ml-2">{tasks.length}</Badge>}
+                </Button>
+                
+                <Button 
+                  variant={activeTab === "team" ? "default" : "ghost"} 
+                  className="w-full justify-start" 
+                  onClick={() => handleTabChange("team")}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  <span>Equipe</span>
+                  {teamMembers.length > 0 && <Badge className="ml-2">{teamMembers.length}</Badge>}
+                </Button>
+                
+                <Button 
+                  variant={activeTab === "schedule" ? "default" : "ghost"} 
+                  className="w-full justify-start" 
+                  onClick={() => handleTabChange("schedule")}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  <span>Cronograma</span>
+                </Button>
+                
+                <Button 
+                  variant={activeTab === "activities" ? "default" : "ghost"} 
+                  className="w-full justify-start" 
+                  onClick={() => handleTabChange("activities")}
+                >
+                  <Activity className="mr-2 h-4 w-4" />
+                  <span>Atividades</span>
+                </Button>
+              </nav>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tab Content */}
+        <div>
+          <Card className="h-full">
+            <CardContent className="p-6">
+              {activeTab === "tasks" && (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Tarefas</h3>
+                    <Button size="sm" onClick={() => navigate(`/events/${eventId}/tasks/new`)}>
+                      Nova Tarefa
+                    </Button>
+                  </div>
+                  <TaskList 
+                    tasks={tasks} 
+                    eventId={Number(eventId)} 
+                    teamMembers={teamMembers} 
+                    refetchTasks={() => queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'tasks'] })}
+                  />
+                </div>
+              )}
+
+              {activeTab === "team" && (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Equipe</h3>
+                    <Button size="sm" onClick={() => navigate(`/events/${eventId}/team`)}>
+                      Gerenciar Equipe
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {teamMembers.map((member) => (
+                      <div key={member.user.id} className="flex items-center p-3 rounded-lg border bg-card hover:bg-accent/30 transition-colors">
+                        <Avatar className="h-10 w-10 mr-3">
+                          {member.user.profilePicture ? (
+                            <AvatarImage src={member.user.profilePicture} alt={member.user.name} />
+                          ) : (
+                            <AvatarFallback>{getInitials(member.user.name)}</AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{member.user.name}</div>
+                          <div className="text-sm text-muted-foreground">{member.role || 'Membro'}</div>
                         </div>
-                      )}
-                      <div>
-                        <p className="font-medium">
-                          {member.user.firstName} {member.user.lastName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {member.role === 'organizer' ? 'Organizador' : 
-                           member.role === 'team_member' ? 'Membro da Equipe' : 
-                           'Fornecedor'}
-                        </p>
                       </div>
-                    </div>
-                    {member.user.email && (
-                      <div className="mt-3 text-sm flex items-center text-muted-foreground">
-                        <i className="fas fa-envelope mr-2"></i>
-                        <span>{member.user.email}</span>
+                    ))}
+                    {teamMembers.length === 0 && (
+                      <div className="col-span-full text-center py-6 text-muted-foreground">
+                        <p>Nenhum membro adicionado. Clique em "Gerenciar Equipe" para adicionar membros.</p>
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="mb-4 flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                    <i className="fas fa-users text-primary text-2xl"></i>
-                  </div>
                 </div>
-                <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
-                <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
-                <Button>
-                  <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
-                </Button>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="timeline">
-          <div className="bg-card rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
-            
-            {tasksLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-              </div>
-            ) : tasks?.length > 0 ? (
-              <div className="relative">
-                {/* Timeline line */}
-                <div className="absolute left-3.5 top-0 bottom-0 w-0.5 bg-muted"></div>
-                
-                <div className="space-y-6">
-                  {tasks
-                    .filter((task: any) => !!task.dueDate)
-                    .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                    .map((task: any) => {
-                      const today = new Date();
-                      const dueDate = new Date(task.dueDate);
-                      const isPast = dueDate < today;
-                      const isToday = dueDate.toDateString() === today.toDateString();
-                      
-                      let statusColor = "bg-muted";
-                      if (task.status === "completed") {
-                        statusColor = "bg-green-500";
-                      } else if (isPast) {
-                        statusColor = "bg-red-500";
-                      } else if (isToday) {
-                        statusColor = "bg-yellow-500";
-                      } else if (task.status === "in_progress") {
-                        statusColor = "bg-blue-500";
-                      }
-                      
-                      return (
-                        <div key={task.id} className="flex">
-                          <div className="flex-shrink-0 z-10">
-                            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusColor} shadow-lg`}>
-                              <i className={`fas fa-${
-                                task.status === "completed" ? "check" : 
-                                isPast ? "exclamation" : 
-                                task.status === "in_progress" ? "spinner" : 
-                                "calendar"
-                              } text-white text-xs`}></i>
-                            </div>
-                          </div>
-                          <div className="ml-4">
-                            <h3 className={`font-medium ${task.status === "completed" ? "line-through opacity-60" : ""}`}>
-                              {task.title}
-                            </h3>
-                            <p className="text-muted-foreground text-sm mt-1">
-                              {formatDate(task.dueDate)}
-                            </p>
-                            <div className="mt-2 flex items-center">
-                              <span className={`text-xs px-2 py-0.5 rounded-full mr-2 ${getTaskStatusClass(task.status)}`}>
-                                {task.status === "completed" ? "Concluída" : 
-                                 task.status === "in_progress" ? "Em andamento" : 
-                                 "A fazer"}
-                              </span>
-                              {task.priority && (
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${getTaskPriorityClass(task.priority)}`}>
-                                  {task.priority === "high" ? "Alta prioridade" : 
-                                   task.priority === "medium" ? "Média prioridade" : 
-                                   "Baixa prioridade"}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="mb-4 flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                    <i className="fas fa-calendar-day text-primary text-2xl"></i>
-                  </div>
-                </div>
-                <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
-                <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
-                <Link href={`/events/${id}/checklist`}>
-                  <Button>
-                    <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="activity">
-          <ActivityFeed
-            activities={activities}
-            loading={activitiesLoading}
-            limit={10}
-          />
-        </TabsContent>
-      </Tabs>
-      
+              )}
 
+              {activeTab === "schedule" && (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Cronograma</h3>
+                    <Button size="sm" onClick={() => navigate(`/events/${eventId}/schedule`)}>
+                      Ver Cronograma
+                    </Button>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="rounded-lg border overflow-hidden">
+                      <div className="bg-muted p-3 border-b">
+                        <h4 className="font-medium">Marcos Importantes</h4>
+                      </div>
+                      <div className="p-3">
+                        <ul className="space-y-3">
+                          <li className="flex items-start space-x-3">
+                            <div className="flex-shrink-0 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                              <div className="h-2 w-2 rounded-full bg-white"></div>
+                            </div>
+                            <div>
+                              <p className="font-medium">Data do Evento</p>
+                              <p className="text-sm text-muted-foreground">{formatDate(new Date(event.date))}</p>
+                            </div>
+                          </li>
+                          {tasks
+                            .filter(task => task.priority === 'high')
+                            .slice(0, 3)
+                            .map(task => (
+                              <li key={task.id} className="flex items-start space-x-3">
+                                <div className={`flex-shrink-0 h-5 w-5 rounded-full ${
+                                  task.completed ? 'bg-green-500' : 'bg-amber-500'
+                                } flex items-center justify-center`}>
+                                  <div className="h-2 w-2 rounded-full bg-white"></div>
+                                </div>
+                                <div>
+                                  <p className="font-medium">{task.title}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {task.dueDate ? formatDate(new Date(task.dueDate)) : 'Sem data'}
+                                    {task.completed && ' - Concluído'}
+                                  </p>
+                                </div>
+                              </li>
+                            ))}
+                          {tasks.filter(task => task.priority === 'high').length === 0 && (
+                            <li className="text-center py-2 text-muted-foreground text-sm">
+                              <p>Nenhuma tarefa prioritária definida.</p>
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "activities" && (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Atividades Recentes</h3>
+                  </div>
+                  <ActivityFeed activities={activityLogs} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
-};
-
-// Helper functions for styling
-const getTaskStatusClass = (status: string) => {
-  switch (status) {
-    case "completed": return "bg-green-500/10 text-green-500";
-    case "in_progress": return "bg-blue-500/10 text-blue-500";
-    default: return "bg-gray-500/10 text-gray-400";
-  }
-};
-
-const getTaskPriorityClass = (priority: string) => {
-  switch (priority) {
-    case "high": return "bg-red-500/10 text-red-500";
-    case "medium": return "bg-yellow-500/10 text-yellow-500";
-    case "low": return "bg-green-500/10 text-green-500";
-    default: return "bg-gray-500/10 text-gray-400";
-  }
 };
 
 export default Event;
