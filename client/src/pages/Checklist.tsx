@@ -412,8 +412,8 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         </div>
       ) : (
         <div className="bg-card rounded-lg overflow-hidden">
-          {/* Mobile task list view */}
-          <div className="block lg:hidden">
+          {/* Mobile task list view - now shown on all screens */}
+          <div className="block">
             {filteredTasks.map((task: any) => {
               // Find assignee if exists
               const assignee = team?.find((member: any) => member.userId === task.assigneeId)?.user;
