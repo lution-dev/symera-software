@@ -574,27 +574,29 @@ const Event: React.FC<EventProps> = ({ id }) => {
           {/* Coluna da esquerda - Lista de abas em desktop, oculta em mobile */}
           <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
             <div className="p-3 border-b">
-              <TabsList className="w-full flex flex-col">
-                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left" onClick={() => setActiveTab("tasks")}>
-                  <i className="fas fa-tasks mr-3"></i> 
-                  Checklist
-                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
-                </TabsTrigger>
-                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left" onClick={() => setActiveTab("team")}>
-                  <i className="fas fa-users mr-3"></i> 
-                  Equipe
-                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
-                </TabsTrigger>
-                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left" onClick={() => setActiveTab("timeline")}>
-                  <i className="fas fa-calendar-alt mr-3"></i> 
-                  Cronograma
-                </TabsTrigger>
-                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left" onClick={() => setActiveTab("activity")}>
-                  <i className="fas fa-history mr-3"></i> 
-                  Atividades
-                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
-                </TabsTrigger>
-              </TabsList>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full flex flex-col">
+                  <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                    <i className="fas fa-tasks mr-3"></i> 
+                    Checklist
+                    {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                  </TabsTrigger>
+                  <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                    <i className="fas fa-users mr-3"></i> 
+                    Equipe
+                    {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                  </TabsTrigger>
+                  <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                    <i className="fas fa-calendar-alt mr-3"></i> 
+                    Cronograma
+                  </TabsTrigger>
+                  <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                    <i className="fas fa-history mr-3"></i> 
+                    Atividades
+                    {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
           </div>
           
@@ -635,27 +637,29 @@ const Event: React.FC<EventProps> = ({ id }) => {
           
           {/* Lista de abas para tablet/mobile (orientação horizontal) - visível apenas em tablet em orientação horizontal */}
           <div className="hidden sm:block md:hidden bg-card rounded-lg p-3 shadow-sm">
-            <TabsList className="w-full flex">
-              <TabsTrigger value="tasks" className="flex-1" onClick={() => setActiveTab("tasks")}>
-                <i className="fas fa-tasks mr-1 sm:mr-2"></i> 
-                <span className="hidden xs:inline">Checklist</span>
-                {tasks?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
-              </TabsTrigger>
-              <TabsTrigger value="team" className="flex-1" onClick={() => setActiveTab("team")}>
-                <i className="fas fa-users mr-1 sm:mr-2"></i> 
-                <span className="hidden xs:inline">Equipe</span>
-                {team?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
-              </TabsTrigger>
-              <TabsTrigger value="timeline" className="flex-1" onClick={() => setActiveTab("timeline")}>
-                <i className="fas fa-calendar-alt mr-1 sm:mr-2"></i> 
-                <span className="hidden xs:inline">Cronograma</span>
-              </TabsTrigger>
-              <TabsTrigger value="activity" className="flex-1" onClick={() => setActiveTab("activity")}>
-                <i className="fas fa-history mr-1 sm:mr-2"></i> 
-                <span className="hidden xs:inline">Atividades</span>
-                {activities?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
-              </TabsTrigger>
-            </TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="w-full flex">
+                <TabsTrigger value="tasks" className="flex-1">
+                  <i className="fas fa-tasks mr-1 sm:mr-2"></i> 
+                  <span className="hidden xs:inline">Checklist</span>
+                  {tasks?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="flex-1">
+                  <i className="fas fa-users mr-1 sm:mr-2"></i> 
+                  <span className="hidden xs:inline">Equipe</span>
+                  {team?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="flex-1">
+                  <i className="fas fa-calendar-alt mr-1 sm:mr-2"></i> 
+                  <span className="hidden xs:inline">Cronograma</span>
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="flex-1">
+                  <i className="fas fa-history mr-1 sm:mr-2"></i> 
+                  <span className="hidden xs:inline">Atividades</span>
+                  {activities?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
           
           {/* Coluna da direita - Conteúdo da aba selecionada - Ocupa toda a largura em mobile */}
