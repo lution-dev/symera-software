@@ -243,7 +243,7 @@ const MobileNavbar: React.FC = () => {
             <Link href="/events" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
                 <i className={cn(
-                  "fas fa-calendar-alt h-6 w-6 mb-1",
+                  "far fa-calendar-alt h-6 w-6 mb-1",
                   isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
                 )}></i>
                 <span className={cn(
@@ -261,7 +261,7 @@ const MobileNavbar: React.FC = () => {
             <Link href="/events/new" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
                 <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
-                  <i className="fas fa-plus text-white"></i>
+                  <i className="far fa-plus text-white"></i>
                 </div>
                 <span className={cn(
                   "text-xs mt-1 text-center w-full",
@@ -277,7 +277,7 @@ const MobileNavbar: React.FC = () => {
             <Link href="/schedule" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
                 <i className={cn(
-                  "fas fa-clipboard-list h-6 w-6 mb-1",
+                  "far fa-clipboard-list h-6 w-6 mb-1",
                   isActivePath('/schedule') ? "text-primary" : "text-foreground"
                 )}></i>
                 <span className={cn(

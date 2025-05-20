@@ -324,7 +324,7 @@ const Dashboard: React.FC = () => {
         <div className="order-2 mt-3 sm:mt-0">
           <div className="bg-card rounded-lg shadow-sm p-3 sm:p-5">
             <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 flex items-center">
-              <i className="fas fa-history text-primary mr-2"></i>
+              <i className="far fa-history text-primary mr-2"></i>
               Atividades Recentes
             </h3>
             
@@ -341,7 +341,7 @@ const Dashboard: React.FC = () => {
                 {recentActivities.slice(0, 5).map((activity: any) => (
                   <div key={activity.id} className="flex items-start py-1 sm:py-2 border-b border-border/30 last:border-0">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className={`fas fa-${
+                      <i className={`far fa-${
                         activity.type === 'task_completed' ? 'check' :
                         activity.type === 'event_created' ? 'calendar-plus' :
                         activity.type === 'comment_added' ? 'comment' :
