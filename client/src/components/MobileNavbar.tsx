@@ -130,24 +130,59 @@ const MobileNavbar: React.FC = () => {
                     </button>
                   </SheetTrigger>
                   <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
-                    <div className="p-4 bg-primary/10">
-                      <h2 className="text-lg font-semibold">Symera</h2>
-                      <p className="text-sm text-muted-foreground">Gerenciamento de Eventos</p>
+                    <div className="p-8 bg-gradient-to-b from-primary/5 to-primary/15 flex flex-col items-center justify-center border-b relative overflow-hidden">
+                      {/* Fundo decorativo com efeitos de gradiente */}
+                      <div className="absolute inset-0 opacity-10">
+                        <div className="absolute h-40 w-40 -right-10 -top-10 rounded-full bg-gradient-primary blur-2xl"></div>
+                        <div className="absolute h-20 w-20 left-0 bottom-0 rounded-full bg-gradient-primary blur-xl"></div>
+                      </div>
+
+                      <div className="relative z-10 flex flex-col items-center">
+                        <div className="flex items-center mb-4">
+                          <div className="h-12 w-12 mr-3 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg bg-white flex items-center justify-center">
+                            <img 
+                              src={`${import.meta.env.BASE_URL || ''}src/assets/symera-icon.png`}
+                              alt="Symera Logo" 
+                              className="h-10 w-10 object-contain"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  const fallback = document.createElement('div');
+                                  fallback.className = "h-10 w-10 flex items-center justify-center bg-gradient-primary text-white font-bold text-lg";
+                                  fallback.textContent = "S";
+                                  parent.appendChild(fallback);
+                                }
+                              }}
+                            />
+                          </div>
+                          <h2 className="text-2xl font-bold gradient-text">Symera</h2>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Gerenciamento de Eventos</p>
+                      </div>
                     </div>
-                    <div className="p-3">
-                      <div className="space-y-1">
+                    
+                    <div className="p-5 pt-6">
+                      <div className="space-y-3">
                         {mainNavItems.concat(menuItems).map((item) => (
                           <SheetClose asChild key={item.path}>
                             <Link href={item.path}>
                               <div className={cn(
-                                "flex items-center py-2 px-3 rounded-md",
+                                "flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-primary/5",
                                 isActivePath(item.path) && "bg-primary/10"
                               )}>
-                                <i className={cn(
-                                  `fas fa-${item.icon} w-5 h-5 mr-3`,
-                                  isActivePath(item.path) ? "text-primary" : "text-foreground"
-                                )}></i>
+                                <div className={cn(
+                                  "flex items-center justify-center h-8 w-8 rounded-md mr-3",
+                                  isActivePath(item.path) ? "bg-primary/10" : "bg-primary/5"
+                                )}>
+                                  <i className={cn(
+                                    `fas fa-${item.icon} w-5 h-5`,
+                                    isActivePath(item.path) ? "text-primary" : "text-muted-foreground"
+                                  )}></i>
+                                </div>
                                 <span className={cn(
+                                  "font-medium",
                                   isActivePath(item.path) ? "text-primary" : "text-foreground"
                                 )}>
                                   {item.label}
@@ -156,6 +191,18 @@ const MobileNavbar: React.FC = () => {
                             </Link>
                           </SheetClose>
                         ))}
+                      </div>
+                      
+                      <div className="mt-8 pt-5 border-t border-border">
+                        <div className="flex items-center px-4 py-3">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">Symera Events</p>
+                            <p className="text-xs text-muted-foreground">v1.2.5</p>
+                          </div>
+                          <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-primary flex items-center justify-center">
+                            <span className="text-xs text-white font-bold">S</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </SheetContent>
