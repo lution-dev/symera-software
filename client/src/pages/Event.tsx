@@ -486,7 +486,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
       </div>
       
       {/* Progress Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Progress Card */}
         <div className="bg-card p-6 rounded-lg shadow-md">
           <h3 className="font-medium text-lg mb-4">Progresso do Evento</h3>
