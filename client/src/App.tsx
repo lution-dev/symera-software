@@ -31,6 +31,7 @@ import DevLogin from "@/pages/DevLogin";
 import SimpleLogin from "@/pages/SimpleLogin";
 import DemoProfile from "@/pages/DemoProfile";
 import DemoApp from "@/pages/DemoApp";
+import VerticalMenuDemo from "@/pages/VerticalMenuDemo";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -63,6 +64,7 @@ function Router() {
       <Route path="/simple-login" component={SimpleLogin} />
       <Route path="/demo-profile" component={DemoProfile} />
       <Route path="/demo" component={DemoApp} />
+      <Route path="/vertical-menu-demo" component={VerticalMenuDemo} />
       <Route path="/auth" component={Auth} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
