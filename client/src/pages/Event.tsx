@@ -411,12 +411,24 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 <i className="fas fa-edit mr-2"></i> Editar
               </Button>
             </Link>
-            <Button variant="destructive" onClick={handleDeleteEvent} size="sm" className="h-9">
-              <i className="fas fa-trash-alt mr-2"></i> Excluir
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9">
+                  <i className="fas fa-ellipsis-h"></i>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleRegenerateChecklist}>
+                  <i className="fas fa-sync-alt mr-2"></i> Regenerar Checklist
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDeleteEvent} className="text-destructive">
+                  <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
-          {/* Mobile More Options - Fix for dropdown menu */}
+          {/* Mobile More Options */}
           <div className="sm:hidden flex">
             <div className="flex gap-2">
               <Link href={`/events/${eventId}/edit`}>
@@ -424,14 +436,21 @@ const Event: React.FC<EventProps> = ({ id }) => {
                   <i className="fas fa-edit"></i>
                 </Button>
               </Link>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-8 h-8 p-0 text-destructive rounded-full" 
-                onClick={handleDeleteEvent}
-              >
-                <i className="fas fa-trash-alt"></i>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full">
+                    <i className="fas fa-ellipsis-v"></i>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleRegenerateChecklist}>
+                    <i className="fas fa-sync-alt mr-2"></i> Regenerar Checklist
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDeleteEvent} className="text-destructive">
+                    <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
