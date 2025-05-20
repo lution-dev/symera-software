@@ -44,13 +44,13 @@ const TaskNew: React.FC = () => {
   const eventId = location.split('/')[2];
   
   // Buscar detalhes do evento
-  const { data: event, isLoading: eventLoading } = useQuery({
+  const { data: event, isLoading: eventLoading } = useQuery<any>({
     queryKey: [`/api/events/${eventId}`],
     enabled: !!eventId && isAuthenticated,
   });
   
   // Buscar membros da equipe para atribuição
-  const { data: team, isLoading: teamLoading } = useQuery({
+  const { data: team, isLoading: teamLoading } = useQuery<any>({
     queryKey: [`/api/events/${eventId}/team`],
     enabled: !!eventId && !!event && isAuthenticated,
   });
@@ -103,10 +103,13 @@ const TaskNew: React.FC = () => {
   });
   
   const handleCreateTask = (data: any) => {
-    // Converter o valor "unassigned" para string vazia, conforme esperado pelo backend
+    // Format the data for the backend
     const formattedData = {
       ...data,
-      assigneeId: data.assigneeId === "unassigned" ? "" : data.assigneeId
+      // Keep assigneeId for backward compatibility (set to first assignee or empty)
+      assigneeId: data.assigneeIds && data.assigneeIds.length > 0 
+        ? data.assigneeIds[0] 
+        : (data.assigneeId === "unassigned" ? "" : data.assigneeId)
     };
     createTaskMutation.mutate(formattedData);
   };
@@ -258,51 +261,45 @@ const TaskNew: React.FC = () => {
               
               <FormField
                 control={form.control}
-                name="assigneeId"
+                name="assigneeIds"
                 render={({ field }) => {
-                  // Encontrar o membro da equipe selecionado
-                  const selectedMember = Array.isArray(team) 
-                    ? team.find((member: any) => member.userId === field.value) 
-                    : null;
-                  
                   return (
                     <FormItem>
-                      <FormLabel>Responsável (opcional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            {field.value === "unassigned" || !field.value ? (
-                              <SelectValue placeholder="Selecione um responsável" />
-                            ) : selectedMember ? (
-                              <div className="flex items-center gap-2">
-                                <img 
-                                  src={selectedMember.user.profileImageUrl} 
-                                  alt={`${selectedMember.user.firstName} ${selectedMember.user.lastName}`} 
-                                  className="w-6 h-6 rounded-full object-cover mr-2"
-                                />
-                                {selectedMember.user.firstName} {selectedMember.user.lastName}
-                              </div>
-                            ) : (
-                              <SelectValue placeholder="Selecione um responsável" />
-                            )}
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="unassigned">Não atribuído</SelectItem>
-                          {Array.isArray(team) && team.map((member: any) => (
-                            <SelectItem key={member.userId} value={member.userId} className="pl-2">
-                              <div className="flex items-center gap-2">
-                                <img 
-                                  src={member.user.profileImageUrl} 
-                                  alt={`${member.user.firstName} ${member.user.lastName}`} 
-                                  className="w-6 h-6 rounded-full object-cover mr-1"
-                                />
-                                {member.user.firstName} {member.user.lastName}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Responsáveis (opcional)</FormLabel>
+                      <div className="space-y-2">
+                        {Array.isArray(team) && team.map((member: any) => (
+                          <div key={member.userId} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`member-${member.userId}`}
+                              checked={Array.isArray(field.value) && field.value.indexOf(member.userId) >= 0}
+                              onChange={(e) => {
+                                const updated = e.target.checked
+                                  ? [...(field.value || []), member.userId]
+                                  : (field.value || []).filter((id) => id !== member.userId);
+                                field.onChange(updated);
+                              }}
+                              className="h-4 w-4 rounded border-gray-300"
+                            />
+                            <label 
+                              htmlFor={`member-${member.userId}`}
+                              className="flex items-center cursor-pointer text-sm font-medium"
+                            >
+                              <img 
+                                src={member.user.profileImageUrl} 
+                                alt={`${member.user.firstName} ${member.user.lastName}`} 
+                                className="w-6 h-6 rounded-full object-cover mr-2"
+                              />
+                              {member.user.firstName} {member.user.lastName}
+                            </label>
+                          </div>
+                        ))}
+                        {(!team || !Array.isArray(team) || team.length === 0) && (
+                          <div className="text-sm text-muted-foreground">
+                            Nenhum membro da equipe disponível
+                          </div>
+                        )}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   );
