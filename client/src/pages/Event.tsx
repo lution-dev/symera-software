@@ -595,10 +595,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
         
         <TabsContent value="tasks" className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
             <h2 className="text-xl font-semibold">Checklist do Evento</h2>
-            <div className="flex gap-2">
-              <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default">
+            <div className="flex flex-wrap w-full sm:w-auto gap-2">
+              <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
                 <i className="fas fa-plus mr-2"></i> Nova Tarefa
               </Button>
               <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
