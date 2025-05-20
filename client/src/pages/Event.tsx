@@ -44,6 +44,7 @@ interface EventProps {
 }
 
 const Event: React.FC<EventProps> = ({ id }) => {
+  const [activeTab, setActiveTab] = useState("tasks");
   const [location] = useLocation();
   const [, navigate] = useLocation();
   const { toast } = useToast();
