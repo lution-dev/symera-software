@@ -27,9 +27,9 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col sm:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row">
       {/* Left side with background image and overlay */}
-      <div className="hidden sm:flex sm:w-1/2 lg:w-2/5 xl:w-1/2 relative overflow-hidden">
+      <div className="hidden md:block md:w-5/12 lg:w-6/12 relative overflow-hidden">
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-purple-800 to-purple-950 opacity-95"></div>
         
@@ -44,57 +44,63 @@ const Auth: React.FC = () => {
         
         {/* Floating particles effect */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute w-20 h-20 rounded-full bg-orange-500 blur-3xl opacity-10 -top-10 left-20 animate-pulse"></div>
-          <div className="absolute w-32 h-32 rounded-full bg-red-500 blur-3xl opacity-10 bottom-20 right-10 animate-pulse" style={{animationDelay: "1s"}}></div>
-          <div className="absolute w-24 h-24 rounded-full bg-orange-500 blur-3xl opacity-10 top-1/2 left-1/4 animate-pulse" style={{animationDelay: "2s"}}></div>
+          <div className="absolute w-16 h-16 rounded-full bg-orange-500 blur-3xl opacity-10 top-10 left-10 animate-pulse"></div>
+          <div className="absolute w-24 h-24 rounded-full bg-red-500 blur-3xl opacity-10 bottom-20 right-10 animate-pulse" style={{animationDelay: "1s"}}></div>
+          <div className="absolute w-20 h-20 rounded-full bg-orange-500 blur-3xl opacity-10 top-1/2 left-1/3 animate-pulse" style={{animationDelay: "2s"}}></div>
         </div>
         
         {/* Content */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative z-10 flex flex-col items-center justify-center h-full w-full p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 text-white animate-fadeIn">
-            <div className="mb-4 sm:mb-6 lg:mb-8 relative">
-              <Logo className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto" />
-              <div className="absolute -top-2 -right-2 md:-top-4 md:-right-4 text-orange-500">
-                <Sparkles className="h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 animate-pulse-border" />
+          <div className="relative z-10 flex flex-col items-center justify-center h-full w-full max-w-full p-6 text-white animate-fadeIn">
+            {/* Logo and Title */}
+            <div className="mb-4 lg:mb-6 relative flex flex-col items-center">
+              <Logo className="h-14 lg:h-20 w-auto" />
+              <div className="absolute -top-2 -right-2 lg:-top-4 lg:-right-4 text-orange-500">
+                <Sparkles className="h-4 lg:h-5 w-4 lg:w-5 animate-pulse-border" />
               </div>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-2 sm:mb-3 md:mb-4 gradient-text text-center">Symera</h1>
-            <p className="text-center mb-4 sm:mb-6 md:mb-8 lg:mb-10 max-w-md text-base sm:text-lg md:text-xl">
+            <h1 className="text-3xl lg:text-5xl font-bold mb-2 lg:mb-4 gradient-text text-center">Symera</h1>
+            <p className="text-center mb-4 lg:mb-8 text-base lg:text-lg px-4">
               Faz parte do seu dia-a-dia, faz parte do seu evento!
             </p>
             
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 mt-2 sm:mt-4 w-full max-w-md px-2 sm:px-4">
-              <div className="bg-black/20 backdrop-blur-md p-3 sm:p-4 md:p-5 rounded-xl card-hover border border-white/5">
-                <div className="text-primary text-center mb-2 md:mb-3 flex justify-center">
-                  <CheckCircle className="h-5 sm:h-6 md:h-7 w-5 sm:w-6 md:w-7" />
+            {/* Feature Cards - Adjust for different screen sizes */}
+            <div className="grid grid-cols-2 gap-3 lg:gap-4 w-full px-4 max-w-lg mx-auto">
+              {/* Card 1 */}
+              <div className="bg-black/20 backdrop-blur-md p-3 lg:p-4 rounded-xl card-hover border border-white/5">
+                <div className="text-primary text-center mb-2 flex justify-center">
+                  <CheckCircle className="h-5 lg:h-6 w-5 lg:w-6" />
                 </div>
-                <h3 className="font-semibold text-center mb-1 md:mb-2 text-sm sm:text-base">Organização sem estresse</h3>
-                <p className="text-xs sm:text-sm text-center opacity-90">Tenha controle total do seu evento, mesmo com mil detalhes.</p>
+                <h3 className="font-semibold text-center mb-1 text-sm">Organização sem estresse</h3>
+                <p className="text-xs text-center opacity-90">Tenha controle total do seu evento.</p>
               </div>
               
-              <div className="bg-black/20 backdrop-blur-md p-3 sm:p-4 md:p-5 rounded-xl card-hover border border-white/5">
-                <div className="text-primary text-center mb-2 md:mb-3 flex justify-center">
-                  <Calendar className="h-5 sm:h-6 md:h-7 w-5 sm:w-6 md:w-7" />
+              {/* Card 2 */}
+              <div className="bg-black/20 backdrop-blur-md p-3 lg:p-4 rounded-xl card-hover border border-white/5">
+                <div className="text-primary text-center mb-2 flex justify-center">
+                  <Calendar className="h-5 lg:h-6 w-5 lg:w-6" />
                 </div>
-                <h3 className="font-semibold text-center mb-1 md:mb-2 text-sm sm:text-base">Planejamento que funciona</h3>
-                <p className="text-xs sm:text-sm text-center opacity-90">A Symera pensa por você com checklists inteligentes.</p>
+                <h3 className="font-semibold text-center mb-1 text-sm">Planejamento eficaz</h3>
+                <p className="text-xs text-center opacity-90">Checklists inteligentes.</p>
               </div>
               
-              <div className="bg-black/20 backdrop-blur-md p-3 sm:p-4 md:p-5 rounded-xl card-hover border border-white/5">
-                <div className="text-primary text-center mb-2 md:mb-3 flex justify-center">
-                  <Users className="h-5 sm:h-6 md:h-7 w-5 sm:w-6 md:w-7" />
+              {/* Card 3 */}
+              <div className="bg-black/20 backdrop-blur-md p-3 lg:p-4 rounded-xl card-hover border border-white/5">
+                <div className="text-primary text-center mb-2 flex justify-center">
+                  <Users className="h-5 lg:h-6 w-5 lg:w-6" />
                 </div>
-                <h3 className="font-semibold text-center mb-1 md:mb-2 text-sm sm:text-base">Mais profissionalismo</h3>
-                <p className="text-xs sm:text-sm text-center opacity-90">Mostre que sua entrega é de alto padrão.</p>
+                <h3 className="font-semibold text-center mb-1 text-sm">Mais profissionalismo</h3>
+                <p className="text-xs text-center opacity-90">Entrega de alto padrão.</p>
               </div>
               
-              <div className="bg-black/20 backdrop-blur-md p-3 sm:p-4 md:p-5 rounded-xl card-hover border border-white/5">
-                <div className="text-primary text-center mb-2 md:mb-3 flex justify-center">
-                  <DollarSign className="h-5 sm:h-6 md:h-7 w-5 sm:w-6 md:w-7" />
+              {/* Card 4 */}
+              <div className="bg-black/20 backdrop-blur-md p-3 lg:p-4 rounded-xl card-hover border border-white/5">
+                <div className="text-primary text-center mb-2 flex justify-center">
+                  <DollarSign className="h-5 lg:h-6 w-5 lg:w-6" />
                 </div>
-                <h3 className="font-semibold text-center mb-1 md:mb-2 text-sm sm:text-base">Pronto para crescer</h3>
-                <p className="text-xs sm:text-sm text-center opacity-90">De eventos pequenos a grandes produções.</p>
+                <h3 className="font-semibold text-center mb-1 text-sm">Pronto para crescer</h3>
+                <p className="text-xs text-center opacity-90">De pequenos a grandes.</p>
               </div>
             </div>
           </div>
