@@ -581,59 +581,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </div>
           )}
         </div>
-        
-        {/* Team Summary Card */}
-        <div className="bg-card p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-medium text-lg">Equipe</h3>
-            <Button variant="outline" size="sm">
-              <i className="fas fa-user-plus mr-1"></i> Adicionar
-            </Button>
-          </div>
-          {teamLoading ? (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-            </div>
-          ) : team?.length > 0 ? (
-            <div className="space-y-3">
-              {team.slice(0, 3).map((member: any) => (
-                <div key={member.id} className="flex items-center">
-                  <Avatar className="h-8 w-8 mr-3">
-                    <AvatarImage 
-                      src={member.user.profileImageUrl} 
-                      alt={`${member.user.firstName} ${member.user.lastName}`}
-                    />
-                    <AvatarFallback className="text-xs">
-                      {getInitials(`${member.user.firstName || ''} ${member.user.lastName || ''}`)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium">
-                      {member.user.firstName} {member.user.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {member.role === 'organizer' ? 'Organizador' : 
-                       member.role === 'team_member' ? 'Membro da Equipe' : 
-                       'Fornecedor'}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {team.length > 3 && (
-                <Button variant="ghost" size="sm" className="w-full">
-                  Ver todos ({team.length})
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-muted-foreground mb-2">Nenhum membro na equipe</p>
-              <Button variant="outline" size="sm">
-                <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
-              </Button>
-            </div>
-          )}
-        </div>
       </div>
       
       {/* Tabs for Tasks, Timeline, etc. */}
