@@ -37,7 +37,6 @@ import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
-import moment from "moment";
 import { apiRequest } from "@/lib/queryClient";
 
 interface EventProps {
