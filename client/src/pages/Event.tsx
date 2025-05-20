@@ -487,7 +487,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
       </div>
       
       {/* Painel de Gestão Estratégica do Evento */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
         
         {/* Card de Progresso & Etapas */}
         <div className="bg-card p-6 rounded-lg shadow-md border-t-4 border-primary/70 flex flex-col h-full">
@@ -548,9 +548,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
             <>
               <div className="space-y-6 mb-4">
                 {/* Valores principais com formatação abreviada para valores grandes */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="text-sm text-muted-foreground">Orçamento total</div>
+                <div className="flex justify-between items-center flex-wrap gap-y-4">
+                  <div className="min-w-[110px]">
+                    <div className="text-sm text-muted-foreground whitespace-nowrap">Orçamento</div>
                     <div className="text-xl font-bold">
                       {event.budget >= 10000 
                         ? `R$ ${(event.budget / 1000).toFixed(0)}${event.budget >= 1000000 ? 'M' : 'K'}`
@@ -558,8 +558,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       }
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Gasto atual</div>
+                  <div className="min-w-[110px] text-right">
+                    <div className="text-sm text-muted-foreground whitespace-nowrap">Gasto atual</div>
                     <div className="text-xl font-bold">
                       {(event.expenses || 0) >= 10000 
                         ? `R$ ${((event.expenses || 0) / 1000).toFixed(0)}${(event.expenses || 0) >= 1000000 ? 'M' : 'K'}`
@@ -571,11 +571,11 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 
                 {/* Barra de progresso e status */}
                 <div>
-                  <div className="flex justify-between mb-2 text-sm">
-                    <span className={`font-medium ${(event.expenses || 0) / event.budget > 0.8 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                  <div className="flex flex-wrap justify-between mb-2 text-sm gap-2">
+                    <span className={`font-medium whitespace-nowrap ${(event.expenses || 0) / event.budget > 0.8 ? 'text-red-500' : 'text-muted-foreground'}`}>
                       {Math.round((event.expenses || 0) / event.budget * 100)}% utilizado
                     </span>
-                    <span className="font-medium">
+                    <span className="font-medium whitespace-nowrap">
                       {(event.budget - (event.expenses || 0)) >= 10000 
                         ? `R$ ${((event.budget - (event.expenses || 0)) / 1000).toFixed(0)}${(event.budget - (event.expenses || 0)) >= 1000000 ? 'M' : 'K'} disponível`
                         : `${formatCurrency(event.budget - (event.expenses || 0))} disponível`
