@@ -53,18 +53,18 @@ const MobileNavbar: React.FC = () => {
 
   // Items que estarão sempre na barra de navegação principal
   const mainNavItems = [
-    { path: "/", label: "Home", icon: "home" },
-    { path: "/events", label: "Eventos", icon: "calendar-alt" },
-    { path: "/events/new", label: "Novo", icon: "plus", highlight: true },
-    { path: "/schedule", label: "Agenda", icon: "clipboard-list" },
+    { path: "/", label: "Home", icon: Home },
+    { path: "/events", label: "Eventos", icon: Calendar },
+    { path: "/events/new", label: "Novo", icon: Plus, highlight: true },
+    { path: "/schedule", label: "Agenda", icon: CalendarDays },
   ];
   
   // Items adicionais que aparecerão no menu de hambúrguer
   const menuItems = [
-    { path: "/vendors", label: "Fornecedores", icon: "truck" },
-    { path: "/budget", label: "Orçamento", icon: "money-bill-wave" },
-    { path: "/team", label: "Equipe", icon: "users" },
-    { path: "/settings", label: "Configurações", icon: "cog" },
+    { path: "/vendors", label: "Fornecedores", icon: Truck },
+    { path: "/budget", label: "Orçamento", icon: DollarSign },
+    { path: "/team", label: "Equipe", icon: Users },
+    { path: "/settings", label: "Configurações", icon: Settings },
   ];
   
   const isActivePath = (path: string) => {
@@ -155,9 +155,7 @@ const MobileNavbar: React.FC = () => {
                                   ? "bg-primary text-white"
                                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
                               )}>
-                                <i className={cn(
-                                  `fas fa-${item.icon} w-5 h-5`
-                                )}></i>
+                                <item.icon className="h-5 w-5" />
                                 <span className="ml-3">{item.label}</span>
                               </div>
                             </Link>
