@@ -18,90 +18,192 @@ const handleOpenAIError = (error: any) => {
 };
 
 // Generate a checklist for an event based on its details
+// Esta é uma versão alternativa que não depende da OpenAI API
 export async function generateEventChecklist(eventData: CreateEventData): Promise<Array<{ title: string, dueDate?: Date, description?: string, priority?: string }>> {
   try {
     // Use startDate if available, otherwise fallback to the date field
     const eventStartDate = new Date(eventData.startDate || eventData.date);
-    const eventEndDate = eventData.endDate ? new Date(eventData.endDate) : eventStartDate;
     const today = new Date();
     const daysUntilEvent = Math.ceil((eventStartDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Format date with time if available
-    const formatDateWithTime = (date: Date, time?: string) => {
-      const dateStr = date.toLocaleDateString();
-      return time ? `${dateStr} às ${time}` : dateStr;
-    };
+    console.log("Gerando checklist para evento:", eventData.name);
+    console.log("Tipo de evento:", eventData.type);
+    console.log("Dias até o evento:", daysUntilEvent);
     
-    const eventStartDisplay = formatDateWithTime(eventStartDate, eventData.startTime);
-    const eventEndDisplay = formatDateWithTime(eventEndDate, eventData.endTime);
+    // Criar checklist baseado no tipo de evento e nos dias restantes
+    const checklist = [];
     
-    // Determine if it's a multi-day event
-    const isMultiDay = eventStartDate.getTime() !== eventEndDate.getTime();
-    const dateDisplay = isMultiDay 
-      ? `de ${eventStartDisplay} até ${eventEndDisplay}`
-      : eventStartDisplay;
-
-    // Prepare prompt for OpenAI
-    const prompt = `
-      Create a comprehensive checklist for a ${eventData.type} event named "${eventData.name}" that will occur ${dateDisplay}. 
+    // Para um evento de moda (lançamento de coleção)
+    if (eventData.type === "corporate" && eventData.name.toLowerCase().includes("coleção")) {
+      // Tarefas para eventos de lançamento de moda
       
-      Additional details:
-      - Location: ${eventData.location || 'To be determined'}
-      - Number of attendees: ${eventData.attendees || 'Unknown'}
-      - Budget: ${eventData.budget ? `$${eventData.budget}` : 'Not specified'}
-      - Days until event: ${daysUntilEvent}
-      - Description: ${eventData.description || 'Not provided'}
-      - Event duration: ${isMultiDay ? `Multiple days (${Math.ceil((eventEndDate.getTime() - eventStartDate.getTime()) / (1000 * 60 * 60 * 24))} days)` : 'Single day'}
-
-      Please provide a detailed, organized checklist with tasks that need to be completed before the event.
-      For each task, include:
-      - task title
-      - suggested due date (relative to event date - e.g., "3 weeks before event")
-      - brief description (optional)
-      - priority (low, medium, or high)
-
-      Format the response as a JSON array with these properties.
+      // Tarefas para fazer com 60+ dias de antecedência
+      if (daysUntilEvent > 60) {
+        checklist.push({
+          title: "Definir conceito da coleção",
+          dueDateBefore: daysUntilEvent - 10,
+          description: "Finalizar o tema e o conceito geral da coleção primavera",
+          priority: "high"
+        });
+        
+        checklist.push({
+          title: "Selecionar local para o evento",
+          dueDateBefore: daysUntilEvent - 15,
+          description: "Confirmar disponibilidade e reservar o local do evento",
+          priority: "high"
+        });
+      }
       
-      Each task should be reasonable and specific to this type of event.
-      Distribute tasks appropriately based on the time available before the event.
+      // Tarefas para fazer com 45+ dias de antecedência
+      if (daysUntilEvent > 45) {
+        checklist.push({
+          title: "Criar lista de convidados VIP",
+          dueDateBefore: Math.min(daysUntilEvent - 5, 40),
+          description: "Preparar lista de convidados VIP, incluindo celebridades, influenciadores e imprensa",
+          priority: "high"
+        });
+        
+        checklist.push({
+          title: "Contratar fotógrafo e videógrafo",
+          dueDateBefore: Math.min(daysUntilEvent - 5, 40),
+          description: "Contratar profissionais para registrar o evento e as peças da coleção",
+          priority: "medium"
+        });
+      }
       
-      Response format:
-      [
-        {
-          "title": "Task title",
-          "dueDateBefore": number of days before the event,
-          "description": "Brief description of the task",
-          "priority": "low|medium|high"
-        },
-        ...
-      ]
-    `;
-
-    // Call OpenAI API to generate checklist
-    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: "You are an expert event planner who creates detailed checklists for various types of events." },
-        { role: "user", content: prompt }
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.7
-    });
-
-    // Parse and process the response
-    const content = response.choices[0].message.content;
-    if (!content) {
-      throw new Error("Empty response from OpenAI");
+      // Tarefas para fazer com 30+ dias de antecedência
+      if (daysUntilEvent > 30) {
+        checklist.push({
+          title: "Enviar convites para convidados VIP",
+          dueDateBefore: Math.min(daysUntilEvent - 5, 25),
+          description: "Enviar convites personalizados para os convidados prioritários",
+          priority: "high"
+        });
+        
+        checklist.push({
+          title: "Contratar serviço de buffet e coquetel",
+          dueDateBefore: Math.min(daysUntilEvent - 8, 25),
+          description: "Definir menu e contratar serviço de buffet e coquetel para o evento",
+          priority: "medium"
+        });
+      }
+      
+      // Tarefas para fazer com 15+ dias de antecedência
+      if (daysUntilEvent > 15) {
+        checklist.push({
+          title: "Preparar material de imprensa",
+          dueDateBefore: Math.min(daysUntilEvent - 3, 15),
+          description: "Preparar release e press kit com informações sobre a coleção",
+          priority: "medium"
+        });
+        
+        checklist.push({
+          title: "Confirmar presença de modelos",
+          dueDateBefore: Math.min(daysUntilEvent - 5, 12),
+          description: "Confirmar a presença e o cronograma dos modelos para o showroom",
+          priority: "high"
+        });
+      }
+      
+      // Tarefas para fazer com 7+ dias de antecedência
+      if (daysUntilEvent > 7) {
+        checklist.push({
+          title: "Realizar ensaio geral",
+          dueDateBefore: Math.min(daysUntilEvent - 2, 5),
+          description: "Ensaiar apresentação e organização do showroom com a equipe",
+          priority: "high"
+        });
+        
+        checklist.push({
+          title: "Confirmar presença dos convidados",
+          dueDateBefore: Math.min(daysUntilEvent - 1, 5),
+          description: "Entrar em contato com os convidados para confirmar presença",
+          priority: "medium"
+        });
+      }
+      
+      // Tarefas finais (1-7 dias de antecedência)
+      checklist.push({
+        title: "Preparar decoração do local",
+        dueDateBefore: Math.min(daysUntilEvent - 1, 3),
+        description: "Montar a decoração e o cenário de acordo com o tema da coleção",
+        priority: "medium"
+      });
+      
+      checklist.push({
+        title: "Organizar peças da coleção",
+        dueDateBefore: Math.min(daysUntilEvent - 1, 2),
+        description: "Garantir que todas as peças da coleção estejam prontas e organizadas",
+        priority: "high"
+      });
+      
+      checklist.push({
+        title: "Revisar checklist final",
+        dueDateBefore: 1,
+        description: "Revisar todos os preparativos e confirmar que tudo está pronto",
+        priority: "high"
+      });
+    } else {
+      // Checklist genérico para eventos corporativos
+      checklist.push({
+        title: "Definir objetivos do evento",
+        dueDateBefore: Math.min(daysUntilEvent - 5, 60),
+        description: "Estabelecer metas claras e mensuráveis para o evento",
+        priority: "high"
+      });
+      
+      checklist.push({
+        title: "Reservar local do evento",
+        dueDateBefore: Math.min(daysUntilEvent - 8, 45),
+        description: "Pesquisar e reservar um local adequado para o evento",
+        priority: "high"
+      });
+      
+      checklist.push({
+        title: "Criar lista de convidados",
+        dueDateBefore: Math.min(daysUntilEvent - 5, 40),
+        description: "Desenvolver lista completa de convidados e participantes",
+        priority: "medium"
+      });
+      
+      checklist.push({
+        title: "Contratar fornecedores",
+        dueDateBefore: Math.min(daysUntilEvent - 10, 30),
+        description: "Contratar serviços de catering, áudio/visual e decoração",
+        priority: "high"
+      });
+      
+      checklist.push({
+        title: "Enviar convites",
+        dueDateBefore: Math.min(daysUntilEvent - 5, 25),
+        description: "Criar e enviar convites para todos os participantes",
+        priority: "high"
+      });
+      
+      checklist.push({
+        title: "Preparar material promocional",
+        dueDateBefore: Math.min(daysUntilEvent - 8, 20),
+        description: "Desenvolver materiais de marketing e promocionais",
+        priority: "medium"
+      });
+      
+      checklist.push({
+        title: "Confirmar presença dos convidados",
+        dueDateBefore: Math.min(daysUntilEvent - 3, 7),
+        description: "Fazer follow-up com os convidados para confirmar presença",
+        priority: "medium"
+      });
+      
+      checklist.push({
+        title: "Revisar logística final",
+        dueDateBefore: 2,
+        description: "Revisar todos os detalhes logísticos e preparativos finais",
+        priority: "high"
+      });
     }
-
-    const parsedResponse = JSON.parse(content);
-    if (!Array.isArray(parsedResponse.tasks)) {
-      throw new Error("Invalid response format from OpenAI");
-    }
-
-    // Process tasks and calculate actual due dates
-    return parsedResponse.tasks.map((task: any) => {
+    
+    // Process checklist and calculate actual due dates
+    return checklist.map((task: any) => {
       // Calculate due date based on days before event
       let dueDate: Date | undefined = undefined;
       if (typeof task.dueDateBefore === 'number') {
@@ -118,7 +220,7 @@ export async function generateEventChecklist(eventData: CreateEventData): Promis
       };
     });
   } catch (error) {
-    handleOpenAIError(error);
+    console.error("Erro ao gerar checklist:", error);
     return [];
   }
 }
