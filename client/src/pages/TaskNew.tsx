@@ -263,15 +263,35 @@ const TaskNew: React.FC = () => {
                     <FormLabel>Responsável (opcional)</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um responsável" />
+                        <SelectTrigger className="flex items-center">
+                          <SelectValue placeholder="Selecione um responsável">
+                            {field.value && field.value !== "unassigned" && team?.find((member: any) => member.userId === field.value) && (
+                              <div className="flex items-center gap-2">
+                                <img 
+                                  src={team?.find((member: any) => member.userId === field.value)?.user.profileImageUrl}
+                                  alt="Foto do responsável" 
+                                  className="w-6 h-6 rounded-full object-cover mr-2"
+                                />
+                                <span>
+                                  {team?.find((member: any) => member.userId === field.value)?.user.firstName} {team?.find((member: any) => member.userId === field.value)?.user.lastName}
+                                </span>
+                              </div>
+                            )}
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="unassigned">Não atribuído</SelectItem>
                         {team?.map((member: any) => (
-                          <SelectItem key={member.userId} value={member.userId}>
-                            {member.user.firstName} {member.user.lastName}
+                          <SelectItem key={member.userId} value={member.userId} className="flex items-center">
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={member.user.profileImageUrl} 
+                                alt={`${member.user.firstName} ${member.user.lastName}`} 
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                              {member.user.firstName} {member.user.lastName}
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
