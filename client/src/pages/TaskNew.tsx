@@ -258,54 +258,54 @@ const TaskNew: React.FC = () => {
               <FormField
                 control={form.control}
                 name="assigneeId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Responsável (opcional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um responsável">
-                            {field.value && field.value !== "unassigned" && team && (
-                              <>
-                                {Array.isArray(team) && team.map((member: any) => {
-                                  if (member.userId === field.value) {
-                                    return (
-                                      <div key={member.userId} className="flex items-center gap-2">
-                                        <img 
-                                          src={member.user.profileImageUrl} 
-                                          alt={`${member.user.firstName} ${member.user.lastName}`} 
-                                          className="w-6 h-6 rounded-full object-cover"
-                                        />
-                                        <span>{member.user.firstName} {member.user.lastName}</span>
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                })}
-                              </>
+                render={({ field }) => {
+                  // Encontrar o membro da equipe selecionado
+                  const selectedMember = Array.isArray(team) 
+                    ? team.find((member: any) => member.userId === field.value) 
+                    : null;
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Responsável (opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            {field.value === "unassigned" || !field.value ? (
+                              <SelectValue placeholder="Selecione um responsável" />
+                            ) : selectedMember ? (
+                              <div className="flex items-center gap-2">
+                                <img 
+                                  src={selectedMember.user.profileImageUrl} 
+                                  alt={`${selectedMember.user.firstName} ${selectedMember.user.lastName}`} 
+                                  className="w-6 h-6 rounded-full object-cover mr-2"
+                                />
+                                {selectedMember.user.firstName} {selectedMember.user.lastName}
+                              </div>
+                            ) : (
+                              <SelectValue placeholder="Selecione um responsável" />
                             )}
-                          </SelectValue>
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="unassigned">Não atribuído</SelectItem>
-                        {Array.isArray(team) && team.map((member: any) => (
-                          <SelectItem key={member.userId} value={member.userId}>
-                            <div className="flex items-center gap-2">
-                              <img 
-                                src={member.user.profileImageUrl} 
-                                alt={`${member.user.firstName} ${member.user.lastName}`} 
-                                className="w-6 h-6 rounded-full object-cover"
-                              />
-                              <span>{member.user.firstName} {member.user.lastName}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Não atribuído</SelectItem>
+                          {Array.isArray(team) && team.map((member: any) => (
+                            <SelectItem key={member.userId} value={member.userId} className="pl-2">
+                              <div className="flex items-center gap-2">
+                                <img 
+                                  src={member.user.profileImageUrl} 
+                                  alt={`${member.user.firstName} ${member.user.lastName}`} 
+                                  className="w-6 h-6 rounded-full object-cover mr-1"
+                                />
+                                {member.user.firstName} {member.user.lastName}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
               
               <div className="flex justify-end space-x-2 pt-4">
