@@ -37,8 +37,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle, Calendar, MapPin, DollarSign, Users, MoreVertical, CheckSquare, UserPlus, Clock, Activity } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, Calendar, MapPin, DollarSign, Users } from "lucide-react";
 
 interface EventProps {
   id?: string;
@@ -215,10 +214,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
     }
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
       {event.needsAttention && (
@@ -229,51 +224,49 @@ const Event: React.FC<EventProps> = ({ id }) => {
           </div>
         </div>
       )}
-
-      {/* Two-card layout at the top */}
+      
+      {/* Two-card layout at the top - Grid with 1:1 layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* Left Card - Event Banner with Info */}
-        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+        {/* Left Card - Event Banner with Info (Preserving original styling) */}
+        <div className="bg-card rounded-xl mb-6 md:mb-0 shadow-sm overflow-hidden">
           <div 
-            className="relative h-[200px] bg-cover bg-center" 
+            className="relative h-[200px] md:h-[260px] bg-cover bg-center" 
             style={{ backgroundImage: event.coverImage ? `url(${event.coverImage})` : 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary-foreground)))' }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80 flex flex-col justify-end p-5">
-              <div className="space-y-1 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                      event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-white' : 
-                      event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-white' : 
-                      event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-white' : 
-                      event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-white' : 
-                      event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-white' : 
-                      event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-white' : 
-                      'bg-[hsl(var(--event-planning))]/15 text-white'
-                    }`}>
-                      <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                        event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
-                        event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
-                        event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                        event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                        event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
-                        event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
-                        'bg-[hsl(var(--event-planning))]'
-                      }`}></span>
-                      {event.status === 'planning' ? 'Planejamento' : 
-                      event.status === 'confirmed' ? 'Confirmado' : 
-                      event.status === 'in_progress' ? 'Em andamento' : 
-                      event.status === 'active' ? 'Ativo' : 
-                      event.status === 'completed' ? 'Concluído' : 
-                      event.status === 'cancelled' ? 'Cancelado' : 
-                      'Planejamento'}
-                    </span>
-                  </div>
-                </div>
-                <h1 className="text-2xl font-semibold tracking-tight">{event.name}</h1>
-                <div className="text-sm opacity-80">{getEventTypeLabel(event.type)}</div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/70 flex flex-col justify-end p-5">
+              {/* Cabeçalho com status - mantendo estilo original */}
+              <div className="space-y-2">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                  event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
+                  event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-[hsl(var(--event-confirmed))]' : 
+                  event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-[hsl(var(--event-completed))]' : 
+                  event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-[hsl(var(--event-cancelled))]' : 
+                  'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]'
+                }`}>
+                  <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                    event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+                    event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                    event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                    event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                    event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+                    event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+                    'bg-[hsl(var(--event-planning))]'
+                  }`}></span>
+                  {event.status === 'planning' ? 'Planejamento' : 
+                  event.status === 'confirmed' ? 'Confirmado' : 
+                  event.status === 'in_progress' ? 'Em andamento' : 
+                  event.status === 'active' ? 'Ativo' : 
+                  event.status === 'completed' ? 'Concluído' : 
+                  event.status === 'cancelled' ? 'Cancelado' : 
+                  'Planejamento'}
+                </span>
+                
+                <h1 className="text-2xl font-semibold text-white tracking-tight">{event.name}</h1>
+                <div className="text-white/80">{getEventTypeLabel(event.type)}</div>
                 {event.description && (
-                  <p className="text-sm opacity-80 line-clamp-2 mt-2">{event.description}</p>
+                  <p className="text-sm text-white/70 line-clamp-2 mt-1">{event.description}</p>
                 )}
               </div>
             </div>
@@ -282,61 +275,62 @@ const Event: React.FC<EventProps> = ({ id }) => {
 
         {/* Right Card - Event Details */}
         <div className="bg-card rounded-xl shadow-sm overflow-hidden">
-          <div className="p-5 h-full flex flex-col justify-between">
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Detalhes do Evento</h2>
-              <ul className="space-y-4">
+          <div className="p-5">
+            <h2 className="text-xl font-semibold mb-4">Detalhes do Evento</h2>
+            <ul className="space-y-4">
+              <li className="flex items-start">
+                <Calendar className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-medium">Data e Hora</div>
+                  <div className="text-muted-foreground text-sm">
+                    {formatDate(new Date(event.date))}
+                    {event.time && <span> às {event.time}</span>}
+                  </div>
+                </div>
+              </li>
+              {event.location && (
                 <li className="flex items-start">
-                  <Calendar className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <MapPin className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-medium">Data e Hora</div>
-                    <div className="text-muted-foreground text-sm">
-                      {formatDate(new Date(event.date))}
-                      {event.time && <span> às {event.time}</span>}
-                    </div>
+                    <div className="font-medium">Local</div>
+                    <div className="text-muted-foreground text-sm">{event.location}</div>
                   </div>
                 </li>
-                {event.location && (
-                  <li className="flex items-start">
-                    <MapPin className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <div>
-                      <div className="font-medium">Local</div>
-                      <div className="text-muted-foreground text-sm">{event.location}</div>
-                    </div>
-                  </li>
-                )}
+              )}
+              <li className="flex items-start">
+                <DollarSign className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-medium">Orçamento Estimado</div>
+                  <div className="text-muted-foreground text-sm">{formatCurrency(event.budget || 0)}</div>
+                </div>
+              </li>
+              {event.guestCount && (
                 <li className="flex items-start">
-                  <DollarSign className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <Users className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-medium">Orçamento Estimado</div>
-                    <div className="text-muted-foreground text-sm">{formatCurrency(event.budget || 0)}</div>
+                    <div className="font-medium">Convidados</div>
+                    <div className="text-muted-foreground text-sm">{event.guestCount} pessoas</div>
                   </div>
                 </li>
-                {event.guestCount && (
-                  <li className="flex items-start">
-                    <Users className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <div>
-                      <div className="font-medium">Convidados</div>
-                      <div className="text-muted-foreground text-sm">{event.guestCount} pessoas</div>
-                    </div>
-                  </li>
-                )}
-              </ul>
-            </div>
-            <div className="mt-6 flex justify-end">
+              )}
+            </ul>
+            <div className="mt-4 flex justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <MoreVertical className="h-4 w-4" />
+                  <Button variant="outline" size="sm">
+                    Ações
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/edit`)}>
                     Editar Evento
                   </DropdownMenuItem>
-                  <AlertDialog>
+                  <AlertDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
                     <AlertDialogTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <DropdownMenuItem onSelect={(e) => {
+                        e.preventDefault();
+                        setStatusDialogOpen(true);
+                      }}>
                         Alterar Status
                       </DropdownMenuItem>
                     </AlertDialogTrigger>
@@ -344,7 +338,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Selecione o novo status para o evento. Isso afetará como o evento é exibido em toda a plataforma.
+                          Selecione o novo status para o evento.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <div className="py-4">
@@ -402,306 +396,255 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
 
-      {/* Indicator Cards */}
+      {/* Indicator Cards - Mantendo o design original */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Progress Card */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Progresso</CardTitle>
-            <CardDescription>Tarefas do evento</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  {tasks.filter(t => t.completed).length} de {tasks.length} tarefas concluídas
-                </span>
-                <span className="text-sm font-medium">
-                  {progress}%
-                </span>
-              </div>
-              <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary" 
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
+        <div className="bg-card rounded-xl shadow-sm">
+          <div className="p-5">
+            <h3 className="font-medium mb-2">Progresso</h3>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">
+                {tasks.filter(t => t.completed).length} de {tasks.length} tarefas concluídas
+              </span>
+              <span className="text-sm font-medium">{progress}%</span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary" 
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
 
         {/* Budget Card */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Orçamento</CardTitle>
-            <CardDescription>Gastos vs. Planejado</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Gasto {formatCurrency(totalExpenses)} de {formatCurrency(totalBudget)}
-                </span>
-                <span className="text-sm font-medium">
-                  {totalBudget > 0 ? Math.round((totalExpenses / totalBudget) * 100) : 0}%
-                </span>
-              </div>
-              <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                <div 
-                  className={`h-full ${totalExpenses <= totalBudget ? 'bg-emerald-500' : 'bg-destructive'}`}
-                  style={{ width: `${totalBudget > 0 ? Math.min((totalExpenses / totalBudget) * 100, 100) : 0}%` }}
-                ></div>
-              </div>
+        <div className="bg-card rounded-xl shadow-sm">
+          <div className="p-5">
+            <h3 className="font-medium mb-2">Gestão Financeira</h3>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">
+                Gasto {formatCurrency(totalExpenses)} de {formatCurrency(totalBudget)}
+              </span>
+              <span className="text-sm font-medium">
+                {totalBudget > 0 ? Math.round((totalExpenses / totalBudget) * 100) : 0}%
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+              <div 
+                className={`h-full ${totalExpenses <= totalBudget ? 'bg-emerald-500' : 'bg-destructive'}`}
+                style={{ width: `${totalBudget > 0 ? Math.min((totalExpenses / totalBudget) * 100, 100) : 0}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
 
         {/* Timeline Card */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Cronograma</CardTitle>
-            <CardDescription>Status do evento</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <div className="w-full">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-muted-foreground">Data do evento</span>
-                    <span className="text-sm font-medium">{formatDate(new Date(event.date))}</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full">
-                    {event.status !== 'cancelled' && (
-                      <div 
-                        className={`h-full rounded-full ${
-                          event.status === 'completed' ? 'bg-green-500' : 'bg-primary'
-                        }`}
-                        style={{ 
-                          width: `${
-                            event.status === 'planning' ? '20%' : 
-                            event.status === 'confirmed' ? '40%' : 
-                            event.status === 'in_progress' ? '60%' : 
-                            event.status === 'active' ? '80%' : 
-                            event.status === 'completed' ? '100%' : '20%'
-                          }`
-                        }}
-                      ></div>
-                    )}
-                  </div>
+        <div className="bg-card rounded-xl shadow-sm">
+          <div className="p-5">
+            <h3 className="font-medium mb-2">Cronograma</h3>
+            <div className="flex items-center">
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">Data do evento</span>
+                  <span className="text-sm font-medium">{formatDate(new Date(event.date))}</span>
+                </div>
+                <div className="h-2 w-full bg-secondary rounded-full">
+                  {event.status !== 'cancelled' && (
+                    <div 
+                      className={`h-full rounded-full ${
+                        event.status === 'completed' ? 'bg-green-500' : 'bg-primary'
+                      }`}
+                      style={{ 
+                        width: `${
+                          event.status === 'planning' ? '20%' : 
+                          event.status === 'confirmed' ? '40%' : 
+                          event.status === 'in_progress' ? '60%' : 
+                          event.status === 'active' ? '80%' : 
+                          event.status === 'completed' ? '100%' : '20%'
+                        }`
+                      }}
+                    ></div>
+                  )}
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Vertical Tabs Navigation and Content */}
       <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-        {/* Mobile View: Dropdown for Tabs on small screens */}
+        {/* Mobile View: Horizontal TabsList */}
         <div className="md:hidden">
-          <Select defaultValue={activeTab} onValueChange={handleTabChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione uma seção" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="tasks">
-                  <div className="flex items-center">
-                    <CheckSquare className="mr-2 h-4 w-4" />
-                    <span>Tarefas</span>
-                    {tasks.length > 0 && <Badge className="ml-2">{tasks.length}</Badge>}
-                  </div>
-                </SelectItem>
-                <SelectItem value="team">
-                  <div className="flex items-center">
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    <span>Equipe</span>
-                    {teamMembers.length > 0 && <Badge className="ml-2">{teamMembers.length}</Badge>}
-                  </div>
-                </SelectItem>
-                <SelectItem value="schedule">
-                  <div className="flex items-center">
-                    <Clock className="mr-2 h-4 w-4" />
-                    <span>Cronograma</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="activities">
-                  <div className="flex items-center">
-                    <Activity className="mr-2 h-4 w-4" />
-                    <span>Atividades</span>
-                  </div>
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <Tabs defaultValue="tasks" className="w-full" onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-4 mb-6">
+              <TabsTrigger value="tasks">Tarefas</TabsTrigger>
+              <TabsTrigger value="team">Equipe</TabsTrigger>
+              <TabsTrigger value="schedule">Agenda</TabsTrigger>
+              <TabsTrigger value="activities">Atividades</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
-
-        {/* Desktop View: Vertical Tabs */}
+        
+        {/* Desktop View: Vertical Navigation Menu */}
         <div className="hidden md:block">
-          <Card className="h-full">
-            <CardContent className="p-4">
-              <nav className="space-y-2">
-                <Button 
-                  variant={activeTab === "tasks" ? "default" : "ghost"} 
-                  className="w-full justify-start" 
-                  onClick={() => handleTabChange("tasks")}
-                >
-                  <CheckSquare className="mr-2 h-4 w-4" />
-                  <span>Tarefas</span>
-                  {tasks.length > 0 && <Badge className="ml-2">{tasks.length}</Badge>}
-                </Button>
-                
-                <Button 
-                  variant={activeTab === "team" ? "default" : "ghost"} 
-                  className="w-full justify-start" 
-                  onClick={() => handleTabChange("team")}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  <span>Equipe</span>
-                  {teamMembers.length > 0 && <Badge className="ml-2">{teamMembers.length}</Badge>}
-                </Button>
-                
-                <Button 
-                  variant={activeTab === "schedule" ? "default" : "ghost"} 
-                  className="w-full justify-start" 
-                  onClick={() => handleTabChange("schedule")}
-                >
-                  <Clock className="mr-2 h-4 w-4" />
-                  <span>Cronograma</span>
-                </Button>
-                
-                <Button 
-                  variant={activeTab === "activities" ? "default" : "ghost"} 
-                  className="w-full justify-start" 
-                  onClick={() => handleTabChange("activities")}
-                >
-                  <Activity className="mr-2 h-4 w-4" />
-                  <span>Atividades</span>
-                </Button>
-              </nav>
-            </CardContent>
-          </Card>
+          <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+            <div className="p-4">
+              <Tabs defaultValue="tasks" orientation="vertical" className="flex flex-col h-full" onValueChange={setActiveTab}>
+                <TabsList className="flex flex-col h-auto justify-start">
+                  <TabsTrigger value="tasks" className="justify-start w-full mb-1">
+                    <div className="flex items-center">
+                      <i className="fas fa-tasks mr-2.5 text-sm"></i>
+                      <span>Tarefas</span>
+                      {tasks.length > 0 && (
+                        <Badge className="ml-2">{tasks.length}</Badge>
+                      )}
+                    </div>
+                  </TabsTrigger>
+                  <TabsTrigger value="team" className="justify-start w-full mb-1">
+                    <div className="flex items-center">
+                      <i className="fas fa-users mr-2.5 text-sm"></i>
+                      <span>Equipe</span>
+                      {teamMembers.length > 0 && (
+                        <Badge className="ml-2">{teamMembers.length}</Badge>
+                      )}
+                    </div>
+                  </TabsTrigger>
+                  <TabsTrigger value="schedule" className="justify-start w-full mb-1">
+                    <div className="flex items-center">
+                      <i className="fas fa-calendar-alt mr-2.5 text-sm"></i>
+                      <span>Cronograma</span>
+                    </div>
+                  </TabsTrigger>
+                  <TabsTrigger value="activities" className="justify-start w-full">
+                    <div className="flex items-center">
+                      <i className="fas fa-history mr-2.5 text-sm"></i>
+                      <span>Atividades</span>
+                    </div>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </div>
         </div>
-
-        {/* Tab Content */}
-        <div>
-          <Card className="h-full">
-            <CardContent className="p-6">
-              {activeTab === "tasks" && (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Tarefas</h3>
-                    <Button size="sm" onClick={() => navigate(`/events/${eventId}/tasks/new`)}>
-                      Nova Tarefa
-                    </Button>
-                  </div>
-                  <TaskList 
-                    tasks={tasks} 
-                    eventId={Number(eventId)} 
-                    teamMembers={teamMembers} 
-                    refetchTasks={() => queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'tasks'] })}
-                  />
+        
+        {/* Tab Content Area - mantendo design original */}
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+          <div className="p-6">
+            {activeTab === "tasks" && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium">Tarefas</h3>
+                  <Button size="sm" onClick={() => navigate(`/events/${eventId}/tasks/new`)}>
+                    Nova Tarefa
+                  </Button>
                 </div>
-              )}
+                <TaskList 
+                  tasks={tasks} 
+                  eventId={Number(eventId)} 
+                  teamMembers={teamMembers} 
+                  refetchTasks={() => queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'tasks'] })}
+                />
+              </div>
+            )}
 
-              {activeTab === "team" && (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Equipe</h3>
-                    <Button size="sm" onClick={() => navigate(`/events/${eventId}/team`)}>
-                      Gerenciar Equipe
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {teamMembers.map((member) => (
-                      <div key={member.user.id} className="flex items-center p-3 rounded-lg border bg-card hover:bg-accent/30 transition-colors">
-                        <Avatar className="h-10 w-10 mr-3">
-                          {member.user.profilePicture ? (
-                            <AvatarImage src={member.user.profilePicture} alt={member.user.name} />
-                          ) : (
-                            <AvatarFallback>{getInitials(member.user.name)}</AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{member.user.name}</div>
-                          <div className="text-sm text-muted-foreground">{member.role || 'Membro'}</div>
-                        </div>
-                      </div>
-                    ))}
-                    {teamMembers.length === 0 && (
-                      <div className="col-span-full text-center py-6 text-muted-foreground">
-                        <p>Nenhum membro adicionado. Clique em "Gerenciar Equipe" para adicionar membros.</p>
-                      </div>
-                    )}
-                  </div>
+            {activeTab === "team" && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium">Equipe</h3>
+                  <Button size="sm" onClick={() => navigate(`/events/${eventId}/team`)}>
+                    Gerenciar Equipe
+                  </Button>
                 </div>
-              )}
-
-              {activeTab === "schedule" && (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Cronograma</h3>
-                    <Button size="sm" onClick={() => navigate(`/events/${eventId}/schedule`)}>
-                      Ver Cronograma
-                    </Button>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="rounded-lg border overflow-hidden">
-                      <div className="bg-muted p-3 border-b">
-                        <h4 className="font-medium">Marcos Importantes</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {teamMembers.map((member) => (
+                    <div key={member.user.id} className="flex items-center p-3 rounded-lg border bg-card hover:bg-accent/30 transition-colors">
+                      <Avatar className="h-10 w-10 mr-3">
+                        {member.user.profilePicture ? (
+                          <AvatarImage src={member.user.profilePicture} alt={member.user.name} />
+                        ) : (
+                          <AvatarFallback>{getInitials(member.user.name)}</AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{member.user.name}</div>
+                        <div className="text-sm text-muted-foreground">{member.role || 'Membro'}</div>
                       </div>
-                      <div className="p-3">
-                        <ul className="space-y-3">
-                          <li className="flex items-start space-x-3">
-                            <div className="flex-shrink-0 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                              <div className="h-2 w-2 rounded-full bg-white"></div>
-                            </div>
-                            <div>
-                              <p className="font-medium">Data do Evento</p>
-                              <p className="text-sm text-muted-foreground">{formatDate(new Date(event.date))}</p>
-                            </div>
-                          </li>
-                          {tasks
-                            .filter(task => task.priority === 'high')
-                            .slice(0, 3)
-                            .map(task => (
-                              <li key={task.id} className="flex items-start space-x-3">
-                                <div className={`flex-shrink-0 h-5 w-5 rounded-full ${
-                                  task.completed ? 'bg-green-500' : 'bg-amber-500'
-                                } flex items-center justify-center`}>
-                                  <div className="h-2 w-2 rounded-full bg-white"></div>
-                                </div>
-                                <div>
-                                  <p className="font-medium">{task.title}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {task.dueDate ? formatDate(new Date(task.dueDate)) : 'Sem data'}
-                                    {task.completed && ' - Concluído'}
-                                  </p>
-                                </div>
-                              </li>
-                            ))}
-                          {tasks.filter(task => task.priority === 'high').length === 0 && (
-                            <li className="text-center py-2 text-muted-foreground text-sm">
-                              <p>Nenhuma tarefa prioritária definida.</p>
+                    </div>
+                  ))}
+                  {teamMembers.length === 0 && (
+                    <div className="col-span-full text-center py-6 text-muted-foreground">
+                      <p>Nenhum membro adicionado. Clique em "Gerenciar Equipe" para adicionar membros.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "schedule" && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium">Cronograma</h3>
+                  <Button size="sm" onClick={() => navigate(`/events/${eventId}/schedule`)}>
+                    Ver Cronograma
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  <div className="rounded-lg border overflow-hidden">
+                    <div className="bg-muted p-3 border-b">
+                      <h4 className="font-medium">Marcos Importantes</h4>
+                    </div>
+                    <div className="p-3">
+                      <ul className="space-y-3">
+                        <li className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                            <div className="h-2 w-2 rounded-full bg-white"></div>
+                          </div>
+                          <div>
+                            <p className="font-medium">Data do Evento</p>
+                            <p className="text-sm text-muted-foreground">{formatDate(new Date(event.date))}</p>
+                          </div>
+                        </li>
+                        {tasks
+                          .filter(task => task.priority === 'high')
+                          .slice(0, 3)
+                          .map(task => (
+                            <li key={task.id} className="flex items-start space-x-3">
+                              <div className={`flex-shrink-0 h-5 w-5 rounded-full ${
+                                task.completed ? 'bg-green-500' : 'bg-amber-500'
+                              } flex items-center justify-center`}>
+                                <div className="h-2 w-2 rounded-full bg-white"></div>
+                              </div>
+                              <div>
+                                <p className="font-medium">{task.title}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {task.dueDate ? formatDate(new Date(task.dueDate)) : 'Sem data'}
+                                  {task.completed && ' - Concluído'}
+                                </p>
+                              </div>
                             </li>
-                          )}
-                        </ul>
-                      </div>
+                          ))}
+                        {tasks.filter(task => task.priority === 'high').length === 0 && (
+                          <li className="text-center py-2 text-muted-foreground text-sm">
+                            <p>Nenhuma tarefa prioritária definida.</p>
+                          </li>
+                        )}
+                      </ul>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {activeTab === "activities" && (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Atividades Recentes</h3>
-                  </div>
-                  <ActivityFeed activities={activityLogs} />
+            {activeTab === "activities" && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium">Atividades Recentes</h3>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <ActivityFeed activities={activityLogs} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
