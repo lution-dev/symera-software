@@ -707,7 +707,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Tabs for Tasks, Timeline, etc. - Novo layout de 2 colunas com abas verticais */}
+      {/* Tabs for Tasks, Timeline, etc. */}
       <Tabs defaultValue="tasks" className="mb-8">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Coluna da esquerda - Menu vertical com abas (260px) */}
@@ -737,27 +737,26 @@ const Event: React.FC<EventProps> = ({ id }) => {
           
           {/* Coluna da direita - Conteúdo da aba selecionada */}
           <div className="flex-1">
-        
-        <TabsContent value="tasks" className="space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-            <h2 className="text-xl font-semibold">Checklist do Evento</h2>
-            <div className="flex flex-wrap w-full sm:w-auto gap-2">
-              <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
-                <i className="fas fa-plus mr-2"></i> Nova Tarefa
-              </Button>
-              <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
-              </Button>
-            </div>
-          </div>
-          
-          <TaskList
-            title=""
-            tasks={tasks}
-            loading={tasksLoading}
-            showEventName={false}
-          />
-        </TabsContent>
+            <TabsContent value="tasks" className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
+                <h2 className="text-xl font-semibold">Checklist do Evento</h2>
+                <div className="flex flex-wrap w-full sm:w-auto gap-2">
+                  <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
+                    <i className="fas fa-plus mr-2"></i> Nova Tarefa
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
+                    <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
+                  </Button>
+                </div>
+              </div>
+              
+              <TaskList
+                title=""
+                tasks={tasks}
+                loading={tasksLoading}
+                showEventName={false}
+              />
+            </TabsContent>
         
         <TabsContent value="team">
           <div className="bg-card rounded-lg p-6">
