@@ -324,7 +324,7 @@ const Dashboard: React.FC = () => {
         <div className="order-2 mt-3 sm:mt-0">
           <div className="bg-card rounded-lg shadow-sm p-3 sm:p-5">
             <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 flex items-center">
-              <i className="far fa-history text-primary mr-2"></i>
+              <i className="fas fa-history text-primary mr-2"></i>
               Atividades Recentes
             </h3>
             
