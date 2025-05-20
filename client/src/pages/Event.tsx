@@ -321,9 +321,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </DropdownMenu>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 xs:gap-4">
             {/* Coluna da esquerda */}
-            <div className="space-y-4">
+            <div className="space-y-3 xs:space-y-4">
               {/* Data do evento */}
               <div className="flex items-start">
                 <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
@@ -350,7 +350,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </div>
             
             {/* Coluna da direita */}
-            <div className="space-y-4">
+            <div className="space-y-3 xs:space-y-4">
               {/* Local do evento */}
               {event.location && (
                 <div className="flex items-start">
@@ -359,7 +359,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                   </div>
                   <div className="ml-3">
                     <p className="text-xs text-muted-foreground">Local</p>
-                    <p className="mt-0.5 text-sm font-medium">{event.location}</p>
+                    <p className="mt-0.5 text-sm font-medium overflow-hidden text-ellipsis">{event.location}</p>
                   </div>
                 </div>
               )}
