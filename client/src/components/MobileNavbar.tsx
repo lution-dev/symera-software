@@ -102,6 +102,8 @@ const MobileNavbar: React.FC = () => {
   const shouldShowNavbarTitle = () => {
     return true;
   };
+  
+  // Função removida - lógica movida diretamente para o JSX
 
   return (
     <>
@@ -192,101 +194,109 @@ const MobileNavbar: React.FC = () => {
         </div>
       </div>
       
-      {/* Barra de navegação inferior - redesenhada para evitar duplicação com menu lateral */}
-      <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-40 flex items-center justify-around shadow-lg border-t border-border">
-        {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
-        <div className="flex-1 flex justify-center touch-action-manipulation">
-          <Link href="/" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-              <i className={cn(
-                "fas fa-home h-6 w-6 mb-1",
-                isActivePath('/') ? "text-primary" : "text-foreground"
-              )}></i>
-              <span className={cn(
-                "text-xs text-center w-full",
-                isActivePath('/') ? "text-primary" : "text-foreground"
-              )}>
-                Início
-              </span>
-            </div>
-          </Link>
-        </div>
-        
-        <div className="flex-1 flex justify-center touch-action-manipulation">
-          <Link href="/events" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-              <i className={cn(
-                "fas fa-calendar-alt h-6 w-6 mb-1",
-                isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
-              )}></i>
-              <span className={cn(
-                "text-xs text-center w-full",
-                isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
-              )}>
-                Eventos
-              </span>
-            </div>
-          </Link>
-        </div>
-        
-        {/* Botão de adicionar no centro */}
-        <div className="flex-1 flex justify-center touch-action-manipulation">
-          <Link href="/events/new" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-              <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
-                <i className="fas fa-plus text-white"></i>
+      {/* Barra de navegação inferior - ocultada nas telas de edição e adição */}
+      {!(location === '/events/new' || 
+        location.includes('/add-') || 
+        location.includes('/edit') || 
+        location.match(/\/events\/\d+\/tasks\/new/) || 
+        location.match(/\/events\/\d+\/team\/add/) || 
+        location.match(/\/events\/\d+\/vendors\/new/) || 
+        location.match(/\/events\/\d+\/budget\/new/)) && (
+        <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-40 flex items-center justify-around shadow-lg border-t border-border">
+          {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
+          <div className="flex-1 flex justify-center touch-action-manipulation">
+            <Link href="/" className="w-full flex justify-center">
+              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                <i className={cn(
+                  "fas fa-home h-6 w-6 mb-1",
+                  isActivePath('/') ? "text-primary" : "text-foreground"
+                )}></i>
+                <span className={cn(
+                  "text-xs text-center w-full",
+                  isActivePath('/') ? "text-primary" : "text-foreground"
+                )}>
+                  Início
+                </span>
               </div>
-              <span className={cn(
-                "text-xs mt-1 text-center w-full",
-                isActivePath('/events/new') ? "text-primary" : "text-foreground"
-              )}>
-                Novo
-              </span>
-            </div>
-          </Link>
-        </div>
-        
-        <div className="flex-1 flex justify-center touch-action-manipulation">
-          <Link href="/schedule" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-              <i className={cn(
-                "fas fa-calendar-day h-6 w-6 mb-1",
-                isActivePath('/schedule') ? "text-primary" : "text-foreground"
-              )}></i>
-              <span className={cn(
-                "text-xs text-center w-full",
-                isActivePath('/schedule') ? "text-primary" : "text-foreground"
-              )}>
-                Agenda
-              </span>
-            </div>
-          </Link>
-        </div>
-        
-        <div className="flex-1 flex justify-center touch-action-manipulation">
-          <Link href="/profile" className="w-full flex justify-center">
-            <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-              {user?.profileImageUrl ? (
-                <div className={cn(
-                  "h-8 w-8 rounded-full overflow-hidden border-2",
-                  isActivePath('/profile') ? "border-primary" : "border-transparent"
+            </Link>
+          </div>
+          
+          <div className="flex-1 flex justify-center touch-action-manipulation">
+            <Link href="/events" className="w-full flex justify-center">
+              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                <i className={cn(
+                  "fas fa-calendar-alt h-6 w-6 mb-1",
+                  isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
+                )}></i>
+                <span className={cn(
+                  "text-xs text-center w-full",
+                  isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
                 )}>
-                  <img src={user.profileImageUrl} alt="Perfil" className="h-full w-full object-cover" />
+                  Eventos
+                </span>
+              </div>
+            </Link>
+          </div>
+          
+          {/* Botão de adicionar no centro */}
+          <div className="flex-1 flex justify-center touch-action-manipulation">
+            <Link href="/events/new" className="w-full flex justify-center">
+              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
+                  <i className="fas fa-plus text-white"></i>
                 </div>
-              ) : (
-                <div className={cn(
-                  "h-8 w-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-primary",
-                  isActivePath('/profile') ? "border-2 border-primary" : ""
+                <span className={cn(
+                  "text-xs mt-1 text-center w-full",
+                  isActivePath('/events/new') ? "text-primary" : "text-foreground"
                 )}>
-                  <span className="text-xs text-white">
-                    {getInitials(user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || '')}
-                  </span>
-                </div>
-              )}
-            </div>
-          </Link>
+                  Novo
+                </span>
+              </div>
+            </Link>
+          </div>
+          
+          <div className="flex-1 flex justify-center touch-action-manipulation">
+            <Link href="/schedule" className="w-full flex justify-center">
+              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                <i className={cn(
+                  "fas fa-calendar-day h-6 w-6 mb-1",
+                  isActivePath('/schedule') ? "text-primary" : "text-foreground"
+                )}></i>
+                <span className={cn(
+                  "text-xs text-center w-full",
+                  isActivePath('/schedule') ? "text-primary" : "text-foreground"
+                )}>
+                  Agenda
+                </span>
+              </div>
+            </Link>
+          </div>
+          
+          <div className="flex-1 flex justify-center touch-action-manipulation">
+            <Link href="/profile" className="w-full flex justify-center">
+              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                {user?.profileImageUrl ? (
+                  <div className={cn(
+                    "h-8 w-8 rounded-full overflow-hidden border-2",
+                    isActivePath('/profile') ? "border-primary" : "border-transparent"
+                  )}>
+                    <img src={user.profileImageUrl} alt="Perfil" className="h-full w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className={cn(
+                    "h-8 w-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-primary",
+                    isActivePath('/profile') ? "border-2 border-primary" : ""
+                  )}>
+                    <span className="text-xs text-white">
+                      {getInitials(user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || '')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 };
