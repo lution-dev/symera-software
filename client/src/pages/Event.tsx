@@ -252,47 +252,207 @@ const Event: React.FC<EventProps> = ({ id }) => {
       
       
       
-      {/* Event Cover Image - Ajustado para mobile */}
-      <div className="relative w-full h-48 sm:h-64 md:h-80 mb-4 sm:mb-6 rounded-xl overflow-hidden shadow-md">
-        <img 
-          src={event.coverImageUrl || getDefaultCover()}
-          alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
-        <div className="absolute bottom-0 left-0 p-3 sm:p-6">
-          <div className="flex flex-wrap gap-2 mb-2">
-            <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
-              {getEventTypeLabel(event.type)}
-            </span>
-            <span className={`inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${
-              event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
-              event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
-              event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-              event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-              event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
-              event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
-              'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
-            }`}>
-              {event.status === 'planning' ? 'Planejamento' : 
-              event.status === 'confirmed' ? 'Confirmado' : 
-              event.status === 'in_progress' ? 'Em andamento' : 
-              event.status === 'active' ? 'Ativo' : 
-              event.status === 'completed' ? 'Concluído' : 
-              event.status === 'cancelled' ? 'Cancelado' : 
-              'Planejamento'}
-            </span>
+      {/* Dois cards lado a lado no layout grid (layout 1:1) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 sm:mb-6">
+        {/* Card da esquerda - Imagem e informações básicas do evento */}
+        <div className="relative rounded-xl overflow-hidden shadow-md h-48 sm:h-64 md:h-full min-h-[200px]">
+          <img 
+            src={event.coverImageUrl || getDefaultCover()}
+            alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
+          <div className="absolute bottom-0 left-0 p-3 sm:p-6">
+            <div className="flex flex-wrap gap-2 mb-2">
+              <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
+                {getEventTypeLabel(event.type)}
+              </span>
+              <span className={`inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${
+                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
+                'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
+              }`}>
+                {event.status === 'planning' ? 'Planejamento' : 
+                event.status === 'confirmed' ? 'Confirmado' : 
+                event.status === 'in_progress' ? 'Em andamento' : 
+                event.status === 'active' ? 'Ativo' : 
+                event.status === 'completed' ? 'Concluído' : 
+                event.status === 'cancelled' ? 'Cancelado' : 
+                'Planejamento'}
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
+            {event.description && (
+              <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
+                {event.description}
+              </p>
+            )}
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
-          {event.description && (
-            <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
-              {event.description}
-            </p>
-          )}
+        </div>
+        
+        {/* Card da direita - Informações detalhadas e ações rápidas */}
+        <div className="bg-card rounded-xl shadow-md p-5 flex flex-col">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-lg font-semibold mb-4">Informações do Evento</h2>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <i className="fas fa-ellipsis-v"></i>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/edit`)}>
+                  <i className="fas fa-edit mr-2 text-muted-foreground"></i> Editar Evento
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/team/add`)}>
+                  <i className="fas fa-user-plus mr-2 text-muted-foreground"></i> Adicionar Membro
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleRegenerateChecklist}>
+                  <i className="fas fa-sync-alt mr-2 text-muted-foreground"></i> Regenerar Checklist
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDeleteEvent} className="text-destructive focus:text-destructive">
+                  <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Data do evento */}
+            <div className="flex items-start">
+              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                <i className="fas fa-calendar-day text-sm"></i>
+              </div>
+              <div className="ml-3">
+                <p className="text-xs text-muted-foreground">Data</p>
+                <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
+              </div>
+            </div>
+            
+            {/* Local do evento */}
+            {event.location && (
+              <div className="flex items-start">
+                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                  <i className="fas fa-map-marker-alt text-sm"></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-xs text-muted-foreground">Local</p>
+                  <p className="mt-0.5 text-sm font-medium">{event.location}</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Número de convidados */}
+            {event.attendees && (
+              <div className="flex items-start">
+                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                  <i className="fas fa-user-friends text-sm"></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-xs text-muted-foreground">Convidados</p>
+                  <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Orçamento */}
+            {event.budget && (
+              <div className="flex items-start">
+                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                  <i className="fas fa-coins text-sm"></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-xs text-muted-foreground">Orçamento</p>
+                  <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-auto pt-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium">Status</span>
+              
+              {/* Status Change Button */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+                    <i className="fas fa-pencil-alt text-xs mr-1.5"></i> Alterar Status
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Selecione o novo status para o evento. Isso afetará como o evento é exibido em toda a plataforma.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="py-4">
+                    <Select
+                      defaultValue={event.status}
+                      onValueChange={(value) => {
+                        updateEventStatusMutation.mutate(value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Status</SelectLabel>
+                          <SelectItem value="planning">🔵 Planejamento</SelectItem>
+                          <SelectItem value="confirmed">🟢 Confirmado</SelectItem>
+                          <SelectItem value="in_progress">🟠 Em andamento</SelectItem>
+                          <SelectItem value="completed">✅ Concluído</SelectItem>
+                          <SelectItem value="cancelled">🔴 Cancelado</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-[hsl(var(--event-cancelled))]' : 
+                'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]'
+              }`}>
+                <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                  event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+                  event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                  event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+                  event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+                  'bg-[hsl(var(--event-planning))]'
+                }`}></span>
+                {event.status === 'planning' ? 'Planejamento' : 
+                event.status === 'confirmed' ? 'Confirmado' : 
+                event.status === 'in_progress' ? 'Em andamento' : 
+                event.status === 'active' ? 'Ativo' : 
+                event.status === 'completed' ? 'Concluído' : 
+                event.status === 'cancelled' ? 'Cancelado' : 
+                'Planejamento'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
       
-      {/* Status Change Control foi movido para o card de informações */}
+      {/* Alerta para tarefas pendentes quando evento está próximo */}
       
       {/* Alerta para tarefas pendentes quando evento está próximo */}
       {(event as any).warningMessage && (
