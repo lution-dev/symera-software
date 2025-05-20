@@ -412,7 +412,122 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         </div>
       ) : (
         <div className="bg-card rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile task list view */}
+          <div className="block lg:hidden">
+            {filteredTasks.map((task: any) => {
+              // Find assignee if exists
+              const assignee = team?.find((member: any) => member.userId === task.assigneeId)?.user;
+              
+              return (
+                <div key={task.id} className="p-4 border-b border-border hover:bg-muted transition-colors">
+                  <div className="flex items-start space-x-4">
+                    {/* Task status icon */}
+                    <div className="flex-shrink-0 h-10 w-10 bg-muted rounded-md flex items-center justify-center">
+                      <i className={`fas fa-${task.status === 'completed' ? 'check' : 'tasks'} ${task.status === 'completed' ? 'text-green-500' : 'text-primary'}`}></i>
+                    </div>
+                    
+                    {/* Task content */}
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-base font-medium ${task.status === 'completed' ? 'line-through opacity-60 text-muted-foreground' : 'text-white'}`}>
+                        {task.title}
+                      </div>
+                      
+                      {task.description && (
+                        <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {task.description}
+                        </div>
+                      )}
+                      
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {/* Due date */}
+                        <div className="flex items-center text-sm">
+                          <i className="fas fa-calendar-alt text-muted-foreground mr-1.5"></i>
+                          {task.dueDate ? (
+                            <span>{formatTaskDueDate(task.dueDate)}</span>
+                          ) : (
+                            <span className="text-muted-foreground">Sem data</span>
+                          )}
+                        </div>
+                        
+                        {/* Priority */}
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTaskPriorityColor(task.priority)}`}>
+                          {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
+                        </span>
+                        
+                        {/* Status */}
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTaskStatusColor(task.status)}`}>
+                          {task.status === 'completed' ? 'Concluída' : task.status === 'in_progress' ? 'Em andamento' : 'A fazer'}
+                        </span>
+                      </div>
+                      
+                      {/* Assignee */}
+                      <div className="mt-3 flex items-center">
+                        {assignee ? (
+                          <div className="flex items-center">
+                            {assignee.profileImageUrl ? (
+                              <img 
+                                src={assignee.profileImageUrl} 
+                                alt={`${assignee.firstName} ${assignee.lastName}`}
+                                className="w-10 h-10 rounded-full object-cover mr-2 border-2 border-primary/20"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                                <span className="text-primary text-sm font-bold">
+                                  {assignee.firstName?.charAt(0) || ''}
+                                  {assignee.lastName?.charAt(0) || ''}
+                                </span>
+                              </div>
+                            )}
+                            <span className="text-sm">
+                              {assignee.firstName} {assignee.lastName}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            <i className="fas fa-user text-muted-foreground mr-1.5"></i>
+                            Não atribuído
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Actions */}
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-green-400 hover:text-green-500 hover:bg-green-100/10"
+                        onClick={() => handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed')}
+                      >
+                        <i className={`fas fa-${task.status === 'completed' ? 'undo' : 'check'} ${task.status === 'completed' ? 'text-amber-500' : 'text-green-500'}`}></i>
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-blue-400 hover:text-blue-500 hover:bg-blue-100/10"
+                        onClick={() => handleEditTask(task)}
+                      >
+                        <i className="fas fa-edit text-primary"></i>
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-100/10"
+                        onClick={() => handleDeleteTask(task.id)}
+                      >
+                        <i className="fas fa-trash-alt text-destructive"></i>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Desktop table view */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted">
                 <tr>
@@ -460,11 +575,11 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                               <img 
                                 src={assignee.profileImageUrl} 
                                 alt={`${assignee.firstName} ${assignee.lastName}`}
-                                className="w-6 h-6 rounded-full object-cover mr-2"
+                                className="w-10 h-10 rounded-full object-cover mr-2 border-2 border-primary/20"
                               />
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                                <span className="text-primary text-xs">
+                              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                                <span className="text-primary text-sm font-bold">
                                   {assignee.firstName?.charAt(0) || ''}
                                   {assignee.lastName?.charAt(0) || ''}
                                 </span>
@@ -498,40 +613,23 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                           >
                             <i className="fas fa-edit text-primary"></i>
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => handleUpdateTaskStatus(
-                              task.id, 
-                              task.status === 'todo' 
-                                ? 'in_progress' 
-                                : task.status === 'in_progress' 
-                                  ? 'completed' 
-                                  : 'todo'
-                            )}
-                          >
-                            <i className={`fas fa-${
-                              task.status === 'todo' 
-                                ? 'play' 
-                                : task.status === 'in_progress' 
-                                  ? 'check' 
-                                  : 'redo'
-                            } text-${
-                              task.status === 'todo' 
-                                ? 'blue' 
-                                : task.status === 'in_progress' 
-                                  ? 'green' 
-                                  : 'yellow'
-                            }-400`}></i>
-                          </Button>
+                          
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
                             onClick={() => handleDeleteTask(task.id)}
                           >
-                            <i className="fas fa-trash text-red-400"></i>
+                            <i className="fas fa-trash-alt text-destructive"></i>
+                          </Button>
+                          
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed')}
+                          >
+                            <i className={`fas fa-${task.status === 'completed' ? 'undo' : 'check'} ${task.status === 'completed' ? 'text-amber-500' : 'text-green-500'}`}></i>
                           </Button>
                         </div>
                       </td>
@@ -544,13 +642,13 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         </div>
       )}
 
-      {/* New Task Dialog */}
+      {/* Create Task Dialog */}
       <Dialog open={showNewTaskDialog} onOpenChange={setShowNewTaskDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Adicionar Nova Tarefa</DialogTitle>
+            <DialogTitle>Nova Tarefa</DialogTitle>
             <DialogDescription>
-              Preencha os detalhes da tarefa para o evento {event.name}
+              Adicione uma nova tarefa ao checklist do evento
             </DialogDescription>
           </DialogHeader>
           
@@ -561,9 +659,9 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Título da tarefa</FormLabel>
+                    <FormLabel>Título</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Confirmar fornecedores" />
+                      <Input placeholder="Título da tarefa" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -577,7 +675,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   <FormItem>
                     <FormLabel>Descrição (opcional)</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Detalhes adicionais sobre a tarefa" />
+                      <Textarea placeholder="Descrição detalhada da tarefa" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -590,7 +688,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Data limite</FormLabel>
+                      <FormLabel>Data Limite (opcional)</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -608,13 +706,13 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma prioridade" />
+                            <SelectValue placeholder="Selecione a prioridade" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="high">Alta</SelectItem>
-                          <SelectItem value="medium">Média</SelectItem>
                           <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -622,6 +720,29 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   )}
                 />
               </div>
+              
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="todo">A fazer</SelectItem>
+                        <SelectItem value="in_progress">Em andamento</SelectItem>
+                        <SelectItem value="completed">Concluída</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={form.control}
@@ -636,10 +757,27 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Não atribuído</SelectItem>
                         {team?.map((member: any) => (
                           <SelectItem key={member.userId} value={member.userId}>
-                            {member.user.firstName} {member.user.lastName}
+                            <div className="flex items-center">
+                              {member.user.profileImageUrl ? (
+                                <img 
+                                  src={member.user.profileImageUrl} 
+                                  alt={`${member.user.firstName} ${member.user.lastName}`}
+                                  className="w-6 h-6 rounded-full object-cover mr-2"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                                  <span className="text-primary text-xs">
+                                    {member.user.firstName?.charAt(0) || ''}
+                                    {member.user.lastName?.charAt(0) || ''}
+                                  </span>
+                                </div>
+                              )}
+                              <span>
+                                {member.user.firstName} {member.user.lastName}
+                              </span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -649,8 +787,8 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                 )}
               />
               
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => setShowNewTaskDialog(false)}>
+              <DialogFooter>
+                <Button variant="outline" type="button" onClick={() => setShowNewTaskDialog(false)}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createTaskMutation.isPending}>
@@ -659,7 +797,9 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                       <i className="fas fa-spinner animate-spin mr-2"></i> Salvando...
                     </>
                   ) : (
-                    <>Adicionar Tarefa</>
+                    <>
+                      <i className="fas fa-plus mr-2"></i> Criar Tarefa
+                    </>
                   )}
                 </Button>
               </DialogFooter>
@@ -667,14 +807,14 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
           </Form>
         </DialogContent>
       </Dialog>
-
+      
       {/* Edit Task Dialog */}
       <Dialog open={showEditTaskDialog} onOpenChange={setShowEditTaskDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Editar Tarefa</DialogTitle>
             <DialogDescription>
-              Editar detalhes da tarefa para o evento {event.name}
+              Modifique os detalhes da tarefa
             </DialogDescription>
           </DialogHeader>
           
@@ -685,9 +825,9 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Título da tarefa</FormLabel>
+                    <FormLabel>Título</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Confirmar fornecedores" />
+                      <Input placeholder="Título da tarefa" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -701,11 +841,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   <FormItem>
                     <FormLabel>Descrição (opcional)</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder="Detalhes adicionais sobre a tarefa"
-                        value={field.value || ""}
-                      />
+                      <Textarea placeholder="Descrição detalhada da tarefa" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -718,13 +854,9 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Data limite</FormLabel>
+                      <FormLabel>Data Limite (opcional)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="date" 
-                          {...field}
-                          value={field.value || ""}
-                        />
+                        <Input type="date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -740,13 +872,13 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma prioridade" />
+                            <SelectValue placeholder="Selecione a prioridade" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="high">Alta</SelectItem>
-                          <SelectItem value="medium">Média</SelectItem>
                           <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -755,31 +887,30 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={editForm.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="todo">A fazer</SelectItem>
-                          <SelectItem value="in_progress">Em andamento</SelectItem>
-                          <SelectItem value="completed">Concluída</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
+              <FormField
+                control={editForm.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="todo">A fazer</SelectItem>
+                        <SelectItem value="in_progress">Em andamento</SelectItem>
+                        <SelectItem value="completed">Concluída</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
                   control={editForm.control}
                   name="assigneeId"
                   render={({ field }) => (
@@ -792,10 +923,27 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Não atribuído</SelectItem>
                           {team?.map((member: any) => (
                             <SelectItem key={member.userId} value={member.userId}>
-                              {member.user.firstName} {member.user.lastName}
+                              <div className="flex items-center">
+                                {member.user.profileImageUrl ? (
+                                  <img 
+                                    src={member.user.profileImageUrl} 
+                                    alt={`${member.user.firstName} ${member.user.lastName}`}
+                                    className="w-6 h-6 rounded-full object-cover mr-2"
+                                  />
+                                ) : (
+                                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                                    <span className="text-primary text-xs">
+                                      {member.user.firstName?.charAt(0) || ''}
+                                      {member.user.lastName?.charAt(0) || ''}
+                                    </span>
+                                  </div>
+                                )}
+                                <span>
+                                  {member.user.firstName} {member.user.lastName}
+                                </span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -804,10 +952,12 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                     </FormItem>
                   )}
                 />
-              </div>
               
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => setShowEditTaskDialog(false)}>
+              <DialogFooter>
+                <Button variant="outline" type="button" onClick={() => {
+                  setShowEditTaskDialog(false);
+                  setCurrentTask(null);
+                }}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={updateTaskMutation.isPending}>
@@ -816,7 +966,9 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                       <i className="fas fa-spinner animate-spin mr-2"></i> Salvando...
                     </>
                   ) : (
-                    <>Atualizar Tarefa</>
+                    <>
+                      <i className="fas fa-save mr-2"></i> Salvar Alterações
+                    </>
                   )}
                 </Button>
               </DialogFooter>
