@@ -169,9 +169,6 @@ const MobileNavbar: React.FC = () => {
                             <p className="text-sm font-medium">Symera Events</p>
                             <p className="text-xs text-muted-foreground">v1.2.5</p>
                           </div>
-                          <div className="h-8 w-8 rounded-full overflow-hidden bg-gradient-primary flex items-center justify-center">
-                            <span className="text-xs text-white font-bold">S</span>
-                          </div>
                         </div>
                       </div>
                     </div>
