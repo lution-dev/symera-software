@@ -707,12 +707,37 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Navegação por abas vertical com suporte mobile */}
+      {/* Navegação por abas vertical em formato de 2 colunas */}
       <div className="mb-8">
         <Tabs defaultValue="tasks">
-          {/* Menu hamburguer para mobile */}
-          <div className="md:hidden flex items-center justify-between mb-4 bg-card p-3 rounded-lg shadow-sm">
-            <h2 className="font-medium text-lg">Seções do Evento</h2>
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Coluna da esquerda (~260px) - Menu vertical com abas */}
+            <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
+              <div className="p-3 border-b">
+                <h2 className="font-medium text-primary">Seções do Evento</h2>
+              </div>
+              <TabsList className="flex flex-col w-full space-y-1 p-2">
+                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-tasks mr-3"></i> 
+                  Tarefas 
+                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-users mr-3"></i> 
+                  Equipe 
+                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-calendar-alt mr-3"></i> 
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-history mr-3"></i> 
+                  Atividades
+                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
