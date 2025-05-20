@@ -137,7 +137,10 @@ const EventCard: React.FC<EventCardProps> = ({
               type === 'social' ? 'bg-green-100' : 
               'bg-gray-100'
             }`}>
-              <i className={`far fa-${
+              <i className={`${
+                // Ícones que não têm versão outline precisam usar a versão solid
+                type === 'birthday' || type === 'social' ? 'fas' : 'far'
+              } fa-${
                 type === 'wedding' ? 'heart' : 
                 type === 'corporate' ? 'briefcase' : 
                 type === 'birthday' ? 'birthday-cake' : 
