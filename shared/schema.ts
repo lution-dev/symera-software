@@ -162,6 +162,7 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     references: [users.id],
   }),
   assignees: many(taskAssignees),
+  reminders: many(taskReminders),
 }));
 
 export const taskAssigneesRelations = relations(taskAssignees, ({ one }) => ({
@@ -171,6 +172,47 @@ export const taskAssigneesRelations = relations(taskAssignees, ({ one }) => ({
   }),
   user: one(users, {
     fields: [taskAssignees.userId],
+    references: [users.id],
+  }),
+}));
+
+// Task Reminder Channel Type
+export const reminderChannelEnum = pgEnum("reminder_channel", [
+  "whatsapp",
+  "email",
+  "sms",
+]);
+
+// Task Reminders
+export const taskReminders = pgTable("task_reminders", {
+  id: serial("id").primaryKey(),
+  taskId: integer("task_id")
+    .notNull()
+    .references(() => tasks.id, { onDelete: "cascade" }),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  scheduledTime: timestamp("scheduled_time").notNull(),
+  sent: boolean("sent").default(false),
+  sentAt: timestamp("sent_at"),
+  channel: reminderChannelEnum("channel").default("whatsapp"),
+  message: text("message"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return {
+    taskIdIdx: index("task_reminders_task_id_idx").on(table.taskId),
+    userIdIdx: index("task_reminders_user_id_idx").on(table.userId),
+  }
+});
+
+export const taskRemindersRelations = relations(taskReminders, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskReminders.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [taskReminders.userId],
     references: [users.id],
   }),
 }));
@@ -330,6 +372,7 @@ export const insertActivityLogSchema = createInsertSchema(activityLogs);
 export const insertBudgetItemSchema = createInsertSchema(budgetItems);
 export const insertExpenseSchema = createInsertSchema(expenses);
 export const insertTaskAssigneeSchema = createInsertSchema(taskAssignees);
+export const insertTaskReminderSchema = createInsertSchema(taskReminders);
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -358,6 +401,9 @@ export type BudgetItem = typeof budgetItems.$inferSelect;
 
 export type InsertExpense = typeof expenses.$inferInsert;
 export type Expense = typeof expenses.$inferSelect;
+
+export type InsertTaskReminder = typeof taskReminders.$inferInsert;
+export type TaskReminder = typeof taskReminders.$inferSelect;
 
 // Event creation schema with validation
 export const createEventSchema = z.object({

@@ -101,6 +101,13 @@ export interface IStorage {
   removeTaskAssignee(taskId: number, userId: string): Promise<void>;
   replaceTaskAssignees(taskId: number, userIds: string[]): Promise<TaskAssignee[]>;
   
+  // Task reminder operations
+  getTaskReminders(taskId: number): Promise<TaskReminder[]>;
+  getTaskRemindersByUser(userId: string): Promise<TaskReminder[]>;
+  createTaskReminder(reminder: InsertTaskReminder): Promise<TaskReminder>;
+  markReminderAsSent(id: number): Promise<TaskReminder>;
+  deleteTaskReminder(id: number): Promise<void>;
+  
   // Team member operations
   getTeamMembersByEventId(eventId: number): Promise<(EventTeamMember & { user: User })[]>;
   addTeamMember(teamMember: InsertEventTeamMember): Promise<EventTeamMember>;
@@ -933,6 +940,62 @@ export class DatabaseStorage implements IStorage {
       }
       
       return assignees;
+    });
+  }
+  
+  // Task reminder operations
+  async getTaskReminders(taskId: number): Promise<TaskReminder[]> {
+    return executeWithRetry(async () => {
+      const reminders = await db
+        .select()
+        .from(taskReminders)
+        .where(eq(taskReminders.taskId, taskId))
+        .orderBy(taskReminders.scheduledTime);
+      
+      return reminders;
+    });
+  }
+  
+  async getTaskRemindersByUser(userId: string): Promise<TaskReminder[]> {
+    return executeWithRetry(async () => {
+      const reminders = await db
+        .select()
+        .from(taskReminders)
+        .where(eq(taskReminders.userId, userId))
+        .orderBy(taskReminders.scheduledTime);
+      
+      return reminders;
+    });
+  }
+  
+  async createTaskReminder(reminderData: InsertTaskReminder): Promise<TaskReminder> {
+    return executeWithRetry(async () => {
+      const [reminder] = await db.insert(taskReminders).values(reminderData).returning();
+      return reminder;
+    });
+  }
+  
+  async markReminderAsSent(id: number): Promise<TaskReminder> {
+    return executeWithRetry(async () => {
+      const [reminder] = await db
+        .update(taskReminders)
+        .set({
+          sent: true,
+          sentAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(taskReminders.id, id))
+        .returning();
+      
+      return reminder;
+    });
+  }
+  
+  async deleteTaskReminder(id: number): Promise<void> {
+    return executeWithRetry(async () => {
+      await db
+        .delete(taskReminders)
+        .where(eq(taskReminders.id, id));
     });
   }
 }

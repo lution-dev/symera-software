@@ -348,7 +348,7 @@ const TaskList: React.FC<TaskListProps> = ({
                     {task.reminders && task.reminders.length > 0 ? (
                       <span className="text-xs bg-muted rounded-full px-1.5 py-0.5">{task.reminders.length}</span>
                     ) : (
-                      <i className="fas fa-exclamation-triangle text-amber-500 text-xs"></i>
+                      <span className="text-xs bg-muted rounded-full px-1.5 py-0.5">0</span>
                     )}
                   </button>
                   <button
@@ -618,49 +618,44 @@ const TaskList: React.FC<TaskListProps> = ({
                 {currentTask?.reminders && currentTask.reminders.length > 0 ? (
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {currentTask.reminders.map((reminder, index) => (
-                      <div key={index} className="flex items-center justify-between text-sm p-2 hover:bg-background/30 rounded-md">
-                        <div>
-                          <div className="font-medium">
-                            {new Date(reminder.scheduledTime).toLocaleDateString('pt-BR', { 
-                              day: '2-digit', 
-                              month: '2-digit', 
-                              year: 'numeric' 
-                            }) + " • " + 
-                            new Date(reminder.scheduledTime).toLocaleTimeString('pt-BR', { 
-                              hour: '2-digit', 
-                              minute: '2-digit'
-                            })}
-                          </div>
-                          <div className="text-xs flex items-center">
-                            <i className="fab fa-whatsapp text-green-500 mr-1"></i> 
-                            <span>WhatsApp</span>
-                            {reminder.sent && (
-                              <span className="ml-2 text-xs text-green-500 flex items-center">
-                                <i className="fas fa-check mr-1"></i> Enviado
-                              </span>
-                            )}
-                          </div>
+                      <div key={index} className="text-sm p-2 hover:bg-background/30 rounded-md">
+                        <div className="font-medium">
+                          {new Date(reminder.scheduledTime).toLocaleDateString('pt-BR', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            year: 'numeric' 
+                          }) + " • " + 
+                          new Date(reminder.scheduledTime).toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit'
+                          })}
                         </div>
-                        <button className="text-red-400 hover:text-red-500">
-                          <i className="fas fa-trash-alt"></i>
-                        </button>
+                        <div className="text-xs flex items-center">
+                          <i className="fab fa-whatsapp text-green-500 mr-1"></i> 
+                          <span>WhatsApp</span>
+                          {reminder.sent && (
+                            <span className="ml-2 text-xs text-green-500 flex items-center">
+                              <i className="fas fa-check mr-1"></i> Enviado
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-3">
                     <p className="text-sm text-muted-foreground">Nenhum lembrete configurado</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Os lembretes são criados automaticamente pela IA com base nas datas das tarefas.
+                    </p>
                   </div>
                 )}
               </div>
             </div>
             
-            <div className="flex items-center justify-between">
-              <Button variant="outline" onClick={() => alert("Tela de adicionar lembrete será implementada")}>
-                <i className="fas fa-plus mr-2"></i> Adicionar Lembrete
-              </Button>
+            <div className="flex items-center justify-center">
               <Button onClick={handleSendReminderNow}>
-                <i className="fas fa-paper-plane mr-2"></i> Enviar Agora
+                <i className="fas fa-paper-plane mr-2"></i> Enviar Lembrete Agora
               </Button>
             </div>
           </div>
