@@ -295,161 +295,165 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
         
         {/* Card da direita - Informações do evento em formato de lista */}
-        <div className="bg-card rounded-xl shadow-md p-5 flex flex-col h-48 sm:h-64 md:h-[220px]">
-          <div className="flex justify-between items-start mb-5">
-            <h2 className="text-lg font-semibold">Detalhes do Evento</h2>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <i className="fas fa-ellipsis-v"></i>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/edit`)}>
-                  <i className="fas fa-edit mr-2 text-muted-foreground"></i> Editar Evento
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/team/add`)}>
-                  <i className="fas fa-user-plus mr-2 text-muted-foreground"></i> Adicionar Membro
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleRegenerateChecklist}>
-                  <i className="fas fa-sync-alt mr-2 text-muted-foreground"></i> Regenerar Checklist
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDeleteEvent} className="text-destructive focus:text-destructive">
-                  <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 xs:gap-4 mb-1">
-            {/* Coluna da esquerda */}
-            <div className="space-y-3 xs:space-y-4">
-              {/* Data do evento */}
-              <div className="flex items-start">
-                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                  <i className="fas fa-calendar-day text-sm"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs text-muted-foreground">Data</p>
-                  <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
-                </div>
+        <div className="bg-card rounded-xl shadow-md overflow-hidden">
+          <div className="flex flex-col h-48 sm:h-64 md:h-[220px]">
+            <div className="p-5 flex-grow">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-lg font-semibold">Detalhes do Evento</h2>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <i className="fas fa-ellipsis-v"></i>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/edit`)}>
+                      <i className="fas fa-edit mr-2 text-muted-foreground"></i> Editar Evento
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/team/add`)}>
+                      <i className="fas fa-user-plus mr-2 text-muted-foreground"></i> Adicionar Membro
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleRegenerateChecklist}>
+                      <i className="fas fa-sync-alt mr-2 text-muted-foreground"></i> Regenerar Checklist
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDeleteEvent} className="text-destructive focus:text-destructive">
+                      <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               
-              {/* Número de convidados */}
-              {event.attendees && (
-                <div className="flex items-start">
-                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                    <i className="fas fa-user-friends text-sm"></i>
+              <div className="grid grid-cols-2 gap-3 xs:gap-4">
+                {/* Coluna da esquerda */}
+                <div className="space-y-3 xs:space-y-4">
+                  {/* Data do evento */}
+                  <div className="flex items-start">
+                    <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                      <i className="fas fa-calendar-day text-sm"></i>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-xs text-muted-foreground">Data</p>
+                      <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
+                    </div>
                   </div>
-                  <div className="ml-3">
-                    <p className="text-xs text-muted-foreground">Convidados</p>
-                    <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
-                  </div>
+                  
+                  {/* Número de convidados */}
+                  {event.attendees && (
+                    <div className="flex items-start">
+                      <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                        <i className="fas fa-user-friends text-sm"></i>
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-xs text-muted-foreground">Convidados</p>
+                        <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+                
+                {/* Coluna da direita */}
+                <div className="space-y-3 xs:space-y-4">
+                  {/* Local do evento */}
+                  {event.location && (
+                    <div className="flex items-start">
+                      <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                        <i className="fas fa-map-marker-alt text-sm"></i>
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-xs text-muted-foreground">Local</p>
+                        <p className="mt-0.5 text-sm font-medium overflow-hidden text-ellipsis">{event.location}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Orçamento */}
+                  {event.budget && (
+                    <div className="flex items-start">
+                      <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                        <i className="fas fa-coins text-sm"></i>
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-xs text-muted-foreground">Orçamento</p>
+                        <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             
-            {/* Coluna da direita */}
-            <div className="space-y-3 xs:space-y-4">
-              {/* Local do evento */}
-              {event.location && (
-                <div className="flex items-start">
-                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                    <i className="fas fa-map-marker-alt text-sm"></i>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs text-muted-foreground">Local</p>
-                    <p className="mt-0.5 text-sm font-medium overflow-hidden text-ellipsis">{event.location}</p>
-                  </div>
-                </div>
-              )}
+            {/* Status simplificado */}
+            <div className="w-full border-t border-border/30 flex items-center justify-between px-5 py-2">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                  event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
+                  event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-[hsl(var(--event-confirmed))]' : 
+                  event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-[hsl(var(--event-completed))]' : 
+                  event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-[hsl(var(--event-cancelled))]' : 
+                  'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]'
+                }`}>
+                  <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                    event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+                    event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                    event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                    event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                    event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+                    event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+                    'bg-[hsl(var(--event-planning))]'
+                  }`}></span>
+                  {event.status === 'planning' ? 'Planejamento' : 
+                  event.status === 'confirmed' ? 'Confirmado' : 
+                  event.status === 'in_progress' ? 'Em andamento' : 
+                  event.status === 'active' ? 'Ativo' : 
+                  event.status === 'completed' ? 'Concluído' : 
+                  event.status === 'cancelled' ? 'Cancelado' : 
+                  'Planejamento'}
+                </span>
+              </div>
               
-              {/* Orçamento */}
-              {event.budget && (
-                <div className="flex items-start">
-                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                    <i className="fas fa-coins text-sm"></i>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 px-0 rounded-full">
+                    <i className="fas fa-pencil-alt text-xs"></i>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Selecione o novo status para o evento.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="py-4">
+                    <Select
+                      defaultValue={event.status}
+                      onValueChange={(value) => {
+                        updateEventStatusMutation.mutate(value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Status</SelectLabel>
+                          <SelectItem value="planning">🔵 Planejamento</SelectItem>
+                          <SelectItem value="confirmed">🟢 Confirmado</SelectItem>
+                          <SelectItem value="in_progress">🟠 Em andamento</SelectItem>
+                          <SelectItem value="completed">✅ Concluído</SelectItem>
+                          <SelectItem value="cancelled">🔴 Cancelado</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="ml-3">
-                    <p className="text-xs text-muted-foreground">Orçamento</p>
-                    <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
-                  </div>
-                </div>
-              )}
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
-          </div>
-          
-          {/* Status simplificado */}
-          <div className="flex items-center justify-between border-t border-border/30 pt-2 mt-auto">
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
-                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-[hsl(var(--event-confirmed))]' : 
-                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
-                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
-                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-[hsl(var(--event-completed))]' : 
-                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-[hsl(var(--event-cancelled))]' : 
-                'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]'
-              }`}>
-                <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                  event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
-                  event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
-                  event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                  event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                  event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
-                  event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
-                  'bg-[hsl(var(--event-planning))]'
-                }`}></span>
-                {event.status === 'planning' ? 'Planejamento' : 
-                event.status === 'confirmed' ? 'Confirmado' : 
-                event.status === 'in_progress' ? 'Em andamento' : 
-                event.status === 'active' ? 'Ativo' : 
-                event.status === 'completed' ? 'Concluído' : 
-                event.status === 'cancelled' ? 'Cancelado' : 
-                'Planejamento'}
-              </span>
-            </div>
-            
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 px-0 rounded-full">
-                  <i className="fas fa-pencil-alt text-xs"></i>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Selecione o novo status para o evento.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="py-4">
-                  <Select
-                    defaultValue={event.status}
-                    onValueChange={(value) => {
-                      updateEventStatusMutation.mutate(value);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione o status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Status</SelectLabel>
-                        <SelectItem value="planning">🔵 Planejamento</SelectItem>
-                        <SelectItem value="confirmed">🟢 Confirmado</SelectItem>
-                        <SelectItem value="in_progress">🟠 Em andamento</SelectItem>
-                        <SelectItem value="completed">✅ Concluído</SelectItem>
-                        <SelectItem value="cancelled">🔴 Cancelado</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </div>
         </div>
       </div>
