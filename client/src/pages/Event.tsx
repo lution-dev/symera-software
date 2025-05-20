@@ -707,16 +707,36 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Tabs for Tasks, Timeline, etc. */}
+      {/* Tabs for Tasks, Timeline, etc. - Vertical 2-column layout */}
       <Tabs defaultValue="tasks" className="mb-8">
-        <div className="overflow-x-auto pb-2 -mb-2">
-          <TabsList className="mb-4 flex-nowrap w-auto min-w-max">
-            <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-            <TabsTrigger value="team">Equipe Completa</TabsTrigger>
-            <TabsTrigger value="timeline">Cronograma do Evento</TabsTrigger>
-            <TabsTrigger value="activity">Atividade</TabsTrigger>
-          </TabsList>
-        </div>
+        <div className="flex flex-row">
+          {/* Coluna da esquerda (~260px) - Menu vertical com abas */}
+          <div className="w-[260px] flex-shrink-0 pr-4 border-r">
+            <TabsList className="flex flex-col w-full space-y-2">
+              <TabsTrigger value="tasks" className="justify-start w-full">
+                <i className="fas fa-tasks mr-2"></i> Tarefas 
+                {tasks?.length ? <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{tasks.length}</span> : null}
+              </TabsTrigger>
+              <TabsTrigger value="team" className="justify-start w-full">
+                <i className="fas fa-users mr-2"></i> Equipe
+                {team?.length ? <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{team.length}</span> : null}
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="justify-start w-full">
+                <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+                {tasks?.filter((task: any) => !!task.dueDate).length ? 
+                 <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                   {tasks.filter((task: any) => !!task.dueDate).length}
+                 </span> : null}
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="justify-start w-full">
+                <i className="fas fa-history mr-2"></i> Atividades
+                {activities?.length ? <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{activities.length}</span> : null}
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          {/* Coluna da direita - Conteúdo da aba selecionada */}
+          <div className="flex-grow pl-4 overflow-auto"
         
         <TabsContent value="tasks" className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
