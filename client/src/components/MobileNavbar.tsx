@@ -131,24 +131,22 @@ const MobileNavbar: React.FC = () => {
                   </SheetTrigger>
                   <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
                     <div className="py-6 px-5 bg-card flex items-center border-b">
-                      <div className="h-10 w-10 rounded-full overflow-hidden bg-white flex items-center justify-center mr-3 shadow">
-                        <img 
-                          src={`${import.meta.env.BASE_URL || ''}src/assets/symera-icon.png`}
-                          alt="Symera Logo" 
-                          className="h-9 w-9 object-contain"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent) {
-                              const fallback = document.createElement('div');
-                              fallback.className = "h-9 w-9 flex items-center justify-center bg-gradient-primary text-white font-bold text-lg";
-                              fallback.textContent = "S";
-                              parent.appendChild(fallback);
-                            }
-                          }}
-                        />
-                      </div>
+                      <img 
+                        src={`${import.meta.env.BASE_URL || ''}src/assets/symera-icon.png`}
+                        alt="Symera Logo" 
+                        className="h-9 w-9 mr-3 object-contain"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            const fallback = document.createElement('div');
+                            fallback.className = "h-9 w-9 mr-3 flex items-center justify-center bg-gradient-primary text-white font-bold text-lg rounded-full";
+                            fallback.textContent = "S";
+                            parent.appendChild(fallback);
+                          }
+                        }}
+                      />
                       <div>
                         <h2 className="text-primary text-xl font-semibold">Symera</h2>
                         <p className="text-xs text-muted-foreground">Gerenciamento de Eventos</p>
@@ -164,15 +162,10 @@ const MobileNavbar: React.FC = () => {
                                 "flex items-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-primary/5",
                                 isActivePath(item.path) && "bg-primary/10"
                               )}>
-                                <div className={cn(
-                                  "flex items-center justify-center h-8 w-8 rounded-full mr-3",
-                                  isActivePath(item.path) ? "bg-primary/15" : "bg-card"
-                                )}>
-                                  <i className={cn(
-                                    `fas fa-${item.icon} w-5 h-5`,
-                                    isActivePath(item.path) ? "text-primary" : "text-muted-foreground"
-                                  )}></i>
-                                </div>
+                                <i className={cn(
+                                  `fas fa-${item.icon} w-5 h-5 mr-3`,
+                                  isActivePath(item.path) ? "text-primary" : "text-muted-foreground"
+                                )}></i>
                                 <span className={cn(
                                   "font-medium",
                                   isActivePath(item.path) ? "text-primary" : "text-foreground"
