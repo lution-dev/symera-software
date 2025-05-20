@@ -321,56 +321,62 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </DropdownMenu>
           </div>
           
-          <div className="space-y-4">
-            {/* Data do evento */}
-            <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                <i className="fas fa-calendar-day text-sm"></i>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Coluna da esquerda */}
+            <div className="space-y-4">
+              {/* Data do evento */}
+              <div className="flex items-start">
+                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                  <i className="fas fa-calendar-day text-sm"></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-xs text-muted-foreground">Data</p>
+                  <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
+                </div>
               </div>
-              <div className="ml-3">
-                <p className="text-xs text-muted-foreground">Data</p>
-                <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
-              </div>
+              
+              {/* Número de convidados */}
+              {event.attendees && (
+                <div className="flex items-start">
+                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                    <i className="fas fa-user-friends text-sm"></i>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-xs text-muted-foreground">Convidados</p>
+                    <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
+                  </div>
+                </div>
+              )}
             </div>
             
-            {/* Local do evento */}
-            {event.location && (
-              <div className="flex items-start">
-                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                  <i className="fas fa-map-marker-alt text-sm"></i>
+            {/* Coluna da direita */}
+            <div className="space-y-4">
+              {/* Local do evento */}
+              {event.location && (
+                <div className="flex items-start">
+                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                    <i className="fas fa-map-marker-alt text-sm"></i>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-xs text-muted-foreground">Local</p>
+                    <p className="mt-0.5 text-sm font-medium">{event.location}</p>
+                  </div>
                 </div>
-                <div className="ml-3">
-                  <p className="text-xs text-muted-foreground">Local</p>
-                  <p className="mt-0.5 text-sm font-medium">{event.location}</p>
+              )}
+              
+              {/* Orçamento */}
+              {event.budget && (
+                <div className="flex items-start">
+                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                    <i className="fas fa-coins text-sm"></i>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-xs text-muted-foreground">Orçamento</p>
+                    <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
+                  </div>
                 </div>
-              </div>
-            )}
-            
-            {/* Número de convidados */}
-            {event.attendees && (
-              <div className="flex items-start">
-                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                  <i className="fas fa-user-friends text-sm"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs text-muted-foreground">Convidados</p>
-                  <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
-                </div>
-              </div>
-            )}
-            
-            {/* Orçamento */}
-            {event.budget && (
-              <div className="flex items-start">
-                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                  <i className="fas fa-coins text-sm"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs text-muted-foreground">Orçamento</p>
-                  <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
           
           {/* Status no fundo do card */}
