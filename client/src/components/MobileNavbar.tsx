@@ -277,14 +277,14 @@ const MobileNavbar: React.FC = () => {
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
                 {user?.profileImageUrl ? (
                   <div className={cn(
-                    "h-8 w-8 rounded-full overflow-hidden border-2",
+                    "h-7 w-7 rounded-full overflow-hidden border-2",
                     isActivePath('/profile') ? "border-primary" : "border-transparent"
                   )}>
                     <img src={user.profileImageUrl} alt="Perfil" className="h-full w-full object-cover" />
                   </div>
                 ) : (
                   <div className={cn(
-                    "h-8 w-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-primary",
+                    "h-7 w-7 rounded-full overflow-hidden flex items-center justify-center bg-gradient-primary",
                     isActivePath('/profile') ? "border-2 border-primary" : ""
                   )}>
                     <span className="text-xs text-white">
@@ -292,6 +292,12 @@ const MobileNavbar: React.FC = () => {
                     </span>
                   </div>
                 )}
+                <span className={cn(
+                  "text-xs mt-1 text-center w-full",
+                  isActivePath('/profile') ? "text-primary" : "text-foreground"
+                )}>
+                  Perfil
+                </span>
               </div>
             </Link>
           </div>
