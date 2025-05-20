@@ -707,14 +707,27 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Two-column layout with vertical tabs */}
+      {/* Layout de duas colunas com abas verticais */}
       <div className="flex flex-col sm:flex-row gap-6 mb-8">
-        {/* Left column - Vertical tab navigation (~260px) */}
+        {/* Coluna esquerda - Menu vertical (~260px) */}
         <div className="w-full sm:w-[260px] flex-shrink-0 mb-4 sm:mb-0 sm:border-r sm:pr-4">
-          <div className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
+          <nav className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
             <button 
-              onClick={() => document.getElementById('tabpanel-tasks')?.scrollIntoView({behavior: 'smooth'})}
-              className="flex justify-start items-center w-full px-3 py-2 rounded-md bg-muted text-primary font-medium"
+              onClick={() => {
+                document.getElementById('tabpanel-tasks')?.scrollIntoView({behavior: 'smooth'});
+                // Atualiza visual dos botões
+                document.querySelectorAll('.nav-button').forEach(btn => 
+                  btn.classList.remove('bg-muted', 'text-primary', 'font-medium'));
+                document.querySelectorAll('.nav-button').forEach(btn => 
+                  btn.classList.add('hover:bg-muted', 'hover:text-primary'));
+                const el = document.getElementById('nav-tasks');
+                if (el) {
+                  el.classList.add('bg-muted', 'text-primary', 'font-medium');
+                  el.classList.remove('hover:bg-muted', 'hover:text-primary');
+                }
+              }}
+              id="nav-tasks"
+              className="nav-button flex justify-start items-center w-full px-3 py-2 rounded-md bg-muted text-primary font-medium"
             >
               <i className="fas fa-tasks mr-2"></i> Tarefas 
               {Array.isArray(tasks) && tasks.length > 0 && (
@@ -725,8 +738,21 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </button>
             
             <button 
-              onClick={() => document.getElementById('tabpanel-team')?.scrollIntoView({behavior: 'smooth'})}
-              className="flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
+              onClick={() => {
+                document.getElementById('tabpanel-team')?.scrollIntoView({behavior: 'smooth'});
+                // Atualiza visual dos botões
+                document.querySelectorAll('.nav-button').forEach(btn => 
+                  btn.classList.remove('bg-muted', 'text-primary', 'font-medium'));
+                document.querySelectorAll('.nav-button').forEach(btn => 
+                  btn.classList.add('hover:bg-muted', 'hover:text-primary'));
+                const el = document.getElementById('nav-team');
+                if (el) {
+                  el.classList.add('bg-muted', 'text-primary', 'font-medium');
+                  el.classList.remove('hover:bg-muted', 'hover:text-primary');
+                }
+              }}
+              id="nav-team"
+              className="nav-button flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
             >
               <i className="fas fa-users mr-2"></i> Equipe
               {Array.isArray(team) && team.length > 0 && (
@@ -737,8 +763,21 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </button>
             
             <button 
-              onClick={() => document.getElementById('tabpanel-timeline')?.scrollIntoView({behavior: 'smooth'})}
-              className="flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
+              onClick={() => {
+                document.getElementById('tabpanel-timeline')?.scrollIntoView({behavior: 'smooth'});
+                // Atualiza visual dos botões
+                document.querySelectorAll('.nav-button').forEach(btn => 
+                  btn.classList.remove('bg-muted', 'text-primary', 'font-medium'));
+                document.querySelectorAll('.nav-button').forEach(btn => 
+                  btn.classList.add('hover:bg-muted', 'hover:text-primary'));
+                const el = document.getElementById('nav-timeline');
+                if (el) {
+                  el.classList.add('bg-muted', 'text-primary', 'font-medium');
+                  el.classList.remove('hover:bg-muted', 'hover:text-primary');
+                }
+              }}
+              id="nav-timeline"
+              className="nav-button flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
             >
               <i className="fas fa-calendar-alt mr-2"></i> Cronograma
               {Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
@@ -749,8 +788,21 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </button>
             
             <button 
-              onClick={() => document.getElementById('tabpanel-activity')?.scrollIntoView({behavior: 'smooth'})}
-              className="flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
+              onClick={() => {
+                document.getElementById('tabpanel-activity')?.scrollIntoView({behavior: 'smooth'});
+                // Atualiza visual dos botões
+                document.querySelectorAll('.nav-button').forEach(btn => 
+                  btn.classList.remove('bg-muted', 'text-primary', 'font-medium'));
+                document.querySelectorAll('.nav-button').forEach(btn => 
+                  btn.classList.add('hover:bg-muted', 'hover:text-primary'));
+                const el = document.getElementById('nav-activity');
+                if (el) {
+                  el.classList.add('bg-muted', 'text-primary', 'font-medium');
+                  el.classList.remove('hover:bg-muted', 'hover:text-primary');
+                }
+              }}
+              id="nav-activity"
+              className="nav-button flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
             >
               <i className="fas fa-history mr-2"></i> Atividades
               {Array.isArray(activities) && activities.length > 0 && (
@@ -759,7 +811,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 </span>
               )}
             </button>
-          </div>
+          </nav>
         </div>
         
         {/* Right column - Content panels */}
