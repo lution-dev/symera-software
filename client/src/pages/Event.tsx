@@ -380,7 +380,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
           </div>
           
           {/* Status simplificado */}
-          <div className="flex items-center justify-between border-t border-border/30 pt-2 mt-0">
+          <div className="flex items-center justify-between border-t border-border/30 pt-2 mt-auto">
             <div className="flex items-center gap-2">
               <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                 event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
