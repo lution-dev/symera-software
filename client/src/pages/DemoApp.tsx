@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Calendar, Clock, Users, Plus, Home, Menu, Bell, ClipboardList } from "lucide-react";
+import { Calendar, Clock, Users, Plus, Home, Menu, Bell, ClipboardList, CalendarDays } from "lucide-react";
 
 // Usuário de demonstração
 const demoUser = {
@@ -167,7 +167,7 @@ const DemoApp: React.FC = () => {
         <div className="flex-1 flex justify-center touch-action-manipulation">
           <button onClick={() => handleNavigation("/schedule")} className="w-full flex justify-center">
             <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center py-1 px-1">
-              <ClipboardList className={cn(
+              <CalendarDays className={cn(
                 "h-6 w-6",
                 isActivePath('/schedule') ? "text-primary" : "text-foreground"
               )} />
