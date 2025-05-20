@@ -35,7 +35,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
       {change && (
         <div className="mt-3 sm:mt-4 flex items-center flex-wrap">
           <span className={`text-xs sm:text-sm flex items-center ${change.trend === "up" ? "text-green-400" : change.trend === "down" ? "text-red-400" : "text-gray-400"}`}>
-            <i className={`far fa-arrow-${change.trend} mr-1`}></i> {change.value}
+            <i className={`fas fa-arrow-${change.trend} mr-1`}></i> {change.value}
           </span>
           <span className="text-muted-foreground text-xs sm:text-sm ml-2">{change.text}</span>
         </div>
