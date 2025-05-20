@@ -513,18 +513,18 @@ const Event: React.FC<EventProps> = ({ id }) => {
             ></div>
           </div>
           
-          <div className="grid grid-cols-3 gap-3 text-center mb-4">
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-3 transition-colors">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center mb-4">
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-2 sm:p-3 transition-colors">
               <div className={`text-lg font-bold ${todoTasks > 0 ? 'text-red-500' : 'text-muted-foreground'}`}>{todoTasks}</div>
-              <div className="text-xs font-medium">Pendentes</div>
+              <div className="text-xs font-medium truncate">Pendentes</div>
             </div>
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-3 transition-colors">
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-2 sm:p-3 transition-colors">
               <div className={`text-lg font-bold ${inProgressTasks > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>{inProgressTasks}</div>
-              <div className="text-xs font-medium">Em progresso</div>
+              <div className="text-xs font-medium truncate">Em progr.</div>
             </div>
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-3 transition-colors">
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-2 sm:p-3 transition-colors">
               <div className={`text-lg font-bold ${completedTasks > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{completedTasks}</div>
-              <div className="text-xs font-medium">Concluídas</div>
+              <div className="text-xs font-medium truncate">Concluídas</div>
             </div>
           </div>
           
