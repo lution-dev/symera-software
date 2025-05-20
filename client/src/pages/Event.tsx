@@ -843,18 +843,182 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Tabs for Tasks, Timeline, etc. */}
-      <Tabs defaultValue="tasks" className="mb-8">
-        <div className="overflow-x-auto pb-2 -mb-2">
-          <TabsList className="mb-4 flex-nowrap w-auto min-w-max">
-            <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-            <TabsTrigger value="team">Equipe Completa</TabsTrigger>
-            <TabsTrigger value="timeline">Cronograma do Evento</TabsTrigger>
-            <TabsTrigger value="activity">Atividade</TabsTrigger>
-          </TabsList>
+      {/* Cards de indicadores */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
+        {/* Card 1: Progresso do Projeto */}
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-5 flex flex-col h-full">
+            <h3 className="text-sm font-semibold mb-3 flex items-center">
+              <i className="fas fa-tasks text-primary mr-2"></i>
+              Progresso do Projeto
+            </h3>
+            
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-muted-foreground">Tarefas concluídas</span>
+              <span className="font-semibold">{completedTasks} de {totalTasks}</span>
+            </div>
+            
+            <div className="w-full bg-muted rounded-full h-2 mb-4">
+              <div 
+                className={`h-full rounded-full ${
+                  progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-amber-500' : 'bg-green-500'
+                }`}
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            
+            <div className="flex justify-between text-xs">
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-[hsl(var(--status-completed))] mr-1.5"></div>
+                <span>Concluídas ({completedTasks})</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-[hsl(var(--status-in-progress))] mr-1.5"></div>
+                <span>Em andamento ({inProgressTasks})</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-[hsl(var(--status-todo))] mr-1.5"></div>
+                <span>Pendentes ({todoTasks})</span>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <TabsContent value="tasks" className="space-y-4">
+        {/* Card 2: Gestão Financeira */}
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-5 flex flex-col h-full">
+            <h3 className="text-sm font-semibold mb-3 flex items-center">
+              <i className="fas fa-wallet text-primary mr-2"></i>
+              Gestão Financeira
+            </h3>
+            
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-muted-foreground">Orçamento total</span>
+              <span className="font-semibold">{formatCurrency(event.budget || 0)}</span>
+            </div>
+            
+            <div className="w-full bg-muted rounded-full h-2 mb-4">
+              <div 
+                className={`h-full rounded-full ${
+                  !event.budget || !event.expenses || event.expenses / event.budget < 0.5 ? 'bg-green-500' : 
+                  event.expenses / event.budget < 0.85 ? 'bg-amber-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${event.budget ? Math.min(100, (event.expenses || 0) / event.budget * 100) : 0}%` }}
+              ></div>
+            </div>
+            
+            <div className="flex justify-between items-center text-xs">
+              <span>Gastos: {formatCurrency(event.expenses || 0)}</span>
+              <span className={`${
+                !event.budget || !event.expenses ? 'text-green-500' : 
+                event.expenses / event.budget < 0.5 ? 'text-green-500' : 
+                event.expenses / event.budget < 0.85 ? 'text-amber-500' : 
+                'text-red-500'
+              }`}>
+                {event.budget && event.expenses ? 
+                  `${Math.round(event.expenses / event.budget * 100)}% do orçamento` : 
+                  'Sem gastos'}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Card 3: Cronograma */}
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-5 flex flex-col h-full">
+            <h3 className="text-sm font-semibold mb-3 flex items-center">
+              <i className="fas fa-calendar-alt text-primary mr-2"></i>
+              Cronograma do Evento
+            </h3>
+            
+            {event.date ? (() => {
+              // Calcular dias até o evento
+              const eventDate = new Date(event.date);
+              const currentDate = new Date();
+              const diffTime = eventDate.getTime() - currentDate.getTime();
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              
+              return (
+                <>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Data do evento</span>
+                    <span className="font-semibold">{formatDate(event.date)}</span>
+                  </div>
+                  
+                  <div className="bg-muted/50 rounded-lg p-3 mb-3 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <i className="fas fa-clock text-primary mr-2"></i>
+                      <span className="text-sm font-medium">
+                        {diffDays > 0 ? `Faltam ${diffDays} dias` : diffDays === 0 ? 'Hoje!' : 'Evento realizado'}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className={`${diffDays <= 7 && diffDays >= 0 ? 'border-amber-500 text-amber-500' : ''}`}>
+                      {diffDays <= 7 && diffDays >= 0 ? 'Próximo' : diffDays < 0 ? 'Realizado' : 'Planejado'}
+                    </Badge>
+                  </div>
+                </>
+              );
+            })() : (
+              <div className="text-center py-4 flex flex-col items-center">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-2">
+                  <i className="fas fa-calendar-plus text-muted-foreground text-base"></i>
+                </div>
+                <p className="text-muted-foreground text-sm mb-3">Data do evento não definida</p>
+                <Button variant="outline" size="sm" className="text-xs">
+                  <i className="fas fa-calendar-plus mr-2"></i> Definir Data
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Novo layout de abas com menu vertical */}
+      <div className="mb-8">
+        <Tabs defaultValue="tasks">
+          <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-4 sm:gap-6">
+            {/* Menu vertical - visível apenas em desktop */}
+            <div className="hidden md:block bg-card rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4">
+                <h3 className="text-sm font-semibold mb-4 px-3">Seções</h3>
+                <TabsList className="flex flex-col w-full bg-transparent space-y-1">
+                  <TabsTrigger value="tasks" className="w-full justify-start gap-3 px-3 py-2 h-10">
+                    <i className="fas fa-tasks"></i>
+                    <span>Tarefas</span>
+                    <Badge className="ml-auto">{totalTasks}</Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="team" className="w-full justify-start gap-3 px-3 py-2 h-10">
+                    <i className="fas fa-users"></i>
+                    <span>Equipe</span>
+                    <Badge className="ml-auto">{team?.length || 0}</Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="timeline" className="w-full justify-start gap-3 px-3 py-2 h-10">
+                    <i className="fas fa-calendar-day"></i>
+                    <span>Cronograma</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="activity" className="w-full justify-start gap-3 px-3 py-2 h-10">
+                    <i className="fas fa-history"></i>
+                    <span>Atividades</span>
+                    <Badge className="ml-auto">{activities?.length || 0}</Badge>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+            </div>
+
+            {/* Conteúdo das abas */}
+            <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+              {/* Navegação em abas no mobile */}
+              <div className="md:hidden overflow-x-auto pb-2 border-b border-border/40">
+                <TabsList className="mb-0 flex-nowrap w-auto min-w-max p-2">
+                  <TabsTrigger value="tasks">Tarefas</TabsTrigger>
+                  <TabsTrigger value="team">Equipe</TabsTrigger>
+                  <TabsTrigger value="timeline">Cronograma</TabsTrigger>
+                  <TabsTrigger value="activity">Atividade</TabsTrigger>
+                </TabsList>
+              </div>
+              
+              {/* Conteúdo da aba Tarefas */}
+              <TabsContent value="tasks" className="space-y-4 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
             <h2 className="text-xl font-semibold">Checklist do Evento</h2>
             <div className="flex flex-wrap w-full sm:w-auto gap-2">
