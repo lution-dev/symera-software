@@ -137,7 +137,7 @@ const EventCard: React.FC<EventCardProps> = ({
               type === 'social' ? 'bg-green-100' : 
               'bg-gray-100'
             }`}>
-              <i className={`far fa-${
+              <i className={`fas fa-${
                 type === 'wedding' ? 'heart' : 
                 type === 'corporate' ? 'briefcase' : 
                 type === 'birthday' ? 'birthday-cake' : 
