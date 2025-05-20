@@ -142,6 +142,19 @@
     overflow-y: visible !important;
   }
   
+  /* Remover completamente a barra de rolagem cinza externa */
+  body::-webkit-scrollbar,
+  html::-webkit-scrollbar,
+  div::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+  }
+  
+  /* Garantir que apenas a barra personalizada apareça */
+  body, html, div {
+    scrollbar-width: none;
+  }
+  
   /* Custom scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

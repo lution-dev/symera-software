@@ -6,7 +6,7 @@ const CreateEvent: React.FC = () => {
   const [location] = useLocation();
   
   return (
-    <div className="container mx-auto px-4 py-6 overflow-y-visible">
+    <div className="container mx-auto px-4 py-6 custom-scrollbar">
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">Criar Novo Evento</h1>
         <p className="text-muted-foreground">

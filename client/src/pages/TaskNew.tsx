@@ -144,7 +144,7 @@ const TaskNew: React.FC = () => {
   }
   
   return (
-    <div className="container mx-auto px-4 py-6 overflow-y-visible">
+    <div className="container mx-auto px-4 py-6 custom-scrollbar">
       {/* Header */}
       <div className="mb-4 md:mb-6">
         <Button 
