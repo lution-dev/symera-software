@@ -485,74 +485,126 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Progress Overview */}
+      {/* Painel de Gestão Estratégica do Evento */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Progress Card */}
-        <div className="bg-card p-6 rounded-lg shadow-md">
-          <h3 className="font-medium text-lg mb-4">Progresso do Evento</h3>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-muted-foreground">Concluído: {progress}%</span>
-            <span className="text-primary font-medium">{completedTasks}/{totalTasks} tarefas</span>
+        
+        {/* Card de Progresso & Etapas */}
+        <div className="bg-card p-6 rounded-lg shadow-md border-t-4 border-primary/70 flex flex-col h-full">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+              <i className="fas fa-tasks text-primary"></i>
+            </div>
+            <h3 className="font-semibold text-lg">Progresso do Projeto</h3>
           </div>
-          <div className="w-full h-2 bg-muted rounded-full mb-4">
+          
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <div className={`w-3 h-3 rounded-full mr-2 ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
+              <span className="text-sm font-medium">{progress}% completo</span>
+            </div>
+            <span className="text-primary font-medium text-sm">{completedTasks}/{totalTasks} tarefas</span>
+          </div>
+          
+          <div className="w-full h-2 bg-muted rounded-full mb-5 overflow-hidden">
             <div 
-              className="h-full rounded-full gradient-primary" 
+              className={`h-full rounded-full ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-muted rounded-md p-2">
-              <div className="text-lg font-bold">{todoTasks}</div>
-              <div className="text-xs text-muted-foreground">A fazer</div>
+          
+          <div className="grid grid-cols-3 gap-3 text-center mb-4">
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-3 transition-colors">
+              <div className={`text-lg font-bold ${todoTasks > 0 ? 'text-red-500' : 'text-muted-foreground'}`}>{todoTasks}</div>
+              <div className="text-xs font-medium">Pendentes</div>
             </div>
-            <div className="bg-muted rounded-md p-2">
-              <div className="text-lg font-bold">{inProgressTasks}</div>
-              <div className="text-xs text-muted-foreground">Em progresso</div>
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-3 transition-colors">
+              <div className={`text-lg font-bold ${inProgressTasks > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>{inProgressTasks}</div>
+              <div className="text-xs font-medium">Em progresso</div>
             </div>
-            <div className="bg-muted rounded-md p-2">
-              <div className="text-lg font-bold">{completedTasks}</div>
-              <div className="text-xs text-muted-foreground">Concluídas</div>
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-3 transition-colors">
+              <div className={`text-lg font-bold ${completedTasks > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{completedTasks}</div>
+              <div className="text-xs font-medium">Concluídas</div>
             </div>
+          </div>
+          
+          <div className="mt-auto pt-2">
+            <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/events/${eventId}/tasks`)}>
+              <i className="fas fa-chart-line mr-2"></i> Análise Detalhada
+            </Button>
           </div>
         </div>
         
-        {/* Budget Card */}
-        <div className="bg-card p-6 rounded-lg shadow-md">
-          <h3 className="font-medium text-lg mb-4">Orçamento</h3>
+        {/* Card de Orçamento & Financeiro */}
+        <div className="bg-card p-6 rounded-lg shadow-md border-t-4 border-blue-500/70 flex flex-col h-full">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-3">
+              <i className="fas fa-wallet text-blue-500"></i>
+            </div>
+            <h3 className="font-semibold text-lg">Gestão Financeira</h3>
+          </div>
+          
           {event.budget ? (
             <>
-              <div className="flex justify-between mb-2">
-                <span>Orçamento total</span>
-                <span className="font-bold">{formatCurrency(event.budget)}</span>
+              <div className="space-y-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Orçamento total</div>
+                    <div className="text-xl font-bold">{formatCurrency(event.budget)}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground">Gasto atual</div>
+                    <div className="text-xl font-bold">{formatCurrency(event.expenses || 0)}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-1 text-sm">
+                    <span className={`font-medium ${(event.expenses || 0) / event.budget > 0.8 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                      {Math.round((event.expenses || 0) / event.budget * 100)}% utilizado
+                    </span>
+                    <span className="font-medium">{formatCurrency(event.budget - (event.expenses || 0))} disponível</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${
+                        (event.expenses || 0) / event.budget > 0.9 ? 'bg-red-500' : 
+                        (event.expenses || 0) / event.budget > 0.7 ? 'bg-amber-500' : 
+                        'bg-blue-500'
+                      }`}
+                      style={{ width: `${Math.min(100, Math.round((event.expenses || 0) / event.budget * 100))}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between mb-4">
-                <span>Gasto até o momento</span>
-                <span className="font-bold">{formatCurrency(event.expenses || 0)}</span>
-              </div>
-              <div className="mb-1 flex justify-between text-sm">
-                <span>{Math.round((event.expenses || 0) / event.budget * 100)}% utilizado</span>
-                <span>{formatCurrency(event.budget - (event.expenses || 0))} disponível</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div 
-                  className="gradient-primary h-2 rounded-full" 
-                  style={{ width: `${Math.min(100, Math.round((event.expenses || 0) / event.budget * 100))}%` }}
-                ></div>
+              
+              <div className="mt-auto pt-2">
+                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/events/${eventId}/budget`)}>
+                  <i className="fas fa-chart-pie mr-2"></i> Análise de Gastos
+                </Button>
               </div>
             </>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-muted-foreground mb-2">Nenhum orçamento definido</p>
-              <Button variant="outline" size="sm">
+            <div className="text-center py-6 flex flex-col items-center flex-grow">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                <i className="fas fa-money-bill-wave text-muted-foreground text-xl"></i>
+              </div>
+              <p className="text-muted-foreground mb-4">Nenhum orçamento definido</p>
+              <Button variant="outline" size="sm" className="mt-auto">
                 <i className="fas fa-plus mr-2"></i> Adicionar Orçamento
               </Button>
             </div>
           )}
         </div>
         
-        {/* Time Remaining Card */}
-        <div className="bg-card p-6 rounded-lg shadow-md">
-          <h3 className="font-medium text-lg mb-4">Tempo Restante</h3>
+        {/* Card de Cronograma & Prazos */}
+        <div className="bg-card p-6 rounded-lg shadow-md border-t-4 border-purple-500/70 flex flex-col h-full">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-3">
+              <i className="fas fa-calendar-alt text-purple-500"></i>
+            </div>
+            <h3 className="font-semibold text-lg">Cronograma</h3>
+          </div>
+          
           {event.date ? (() => {
             const eventDate = new Date(event.date);
             const today = new Date();
@@ -560,47 +612,96 @@ const Event: React.FC<EventProps> = ({ id }) => {
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
             if (diffDays < 0) {
-              // Evento já realizado - Design minimalista
+              // Evento já realizado
               return (
-                <div className="flex items-center justify-center">
-                  <div className="inline-flex items-center bg-blue-500/10 text-blue-500 px-4 py-2 rounded-full">
-                    <i className="fas fa-check-circle mr-2"></i>
-                    <span className="font-medium">Evento Realizado</span>
+                <div className="flex flex-col items-center justify-center flex-grow text-center py-4">
+                  <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-3">
+                    <i className="fas fa-flag-checkered text-blue-500 text-xl"></i>
                   </div>
+                  <h4 className="text-lg font-medium text-blue-500 mb-1">Evento Realizado</h4>
+                  <p className="text-sm text-muted-foreground mb-2">em {formatDate(event.date)}</p>
+                  <Button variant="outline" size="sm" className="mt-4">
+                    <i className="fas fa-clipboard-check mr-2"></i> Gerar Relatório
+                  </Button>
                 </div>
               );
             } else if (diffDays === 0) {
-              // Evento é hoje - Design destacado
+              // Evento é hoje
               return (
-                <div className="flex flex-col items-center">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500/20 mb-3">
+                <div className="flex flex-col items-center justify-center flex-grow text-center">
+                  <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mb-3 animate-pulse">
                     <i className="fas fa-calendar-day text-green-500 text-3xl"></i>
                   </div>
-                  <h4 className="text-xl font-semibold text-green-500 mb-1">HOJE!</h4>
-                  <p className="font-medium">{formatDate(event.date)}</p>
+                  <h4 className="text-2xl font-bold text-green-500 mb-1">HOJE!</h4>
+                  <p className="text-sm text-muted-foreground mb-3">{formatDate(event.date)}</p>
+                  
+                  <div className="grid grid-cols-2 gap-3 w-full mt-2">
+                    <div className="bg-muted/50 p-2 rounded-md text-center">
+                      <div className="text-xs text-muted-foreground">Pendentes</div>
+                      <div className="text-lg font-bold text-red-500">{todoTasks}</div>
+                    </div>
+                    <div className="bg-muted/50 p-2 rounded-md text-center">
+                      <div className="text-xs text-muted-foreground">Prontos</div>
+                      <div className="text-lg font-bold text-green-500">{completedTasks}</div>
+                    </div>
+                  </div>
                 </div>
               );
             } else {
-              // Evento futuro - Design otimizado
+              // Evento futuro
+              const urgency = diffDays <= 7 ? 'text-amber-500' : (diffDays <= 30 ? 'text-blue-500' : 'text-purple-500');
+              
               return (
-                <div className="flex items-center justify-center">
-                  <div className="text-center">
-                    <span className="text-5xl font-bold block gradient-text mb-2">
+                <div className="flex flex-col items-center flex-grow">
+                  <div className="text-center mb-4">
+                    <span className={`text-5xl font-bold block ${urgency}`}>
                       {diffDays}
                     </span>
                     <span className="font-medium text-muted-foreground">
                       {diffDays === 1 ? "dia restante" : "dias restantes"}
                     </span>
-                    <div className="mt-3 text-sm font-medium">
-                      {formatDate(event.date)}
+                  </div>
+                  
+                  <div className="w-full bg-muted/50 rounded-lg p-3 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <i className="fas fa-calendar-week text-muted-foreground mr-2"></i>
+                        <span className="text-sm font-medium">{formatDate(event.date)}</span>
+                      </div>
+                      <Badge variant="outline" className={diffDays <= 7 ? 'border-amber-500 text-amber-500' : ''}>
+                        {diffDays <= 7 ? 'Próximo' : 'Planejado'}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="w-full mt-auto">
+                    <div className="mb-2 text-sm font-medium">Progresso da preparação</div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                      <span>0%</span>
+                      <span>50%</span>
+                      <span>100%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className={`h-full rounded-full ${
+                          progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-amber-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${progress}%` }}
+                      ></div>
                     </div>
                   </div>
                 </div>
               );
             }
           })() : (
-            <div className="text-center py-4">
-              <p className="text-muted-foreground">Data do evento não definida</p>
+            <div className="text-center py-6 flex flex-col items-center flex-grow">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                <i className="fas fa-calendar-plus text-muted-foreground text-xl"></i>
+              </div>
+              <p className="text-muted-foreground mb-4">Data do evento não definida</p>
+              <Button variant="outline" size="sm" className="mt-auto">
+                <i className="fas fa-calendar-plus mr-2"></i> Definir Data
+              </Button>
             </div>
           )}
         </div>
