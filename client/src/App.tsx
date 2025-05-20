@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
-import Event from "@/pages/EventVertical";
+import Event from "@/pages/Event";
 import CreateEvent from "@/pages/CreateEvent";
 import Checklist from "@/pages/Checklist";
 import TaskNew from "@/pages/TaskNew";
