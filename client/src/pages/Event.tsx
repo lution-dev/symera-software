@@ -708,50 +708,66 @@ const Event: React.FC<EventProps> = ({ id }) => {
       </div>
       
       {/* Tabs for Tasks, Timeline, etc. */}
-      <Tabs defaultValue="tasks" className="mb-8">
-        <div className="flex flex-col sm:flex-row">
-          {/* Left column (~260px) - Vertical menu */}
-          <div className="w-full sm:w-[260px] pr-0 sm:pr-4 mb-4 sm:mb-0 sm:border-r">
-            <TabsList className="mb-4 sm:mb-0 w-full flex flex-row sm:flex-col space-x-1 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
-              <TabsTrigger value="tasks" className="flex-shrink-0 sm:justify-start w-full">
-                <i className="fas fa-tasks mr-2"></i> Tarefas 
-                {Array.isArray(tasks) && tasks.length > 0 && (
-                  <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                    {tasks.length}
-                  </span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="team" className="flex-shrink-0 sm:justify-start w-full">
-                <i className="fas fa-users mr-2"></i> Equipe
-                {Array.isArray(team) && team.length > 0 && (
-                  <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                    {team.length}
-                  </span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="timeline" className="flex-shrink-0 sm:justify-start w-full">
-                <i className="fas fa-calendar-alt mr-2"></i> Cronograma
-                {Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
-                  <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                    {tasks.filter((task: any) => !!task.dueDate).length}
-                  </span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="activity" className="flex-shrink-0 sm:justify-start w-full">
-                <i className="fas fa-history mr-2"></i> Atividades
-                {Array.isArray(activities) && activities.length > 0 && (
-                  <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                    {activities.length}
-                  </span>
-                )}
-              </TabsTrigger>
-            </TabsList>
+      <div className="flex flex-col sm:flex-row gap-6 mb-8">
+        {/* Left column - Vertical Menu (~260px) */}
+        <div className="w-full sm:w-[260px] flex-shrink-0 mb-4 sm:mb-0 sm:border-r sm:pr-4">
+          {/* Simple custom vertical navigation */}
+          <div className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 mb-4 overflow-x-auto sm:overflow-visible">
+            <button 
+              onClick={() => document.getElementById('tabpanel-tasks')?.scrollIntoView()}
+              className="flex justify-start items-center w-full px-3 py-2 rounded-md bg-muted text-primary font-medium"
+            >
+              <i className="fas fa-tasks mr-2"></i> Tarefas 
+              {tasks && tasks.length > 0 && (
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {tasks.length}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              onClick={() => document.getElementById('tabpanel-team')?.scrollIntoView()}
+              className="flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
+            >
+              <i className="fas fa-users mr-2"></i> Equipe
+              {team && team.length > 0 && (
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {team.length}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              onClick={() => document.getElementById('tabpanel-timeline')?.scrollIntoView()}
+              className="flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
+            >
+              <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+              {tasks && Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {tasks.filter((task: any) => !!task.dueDate).length}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              onClick={() => document.getElementById('tabpanel-activity')?.scrollIntoView()}
+              className="flex justify-start items-center w-full px-3 py-2 rounded-md hover:bg-muted hover:text-primary"
+            >
+              <i className="fas fa-history mr-2"></i> Atividades
+              {activities && activities.length > 0 && (
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {activities.length}
+                </span>
+              )}
+            </button>
           </div>
-          
-          {/* Right column - Tab content */}
-          <div className="flex-grow pl-0 sm:pl-4 overflow-auto">
+        </div>
         
-        <TabsContent value="tasks" className="space-y-4">
+        {/* Right column - Content area */}
+        <div className="flex-grow">
+          <div className="space-y-8">
+        
+        <div id="tabpanel-tasks" className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
             <h2 className="text-xl font-semibold">Checklist do Evento</h2>
             <div className="flex flex-wrap w-full sm:w-auto gap-2">
@@ -770,9 +786,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
             loading={tasksLoading}
             showEventName={false}
           />
-        </TabsContent>
+        </div>
         
-        <TabsContent value="team">
+        <div id="tabpanel-team" className="mt-8">
           <div className="bg-card rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
             
@@ -834,9 +850,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
               </div>
             )}
           </div>
-        </TabsContent>
+        </div>
         
-        <TabsContent value="timeline">
+        <div id="tabpanel-timeline" className="mt-8">
           <div className="bg-card rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
             
@@ -918,15 +934,13 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 </div>
                 <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
                 <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
-                <Link href={`/events/${id}/checklist`}>
-                  <Button>
-                    <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
-                  </Button>
-                </Link>
+                <Button onClick={() => navigate(`/events/${eventId}/checklist`)}>
+                  <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
+                </Button>
               </div>
             )}
           </div>
-        </TabsContent>
+        </div>
         
         <TabsContent value="activity">
           <ActivityFeed
