@@ -130,36 +130,28 @@ const MobileNavbar: React.FC = () => {
                     </button>
                   </SheetTrigger>
                   <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
-                    <div className="p-8 bg-gradient-to-b from-primary/5 to-primary/15 flex flex-col items-center justify-center border-b relative overflow-hidden">
-                      {/* Fundo decorativo com efeitos de gradiente */}
-                      <div className="absolute inset-0 opacity-10">
-                        <div className="absolute h-40 w-40 -right-10 -top-10 rounded-full bg-gradient-primary blur-2xl"></div>
-                        <div className="absolute h-20 w-20 left-0 bottom-0 rounded-full bg-gradient-primary blur-xl"></div>
+                    <div className="py-6 px-5 bg-card flex items-center border-b">
+                      <div className="h-10 w-10 rounded-full overflow-hidden bg-white flex items-center justify-center mr-3 shadow">
+                        <img 
+                          src={`${import.meta.env.BASE_URL || ''}src/assets/symera-icon.png`}
+                          alt="Symera Logo" 
+                          className="h-9 w-9 object-contain"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              const fallback = document.createElement('div');
+                              fallback.className = "h-9 w-9 flex items-center justify-center bg-gradient-primary text-white font-bold text-lg";
+                              fallback.textContent = "S";
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
                       </div>
-
-                      <div className="relative z-10 flex flex-col items-center">
-                        <div className="flex items-center mb-4">
-                          <div className="h-12 w-12 mr-3 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg bg-white flex items-center justify-center">
-                            <img 
-                              src={`${import.meta.env.BASE_URL || ''}src/assets/symera-icon.png`}
-                              alt="Symera Logo" 
-                              className="h-10 w-10 object-contain"
-                              onError={(e) => {
-                                const target = e.currentTarget;
-                                target.style.display = 'none';
-                                const parent = target.parentElement;
-                                if (parent) {
-                                  const fallback = document.createElement('div');
-                                  fallback.className = "h-10 w-10 flex items-center justify-center bg-gradient-primary text-white font-bold text-lg";
-                                  fallback.textContent = "S";
-                                  parent.appendChild(fallback);
-                                }
-                              }}
-                            />
-                          </div>
-                          <h2 className="text-2xl font-bold gradient-text">Symera</h2>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Gerenciamento de Eventos</p>
+                      <div>
+                        <h2 className="text-primary text-xl font-semibold">Symera</h2>
+                        <p className="text-xs text-muted-foreground">Gerenciamento de Eventos</p>
                       </div>
                     </div>
                     
@@ -169,12 +161,12 @@ const MobileNavbar: React.FC = () => {
                           <SheetClose asChild key={item.path}>
                             <Link href={item.path}>
                               <div className={cn(
-                                "flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-primary/5",
+                                "flex items-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-primary/5",
                                 isActivePath(item.path) && "bg-primary/10"
                               )}>
                                 <div className={cn(
-                                  "flex items-center justify-center h-8 w-8 rounded-md mr-3",
-                                  isActivePath(item.path) ? "bg-primary/10" : "bg-primary/5"
+                                  "flex items-center justify-center h-8 w-8 rounded-full mr-3",
+                                  isActivePath(item.path) ? "bg-primary/15" : "bg-card"
                                 )}>
                                   <i className={cn(
                                     `fas fa-${item.icon} w-5 h-5`,
