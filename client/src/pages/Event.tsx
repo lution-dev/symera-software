@@ -321,7 +321,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </DropdownMenu>
           </div>
           
-          <div className="grid grid-cols-2 gap-3 xs:gap-4">
+          <div className="grid grid-cols-2 gap-3 xs:gap-4 mb-1">
             {/* Coluna da esquerda */}
             <div className="space-y-3 xs:space-y-4">
               {/* Data do evento */}
@@ -380,7 +380,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
           </div>
           
           {/* Status simplificado */}
-          <div className="mt-auto pt-2 flex items-center justify-between border-t border-border/30 mt-3">
+          <div className="flex items-center justify-between border-t border-border/30 pt-2 mt-0">
             <div className="flex items-center gap-2">
               <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                 event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
