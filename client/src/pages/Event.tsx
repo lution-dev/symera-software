@@ -49,9 +49,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   
-  // Estado para controlar a navegação em abas
-  const [activeTab, setActiveTab] = useState('tasks');
-  
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
   
