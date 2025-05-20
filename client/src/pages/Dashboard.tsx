@@ -338,32 +338,96 @@ const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-2 sm:space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
-                {recentActivities.slice(0, 5).map((activity: any) => (
-                  <div key={activity.id} className="flex items-start py-1 sm:py-2 border-b border-border/30 last:border-0">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className={`far fa-${
-                        activity.type === 'task_completed' ? 'check' :
-                        activity.type === 'event_created' ? 'calendar-plus' :
-                        activity.type === 'comment_added' ? 'comment' :
-                        activity.type === 'member_added' ? 'user-plus' :
-                        'bell'
-                      } text-primary text-xs sm:text-sm`}></i>
-                    </div>
-                    <div className="ml-2 sm:ml-3 flex-1">
-                      <p className="text-xs sm:text-sm">
-                        <span className="font-medium">{activity.title}</span>
-                      </p>
-                      <div className="flex items-center justify-between mt-0.5">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">
-                          {activity.eventName}
-                        </span>
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">
-                          {formatActivityTimestamp(activity.timestamp)}
-                        </span>
+                {recentActivities.slice(0, 5).map((activity: any) => {
+                  // Determinar o texto de cada atividade com base no tipo de ação
+                  const getActivityText = () => {
+                    const { action, details } = activity;
+                    
+                    switch (action) {
+                      case "created_event":
+                        return `Criou o evento "${details?.eventName || 'Evento'}"`;
+                      case "event_created":
+                        return `Criou o evento "${details?.eventName || 'Evento'}"`;
+                      case "updated_event":
+                        return `Atualizou o evento "${details?.eventName || 'Evento'}"`;
+                      case "created_task":
+                      case "task_added":
+                        return `Adicionou a tarefa "${details?.taskTitle || 'Tarefa'}"`;
+                      case "updated_task":
+                        return `Atualizou a tarefa "${details?.taskTitle || 'Tarefa'}"`;
+                      case "task_completed":
+                        return `Concluiu a tarefa "${details?.taskTitle || 'Tarefa'}"`;
+                      case "added_team_member":
+                      case "team_member_added":
+                        return `Adicionou ${details?.memberName || details?.memberEmail || 'membro'} à equipe`;
+                      case "vendor_added":
+                        return `Adicionou fornecedor ${details?.vendorName || 'novo'} (${details?.service || 'serviço'})`;
+                      case "vendor_updated":
+                        return `Atualizou fornecedor ${details?.vendorName || 'existente'}`;
+                      case "status_updated":
+                        return `Alterou status de "${details?.oldStatus || 'anterior'}" para "${details?.newStatus || 'novo'}"`;
+                      case "generated_ai_checklist":
+                        return `Gerou checklist com IA`;
+                      default:
+                        return "Realizou uma ação";
+                    }
+                  };
+                  
+                  // Pegar o nome do evento da API ou dos detalhes
+                  const eventName = activeEventsList.find(e => e.id === activity.eventId)?.name || activity.details?.eventName || '';
+                  
+                  // Determinar o ícone com base na ação
+                  const getActivityIcon = () => {
+                    switch (activity.action) {
+                      case "created_event":
+                      case "event_created":
+                        return "calendar-plus";
+                      case "updated_event":
+                        return "calendar-edit";
+                      case "created_task":
+                      case "task_added":
+                        return "tasks";
+                      case "updated_task":
+                        return "edit";
+                      case "task_completed":
+                        return "check";
+                      case "added_team_member":
+                      case "team_member_added":
+                        return "user-plus";
+                      case "vendor_added":
+                        return "store";
+                      case "vendor_updated":
+                        return "edit";
+                      case "status_updated":
+                        return "refresh";
+                      case "generated_ai_checklist":
+                        return "robot";
+                      default:
+                        return "bell";
+                    }
+                  };
+                  
+                  return (
+                    <div key={activity.id} className="flex items-start py-1 sm:py-2 border-b border-border/30 last:border-0">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
+                        <i className={`far fa-${getActivityIcon()} text-primary text-xs sm:text-sm`}></i>
+                      </div>
+                      <div className="ml-2 sm:ml-3 flex-1">
+                        <p className="text-xs sm:text-sm">
+                          <span className="font-medium">{getActivityText()}</span>
+                        </p>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
+                            {eventName}
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
+                            {formatActivityTimestamp(activity.createdAt)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
