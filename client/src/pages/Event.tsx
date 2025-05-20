@@ -617,54 +617,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
           </div>
         </div>
         
-        {/* Info Grid com ações integradas */}
-        <div className="p-4 sm:p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="flex items-start">
-            <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-              <i className="fas fa-calendar-day text-sm"></i>
-            </div>
-            <div className="ml-3">
-              <p className="text-xs text-muted-foreground">Data</p>
-              <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
-            </div>
-          </div>
-          
-          {event.location && (
-            <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                <i className="fas fa-map-marker-alt text-sm"></i>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs text-muted-foreground">Local</p>
-                <p className="mt-0.5 text-sm font-medium">{event.location}</p>
-              </div>
-            </div>
-          )}
-          
-          {event.attendees && (
-            <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                <i className="fas fa-user-friends text-sm"></i>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs text-muted-foreground">Convidados</p>
-                <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
-              </div>
-            </div>
-          )}
-          
-          {event.budget && (
-            <div className="flex items-start">
-              <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                <i className="fas fa-coins text-sm"></i>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs text-muted-foreground">Orçamento</p>
-                <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Cabeçalho de navegação apenas */}
       </div>
       
       {/* Painel de Gestão Estratégica do Evento */}
