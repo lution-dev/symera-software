@@ -38,6 +38,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AlertTriangle } from "lucide-react";
+import EventTabs from "@/components/Event/EventTabs";
 
 interface EventProps {
   id?: string;

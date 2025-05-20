@@ -234,7 +234,6 @@ const EventTabs: React.FC<EventTabsProps> = ({
             <ActivityFeed
               activities={activities}
               loading={activitiesLoading}
-              showEventName={false}
               limit={10}
             />
           )}
