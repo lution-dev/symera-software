@@ -559,22 +559,47 @@ const Event: React.FC<EventProps> = ({ id }) => {
             const diffTime = eventDate.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
-            return (
-              <>
-                <div className="text-center mb-4">
-                  <span className="text-4xl font-bold block gradient-text">
-                    {diffDays <= 0 ? "0" : diffDays}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {diffDays < 0 ? "Evento realizado" : diffDays === 0 ? "Hoje!" : diffDays === 1 ? "dia restante" : "dias restantes"}
-                  </span>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm mb-1">Data do evento</p>
-                  <p className="font-medium">{formatDate(event.date)}</p>
-                </div>
-              </>
-            );
+            if (diffDays <= 0) {
+              // Hoje ou evento já realizado - Design diferente
+              return (
+                <>
+                  <div className={`text-center mb-4 ${diffDays < 0 ? "opacity-80" : ""}`}>
+                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${
+                      diffDays < 0 ? "bg-blue-500/10" : "bg-green-500/10"
+                    } mb-2`}>
+                      <i className={`fas ${diffDays < 0 ? "fa-calendar-check" : "fa-calendar-day"} text-2xl ${
+                        diffDays < 0 ? "text-blue-500" : "text-green-500"
+                      }`}></i>
+                    </div>
+                    <h4 className="text-lg font-medium">
+                      {diffDays < 0 ? "Evento Realizado" : "Hoje!"}
+                    </h4>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm mb-1">Data do evento</p>
+                    <p className="font-medium">{formatDate(event.date)}</p>
+                  </div>
+                </>
+              );
+            } else {
+              // Evento futuro - Design original
+              return (
+                <>
+                  <div className="text-center mb-4">
+                    <span className="text-4xl font-bold block gradient-text">
+                      {diffDays}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {diffDays === 1 ? "dia restante" : "dias restantes"}
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm mb-1">Data do evento</p>
+                    <p className="font-medium">{formatDate(event.date)}</p>
+                  </div>
+                </>
+              );
+            }
           })() : (
             <div className="text-center py-4">
               <p className="text-muted-foreground">Data do evento não definida</p>
