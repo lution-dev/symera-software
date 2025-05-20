@@ -55,7 +55,7 @@ const MobileNavbar: React.FC = () => {
     { path: "/", label: "Home", icon: "home" },
     { path: "/events", label: "Eventos", icon: "calendar-alt" },
     { path: "/events/new", label: "Novo", icon: "plus", highlight: true },
-    { path: "/schedule", label: "Agenda", icon: "calendar-day" },
+    { path: "/schedule", label: "Agenda", icon: "clipboard-list" },
   ];
   
   // Items adicionais que aparecerão no menu de hambúrguer
@@ -277,7 +277,7 @@ const MobileNavbar: React.FC = () => {
             <Link href="/schedule" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
                 <i className={cn(
-                  "fas fa-calendar-day h-6 w-6 mb-1",
+                  "fas fa-clipboard-list h-6 w-6 mb-1",
                   isActivePath('/schedule') ? "text-primary" : "text-foreground"
                 )}></i>
                 <span className={cn(
