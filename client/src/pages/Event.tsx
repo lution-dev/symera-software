@@ -490,47 +490,47 @@ const Event: React.FC<EventProps> = ({ id }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
         
         {/* Card de Progresso & Etapas */}
-        <div className="bg-card p-6 rounded-lg shadow-md border-t-4 border-primary/70 flex flex-col h-full">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-              <i className="fas fa-tasks text-primary"></i>
+        <div className="bg-card dark:bg-slate-900 p-4 sm:p-5 rounded-lg shadow-md border-t-4 border-primary/70 flex flex-col h-full">
+          <div className="flex items-center mb-3">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-primary/10 flex items-center justify-center mr-2 sm:mr-3">
+              <i className="fas fa-tasks text-primary text-xs sm:text-sm"></i>
             </div>
-            <h3 className="font-semibold text-lg">Progresso do Projeto</h3>
+            <h3 className="font-semibold text-base sm:text-lg">Progresso do Projeto</h3>
           </div>
           
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2 text-xs sm:text-sm">
             <div className="flex items-center">
-              <div className={`w-3 h-3 rounded-full mr-2 ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
-              <span className="text-sm font-medium">{progress}% completo</span>
+              <div className={`w-2.5 h-2.5 rounded-full mr-1.5 ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
+              <span className="font-medium">{progress}% completo</span>
             </div>
-            <span className="text-primary font-medium text-sm">{completedTasks}/{totalTasks} tarefas</span>
+            <span className="text-primary font-medium">{completedTasks}/{totalTasks} tarefas</span>
           </div>
           
-          <div className="w-full h-2 bg-muted rounded-full mb-5 overflow-hidden">
+          <div className="w-full h-1.5 bg-muted rounded-full mb-3 overflow-hidden">
             <div 
               className={`h-full rounded-full ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
               style={{ width: `${progress}%` }}
             ></div>
           </div>
           
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center mb-4">
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-2 sm:p-3 transition-colors">
-              <div className={`text-lg font-bold ${todoTasks > 0 ? 'text-red-500' : 'text-muted-foreground'}`}>{todoTasks}</div>
-              <div className="text-xs font-medium truncate">Pendentes</div>
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center mb-3">
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 transition-colors">
+              <div className={`text-base sm:text-lg font-bold ${todoTasks > 0 ? 'text-red-500' : 'text-muted-foreground'}`}>{todoTasks}</div>
+              <div className="text-xs font-medium truncate">Pe...</div>
             </div>
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-2 sm:p-3 transition-colors">
-              <div className={`text-lg font-bold ${inProgressTasks > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>{inProgressTasks}</div>
-              <div className="text-xs font-medium truncate">Em progr.</div>
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 transition-colors">
+              <div className={`text-base sm:text-lg font-bold ${inProgressTasks > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>{inProgressTasks}</div>
+              <div className="text-xs font-medium truncate">Em...</div>
             </div>
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-2 sm:p-3 transition-colors">
-              <div className={`text-lg font-bold ${completedTasks > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{completedTasks}</div>
-              <div className="text-xs font-medium truncate">Concluídas</div>
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 transition-colors">
+              <div className={`text-base sm:text-lg font-bold ${completedTasks > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{completedTasks}</div>
+              <div className="text-xs font-medium truncate">Co...</div>
             </div>
           </div>
           
-          <div className="mt-auto pt-2">
-            <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/events/${eventId}/tasks`)}>
-              <i className="fas fa-chart-line mr-2"></i> Análise Detalhada
+          <div className="mt-auto pt-1 sm:pt-2">
+            <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm py-1 h-auto" onClick={() => navigate(`/events/${eventId}/tasks`)}>
+              <i className="fas fa-chart-line mr-1.5"></i> Análise Detalhada
             </Button>
           </div>
         </div>
