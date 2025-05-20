@@ -144,9 +144,9 @@ const TaskNew: React.FC = () => {
   }
   
   return (
-    <div className="container mx-auto px-4 py-6 mobile-spacing">
+    <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4 md:mb-6">
         <Button 
           variant="link" 
           onClick={() => navigate(`/events/${eventId}`)} 
@@ -162,7 +162,7 @@ const TaskNew: React.FC = () => {
       
       {/* Form */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4 sm:pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleCreateTask)} className="space-y-4">
               <FormField
