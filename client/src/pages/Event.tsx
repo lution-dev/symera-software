@@ -546,20 +546,22 @@ const Event: React.FC<EventProps> = ({ id }) => {
           
           {event.budget ? (
             <>
-              <div className="space-y-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm text-muted-foreground">Orçamento total</div>
+              <div className="space-y-6 mb-4">
+                {/* Valores principais - Agora em layout vertical para melhor legibilidade */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-muted/40 p-3 rounded-lg">
+                    <div className="text-sm text-muted-foreground mb-1">Orçamento total</div>
                     <div className="text-xl font-bold">{formatCurrency(event.budget)}</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Gasto atual</div>
+                  <div className="bg-muted/40 p-3 rounded-lg">
+                    <div className="text-sm text-muted-foreground mb-1">Gasto atual</div>
                     <div className="text-xl font-bold">{formatCurrency(event.expenses || 0)}</div>
                   </div>
                 </div>
                 
+                {/* Barra de progresso e status */}
                 <div>
-                  <div className="flex justify-between mb-1 text-sm">
+                  <div className="flex justify-between mb-2 text-sm">
                     <span className={`font-medium ${(event.expenses || 0) / event.budget > 0.8 ? 'text-red-500' : 'text-muted-foreground'}`}>
                       {Math.round((event.expenses || 0) / event.budget * 100)}% utilizado
                     </span>
