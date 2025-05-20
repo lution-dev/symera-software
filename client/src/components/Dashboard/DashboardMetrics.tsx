@@ -25,7 +25,11 @@ const MetricCard: React.FC<MetricCardProps> = ({
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-1">{value}</h2>
         </div>
         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full flex items-center justify-center">
-          <i className={`far fa-${icon} text-primary text-lg sm:text-xl`}></i>
+          <i className={`${
+            // Alguns ícones específicos não têm versão outline, então usamos a versão solid para eles
+            icon === 'calendar-check' || icon === 'clipboard-list' || icon === 'calendar-alt' 
+            ? 'fas' : 'far'
+          } fa-${icon} text-primary text-lg sm:text-xl`}></i>
         </div>
       </div>
       {change && (
