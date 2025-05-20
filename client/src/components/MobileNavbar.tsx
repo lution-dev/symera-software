@@ -226,7 +226,7 @@ const MobileNavbar: React.FC = () => {
             <Link href="/" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
                 <i className={cn(
-                  "fas fa-home h-6 w-6 mb-1",
+                  "far fa-home h-6 w-6 mb-1",
                   isActivePath('/') ? "text-primary" : "text-foreground"
                 )}></i>
                 <span className={cn(

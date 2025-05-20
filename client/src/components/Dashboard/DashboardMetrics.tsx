@@ -25,13 +25,13 @@ const MetricCard: React.FC<MetricCardProps> = ({
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-1">{value}</h2>
         </div>
         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full flex items-center justify-center">
-          <i className={`fas fa-${icon} text-primary text-lg sm:text-xl`}></i>
+          <i className={`far fa-${icon} text-primary text-lg sm:text-xl`}></i>
         </div>
       </div>
       {change && (
         <div className="mt-3 sm:mt-4 flex items-center flex-wrap">
           <span className={`text-xs sm:text-sm flex items-center ${change.trend === "up" ? "text-green-400" : change.trend === "down" ? "text-red-400" : "text-gray-400"}`}>
-            <i className={`fas fa-arrow-${change.trend} mr-1`}></i> {change.value}
+            <i className={`far fa-arrow-${change.trend} mr-1`}></i> {change.value}
           </span>
           <span className="text-muted-foreground text-xs sm:text-sm ml-2">{change.text}</span>
         </div>
