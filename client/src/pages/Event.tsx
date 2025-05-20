@@ -707,37 +707,67 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Tabs for Tasks, Timeline, etc. */}
-      <Tabs defaultValue="tasks" className="mb-8">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Coluna da esquerda - Menu vertical com abas (260px) */}
-          <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
-            <TabsList className="flex flex-col w-full space-y-1 p-2">
-              <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
-                <i className="fas fa-tasks mr-3"></i> 
-                Tarefas 
-                {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
-              </TabsTrigger>
-              <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
-                <i className="fas fa-users mr-3"></i> 
-                Equipe 
-                {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
-              </TabsTrigger>
-              <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
-                <i className="fas fa-calendar-alt mr-3"></i> 
-                Cronograma
-              </TabsTrigger>
-              <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
-                <i className="fas fa-history mr-3"></i> 
-                Atividades
-                {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
-              </TabsTrigger>
-            </TabsList>
+      {/* Navegação por abas vertical com suporte mobile */}
+      <div className="mb-8">
+        <Tabs defaultValue="tasks">
+          {/* Menu hamburguer para mobile */}
+          <div className="md:hidden flex items-center justify-between mb-4 bg-card p-3 rounded-lg shadow-sm">
+            <h2 className="font-medium text-lg">Seções do Evento</h2>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <i className="fas fa-bars mr-2"></i> Seções
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="tasks"]')?.click()}>
+                  <i className="fas fa-tasks mr-2"></i> Tarefas 
+                  {tasks?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="team"]')?.click()}>
+                  <i className="fas fa-users mr-2"></i> Equipe
+                  {team?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="timeline"]')?.click()}>
+                  <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="activity"]')?.click()}>
+                  <i className="fas fa-history mr-2"></i> Atividades
+                  {activities?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
-          {/* Coluna da direita - Conteúdo da aba selecionada */}
-          <div className="flex-1">
-            <TabsContent value="tasks" className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Coluna da esquerda - Menu vertical com abas (260px) - Visível apenas em desktop/tablet */}
+            <div className="hidden md:block md:w-[260px] bg-card rounded-lg shadow-sm">
+              <TabsList className="flex flex-col w-full space-y-1 p-2">
+                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-tasks mr-3"></i> 
+                  Tarefas 
+                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-users mr-3"></i> 
+                  Equipe 
+                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-calendar-alt mr-3"></i> 
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-history mr-3"></i> 
+                  Atividades
+                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            {/* Coluna da direita - Conteúdo da aba selecionada - Ocupa toda a largura em mobile */}
+            <div className="flex-1">
+              <TabsContent value="tasks" className="space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
                 <h2 className="text-xl font-semibold">Checklist do Evento</h2>
                 <div className="flex flex-wrap w-full sm:w-auto gap-2">
