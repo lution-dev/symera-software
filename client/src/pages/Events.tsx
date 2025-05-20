@@ -89,6 +89,15 @@ const Events: React.FC = () => {
                 className="pl-10 h-10 text-sm bg-muted/50 border-0"
               />
               <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
+              {searchTerm && (
+                <button
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"
+                  onClick={() => setSearchTerm("")}
+                  aria-label="Limpar busca"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -127,19 +136,6 @@ const Events: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-9 w-9 flex items-center justify-center p-0"
-            onClick={() => {
-              setSearchTerm("");
-              setEventTypeFilter("all");
-              setSortBy("date");
-            }}
-          >
-            <i className="fas fa-sync-alt text-xs"></i>
-          </Button>
         </div>
         
         {/* Versão Desktop: Layout original */}
