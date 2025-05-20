@@ -559,45 +559,43 @@ const Event: React.FC<EventProps> = ({ id }) => {
             const diffTime = eventDate.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
-            if (diffDays <= 0) {
-              // Hoje ou evento já realizado - Design diferente
+            if (diffDays < 0) {
+              // Evento já realizado - Design minimalista
               return (
-                <>
-                  <div className={`text-center mb-4 ${diffDays < 0 ? "opacity-80" : ""}`}>
-                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${
-                      diffDays < 0 ? "bg-blue-500/10" : "bg-green-500/10"
-                    } mb-2`}>
-                      <i className={`fas ${diffDays < 0 ? "fa-calendar-check" : "fa-calendar-day"} text-2xl ${
-                        diffDays < 0 ? "text-blue-500" : "text-green-500"
-                      }`}></i>
-                    </div>
-                    <h4 className="text-lg font-medium">
-                      {diffDays < 0 ? "Evento Realizado" : "Hoje!"}
-                    </h4>
+                <div className="flex items-center justify-center">
+                  <div className="inline-flex items-center bg-blue-500/10 text-blue-500 px-4 py-2 rounded-full">
+                    <i className="fas fa-check-circle mr-2"></i>
+                    <span className="font-medium">Evento Realizado</span>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm mb-1">Data do evento</p>
-                    <p className="font-medium">{formatDate(event.date)}</p>
+                </div>
+              );
+            } else if (diffDays === 0) {
+              // Evento é hoje - Design destacado
+              return (
+                <div className="flex flex-col items-center">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500/20 mb-3">
+                    <i className="fas fa-calendar-day text-green-500 text-3xl"></i>
                   </div>
-                </>
+                  <h4 className="text-xl font-semibold text-green-500 mb-1">HOJE!</h4>
+                  <p className="font-medium">{formatDate(event.date)}</p>
+                </div>
               );
             } else {
-              // Evento futuro - Design original
+              // Evento futuro - Design otimizado
               return (
-                <>
-                  <div className="text-center mb-4">
-                    <span className="text-4xl font-bold block gradient-text">
+                <div className="flex items-center justify-center">
+                  <div className="text-center">
+                    <span className="text-5xl font-bold block gradient-text mb-2">
                       {diffDays}
                     </span>
-                    <span className="text-muted-foreground">
+                    <span className="font-medium text-muted-foreground">
                       {diffDays === 1 ? "dia restante" : "dias restantes"}
                     </span>
+                    <div className="mt-3 text-sm font-medium">
+                      {formatDate(event.date)}
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm mb-1">Data do evento</p>
-                    <p className="font-medium">{formatDate(event.date)}</p>
-                  </div>
-                </>
+                </div>
               );
             }
           })() : (
