@@ -341,12 +341,7 @@ const Dashboard: React.FC = () => {
                 {recentActivities.slice(0, 5).map((activity: any) => (
                   <div key={activity.id} className="flex items-start py-1 sm:py-2 border-b border-border/30 last:border-0">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className={`${
-                        // Ícones que não têm versão outline precisam usar a versão solid
-                        activity.type === 'task_completed' || 
-                        activity.type === 'calendar-plus' ||
-                        activity.type === 'user-plus' ? 'fas' : 'far'
-                      } fa-${
+                      <i className={`far fa-${
                         activity.type === 'task_completed' ? 'check' :
                         activity.type === 'event_created' ? 'calendar-plus' :
                         activity.type === 'comment_added' ? 'comment' :
