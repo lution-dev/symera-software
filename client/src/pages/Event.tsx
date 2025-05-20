@@ -379,52 +379,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </div>
           </div>
           
-          {/* Status no fundo do card */}
-          <div className="mt-auto pt-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium">Status</span>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-                    <i className="fas fa-pencil-alt text-xs mr-1.5"></i> Alterar Status
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Selecione o novo status para o evento. Isso afetará como o evento é exibido em toda a plataforma.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <div className="py-4">
-                    <Select
-                      defaultValue={event.status}
-                      onValueChange={(value) => {
-                        updateEventStatusMutation.mutate(value);
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecione o status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Status</SelectLabel>
-                          <SelectItem value="planning">🔵 Planejamento</SelectItem>
-                          <SelectItem value="confirmed">🟢 Confirmado</SelectItem>
-                          <SelectItem value="in_progress">🟠 Em andamento</SelectItem>
-                          <SelectItem value="completed">✅ Concluído</SelectItem>
-                          <SelectItem value="cancelled">🔴 Cancelado</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-            
+          {/* Status simplificado */}
+          <div className="mt-auto pt-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                 event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
@@ -453,6 +409,47 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 'Planejamento'}
               </span>
             </div>
+            
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 px-0 rounded-full">
+                  <i className="fas fa-pencil-alt text-xs"></i>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Selecione o novo status para o evento.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                  <Select
+                    defaultValue={event.status}
+                    onValueChange={(value) => {
+                      updateEventStatusMutation.mutate(value);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Status</SelectLabel>
+                        <SelectItem value="planning">🔵 Planejamento</SelectItem>
+                        <SelectItem value="confirmed">🟢 Confirmado</SelectItem>
+                        <SelectItem value="in_progress">🟠 Em andamento</SelectItem>
+                        <SelectItem value="completed">✅ Concluído</SelectItem>
+                        <SelectItem value="cancelled">🔴 Cancelado</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
