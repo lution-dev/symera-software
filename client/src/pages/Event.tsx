@@ -220,6 +220,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
     }
   };
 
+  const [activeTab, setActiveTab] = useState("tasks");
+  
   return (
     <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
       {/* Breadcrumb Navigation - visível em desktop e tablet, mas oculto em mobile */}
