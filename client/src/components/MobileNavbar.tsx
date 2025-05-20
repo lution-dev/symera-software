@@ -11,6 +11,7 @@ import {
   SheetClose
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { Home, Calendar, Plus, CalendarDays, User, Menu, ChevronLeft, Truck, DollarSign, Users, Settings } from "lucide-react";
 import symeraLogo from "@assets/symera-icon.png";
 
 
@@ -128,7 +129,7 @@ const MobileNavbar: React.FC = () => {
                 <Sheet>
                   <SheetTrigger asChild>
                     <button className="h-9 w-9 flex items-center justify-center text-foreground">
-                      <i className="fas fa-bars"></i>
+                      <Menu className="h-5 w-5" />
                     </button>
                   </SheetTrigger>
                   <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
@@ -194,7 +195,7 @@ const MobileNavbar: React.FC = () => {
                   ? '/settings'
                   : '/'}>
                 <div className="flex items-center">
-                  <i className="fas fa-chevron-left mr-2 text-primary"></i>
+                  <ChevronLeft className="h-5 w-5 mr-2 text-primary" />
                 </div>
               </Link>
             )}
@@ -225,10 +226,10 @@ const MobileNavbar: React.FC = () => {
           <div className="flex-1 flex justify-center touch-action-manipulation">
             <Link href="/" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-                <i className={cn(
-                  "far fa-home h-6 w-6 mb-1",
+                <Home className={cn(
+                  "h-6 w-6 mb-1",
                   isActivePath('/') ? "text-primary" : "text-foreground"
-                )}></i>
+                )} />
                 <span className={cn(
                   "text-xs text-center w-full",
                   isActivePath('/') ? "text-primary" : "text-foreground"
@@ -242,10 +243,10 @@ const MobileNavbar: React.FC = () => {
           <div className="flex-1 flex justify-center touch-action-manipulation">
             <Link href="/events" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-                <i className={cn(
-                  "far fa-calendar-alt h-6 w-6 mb-1",
+                <Calendar className={cn(
+                  "h-6 w-6 mb-1",
                   isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
-                )}></i>
+                )} />
                 <span className={cn(
                   "text-xs text-center w-full",
                   isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
@@ -261,7 +262,7 @@ const MobileNavbar: React.FC = () => {
             <Link href="/events/new" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
                 <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
-                  <i className="far fa-plus text-white"></i>
+                  <Plus className="h-5 w-5 text-white" />
                 </div>
                 <span className={cn(
                   "text-xs mt-1 text-center w-full",
@@ -276,10 +277,10 @@ const MobileNavbar: React.FC = () => {
           <div className="flex-1 flex justify-center touch-action-manipulation">
             <Link href="/schedule" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-                <i className={cn(
-                  "far fa-clipboard-list h-6 w-6 mb-1",
+                <CalendarDays className={cn(
+                  "h-6 w-6 mb-1",
                   isActivePath('/schedule') ? "text-primary" : "text-foreground"
-                )}></i>
+                )} />
                 <span className={cn(
                   "text-xs text-center w-full",
                   isActivePath('/schedule') ? "text-primary" : "text-foreground"
@@ -301,14 +302,10 @@ const MobileNavbar: React.FC = () => {
                     <img src={user.profileImageUrl} alt="Perfil" className="h-full w-full object-cover" />
                   </div>
                 ) : (
-                  <div className={cn(
-                    "h-7 w-7 rounded-full overflow-hidden flex items-center justify-center bg-gradient-primary",
-                    isActivePath('/profile') ? "border-2 border-primary" : ""
-                  )}>
-                    <span className="text-xs text-white">
-                      {getInitials(user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || '')}
-                    </span>
-                  </div>
+                  <User className={cn(
+                    "h-6 w-6 mb-1",
+                    isActivePath('/profile') ? "text-primary" : "text-foreground"
+                  )} />
                 )}
                 <span className={cn(
                   "text-xs mt-1 text-center w-full",
