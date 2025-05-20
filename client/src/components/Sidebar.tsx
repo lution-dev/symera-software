@@ -106,25 +106,19 @@ const Sidebar: React.FC = () => {
       onMouseLeave={handleMouseLeave}
     >
       {/* Logo section */}
-      <div className={cn(
-        "relative flex items-center border-b border-border", 
-        expanded ? "p-4" : "justify-center p-3"
-      )}>
+      <div className="relative flex items-center border-b border-border p-4">
         <div className={cn(
           "flex items-center",
-          !expanded ? "justify-center" : ""
+          !expanded ? "justify-center w-full" : ""
         )}>
           <Logo className="h-8 w-auto" />
-          {expanded && <h1 className="text-xl font-bold gradient-text ml-3">Symera</h1>}
+          <h1 className={cn("text-xl font-bold gradient-text ml-3", !expanded && "hidden")}>Symera</h1>
         </div>
       </div>
       
       {/* Navigation */}
-      <nav className={cn(
-        "flex-1 space-y-6",
-        expanded ? "p-4" : "p-2"
-      )}>
-        <div className="space-y-1">
+      <nav className="flex-1 space-y-6 p-4">
+        <div className="space-y-4">
           {navItems.map((item) => (
             <TooltipProvider key={item.path} delayDuration={!expanded ? 100 : 1000}>
               <Tooltip>
@@ -156,10 +150,7 @@ const Sidebar: React.FC = () => {
       </nav>
       
       {/* User profile */}
-      <div className={cn(
-        "border-t border-border",
-        expanded ? "p-4" : "p-2"
-      )}>
+      <div className="border-t border-border p-4">
         <div className={cn(
           "flex items-center",
           !expanded ? "justify-center" : "justify-between w-full"
