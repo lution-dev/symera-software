@@ -8,6 +8,7 @@ import {
   activityLogs,
   budgetItems,
   expenses,
+  taskReminders,
   type User,
   type Event,
   type Task,
@@ -26,6 +27,8 @@ import {
   type InsertActivityLog,
   type InsertBudgetItem,
   type InsertExpense,
+  type TaskReminder,
+  type InsertTaskReminder,
 } from "@shared/schema";
 import { db, executeWithRetry } from "./db";
 import { eq, and, or, desc, gte, lte, sql } from "drizzle-orm";
