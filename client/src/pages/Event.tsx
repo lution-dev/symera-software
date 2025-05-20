@@ -38,12 +38,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AlertTriangle } from "lucide-react";
+import EventTabs from "@/components/Event/EventTabs";
 
 interface EventProps {
   id?: string;
 }
 
 const Event: React.FC<EventProps> = ({ id }) => {
+  const [activeTab, setActiveTab] = useState("tasks");
   const [location] = useLocation();
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -103,7 +105,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
     mutationFn: async (newStatus: string) => {
       return apiRequest(`/api/events/${eventId}`, { 
         method: "PATCH",
-        body: { status: newStatus }
+        body: JSON.stringify({ status: newStatus })
       });
     },
     onSuccess: () => {
@@ -250,8 +252,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </ol>
       </nav>
       
-      
-      
       {/* Layout de dois cards lado a lado (1:1) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 sm:mb-6">
         {/* Card da esquerda - Mantém o design atual mas encapsulado como um card lateral */}
@@ -368,7 +368,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
               {event.budget && (
                 <div className="flex items-start">
                   <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                    <i className="fas fa-coins text-sm"></i>
+                    <i className="fas fa-money-bill-wave text-sm"></i>
                   </div>
                   <div className="ml-3">
                     <p className="text-xs text-muted-foreground">Orçamento</p>
@@ -379,481 +379,270 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </div>
           </div>
           
-          {/* Status simplificado */}
-          <div className="flex items-center justify-between border-t border-border/30 pt-2 mt-0">
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
-                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-[hsl(var(--event-confirmed))]' : 
-                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
-                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
-                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-[hsl(var(--event-completed))]' : 
-                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-[hsl(var(--event-cancelled))]' : 
-                'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]'
-              }`}>
-                <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                  event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
-                  event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
-                  event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                  event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
-                  event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
-                  event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
-                  'bg-[hsl(var(--event-planning))]'
-                }`}></span>
-                {event.status === 'planning' ? 'Planejamento' : 
-                event.status === 'confirmed' ? 'Confirmado' : 
-                event.status === 'in_progress' ? 'Em andamento' : 
-                event.status === 'active' ? 'Ativo' : 
-                event.status === 'completed' ? 'Concluído' : 
-                event.status === 'cancelled' ? 'Cancelado' : 
-                'Planejamento'}
-              </span>
-            </div>
-            
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 px-0 rounded-full">
-                  <i className="fas fa-pencil-alt text-xs"></i>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Selecione o novo status para o evento.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="py-4">
-                  <Select
-                    defaultValue={event.status}
-                    onValueChange={(value) => {
-                      updateEventStatusMutation.mutate(value);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione o status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Status</SelectLabel>
-                        <SelectItem value="planning">🔵 Planejamento</SelectItem>
-                        <SelectItem value="confirmed">🟢 Confirmado</SelectItem>
-                        <SelectItem value="in_progress">🟠 Em andamento</SelectItem>
-                        <SelectItem value="completed">✅ Concluído</SelectItem>
-                        <SelectItem value="cancelled">🔴 Cancelado</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+          {/* Status do evento com seletor de status (dropdown) */}
+          <div className="mt-auto">
+            <p className="text-xs text-muted-foreground mb-1.5">Status</p>
+            <Select 
+              value={event.status}
+              onValueChange={(value) => {
+                if (value !== event.status) {
+                  updateEventStatusMutation.mutate(value);
+                }
+              }}
+            >
+              <SelectTrigger className={`
+                h-9 w-full border border-input px-3 py-1
+                ${event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
+                'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'}
+              `}>
+                <SelectValue placeholder="Selecionar status">
+                  {event.status === 'planning' ? 'Planejamento' : 
+                  event.status === 'confirmed' ? 'Confirmado' : 
+                  event.status === 'in_progress' ? 'Em andamento' : 
+                  event.status === 'active' ? 'Ativo' : 
+                  event.status === 'completed' ? 'Concluído' : 
+                  event.status === 'cancelled' ? 'Cancelado' : 
+                  'Planejamento'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="planning" className="bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]">
+                    Planejamento
+                  </SelectItem>
+                  <SelectItem value="confirmed" className="bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]">
+                    Confirmado
+                  </SelectItem>
+                  <SelectItem value="in_progress" className="bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]">
+                    Em andamento
+                  </SelectItem>
+                  <SelectItem value="completed" className="bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]">
+                    Concluído
+                  </SelectItem>
+                  <SelectItem value="cancelled" className="bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]">
+                    Cancelado
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
       
-      {/* Alerta para tarefas pendentes quando evento está próximo */}
-      
-      {/* Alerta para tarefas pendentes quando evento está próximo */}
-      {(event as any).warningMessage && (
-        <div className="mb-6 p-4 bg-amber-950/30 border-l-4 border-amber-500 rounded-lg text-amber-100">
-          <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
-            <p>{(event as any).warningMessage}</p>
+      {/* Resumo financeiro, se tiver orçamento definido */}
+      {event.budget && (
+        <div className="bg-card rounded-xl p-3 sm:p-5 shadow-md mb-4 sm:mb-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Resumo Financeiro</h2>
+            <Link href={`/events/${eventId}/budget`}>
+              <Button variant="outline" size="sm">
+                <i className="fas fa-external-link-alt mr-2"></i> Ver detalhes
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Orçamento Total</p>
+              <p className="text-lg font-semibold">{formatCurrency(event.budget)}</p>
+            </div>
+            
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Despesas</p>
+              <p className="text-lg font-semibold">{formatCurrency(event.expenses || 0)}</p>
+            </div>
+            
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Saldo</p>
+              <p className={`text-lg font-semibold ${
+                ((event.budget || 0) - (event.expenses || 0)) < 0 
+                  ? 'text-red-500' 
+                  : 'text-green-500'
+              }`}>
+                {formatCurrency((event.budget || 0) - (event.expenses || 0))}
+              </p>
+            </div>
+            
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Utilizado</p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className={`${
+                      ((event.expenses || 0) / (event.budget || 1)) > 1 
+                        ? 'bg-red-500' 
+                        : 'bg-green-500'
+                    } h-2 rounded-full`}
+                    style={{ 
+                      width: `${Math.min(((event.expenses || 0) / (event.budget || 1)) * 100, 100)}%` 
+                    }}
+                  ></div>
+                </div>
+                <span className="text-xs font-medium">
+                  {Math.round(((event.expenses || 0) / (event.budget || 1)) * 100)}%
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}
       
-
+      {/* Caixa de alerta - se a data estiver próxima (7 dias) e o evento não estiver finalizado */}
+      {event.date && !['completed', 'cancelled'].includes(event.status) && new Date(event.date) > new Date() && new Date(event.date).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 && (
+        <div className="bg-[hsl(var(--event-in-progress))]/10 border border-[hsl(var(--event-in-progress))]/20 text-[hsl(var(--event-in-progress))] rounded-xl p-4 mb-4 sm:mb-6 flex items-start">
+          <AlertTriangle className="w-5 h-5 mr-3 mt-0.5" />
+          <div>
+            <h3 className="font-semibold">O evento está se aproximando!</h3>
+            <p className="text-sm mt-1">
+              Faltam {Math.ceil((new Date(event.date).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000))} dias para o evento. 
+              Verifique se todas as tarefas importantes foram concluídas.
+            </p>
+          </div>
+        </div>
+      )}
       
-      {/* Painel de Gestão Estratégica do Evento */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
+      {/* Caixa de progresso - mostrar o progresso do evento baseado nas tarefas */}
+      <div className="bg-card rounded-xl p-4 sm:p-5 shadow-md mb-4 sm:mb-6">
+        <h2 className="text-lg font-semibold mb-4">Progresso do Evento</h2>
         
-        {/* Card de Progresso & Etapas */}
-        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-primary/70 flex flex-col h-full">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center mr-2 sm:mr-3">
-              <i className="fas fa-tasks text-primary text-sm sm:text-base"></i>
+        <div className="flex flex-col sm:flex-row gap-6">
+          {/* Barra de progresso */}
+          <div className="flex-1">
+            <div className="mb-1 sm:mb-2 text-xs sm:text-sm font-medium">Progresso da preparação</div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+              <div 
+                className="bg-primary h-2.5 rounded-full" 
+                style={{ width: `${progress}%` }}
+              ></div>
             </div>
-            <h3 className="font-semibold text-base sm:text-lg">Progresso do Projeto</h3>
-          </div>
-          
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <div className={`w-3 h-3 rounded-full mr-2 ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
-              <span className="text-xs sm:text-sm font-medium">{progress}% completo</span>
-            </div>
-            <span className="text-primary font-medium text-xs sm:text-sm">{completedTasks}/{totalTasks} tarefas</span>
-          </div>
-          
-          <div className="w-full h-2 bg-muted rounded-full mb-4 sm:mb-5 overflow-hidden">
-            <div 
-              className={`h-full rounded-full ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-3 text-center mb-4">
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
-              <div className={`text-base sm:text-lg font-bold ${todoTasks > 0 ? 'text-red-500' : 'text-muted-foreground'}`}>{todoTasks}</div>
-              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Pendentes</div>
-            </div>
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
-              <div className={`text-base sm:text-lg font-bold ${inProgressTasks > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>{inProgressTasks}</div>
-              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Em progr.</div>
-            </div>
-            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
-              <div className={`text-base sm:text-lg font-bold ${completedTasks > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{completedTasks}</div>
-              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Concluídas</div>
+            <div className="flex justify-between">
+              <span className="text-xs text-muted-foreground">{progress}% concluído</span>
+              <span className="text-xs text-muted-foreground">Meta: 100%</span>
             </div>
           </div>
           
-          <div className="mt-auto pt-2">
-            <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => navigate(`/events/${eventId}/tasks`)}>
-              <i className="fas fa-chart-line mr-1 sm:mr-2"></i> Análise Detalhada
-            </Button>
+          {/* Estatísticas de tarefas */}
+          <div className="flex justify-around sm:justify-end gap-3 sm:gap-4 flex-wrap sm:flex-nowrap mt-2 sm:mt-0">
+            <div className="flex flex-col items-center">
+              <div className="text-lg sm:text-xl font-semibold text-primary">{totalTasks}</div>
+              <div className="text-xs text-muted-foreground">Total</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="text-lg sm:text-xl font-semibold text-green-500">{completedTasks}</div>
+              <div className="text-xs text-muted-foreground">Concluído</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="text-lg sm:text-xl font-semibold text-blue-500">{inProgressTasks}</div>
+              <div className="text-xs text-muted-foreground">Em andamento</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="text-lg sm:text-xl font-semibold text-gray-400">{todoTasks}</div>
+              <div className="text-xs text-muted-foreground">A fazer</div>
+            </div>
           </div>
-        </div>
-        
-        {/* Card de Orçamento & Financeiro */}
-        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-blue-500/70 flex flex-col h-full">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-2 sm:mr-3">
-              <i className="fas fa-wallet text-blue-500 text-sm sm:text-base"></i>
-            </div>
-            <h3 className="font-semibold text-base sm:text-lg">Gestão Financeira</h3>
-          </div>
-          
-          {event.budget ? (
-            <>
-              <div className="space-y-4 sm:space-y-6 mb-4">
-                {/* Valores principais com formatação abreviada para valores grandes */}
-                <div className="flex justify-between items-center flex-wrap gap-y-3 sm:gap-y-4">
-                  <div className="min-w-[100px] sm:min-w-[110px]">
-                    <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Orçamento</div>
-                    <div className="text-base sm:text-xl font-bold">
-                      {event.budget >= 10000 
-                        ? `R$ ${(event.budget / 1000).toFixed(0)}${event.budget >= 1000000 ? 'M' : 'K'}`
-                        : formatCurrency(event.budget)
-                      }
-                    </div>
-                  </div>
-                  <div className="min-w-[100px] sm:min-w-[110px] text-right">
-                    <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Gasto atual</div>
-                    <div className="text-base sm:text-xl font-bold">
-                      {(event.expenses || 0) >= 10000 
-                        ? `R$ ${((event.expenses || 0) / 1000).toFixed(0)}${(event.expenses || 0) >= 1000000 ? 'M' : 'K'}`
-                        : formatCurrency(event.expenses || 0)
-                      }
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Barra de progresso e status */}
-                <div>
-                  <div className="flex flex-wrap justify-between mb-2 text-xs sm:text-sm gap-2">
-                    <span className={`font-medium whitespace-nowrap ${(event.expenses || 0) / event.budget > 0.8 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                      {Math.round((event.expenses || 0) / event.budget * 100)}% utilizado
-                    </span>
-                    <span className="font-medium whitespace-nowrap">
-                      {(event.budget - (event.expenses || 0)) >= 10000 
-                        ? `R$ ${((event.budget - (event.expenses || 0)) / 1000).toFixed(0)}${(event.budget - (event.expenses || 0)) >= 1000000 ? 'M' : 'K'} disponível`
-                        : `${formatCurrency(event.budget - (event.expenses || 0))} disponível`
-                      }
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2 sm:h-3 overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${
-                        (event.expenses || 0) / event.budget > 0.9 ? 'bg-red-500' : 
-                        (event.expenses || 0) / event.budget > 0.7 ? 'bg-amber-500' : 
-                        'bg-blue-500'
-                      }`}
-                      style={{ width: `${Math.min(100, Math.round((event.expenses || 0) / event.budget * 100))}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-auto pt-2">
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => navigate(`/events/${eventId}/budget`)}>
-                  <i className="fas fa-chart-pie mr-1 sm:mr-2"></i> Análise de Gastos
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-4 sm:py-6 flex flex-col items-center flex-grow">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-muted flex items-center justify-center mb-3">
-                <i className="fas fa-money-bill-wave text-muted-foreground text-base sm:text-xl"></i>
-              </div>
-              <p className="text-muted-foreground text-xs sm:text-sm mb-4">Nenhum orçamento definido</p>
-              <Button variant="outline" size="sm" className="mt-auto text-xs sm:text-sm">
-                <i className="fas fa-plus mr-1 sm:mr-2"></i> Adicionar Orçamento
-              </Button>
-            </div>
-          )}
-        </div>
-        
-        {/* Card de Cronograma & Prazos */}
-        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-purple-500/70 flex flex-col h-full">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-2 sm:mr-3">
-              <i className="fas fa-calendar-alt text-purple-500 text-sm sm:text-base"></i>
-            </div>
-            <h3 className="font-semibold text-base sm:text-lg">Cronograma</h3>
-          </div>
-          
-          {event.date ? (() => {
-            const eventDate = new Date(event.date);
-            const today = new Date();
-            const diffTime = eventDate.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays < 0) {
-              // Evento já realizado
-              return (
-                <div className="flex flex-col items-center justify-center flex-grow text-center py-3 sm:py-4">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-2 sm:mb-3">
-                    <i className="fas fa-flag-checkered text-blue-500 text-base sm:text-xl"></i>
-                  </div>
-                  <h4 className="text-base sm:text-lg font-medium text-blue-500 mb-1">Evento Realizado</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">em {formatDate(event.date)}</p>
-                  <Button variant="outline" size="sm" className="mt-3 sm:mt-4 text-xs sm:text-sm">
-                    <i className="fas fa-clipboard-check mr-1 sm:mr-2"></i> Gerar Relatório
-                  </Button>
-                </div>
-              );
-            } else if (diffDays === 0) {
-              // Evento é hoje
-              return (
-                <div className="flex flex-col items-center justify-center flex-grow text-center">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-green-500/20 flex items-center justify-center mb-2 sm:mb-3 animate-pulse">
-                    <i className="fas fa-calendar-day text-green-500 text-2xl sm:text-3xl"></i>
-                  </div>
-                  <h4 className="text-xl sm:text-2xl font-bold text-green-500 mb-1">HOJE!</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">{formatDate(event.date)}</p>
-                  
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full mt-2">
-                    <div className="bg-muted/50 p-1.5 sm:p-2 rounded-md text-center">
-                      <div className="text-[0.65rem] sm:text-xs text-muted-foreground">Pendentes</div>
-                      <div className="text-base sm:text-lg font-bold text-red-500">{todoTasks}</div>
-                    </div>
-                    <div className="bg-muted/50 p-1.5 sm:p-2 rounded-md text-center">
-                      <div className="text-[0.65rem] sm:text-xs text-muted-foreground">Prontos</div>
-                      <div className="text-base sm:text-lg font-bold text-green-500">{completedTasks}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            } else {
-              // Evento futuro
-              const urgency = diffDays <= 7 ? 'text-amber-500' : (diffDays <= 30 ? 'text-blue-500' : 'text-purple-500');
-              
-              return (
-                <div className="flex flex-col items-center flex-grow">
-                  <div className="text-center mb-3 sm:mb-4">
-                    <span className={`text-4xl sm:text-5xl font-bold block ${urgency}`}>
-                      {diffDays}
-                    </span>
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {diffDays === 1 ? "dia restante" : "dias restantes"}
-                    </span>
-                  </div>
-                  
-                  <div className="w-full bg-muted/50 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <i className="fas fa-calendar-week text-muted-foreground mr-1 sm:mr-2"></i>
-                        <span className="text-xs sm:text-sm font-medium">{formatDate(event.date)}</span>
-                      </div>
-                      <Badge variant="outline" className={`text-xs ${diffDays <= 7 ? 'border-amber-500 text-amber-500' : ''}`}>
-                        {diffDays <= 7 ? 'Próximo' : 'Planejado'}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="w-full mt-auto">
-                    <div className="mb-1 sm:mb-2 text-xs sm:text-sm font-medium">Progresso da preparação</div>
-                    <div className="flex items-center justify-between text-[0.65rem] sm:text-xs text-muted-foreground mb-1">
-                      <span>0%</span>
-                      <span>50%</span>
-                      <span>100%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-1.5 sm:h-2">
-                      <div 
-                        className={`h-full rounded-full ${
-                          progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-amber-500' : 'bg-green-500'
-                        }`}
-                        style={{ width: `${progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-          })() : (
-            <div className="text-center py-4 sm:py-6 flex flex-col items-center flex-grow">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-muted flex items-center justify-center mb-2 sm:mb-3">
-                <i className="fas fa-calendar-plus text-muted-foreground text-base sm:text-xl"></i>
-              </div>
-              <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4">Data do evento não definida</p>
-              <Button variant="outline" size="sm" className="mt-auto text-xs sm:text-sm">
-                <i className="fas fa-calendar-plus mr-1 sm:mr-2"></i> Definir Data
-              </Button>
-            </div>
-          )}
         </div>
       </div>
       
-      {/* Navegação por abas e conteúdo */}
-      <div className="mb-6">
-        {/* Adicionar o estado para controlar abas */}
-        <div className="mt-4">
-          <div className="flex flex-col sm:flex-row gap-6">
-            {/* Coluna esquerda - Menu vertical (~260px) */}
-            <div className="w-full sm:w-[260px] flex-shrink-0 mb-4 sm:mb-0 sm:border-r sm:pr-4">
-              <div className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
-                {/* Botões de navegação para as diferentes seções */}
-                <button 
-                  onClick={() => setActiveTab('tasks')}
-                  className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'tasks' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
-                >
-                  <i className="fas fa-tasks mr-2"></i> Tarefas 
-                  {Array.isArray(tasks) && tasks.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {tasks.length}
-                    </span>
-                  )}
-                </button>
-                
-                <button 
-                  onClick={() => setActiveTab('team')}
-                  className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'team' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
-                >
-                  <i className="fas fa-users mr-2"></i> Equipe
-                  {Array.isArray(team) && team.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {team.length}
-                    </span>
-                  )}
-                </button>
-                
-                <button 
-                  onClick={() => setActiveTab('timeline')}
-                  className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'timeline' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
-                >
-                  <i className="fas fa-calendar-alt mr-2"></i> Cronograma
-                  {Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {tasks.filter((task: any) => !!task.dueDate).length}
-                    </span>
-                  )}
-                </button>
-                
-                <button 
-                  onClick={() => setActiveTab('activity')}
-                  className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'activity' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
-                >
-                  <i className="fas fa-history mr-2"></i> Atividades
-                  {Array.isArray(activities) && activities.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {activities.length}
-                    </span>
-                  )}
-                </button>
+      {/* Navegação por abas vertical em formato de 2 colunas */}
+      <div className="mb-8">
+        <Tabs defaultValue="tasks">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Coluna da esquerda (~260px) - Menu vertical com abas */}
+            <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
+              <div className="p-3 border-b">
+                <h2 className="font-medium text-primary">Seções do Evento</h2>
               </div>
+              <TabsList className="flex flex-col w-full space-y-1 p-2">
+                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-tasks mr-3"></i> 
+                  Tarefas 
+                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-users mr-3"></i> 
+                  Equipe 
+                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-calendar-alt mr-3"></i> 
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-history mr-3"></i> 
+                  Atividades
+                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
             </div>
-      <div className="mb-8 flex flex-col sm:flex-row gap-6">
-        {/* Coluna esquerda - Menu vertical (~260px) */}
-        <div className="w-full sm:w-[260px] flex-shrink-0 mb-4 sm:mb-0 sm:border-r sm:pr-4">
-          <Tabs defaultValue="tasks" className="w-full" orientation="vertical">
-            <TabsList className="flex flex-row sm:flex-col h-auto space-x-1 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
-              <TabsTrigger value="tasks" className="justify-start w-full">
-                <div className="flex items-center w-full">
-                  <i className="fas fa-tasks mr-2"></i> 
-                  <span>Tarefas</span>
-                  {Array.isArray(tasks) && tasks.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {tasks.length}
-                    </span>
-                  )}
+            
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <i className="fas fa-bars mr-2"></i> Seções
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="tasks"]')?.click()}>
+                    <i className="fas fa-tasks mr-2"></i> Tarefas
+                    {tasks?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="team"]')?.click()}>
+                    <i className="fas fa-users mr-2"></i> Equipe
+                    {team?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="timeline"]')?.click()}>
+                    <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="activity"]')?.click()}>
+                    <i className="fas fa-history mr-2"></i> Atividades
+                    {activities?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            
+            <div className="bg-card rounded-lg flex-1 overflow-hidden">
+              <TabsContent value="tasks">
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
+                    <h2 className="text-xl font-semibold">Checklist</h2>
+                    <div className="flex flex-wrap w-full sm:w-auto gap-2">
+                      <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
+                        <i className="fas fa-plus mr-2"></i> Nova Tarefa
+                      </Button>
+                      <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
+                        <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
+                      </Button>
+                    </div>
+                  </div>
+                  <TaskList
+                    title=""
+                    tasks={tasks}
+                    loading={tasksLoading}
+                    showEventName={false}
+                  />
                 </div>
-              </TabsTrigger>
-              
-              <TabsTrigger value="team" className="justify-start w-full">
-                <div className="flex items-center w-full">
-                  <i className="fas fa-users mr-2"></i>
-                  <span>Equipe</span>
-                  {Array.isArray(team) && team.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {team.length}
-                    </span>
-                  )}
-                </div>
-              </TabsTrigger>
-              
-              <TabsTrigger value="timeline" className="justify-start w-full">
-                <div className="flex items-center w-full">
-                  <i className="fas fa-calendar-alt mr-2"></i>
-                  <span>Cronograma</span>
-                  {Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {tasks.filter((task: any) => !!task.dueDate).length}
-                    </span>
-                  )}
-                </div>
-              </TabsTrigger>
-              
-              <TabsTrigger value="activity" className="justify-start w-full">
-                <div className="flex items-center w-full">
-                  <i className="fas fa-history mr-2"></i>
-                  <span>Atividades</span>
-                  {Array.isArray(activities) && activities.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {activities.length}
-                    </span>
-                  )}
-                </div>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        
-        {/* Coluna direita - Abas */}
-        <div className="flex-grow">
-          <Tabs defaultValue="tasks">
-              <TabsContent value="tasks" className="mt-0 space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-                  <h2 className="text-xl font-semibold">Checklist do Evento</h2>
-                  <div className="flex flex-wrap w-full sm:w-auto gap-2">
-                    <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
-                      <i className="fas fa-plus mr-2"></i> Nova Tarefa
-                    </Button>
-                    <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                      <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
+              </TabsContent>
+              <TabsContent value="team">
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
+                    <h2 className="text-xl font-semibold">Membros da Equipe</h2>
+                    <Button onClick={() => navigate(`/events/${eventId}/team/add`)} variant="default">
+                      <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
                     </Button>
                   </div>
-                </div>
-                
-                <TaskList
-                  title=""
-                  tasks={tasks}
-                  loading={tasksLoading}
-                  showEventName={false}
-                />
-              </TabsContent>
-              
-              <TabsContent value="team" className="mt-0">
-                <div className="bg-card rounded-lg p-6">
-                  <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
                   
                   {teamLoading ? (
                     <div className="flex justify-center py-8">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                  ) : Array.isArray(team) && team.length > 0 ? (
+                  ) : team?.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {team.map((member: any) => (
                         <div key={member.id} className="bg-muted p-4 rounded-lg">
@@ -867,285 +656,62 @@ const Event: React.FC<EventProps> = ({ id }) => {
                             ) : (
                               <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
                                 <span className="text-primary font-medium">
-                                  {member.user.firstName?.charAt(0) || ''}
-                                  {member.user.lastName?.charAt(0) || ''}
+                                  {getInitials(`${member.user.firstName} ${member.user.lastName}`)}
                                 </span>
                               </div>
                             )}
                             <div>
-                              <p className="font-medium">
-                                {member.user.firstName} {member.user.lastName}
-                              </p>
+                              <p className="font-medium">{member.user.firstName} {member.user.lastName}</p>
                               <p className="text-sm text-muted-foreground">
                                 {member.role === 'organizer' ? 'Organizador' : 
                                  member.role === 'team_member' ? 'Membro da Equipe' : 
-                                 'Fornecedor'}
+                                 member.role === 'vendor' ? 'Fornecedor' : 
+                                 member.role}
                               </p>
                             </div>
                           </div>
-                          {member.user.email && (
-                            <div className="mt-3 text-sm flex items-center text-muted-foreground">
-                              <i className="fas fa-envelope mr-2"></i>
-                              <span>{member.user.email}</span>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <div className="mb-4 flex justify-center">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                          <i className="fas fa-users text-primary text-2xl"></i>
-                        </div>
+                      <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <i className="fas fa-users text-2xl text-primary"></i>
                       </div>
                       <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
-                      <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
-                      <Button>
+                      <p className="text-muted-foreground mb-6">
+                        Adicione membros à equipe para colaborar no evento.
+                      </p>
+                      <Button onClick={() => navigate(`/events/${eventId}/team/add`)}>
                         <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
                       </Button>
                     </div>
                   )}
                 </div>
               </TabsContent>
-              
-              <TabsContent value="timeline" className="mt-0">
-                <div className="bg-card rounded-lg p-6">
+              <TabsContent value="timeline">
+                <div className="p-4 sm:p-6">
                   <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
                   
                   {tasksLoading ? (
                     <div className="flex justify-center py-8">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                  ) : Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 ? (
-                    <div className="relative">
-                      {/* Timeline line */}
+                  ) : tasks?.length > 0 ? (
+                    <div className="relative pl-8">
                       <div className="absolute left-3.5 top-0 bottom-0 w-0.5 bg-muted"></div>
                       
-                      <div className="space-y-6">
-                        {tasks
-                          .filter((task: any) => !!task.dueDate)
-                          .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                          .map((task: any) => {
-                            const today = new Date();
-                            const dueDate = new Date(task.dueDate);
-                            const isPast = dueDate < today;
-                            const isToday = dueDate.toDateString() === today.toDateString();
-                            
-                            let statusColor = "bg-muted";
-                            if (task.status === "completed") {
-                              statusColor = "bg-green-500";
-                            } else if (isPast) {
-                              statusColor = "bg-red-500";
-                            } else if (isToday) {
-                              statusColor = "bg-yellow-500";
-                            } else if (task.status === "in_progress") {
-                              statusColor = "bg-blue-500";
-                            }
-                            
-                            return (
-                              <div key={task.id} className="flex">
-                                <div className="flex-shrink-0 z-10">
-                                  <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusColor} shadow-lg`}>
-                                    <i className={`fas fa-${
-                                      task.status === "completed" ? "check" : 
-                                      isPast ? "exclamation" : 
-                                      task.status === "in_progress" ? "spinner" : 
-                                      "calendar"
-                                    } text-white text-xs`}></i>
-                                  </div>
-                                </div>
-                                <div className="ml-4">
-                                  <h3 className={`font-medium ${task.status === "completed" ? "line-through opacity-60" : ""}`}>
-                                    {task.title}
-                                  </h3>
-                                  <p className="text-muted-foreground text-sm mt-1">
-                                    {formatDate(task.dueDate)}
-                                  </p>
-                                  <div className="mt-2 flex items-center">
-                                    <span className={`text-xs px-2 py-0.5 rounded-full mr-2 ${
-                                      task.status === "completed" ? "bg-green-500/10 text-green-500" :
-                                      task.status === "in_progress" ? "bg-blue-500/10 text-blue-500" :
-                                      "bg-gray-500/10 text-gray-400"
-                                    }`}>
-                                      {task.status === "completed" ? "Concluída" : 
-                                       task.status === "in_progress" ? "Em andamento" : 
-                                       "A fazer"}
-                                    </span>
-                                    {task.priority && (
-                                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                        task.priority === "high" ? "bg-red-500/10 text-red-500" :
-                                        task.priority === "medium" ? "bg-yellow-500/10 text-yellow-500" :
-                                        task.priority === "low" ? "bg-green-500/10 text-green-500" :
-                                        "bg-gray-500/10 text-gray-400"
-                                      }`}>
-                                        {task.priority === "high" ? "Alta prioridade" : 
-                                         task.priority === "medium" ? "Média prioridade" : 
-                                         "Baixa prioridade"}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="mb-4 flex justify-center">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                          <i className="fas fa-calendar-day text-primary text-2xl"></i>
-                        </div>
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
-                      <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
-                      <Button onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                        <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="activity" className="mt-0">
-                <ActivityFeed
-                  activities={activities}
-                  loading={activitiesLoading}
-                  limit={10}
-                />
-              </TabsContent>
-            </div>
-          </div>
-        </Tabs>
-      </div>
-        
-        {/* Right column - Content panels */}
-        <div className="flex-grow">
-          <div className="space-y-8">
-            {/* Tasks panel */}
-            <div id="tabpanel-tasks" className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-                <h2 className="text-xl font-semibold">Checklist do Evento</h2>
-                <div className="flex flex-wrap w-full sm:w-auto gap-2">
-                  <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
-                    <i className="fas fa-plus mr-2"></i> Nova Tarefa
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                    <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
-                  </Button>
-                </div>
-              </div>
-              
-              <TaskList
-                title=""
-                tasks={tasks}
-                loading={tasksLoading}
-                showEventName={false}
-              />
-            </div>
-            
-            {/* Team panel */}
-            <div id="tabpanel-team" className="mt-8">
-              <div className="bg-card rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
-                
-                {teamLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : Array.isArray(team) && team.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {team.map((member: any) => (
-                      <div key={member.id} className="bg-muted p-4 rounded-lg">
-                        <div className="flex items-center">
-                          {member.user.profileImageUrl ? (
-                            <img 
-                              src={member.user.profileImageUrl} 
-                              alt={`${member.user.firstName} ${member.user.lastName}`}
-                              className="w-12 h-12 rounded-full object-cover mr-4"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
-                              <span className="text-primary font-medium">
-                                {member.user.firstName?.charAt(0) || ''}
-                                {member.user.lastName?.charAt(0) || ''}
-                              </span>
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-medium">
-                              {member.user.firstName} {member.user.lastName}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {member.role === 'organizer' ? 'Organizador' : 
-                              member.role === 'team_member' ? 'Membro da Equipe' : 
-                              'Fornecedor'}
-                            </p>
-                          </div>
-                        </div>
-                        {member.user.email && (
-                          <div className="mt-3 text-sm flex items-center text-muted-foreground">
-                            <i className="fas fa-envelope mr-2"></i>
-                            <span>{member.user.email}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="mb-4 flex justify-center">
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <i className="fas fa-users text-primary text-2xl"></i>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
-                    <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
-                    <Button>
-                      <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Timeline panel */}
-            <div id="tabpanel-timeline" className="mt-8">
-              <div className="bg-card rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
-                
-                {tasksLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 ? (
-                  <div className="relative">
-                    {/* Timeline line */}
-                    <div className="absolute left-3.5 top-0 bottom-0 w-0.5 bg-muted"></div>
-                    
-                    <div className="space-y-6">
                       {tasks
-                        .filter((task: any) => !!task.dueDate)
+                        .filter((task: any) => task.dueDate)
                         .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                        .map((task: any) => {
+                        .map((task: any, index: number) => {
+                          const taskDate = new Date(task.dueDate);
                           const today = new Date();
-                          const dueDate = new Date(task.dueDate);
-                          const isPast = dueDate < today;
-                          const isToday = dueDate.toDateString() === today.toDateString();
                           
-                          let statusColor = "bg-muted";
-                          if (task.status === "completed") {
-                            statusColor = "bg-green-500";
-                          } else if (isPast) {
-                            statusColor = "bg-red-500";
-                          } else if (isToday) {
-                            statusColor = "bg-yellow-500";
-                          } else if (task.status === "in_progress") {
-                            statusColor = "bg-blue-500";
-                          }
+                          // Verificar se a tarefa está atrasada
+                          const isOverdue = taskDate < today && task.status !== 'completed';
                           
-                          // Helper functions for status and priority classes
+                          // Helper functions for styling
                           const getTaskStatusClass = (status: string) => {
                             switch (status) {
                               case "completed": return "bg-green-500/10 text-green-500";
@@ -1158,99 +724,90 @@ const Event: React.FC<EventProps> = ({ id }) => {
                             switch (priority) {
                               case "high": return "bg-red-500/10 text-red-500";
                               case "medium": return "bg-yellow-500/10 text-yellow-500";
-                              case "low": return "bg-green-500/10 text-green-500";
                               default: return "bg-gray-500/10 text-gray-400";
                             }
                           };
                           
                           return (
-                            <div key={task.id} className="flex">
-                              <div className="flex-shrink-0 z-10">
-                                <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusColor} shadow-lg`}>
-                                  <i className={`fas fa-${
-                                    task.status === "completed" ? "check" : 
-                                    isPast ? "exclamation" : 
-                                    task.status === "in_progress" ? "spinner" : 
-                                    "calendar"
-                                  } text-white text-xs`}></i>
-                                </div>
+                            <div key={task.id} className="mb-6 relative">
+                              <div className={`w-6 h-6 rounded-full ${
+                                task.status === 'completed' ? 'bg-green-500' : 
+                                task.status === 'in_progress' ? 'bg-blue-500' : 
+                                isOverdue ? 'bg-red-500' : 'bg-gray-300'
+                              } absolute left-[-19px] top-0 flex items-center justify-center text-white text-xs z-10`}>
+                                {task.status === 'completed' ? <i className="fas fa-check"></i> : 
+                                task.status === 'in_progress' ? <i className="fas fa-circle-notch"></i> : 
+                                isOverdue ? <i className="fas fa-exclamation"></i> : <i className="fas fa-circle"></i>}
                               </div>
-                              <div className="ml-4">
-                                <h3 className={`font-medium ${task.status === "completed" ? "line-through opacity-60" : ""}`}>
-                                  {task.title}
-                                </h3>
-                                <p className="text-muted-foreground text-sm mt-1">
-                                  {formatDate(task.dueDate)}
-                                </p>
-                                <div className="mt-2 flex items-center">
-                                  <span className={`text-xs px-2 py-0.5 rounded-full mr-2 ${getTaskStatusClass(task.status)}`}>
-                                    {task.status === "completed" ? "Concluída" : 
-                                    task.status === "in_progress" ? "Em andamento" : 
-                                    "A fazer"}
-                                  </span>
-                                  {task.priority && (
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${getTaskPriorityClass(task.priority)}`}>
-                                      {task.priority === "high" ? "Alta prioridade" : 
-                                      task.priority === "medium" ? "Média prioridade" : 
-                                      "Baixa prioridade"}
-                                    </span>
-                                  )}
+                              
+                              <div className="bg-muted p-4 rounded-lg">
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTaskStatusClass(task.status)}`}>
+                                        {task.status === 'completed' ? 'Concluído' : 
+                                        task.status === 'in_progress' ? 'Em andamento' : 
+                                        'A fazer'}
+                                      </span>
+                                      
+                                      {task.priority && (
+                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTaskPriorityClass(task.priority)}`}>
+                                          {task.priority === 'high' ? 'Alta' : 
+                                          task.priority === 'medium' ? 'Média' : 
+                                          'Baixa'}
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    <h3 className="font-medium text-base mb-1">{task.title}</h3>
+                                    
+                                    {task.description && (
+                                      <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
+                                    )}
+                                    
+                                    <div className="text-xs text-muted-foreground font-medium">
+                                      <i className="fas fa-calendar-day mr-1"></i>
+                                      {formatDate(task.dueDate)}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           );
                         })}
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="mb-4 flex justify-center">
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <i className="fas fa-calendar-day text-primary text-2xl"></i>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <i className="fas fa-calendar-day text-2xl text-primary"></i>
                       </div>
+                      <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Adicione tarefas com prazos para visualizar o cronograma do evento.
+                      </p>
+                      <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)}>
+                        <i className="fas fa-plus mr-2"></i> Adicionar Tarefa
+                      </Button>
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
-                    <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
-                    <Button onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                      <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Activity panel */}
-            <div id="tabpanel-activity" className="mt-8">
-              <ActivityFeed
-                activities={activities}
-                loading={activitiesLoading}
-                limit={10}
-              />
+                  )}
+                </div>
+              </TabsContent>
+              <TabsContent value="activity">
+                <div className="p-4 sm:p-6">
+                  <h2 className="text-xl font-semibold mb-6">Atividades Recentes</h2>
+                  <ActivityFeed
+                    activities={activities}
+                    loading={activitiesLoading}
+                    limit={10}
+                  />
+                </div>
+              </TabsContent>
             </div>
           </div>
-        </div>
+        </Tabs>
       </div>
-
     </div>
   );
-};
-
-// Helper functions for styling
-const getTaskStatusClass = (status: string) => {
-  switch (status) {
-    case "completed": return "bg-green-500/10 text-green-500";
-    case "in_progress": return "bg-blue-500/10 text-blue-500";
-    default: return "bg-gray-500/10 text-gray-400";
-  }
-};
-
-const getTaskPriorityClass = (priority: string) => {
-  switch (priority) {
-    case "high": return "bg-red-500/10 text-red-500";
-    case "medium": return "bg-yellow-500/10 text-yellow-500";
-    case "low": return "bg-green-500/10 text-green-500";
-    default: return "bg-gray-500/10 text-gray-400";
-  }
 };
 
 export default Event;

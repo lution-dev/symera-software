@@ -7,6 +7,8 @@ import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
 import Event from "@/pages/Event";
+import EventNew from "@/pages/EventNew";
+import EventTabDemo from "@/pages/EventTabDemo";
 import CreateEvent from "@/pages/CreateEvent";
 import Checklist from "@/pages/Checklist";
 import TaskNew from "@/pages/TaskNew";
@@ -31,7 +33,6 @@ import DevLogin from "@/pages/DevLogin";
 import SimpleLogin from "@/pages/SimpleLogin";
 import DemoProfile from "@/pages/DemoProfile";
 import DemoApp from "@/pages/DemoApp";
-import VerticalMenuDemo from "@/pages/VerticalMenuDemo";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -64,12 +65,13 @@ function Router() {
       <Route path="/simple-login" component={SimpleLogin} />
       <Route path="/demo-profile" component={DemoProfile} />
       <Route path="/demo" component={DemoApp} />
-      <Route path="/vertical-menu-demo" component={VerticalMenuDemo} />
       <Route path="/auth" component={Auth} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
       <Route path="/events/new" component={() => <ProtectedRoute component={CreateEvent} />} />
       <Route path="/events/:id" component={(params: any) => <ProtectedRoute component={Event} id={params.id} />} />
+      <Route path="/events/:id/new-layout" component={(params: any) => <ProtectedRoute component={EventNew} id={params.id} />} />
+      <Route path="/events/tab-demo" component={() => <ProtectedRoute component={EventTabDemo} />} />
       <Route path="/events/:id/checklist" component={(params: any) => <ProtectedRoute component={Checklist} id={params.id} />} />
       <Route path="/events/:id/tasks/new" component={(params: any) => <ProtectedRoute component={TaskNew} />} />
       <Route path="/events/:id/tasks/:taskId/edit" component={(params: any) => <ProtectedRoute component={TaskEdit} eventId={params.id} taskId={params.taskId} />} />

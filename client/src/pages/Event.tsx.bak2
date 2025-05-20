@@ -38,17 +38,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AlertTriangle } from "lucide-react";
+import EventTabs from "@/components/Event/EventTabs";
 
 interface EventProps {
   id?: string;
 }
 
 const Event: React.FC<EventProps> = ({ id }) => {
+  const [activeTab, setActiveTab] = useState("tasks");
   const [location] = useLocation();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState('tasks');
   
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
@@ -708,124 +709,92 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Navegação por abas e conteúdo */}
-      <div className="mb-6">
-        {/* Adicionar o estado para controlar abas */}
-        <div className="mt-4">
-          <div className="flex flex-col sm:flex-row gap-6">
-            {/* Coluna esquerda - Menu vertical (~260px) */}
-            <div className="w-full sm:w-[260px] flex-shrink-0 mb-4 sm:mb-0 sm:border-r sm:pr-4">
-              <div className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
-                {/* Botões de navegação para as diferentes seções */}
-                <button 
-                  onClick={() => setActiveTab('tasks')}
-                  className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'tasks' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
-                >
-                  <i className="fas fa-tasks mr-2"></i> Tarefas 
-                  {Array.isArray(tasks) && tasks.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {tasks.length}
-                    </span>
-                  )}
-                </button>
-                
-                <button 
-                  onClick={() => setActiveTab('team')}
-                  className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'team' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
-                >
-                  <i className="fas fa-users mr-2"></i> Equipe
-                  {Array.isArray(team) && team.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {team.length}
-                    </span>
-                  )}
-                </button>
-                
-                <button 
-                  onClick={() => setActiveTab('timeline')}
-                  className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'timeline' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
-                >
-                  <i className="fas fa-calendar-alt mr-2"></i> Cronograma
-                  {Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {tasks.filter((task: any) => !!task.dueDate).length}
-                    </span>
-                  )}
-                </button>
-                
-                <button 
-                  onClick={() => setActiveTab('activity')}
-                  className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'activity' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
-                >
-                  <i className="fas fa-history mr-2"></i> Atividades
-                  {Array.isArray(activities) && activities.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {activities.length}
-                    </span>
-                  )}
-                </button>
+      {/* Navegação por abas vertical em formato de 2 colunas */}
+      <div className="mb-8">
+        <Tabs defaultValue="tasks">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Coluna da esquerda (~260px) - Menu vertical com abas */}
+            <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
+              <div className="p-3 border-b">
+                <h2 className="font-medium text-primary">Seções do Evento</h2>
               </div>
+              <TabsList className="flex flex-col w-full space-y-1 p-2">
+                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-tasks mr-3"></i> 
+                  Tarefas 
+                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-users mr-3"></i> 
+                  Equipe 
+                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-calendar-alt mr-3"></i> 
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-history mr-3"></i> 
+                  Atividades
+                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
             </div>
-      <div className="mb-8 flex flex-col sm:flex-row gap-6">
-        {/* Coluna esquerda - Menu vertical (~260px) */}
-        <div className="w-full sm:w-[260px] flex-shrink-0 mb-4 sm:mb-0 sm:border-r sm:pr-4">
-          <Tabs defaultValue="tasks" className="w-full" orientation="vertical">
-            <TabsList className="flex flex-row sm:flex-col h-auto space-x-1 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
-              <TabsTrigger value="tasks" className="justify-start w-full">
-                <div className="flex items-center w-full">
-                  <i className="fas fa-tasks mr-2"></i> 
-                  <span>Tarefas</span>
-                  {Array.isArray(tasks) && tasks.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {tasks.length}
-                    </span>
-                  )}
-                </div>
-              </TabsTrigger>
-              
-              <TabsTrigger value="team" className="justify-start w-full">
-                <div className="flex items-center w-full">
-                  <i className="fas fa-users mr-2"></i>
-                  <span>Equipe</span>
-                  {Array.isArray(team) && team.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {team.length}
-                    </span>
-                  )}
-                </div>
-              </TabsTrigger>
-              
-              <TabsTrigger value="timeline" className="justify-start w-full">
-                <div className="flex items-center w-full">
-                  <i className="fas fa-calendar-alt mr-2"></i>
-                  <span>Cronograma</span>
-                  {Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {tasks.filter((task: any) => !!task.dueDate).length}
-                    </span>
-                  )}
-                </div>
-              </TabsTrigger>
-              
-              <TabsTrigger value="activity" className="justify-start w-full">
-                <div className="flex items-center w-full">
-                  <i className="fas fa-history mr-2"></i>
-                  <span>Atividades</span>
-                  {Array.isArray(activities) && activities.length > 0 && (
-                    <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {activities.length}
-                    </span>
-                  )}
-                </div>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        
-        {/* Coluna direita - Abas */}
-        <div className="flex-grow">
-          <Tabs defaultValue="tasks">
-              <TabsContent value="tasks" className="mt-0 space-y-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <i className="fas fa-bars mr-2"></i> Seções
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="tasks"]')?.click()}>
+                  <i className="fas fa-tasks mr-2"></i> Tarefas 
+                  {tasks?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="team"]')?.click()}>
+                  <i className="fas fa-users mr-2"></i> Equipe
+                  {team?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="timeline"]')?.click()}>
+                  <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="activity"]')?.click()}>
+                  <i className="fas fa-history mr-2"></i> Atividades
+                  {activities?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Coluna da esquerda - Menu vertical com abas (260px) - Visível apenas em desktop/tablet */}
+            <div className="hidden md:block md:w-[260px] bg-card rounded-lg shadow-sm">
+              <TabsList className="flex flex-col w-full space-y-1 p-2">
+                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-tasks mr-3"></i> 
+                  Tarefas 
+                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-users mr-3"></i> 
+                  Equipe 
+                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-calendar-alt mr-3"></i> 
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-history mr-3"></i> 
+                  Atividades
+                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            {/* Coluna da direita - Conteúdo da aba selecionada - Ocupa toda a largura em mobile */}
+            <div className="flex-1">
+              <TabsContent value="tasks" className="space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
                   <h2 className="text-xl font-semibold">Checklist do Evento</h2>
                   <div className="flex flex-wrap w-full sm:w-auto gap-2">
@@ -846,7 +815,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 />
               </TabsContent>
               
-              <TabsContent value="team" className="mt-0">
+              <TabsContent value="team">
                 <div className="bg-card rounded-lg p-6">
                   <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
                   
@@ -854,7 +823,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                     <div className="flex justify-center py-8">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                  ) : Array.isArray(team) && team.length > 0 ? (
+                  ) : team?.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {team.map((member: any) => (
                         <div key={member.id} className="bg-muted p-4 rounded-lg">
@@ -873,364 +842,144 @@ const Event: React.FC<EventProps> = ({ id }) => {
                                 </span>
                               </div>
                             )}
-                            <div>
-                              <p className="font-medium">
-                                {member.user.firstName} {member.user.lastName}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {member.role === 'organizer' ? 'Organizador' : 
-                                 member.role === 'team_member' ? 'Membro da Equipe' : 
-                                 'Fornecedor'}
-                              </p>
-                            </div>
-                          </div>
-                          {member.user.email && (
-                            <div className="mt-3 text-sm flex items-center text-muted-foreground">
-                              <i className="fas fa-envelope mr-2"></i>
-                              <span>{member.user.email}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="mb-4 flex justify-center">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                          <i className="fas fa-users text-primary text-2xl"></i>
-                        </div>
+                      <div>
+                        <p className="font-medium">
+                          {member.user.firstName} {member.user.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {member.role === 'organizer' ? 'Organizador' : 
+                           member.role === 'team_member' ? 'Membro da Equipe' : 
+                           'Fornecedor'}
+                        </p>
                       </div>
-                      <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
-                      <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
-                      <Button>
-                        <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
-                      </Button>
                     </div>
-                  )}
+                    {member.user.email && (
+                      <div className="mt-3 text-sm flex items-center text-muted-foreground">
+                        <i className="fas fa-envelope mr-2"></i>
+                        <span>{member.user.email}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                    <i className="fas fa-users text-primary text-2xl"></i>
+                  </div>
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="timeline" className="mt-0">
-                <div className="bg-card rounded-lg p-6">
-                  <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
-                  
-                  {tasksLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                    </div>
-                  ) : Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 ? (
-                    <div className="relative">
-                      {/* Timeline line */}
-                      <div className="absolute left-3.5 top-0 bottom-0 w-0.5 bg-muted"></div>
-                      
-                      <div className="space-y-6">
-                        {tasks
-                          .filter((task: any) => !!task.dueDate)
-                          .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                          .map((task: any) => {
-                            const today = new Date();
-                            const dueDate = new Date(task.dueDate);
-                            const isPast = dueDate < today;
-                            const isToday = dueDate.toDateString() === today.toDateString();
-                            
-                            let statusColor = "bg-muted";
-                            if (task.status === "completed") {
-                              statusColor = "bg-green-500";
-                            } else if (isPast) {
-                              statusColor = "bg-red-500";
-                            } else if (isToday) {
-                              statusColor = "bg-yellow-500";
-                            } else if (task.status === "in_progress") {
-                              statusColor = "bg-blue-500";
-                            }
-                            
-                            return (
-                              <div key={task.id} className="flex">
-                                <div className="flex-shrink-0 z-10">
-                                  <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusColor} shadow-lg`}>
-                                    <i className={`fas fa-${
-                                      task.status === "completed" ? "check" : 
-                                      isPast ? "exclamation" : 
-                                      task.status === "in_progress" ? "spinner" : 
-                                      "calendar"
-                                    } text-white text-xs`}></i>
-                                  </div>
-                                </div>
-                                <div className="ml-4">
-                                  <h3 className={`font-medium ${task.status === "completed" ? "line-through opacity-60" : ""}`}>
-                                    {task.title}
-                                  </h3>
-                                  <p className="text-muted-foreground text-sm mt-1">
-                                    {formatDate(task.dueDate)}
-                                  </p>
-                                  <div className="mt-2 flex items-center">
-                                    <span className={`text-xs px-2 py-0.5 rounded-full mr-2 ${
-                                      task.status === "completed" ? "bg-green-500/10 text-green-500" :
-                                      task.status === "in_progress" ? "bg-blue-500/10 text-blue-500" :
-                                      "bg-gray-500/10 text-gray-400"
-                                    }`}>
-                                      {task.status === "completed" ? "Concluída" : 
-                                       task.status === "in_progress" ? "Em andamento" : 
-                                       "A fazer"}
-                                    </span>
-                                    {task.priority && (
-                                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                        task.priority === "high" ? "bg-red-500/10 text-red-500" :
-                                        task.priority === "medium" ? "bg-yellow-500/10 text-yellow-500" :
-                                        task.priority === "low" ? "bg-green-500/10 text-green-500" :
-                                        "bg-gray-500/10 text-gray-400"
-                                      }`}>
-                                        {task.priority === "high" ? "Alta prioridade" : 
-                                         task.priority === "medium" ? "Média prioridade" : 
-                                         "Baixa prioridade"}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="mb-4 flex justify-center">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                          <i className="fas fa-calendar-day text-primary text-2xl"></i>
-                        </div>
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
-                      <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
-                      <Button onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                        <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="activity" className="mt-0">
-                <ActivityFeed
-                  activities={activities}
-                  loading={activitiesLoading}
-                  limit={10}
-                />
-              </TabsContent>
-            </div>
+                <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
+                <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
+                <Button>
+                  <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
+                </Button>
+              </div>
+            )}
           </div>
-        </Tabs>
-      </div>
+        </TabsContent>
         
-        {/* Right column - Content panels */}
-        <div className="flex-grow">
-          <div className="space-y-8">
-            {/* Tasks panel */}
-            <div id="tabpanel-tasks" className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-                <h2 className="text-xl font-semibold">Checklist do Evento</h2>
-                <div className="flex flex-wrap w-full sm:w-auto gap-2">
-                  <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
-                    <i className="fas fa-plus mr-2"></i> Nova Tarefa
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                    <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
-                  </Button>
-                </div>
-              </div>
-              
-              <TaskList
-                title=""
-                tasks={tasks}
-                loading={tasksLoading}
-                showEventName={false}
-              />
-            </div>
+        <TabsContent value="timeline">
+          <div className="bg-card rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
             
-            {/* Team panel */}
-            <div id="tabpanel-team" className="mt-8">
-              <div className="bg-card rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
+            {tasksLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : tasks?.length > 0 ? (
+              <div className="relative">
+                {/* Timeline line */}
+                <div className="absolute left-3.5 top-0 bottom-0 w-0.5 bg-muted"></div>
                 
-                {teamLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : Array.isArray(team) && team.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {team.map((member: any) => (
-                      <div key={member.id} className="bg-muted p-4 rounded-lg">
-                        <div className="flex items-center">
-                          {member.user.profileImageUrl ? (
-                            <img 
-                              src={member.user.profileImageUrl} 
-                              alt={`${member.user.firstName} ${member.user.lastName}`}
-                              className="w-12 h-12 rounded-full object-cover mr-4"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
-                              <span className="text-primary font-medium">
-                                {member.user.firstName?.charAt(0) || ''}
-                                {member.user.lastName?.charAt(0) || ''}
-                              </span>
+                <div className="space-y-6">
+                  {tasks
+                    .filter((task: any) => !!task.dueDate)
+                    .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                    .map((task: any) => {
+                      const today = new Date();
+                      const dueDate = new Date(task.dueDate);
+                      const isPast = dueDate < today;
+                      const isToday = dueDate.toDateString() === today.toDateString();
+                      
+                      let statusColor = "bg-muted";
+                      if (task.status === "completed") {
+                        statusColor = "bg-green-500";
+                      } else if (isPast) {
+                        statusColor = "bg-red-500";
+                      } else if (isToday) {
+                        statusColor = "bg-yellow-500";
+                      } else if (task.status === "in_progress") {
+                        statusColor = "bg-blue-500";
+                      }
+                      
+                      return (
+                        <div key={task.id} className="flex">
+                          <div className="flex-shrink-0 z-10">
+                            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusColor} shadow-lg`}>
+                              <i className={`fas fa-${
+                                task.status === "completed" ? "check" : 
+                                isPast ? "exclamation" : 
+                                task.status === "in_progress" ? "spinner" : 
+                                "calendar"
+                              } text-white text-xs`}></i>
                             </div>
-                          )}
-                          <div>
-                            <p className="font-medium">
-                              {member.user.firstName} {member.user.lastName}
+                          </div>
+                          <div className="ml-4">
+                            <h3 className={`font-medium ${task.status === "completed" ? "line-through opacity-60" : ""}`}>
+                              {task.title}
+                            </h3>
+                            <p className="text-muted-foreground text-sm mt-1">
+                              {formatDate(task.dueDate)}
                             </p>
-                            <p className="text-sm text-muted-foreground">
-                              {member.role === 'organizer' ? 'Organizador' : 
-                              member.role === 'team_member' ? 'Membro da Equipe' : 
-                              'Fornecedor'}
-                            </p>
+                            <div className="mt-2 flex items-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full mr-2 ${getTaskStatusClass(task.status)}`}>
+                                {task.status === "completed" ? "Concluída" : 
+                                 task.status === "in_progress" ? "Em andamento" : 
+                                 "A fazer"}
+                              </span>
+                              {task.priority && (
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${getTaskPriorityClass(task.priority)}`}>
+                                  {task.priority === "high" ? "Alta prioridade" : 
+                                   task.priority === "medium" ? "Média prioridade" : 
+                                   "Baixa prioridade"}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        {member.user.email && (
-                          <div className="mt-3 text-sm flex items-center text-muted-foreground">
-                            <i className="fas fa-envelope mr-2"></i>
-                            <span>{member.user.email}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="mb-4 flex justify-center">
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <i className="fas fa-users text-primary text-2xl"></i>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
-                    <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
-                    <Button>
-                      <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
-                    </Button>
-                  </div>
-                )}
+                      );
+                    })}
+                </div>
               </div>
-            </div>
-            
-            {/* Timeline panel */}
-            <div id="tabpanel-timeline" className="mt-8">
-              <div className="bg-card rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
-                
-                {tasksLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                    <i className="fas fa-calendar-day text-primary text-2xl"></i>
                   </div>
-                ) : Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 ? (
-                  <div className="relative">
-                    {/* Timeline line */}
-                    <div className="absolute left-3.5 top-0 bottom-0 w-0.5 bg-muted"></div>
-                    
-                    <div className="space-y-6">
-                      {tasks
-                        .filter((task: any) => !!task.dueDate)
-                        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                        .map((task: any) => {
-                          const today = new Date();
-                          const dueDate = new Date(task.dueDate);
-                          const isPast = dueDate < today;
-                          const isToday = dueDate.toDateString() === today.toDateString();
-                          
-                          let statusColor = "bg-muted";
-                          if (task.status === "completed") {
-                            statusColor = "bg-green-500";
-                          } else if (isPast) {
-                            statusColor = "bg-red-500";
-                          } else if (isToday) {
-                            statusColor = "bg-yellow-500";
-                          } else if (task.status === "in_progress") {
-                            statusColor = "bg-blue-500";
-                          }
-                          
-                          // Helper functions for status and priority classes
-                          const getTaskStatusClass = (status: string) => {
-                            switch (status) {
-                              case "completed": return "bg-green-500/10 text-green-500";
-                              case "in_progress": return "bg-blue-500/10 text-blue-500";
-                              default: return "bg-gray-500/10 text-gray-400";
-                            }
-                          };
-                          
-                          const getTaskPriorityClass = (priority: string) => {
-                            switch (priority) {
-                              case "high": return "bg-red-500/10 text-red-500";
-                              case "medium": return "bg-yellow-500/10 text-yellow-500";
-                              case "low": return "bg-green-500/10 text-green-500";
-                              default: return "bg-gray-500/10 text-gray-400";
-                            }
-                          };
-                          
-                          return (
-                            <div key={task.id} className="flex">
-                              <div className="flex-shrink-0 z-10">
-                                <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusColor} shadow-lg`}>
-                                  <i className={`fas fa-${
-                                    task.status === "completed" ? "check" : 
-                                    isPast ? "exclamation" : 
-                                    task.status === "in_progress" ? "spinner" : 
-                                    "calendar"
-                                  } text-white text-xs`}></i>
-                                </div>
-                              </div>
-                              <div className="ml-4">
-                                <h3 className={`font-medium ${task.status === "completed" ? "line-through opacity-60" : ""}`}>
-                                  {task.title}
-                                </h3>
-                                <p className="text-muted-foreground text-sm mt-1">
-                                  {formatDate(task.dueDate)}
-                                </p>
-                                <div className="mt-2 flex items-center">
-                                  <span className={`text-xs px-2 py-0.5 rounded-full mr-2 ${getTaskStatusClass(task.status)}`}>
-                                    {task.status === "completed" ? "Concluída" : 
-                                    task.status === "in_progress" ? "Em andamento" : 
-                                    "A fazer"}
-                                  </span>
-                                  {task.priority && (
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${getTaskPriorityClass(task.priority)}`}>
-                                      {task.priority === "high" ? "Alta prioridade" : 
-                                      task.priority === "medium" ? "Média prioridade" : 
-                                      "Baixa prioridade"}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="mb-4 flex justify-center">
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <i className="fas fa-calendar-day text-primary text-2xl"></i>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
-                    <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
-                    <Button onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                      <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
-                    </Button>
-                  </div>
-                )}
+                </div>
+                <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
+                <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
+                <Link href={`/events/${id}/checklist`}>
+                  <Button>
+                    <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
+                  </Button>
+                </Link>
               </div>
-            </div>
-            
-            {/* Activity panel */}
-            <div id="tabpanel-activity" className="mt-8">
-              <ActivityFeed
-                activities={activities}
-                loading={activitiesLoading}
-                limit={10}
-              />
-            </div>
+            )}
           </div>
-        </div>
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="activity">
+          <ActivityFeed
+            activities={activities}
+            loading={activitiesLoading}
+            limit={10}
+          />
+        </TabsContent>
+      </Tabs>
+      
 
     </div>
   );
