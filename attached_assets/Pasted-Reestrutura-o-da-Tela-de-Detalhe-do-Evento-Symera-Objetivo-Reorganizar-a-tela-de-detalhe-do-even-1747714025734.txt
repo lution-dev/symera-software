@@ -1,0 +1,75 @@
+Reestruturação da Tela de Detalhe do Evento (Symera)
+Objetivo:
+Reorganizar a tela de detalhe do evento para melhorar a usabilidade, visibilidade dos dados e navegação entre seções — mantendo todo o design visual atual (cores, fontes, espaçamentos, estilo dos cards), e ajustando apenas a disposição dos elementos na página.
+
+✅ Estrutura atual a manter:
+Imagem de capa do evento
+
+Cards de indicadores (Progresso, Orçamento, Cronograma)
+
+Checklist e demais conteúdos das abas
+
+Estilo visual geral (design dos cards, fontes, cores, paddings)
+
+🔄 Alterações solicitadas (disposição e estrutura)
+1. 📷 Imagem de capa e dados principais
+Substituir o banner atual por uma imagem retangular no topo da coluna esquerda (ex: 100% de largura da coluna, altura aproximada de 120–150px)
+
+Logo abaixo da imagem, exibir os dados principais do evento:
+
+Nome do evento
+
+Tipo do evento
+
+Data e horário
+
+Local
+
+Orçamento estimado
+
+Status do evento
+
+Importante: o tamanho sugerido da imagem é apenas uma referência. A disposição deve ser totalmente responsiva, adaptando-se bem para diferentes larguras de tela.
+
+2. 🧱 Novo layout: 2 colunas abaixo dos cards de indicadores
+Manter os cards de indicadores exatamente como estão.
+
+Abaixo deles, dividir o layout em duas colunas:
+
+➤ Coluna da esquerda (~260px como base, mas adaptável):
+Menu vertical com as seções:
+
+Tarefas
+
+Equipe
+
+Cronograma
+
+Atividades
+
+Estilo tipo sidebar vertical com abas
+
+Pode conter ícones e contadores (ex: Tarefas (6))
+
+➤ Coluna da direita:
+Exibe o conteúdo correspondente à aba ativa
+
+Rolagem independente, se necessário
+
+Importante: mesmo que a largura da coluna seja sugerida, ela deve ser fluida e responsiva, se ajustando conforme a resolução da tela.
+
+3. 📱 Responsividade mobile:
+No mobile:
+
+A sidebar vertical deve virar um menu dropdown ou botão ☰ Seções, fixo no topo do conteúdo
+
+As seções e cards devem se empilhar verticalmente
+
+Todos os elementos devem seguir o espaçamento, legibilidade e usabilidade padrão para touch
+
+❗ Regras importantes
+Não alterar o design visual atual (mantém estilos, cores, ícones e estrutura dos cards)
+
+Alterar apenas a disposição estrutural para tornar a experiência mais fluida
+
+Garantir que o novo layout seja 100% responsivo e adaptável a todas as resoluções
