@@ -65,6 +65,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return null;
   }
 
+  // Verificar se estamos em páginas de formulário que precisam de tratamento especial
+  const isFormPage = location === '/events/new' || location.match(/\/events\/\d+\/tasks\/new/) || 
+                     location.match(/\/events\/\d+\/team\/add/) || location.match(/\/events\/\d+\/vendors\/new/) || 
+                     location.match(/\/events\/\d+\/budget\/new/);
+
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">
       {/* Sidebar - hidden on mobile */}
@@ -72,7 +77,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       
       {/* Main content area */}
       <main 
-        className={`flex-1 overflow-y-auto custom-scrollbar bg-background pb-16 md:pb-0 transition-all duration-300`}
+        className={`flex-1 ${isFormPage ? 'h-full' : 'overflow-y-auto'} custom-scrollbar bg-background pb-16 md:pb-0 transition-all duration-300`}
         style={{ 
           marginLeft: window.innerWidth >= 768 ? (sidebarCollapsed ? '4rem' : '16rem') : '0',
           paddingTop: window.innerWidth < 768 ? '3.5rem' : '0',  // Espaço para a navbar superior

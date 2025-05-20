@@ -143,8 +143,15 @@ const TaskNew: React.FC = () => {
     );
   }
   
+  // Estilo para corrigir o problema de dupla rolagem em dispositivos móveis
+  const containerStyle: React.CSSProperties = {
+    height: window.innerWidth < 768 ? 'calc(100vh - 140px)' : 'auto',
+    overflowY: window.innerWidth < 768 ? 'auto' : 'visible',
+    paddingBottom: window.innerWidth < 768 ? '120px' : '1.5rem'
+  };
+
   return (
-    <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
+    <div className="container mx-auto px-4 py-6" style={containerStyle}>
       {/* Header */}
       <div className="mb-4 md:mb-6">
         <Button 
