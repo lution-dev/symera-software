@@ -255,7 +255,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
       {/* Layout de dois cards lado a lado (1:1) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 sm:mb-6">
         {/* Card da esquerda - Mantém o design atual mas encapsulado como um card lateral */}
-        <div className="relative rounded-xl overflow-hidden shadow-md h-48 sm:h-64 md:h-72">
+        <div className="relative rounded-xl overflow-hidden shadow-md h-48 sm:h-64 md:h-[220px]">
           <img 
             src={event.coverImageUrl || getDefaultCover()}
             alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
@@ -295,7 +295,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
         
         {/* Card da direita - Informações do evento em formato de lista */}
-        <div className="bg-card rounded-xl shadow-md p-5 flex flex-col">
+        <div className="bg-card rounded-xl shadow-md p-5 flex flex-col h-48 sm:h-64 md:h-[220px]">
           <div className="flex justify-between items-start mb-5">
             <h2 className="text-lg font-semibold">Detalhes do Evento</h2>
             <DropdownMenu>
