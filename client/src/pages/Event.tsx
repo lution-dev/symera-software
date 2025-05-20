@@ -250,50 +250,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </ol>
       </nav>
       
-      
-      
-      {/* Event Cover Image - Ajustado para mobile */}
-      <div className="relative w-full h-48 sm:h-64 md:h-80 mb-4 sm:mb-6 rounded-xl overflow-hidden shadow-md">
-        <img 
-          src={event.coverImageUrl || getDefaultCover()}
-          alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
-        <div className="absolute bottom-0 left-0 p-3 sm:p-6">
-          <div className="flex flex-wrap gap-2 mb-2">
-            <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
-              {getEventTypeLabel(event.type)}
-            </span>
-            <span className={`inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${
-              event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
-              event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
-              event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-              event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-              event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
-              event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
-              'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
-            }`}>
-              {event.status === 'planning' ? 'Planejamento' : 
-              event.status === 'confirmed' ? 'Confirmado' : 
-              event.status === 'in_progress' ? 'Em andamento' : 
-              event.status === 'active' ? 'Ativo' : 
-              event.status === 'completed' ? 'Concluído' : 
-              event.status === 'cancelled' ? 'Cancelado' : 
-              'Planejamento'}
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
-          {event.description && (
-            <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
-              {event.description}
-            </p>
-          )}
-        </div>
-      </div>
-      
-      {/* Status Change Control foi movido para o card de informações */}
-      
       {/* Alerta para tarefas pendentes quando evento está próximo */}
       {(event as any).warningMessage && (
         <div className="mb-6 p-4 bg-amber-950/30 border-l-4 border-amber-500 rounded-lg text-amber-100">
