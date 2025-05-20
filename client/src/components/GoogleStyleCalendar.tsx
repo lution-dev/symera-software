@@ -25,9 +25,10 @@ import {
   ChevronRight, 
   Plus, 
   ArrowLeft,
-  CalendarDays,
+  ListTodo,
   Calendar as CalendarIcon,
-  CalendarRange
+  CalendarRange,
+  ClipboardList
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from "@/components/ui/badge";
@@ -241,7 +242,7 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
                 )}
                 onClick={() => setView('week')}
               >
-                <CalendarDays className="h-3.5 w-3.5" />
+                <ClipboardList className="h-3.5 w-3.5" />
               </Button>
               <Button 
                 variant={view === 'month' ? "default" : "ghost"}
