@@ -66,7 +66,7 @@ const TaskNew: React.FC = () => {
       priority: "medium",
       eventId: Number(eventId),
       assigneeId: "unassigned",
-      assigneeIds: [],
+      assigneeIds: [] as string[],
     },
   });
   
@@ -259,46 +259,59 @@ const TaskNew: React.FC = () => {
                 )}
               />
               
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-base font-semibold mb-2">Responsáveis (opcional)</h3>
-                  <div className="border rounded-lg p-3 space-y-2">
-                    {Array.isArray(team) && team.map((member: any) => (
-                      <div key={member.userId} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={`member-${member.userId}`}
-                          checked={form.getValues().assigneeIds?.includes(member.userId) || false}
-                          onChange={(e) => {
-                            const currentValues = form.getValues().assigneeIds || [];
-                            const newValues = e.target.checked
-                              ? [...currentValues, member.userId]
-                              : currentValues.filter(id => id !== member.userId);
-                            form.setValue('assigneeIds', newValues);
-                          }}
-                          className="h-4 w-4 rounded border-gray-300"
-                        />
-                        <label 
-                          htmlFor={`member-${member.userId}`}
-                          className="flex items-center cursor-pointer text-sm font-medium"
-                        >
-                          <img 
-                            src={member.user.profileImageUrl} 
-                            alt={`${member.user.firstName} ${member.user.lastName}`} 
-                            className="w-6 h-6 rounded-full object-cover mr-2"
-                          />
-                          {member.user.firstName} {member.user.lastName}
-                        </label>
+              <FormField
+                control={form.control}
+                name="assigneeIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Responsáveis (opcional)</FormLabel>
+                    <FormControl>
+                      <div className="border rounded-lg p-3 space-y-2">
+                        {Array.isArray(team) && team.map((member: any) => {
+                          // Verifica se o ID já está na lista de selecionados
+                          const isSelected = Array.isArray(field.value) && 
+                            field.value.includes(member.userId);
+                          
+                          return (
+                            <div key={member.userId} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`member-${member.userId}`}
+                                checked={isSelected}
+                                onChange={() => {
+                                  // Se já está selecionado, remove-o; caso contrário, adiciona-o
+                                  const newValue = isSelected
+                                    ? field.value.filter((id: string) => id !== member.userId)
+                                    : [...field.value, member.userId];
+                                  field.onChange(newValue);
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 cursor-pointer"
+                              />
+                              <label 
+                                htmlFor={`member-${member.userId}`}
+                                className="flex items-center cursor-pointer text-sm font-medium"
+                              >
+                                <img 
+                                  src={member.user.profileImageUrl} 
+                                  alt={`${member.user.firstName} ${member.user.lastName}`} 
+                                  className="w-6 h-6 rounded-full object-cover mr-2"
+                                />
+                                {member.user.firstName} {member.user.lastName}
+                              </label>
+                            </div>
+                          );
+                        })}
+                        {(!team || !Array.isArray(team) || team.length === 0) && (
+                          <div className="text-sm text-muted-foreground p-2">
+                            Nenhum membro da equipe disponível
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    {(!team || !Array.isArray(team) || team.length === 0) && (
-                      <div className="text-sm text-muted-foreground p-2">
-                        Nenhum membro da equipe disponível
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <div className="flex justify-end space-x-2 pt-4">
                 <Button
