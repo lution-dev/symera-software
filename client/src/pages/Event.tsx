@@ -44,23 +44,6 @@ interface EventProps {
   id?: string;
 }
 
-// Helper functions for styling
-const getTaskStatusClass = (status: string) => {
-  switch (status) {
-    case "completed": return "bg-green-500/10 text-green-500";
-    case "in_progress": return "bg-blue-500/10 text-blue-500";
-    default: return "bg-gray-500/10 text-gray-400";
-  }
-};
-
-const getTaskPriorityClass = (priority: string) => {
-  switch (priority) {
-    case "high": return "bg-red-500/10 text-red-500";
-    case "medium": return "bg-yellow-500/10 text-yellow-500";
-    default: return "bg-gray-500/10 text-gray-400";
-  }
-};
-
 const Event: React.FC<EventProps> = ({ id }) => {
   const [activeTab, setActiveTab] = useState("tasks");
   const [location] = useLocation();
@@ -80,17 +63,17 @@ const Event: React.FC<EventProps> = ({ id }) => {
     retry: 1
   });
   
-  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
+  const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/tasks`],
     enabled: !!eventId && !!event,
   });
   
-  const { data: team = [], isLoading: teamLoading } = useQuery({
+  const { data: team, isLoading: teamLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/team`],
     enabled: !!eventId && !!event,
   });
   
-  const { data: activities = [], isLoading: activitiesLoading } = useQuery({
+  const { data: activities, isLoading: activitiesLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/activities`],
     enabled: !!eventId && !!event,
   });
@@ -221,12 +204,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
   const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
 
-  // Tratar event como any para acessar propriedades dinâmicas
-  const eventData = event as any;
-
-  // Função para obter imagem de capa padrão com base no tipo de evento
+  // Função para obter imagem de capa padrão com base no tipo de evento - usando as mesmas do EventCard
   const getDefaultCover = () => {
-    switch (eventData.type) {
+    switch (event.type) {
       case 'wedding':
         return 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
       case 'corporate':
@@ -265,7 +245,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
             <div className="flex items-center">
               <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
               <span className="text-sm font-medium text-primary truncate max-w-[150px]">
-                {eventData.name}
+                {event.name}
               </span>
             </div>
           </li>
@@ -277,38 +257,38 @@ const Event: React.FC<EventProps> = ({ id }) => {
         {/* Card da esquerda - Mantém o design atual mas encapsulado como um card lateral */}
         <div className="relative rounded-xl overflow-hidden shadow-md h-48 sm:h-64 md:h-[220px]">
           <img 
-            src={eventData.coverImageUrl || getDefaultCover()}
-            alt={`${eventData.name} - ${getEventTypeLabel(eventData.type)}`}
+            src={event.coverImageUrl || getDefaultCover()}
+            alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
           <div className="absolute bottom-0 left-0 p-3 sm:p-6">
             <div className="flex flex-wrap gap-2 mb-2">
               <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
-                {getEventTypeLabel(eventData.type)}
+                {getEventTypeLabel(event.type)}
               </span>
               <span className={`inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${
-                eventData.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
-                eventData.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
-                eventData.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-                eventData.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-                eventData.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
-                eventData.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
+                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
                 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
               }`}>
-                {eventData.status === 'planning' ? 'Planejamento' : 
-                eventData.status === 'confirmed' ? 'Confirmado' : 
-                eventData.status === 'in_progress' ? 'Em andamento' : 
-                eventData.status === 'active' ? 'Ativo' : 
-                eventData.status === 'completed' ? 'Concluído' : 
-                eventData.status === 'cancelled' ? 'Cancelado' : 
+                {event.status === 'planning' ? 'Planejamento' : 
+                event.status === 'confirmed' ? 'Confirmado' : 
+                event.status === 'in_progress' ? 'Em andamento' : 
+                event.status === 'active' ? 'Ativo' : 
+                event.status === 'completed' ? 'Concluído' : 
+                event.status === 'cancelled' ? 'Cancelado' : 
                 'Planejamento'}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{eventData.name}</h1>
-            {eventData.description && (
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
+            {event.description && (
               <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
-                {eventData.description}
+                {event.description}
               </p>
             )}
           </div>
@@ -351,19 +331,19 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 </div>
                 <div className="ml-3">
                   <p className="text-xs text-muted-foreground">Data</p>
-                  <p className="mt-0.5 text-sm font-medium">{formatDate(eventData.date)}</p>
+                  <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
                 </div>
               </div>
               
               {/* Número de convidados */}
-              {eventData.attendees && (
+              {event.attendees && (
                 <div className="flex items-start">
                   <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
                     <i className="fas fa-user-friends text-sm"></i>
                   </div>
                   <div className="ml-3">
                     <p className="text-xs text-muted-foreground">Convidados</p>
-                    <p className="mt-0.5 text-sm font-medium">{eventData.attendees}</p>
+                    <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
                   </div>
                 </div>
               )}
@@ -372,27 +352,27 @@ const Event: React.FC<EventProps> = ({ id }) => {
             {/* Coluna da direita */}
             <div className="space-y-3 xs:space-y-4">
               {/* Local do evento */}
-              {eventData.location && (
+              {event.location && (
                 <div className="flex items-start">
                   <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
                     <i className="fas fa-map-marker-alt text-sm"></i>
                   </div>
                   <div className="ml-3">
                     <p className="text-xs text-muted-foreground">Local</p>
-                    <p className="mt-0.5 text-sm font-medium overflow-hidden text-ellipsis">{eventData.location}</p>
+                    <p className="mt-0.5 text-sm font-medium overflow-hidden text-ellipsis">{event.location}</p>
                   </div>
                 </div>
               )}
               
               {/* Orçamento */}
-              {eventData.budget && (
+              {event.budget && (
                 <div className="flex items-start">
                   <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
                     <i className="fas fa-money-bill-wave text-sm"></i>
                   </div>
                   <div className="ml-3">
                     <p className="text-xs text-muted-foreground">Orçamento</p>
-                    <p className="mt-0.5 text-sm font-medium">{formatCurrency(eventData.budget)}</p>
+                    <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
                   </div>
                 </div>
               )}
@@ -403,30 +383,30 @@ const Event: React.FC<EventProps> = ({ id }) => {
           <div className="mt-auto">
             <p className="text-xs text-muted-foreground mb-1.5">Status</p>
             <Select 
-              value={eventData.status}
+              value={event.status}
               onValueChange={(value) => {
-                if (value !== eventData.status) {
+                if (value !== event.status) {
                   updateEventStatusMutation.mutate(value);
                 }
               }}
             >
               <SelectTrigger className={`
                 h-9 w-full border border-input px-3 py-1
-                ${eventData.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
-                eventData.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
-                eventData.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-                eventData.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-                eventData.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
-                eventData.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
+                ${event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
                 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'}
               `}>
                 <SelectValue placeholder="Selecionar status">
-                  {eventData.status === 'planning' ? 'Planejamento' : 
-                  eventData.status === 'confirmed' ? 'Confirmado' : 
-                  eventData.status === 'in_progress' ? 'Em andamento' : 
-                  eventData.status === 'active' ? 'Ativo' : 
-                  eventData.status === 'completed' ? 'Concluído' : 
-                  eventData.status === 'cancelled' ? 'Cancelado' : 
+                  {event.status === 'planning' ? 'Planejamento' : 
+                  event.status === 'confirmed' ? 'Confirmado' : 
+                  event.status === 'in_progress' ? 'Em andamento' : 
+                  event.status === 'active' ? 'Ativo' : 
+                  event.status === 'completed' ? 'Concluído' : 
+                  event.status === 'cancelled' ? 'Cancelado' : 
                   'Planejamento'}
                 </SelectValue>
               </SelectTrigger>
@@ -455,7 +435,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
       </div>
       
       {/* Resumo financeiro, se tiver orçamento definido */}
-      {eventData.budget && (
+      {event.budget && (
         <div className="bg-card rounded-xl p-3 sm:p-5 shadow-md mb-4 sm:mb-6">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold">Resumo Financeiro</h2>
@@ -469,22 +449,22 @@ const Event: React.FC<EventProps> = ({ id }) => {
           <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-xs text-muted-foreground">Orçamento Total</p>
-              <p className="text-lg font-semibold">{formatCurrency(eventData.budget)}</p>
+              <p className="text-lg font-semibold">{formatCurrency(event.budget)}</p>
             </div>
             
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-xs text-muted-foreground">Despesas</p>
-              <p className="text-lg font-semibold">{formatCurrency(eventData.expenses || 0)}</p>
+              <p className="text-lg font-semibold">{formatCurrency(event.expenses || 0)}</p>
             </div>
             
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-xs text-muted-foreground">Saldo</p>
               <p className={`text-lg font-semibold ${
-                ((eventData.budget || 0) - (eventData.expenses || 0)) < 0 
+                ((event.budget || 0) - (event.expenses || 0)) < 0 
                   ? 'text-red-500' 
                   : 'text-green-500'
               }`}>
-                {formatCurrency((eventData.budget || 0) - (eventData.expenses || 0))}
+                {formatCurrency((event.budget || 0) - (event.expenses || 0))}
               </p>
             </div>
             
@@ -494,17 +474,17 @@ const Event: React.FC<EventProps> = ({ id }) => {
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div 
                     className={`${
-                      ((eventData.expenses || 0) / (eventData.budget || 1)) > 1 
+                      ((event.expenses || 0) / (event.budget || 1)) > 1 
                         ? 'bg-red-500' 
                         : 'bg-green-500'
                     } h-2 rounded-full`}
                     style={{ 
-                      width: `${Math.min(((eventData.expenses || 0) / (eventData.budget || 1)) * 100, 100)}%` 
+                      width: `${Math.min(((event.expenses || 0) / (event.budget || 1)) * 100, 100)}%` 
                     }}
                   ></div>
                 </div>
                 <span className="text-xs font-medium">
-                  {Math.round(((eventData.expenses || 0) / (eventData.budget || 1)) * 100)}%
+                  {Math.round(((event.expenses || 0) / (event.budget || 1)) * 100)}%
                 </span>
               </div>
             </div>
@@ -513,13 +493,13 @@ const Event: React.FC<EventProps> = ({ id }) => {
       )}
       
       {/* Caixa de alerta - se a data estiver próxima (7 dias) e o evento não estiver finalizado */}
-      {eventData.date && !['completed', 'cancelled'].includes(eventData.status) && new Date(eventData.date) > new Date() && new Date(eventData.date).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 && (
+      {event.date && !['completed', 'cancelled'].includes(event.status) && new Date(event.date) > new Date() && new Date(event.date).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 && (
         <div className="bg-[hsl(var(--event-in-progress))]/10 border border-[hsl(var(--event-in-progress))]/20 text-[hsl(var(--event-in-progress))] rounded-xl p-4 mb-4 sm:mb-6 flex items-start">
           <AlertTriangle className="w-5 h-5 mr-3 mt-0.5" />
           <div>
             <h3 className="font-semibold">O evento está se aproximando!</h3>
             <p className="text-sm mt-1">
-              Faltam {Math.ceil((new Date(eventData.date).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000))} dias para o evento. 
+              Faltam {Math.ceil((new Date(event.date).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000))} dias para o evento. 
               Verifique se todas as tarefas importantes foram concluídas.
             </p>
           </div>
@@ -568,127 +548,92 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Abas na horizontal para devices de tamanho maior e no menu/drawer para mobile */}
+      {/* Navegação por abas vertical em formato de 2 colunas */}
       <div className="mb-8">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Coluna da esquerda - Lista de abas em desktop, oculta em mobile */}
-          <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
-            <div className="p-3 border-b">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full flex flex-col">
-                  <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
-                    <i className="fas fa-tasks mr-3"></i> 
-                    Checklist
-                    {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
-                  </TabsTrigger>
-                  <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
-                    <i className="fas fa-users mr-3"></i> 
-                    Equipe
-                    {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
-                  </TabsTrigger>
-                  <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
-                    <i className="fas fa-calendar-alt mr-3"></i> 
-                    Cronograma
-                  </TabsTrigger>
-                  <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
-                    <i className="fas fa-history mr-3"></i> 
-                    Atividades
-                    {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+        <Tabs defaultValue="tasks">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Coluna da esquerda (~260px) - Menu vertical com abas */}
+            <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
+              <div className="p-3 border-b">
+                <h2 className="font-medium text-primary">Seções do Evento</h2>
+              </div>
+              {/* Corrigindo o TabsList para estar dentro de um componente Tabs */}
+              <TabsList className="flex flex-col w-full space-y-1 p-2">
+                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-tasks mr-3"></i> 
+                  Tarefas 
+                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-users mr-3"></i> 
+                  Equipe 
+                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-calendar-alt mr-3"></i> 
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-history mr-3"></i> 
+                  Atividades
+                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
             </div>
-          </div>
-          
-          {/* Menu DropDown para mobile */}
-          <div className="md:hidden bg-card rounded-lg p-3 shadow-sm">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span className="flex items-center">
-                    <i className="fas fa-list-ul mr-2"></i>
-                    {activeTab === "tasks" ? "Checklist" : 
-                     activeTab === "team" ? "Equipe" : 
-                     activeTab === "timeline" ? "Cronograma" : 
-                     activeTab === "activity" ? "Atividades" : "Checklist"}
-                  </span>
-                  <i className="fas fa-chevron-down"></i>
+                <Button variant="outline" size="sm">
+                  <i className="fas fa-bars mr-2"></i> Seções
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem className="cursor-pointer" onSelect={() => setActiveTab("tasks")}>
-                  <i className="fas fa-tasks mr-2"></i> Checklist
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="tasks"]')?.click()}>
+                  <i className="fas fa-tasks mr-2"></i> Tarefas
                   {tasks?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onSelect={() => setActiveTab("team")}>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="team"]')?.click()}>
                   <i className="fas fa-users mr-2"></i> Equipe
                   {team?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onSelect={() => setActiveTab("timeline")}>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="timeline"]')?.click()}>
                   <i className="fas fa-calendar-alt mr-2"></i> Cronograma
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onSelect={() => setActiveTab("activity")}>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="activity"]')?.click()}>
                   <i className="fas fa-history mr-2"></i> Atividades
                   {activities?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-          
-          {/* Lista de abas para tablet/mobile (orientação horizontal) - visível apenas em tablet em orientação horizontal */}
-          <div className="hidden sm:block md:hidden bg-card rounded-lg p-3 shadow-sm">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full flex">
-                <TabsTrigger value="tasks" className="flex-1">
-                  <i className="fas fa-tasks mr-1 sm:mr-2"></i> 
-                  <span className="hidden xs:inline">Checklist</span>
-                  {tasks?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
-                </TabsTrigger>
-                <TabsTrigger value="team" className="flex-1">
-                  <i className="fas fa-users mr-1 sm:mr-2"></i> 
-                  <span className="hidden xs:inline">Equipe</span>
-                  {team?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
-                </TabsTrigger>
-                <TabsTrigger value="timeline" className="flex-1">
-                  <i className="fas fa-calendar-alt mr-1 sm:mr-2"></i> 
-                  <span className="hidden xs:inline">Cronograma</span>
-                </TabsTrigger>
-                <TabsTrigger value="activity" className="flex-1">
-                  <i className="fas fa-history mr-1 sm:mr-2"></i> 
-                  <span className="hidden xs:inline">Atividades</span>
-                  {activities?.length > 0 && <span className="ml-1 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-          
-          {/* Coluna da direita - Conteúdo da aba selecionada - Ocupa toda a largura em mobile */}
-          <div className="flex-1">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsContent value="tasks" className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-                  <h2 className="text-xl font-semibold">Checklist do Evento</h2>
-                  <div className="flex flex-wrap w-full sm:w-auto gap-2">
-                    <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
-                      <i className="fas fa-plus mr-2"></i> Nova Tarefa
-                    </Button>
-                    <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                      <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
+            <div className="bg-card rounded-lg flex-1 overflow-hidden">
+              <TabsContent value="tasks">
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
+                    <h2 className="text-xl font-semibold">Checklist</h2>
+                    <div className="flex flex-wrap w-full sm:w-auto gap-2">
+                      <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
+                        <i className="fas fa-plus mr-2"></i> Nova Tarefa
+                      </Button>
+                      <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
+                        <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
+                      </Button>
+                    </div>
+                  </div>
+                  <TaskList
+                    title=""
+                    tasks={tasks}
+                    loading={tasksLoading}
+                    showEventName={false}
+                  />
+                </div>
+              </TabsContent>
+              <TabsContent value="team">
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
+                    <h2 className="text-xl font-semibold">Membros da Equipe</h2>
+                    <Button onClick={() => navigate(`/events/${eventId}/team/add`)} variant="default">
+                      <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
                     </Button>
                   </div>
-                </div>
-                
-                <TaskList
-                  title=""
-                  tasks={tasks as any[]}
-                  loading={tasksLoading}
-                  showEventName={false}
-                />
-              </TabsContent>
-            
-              <TabsContent value="team">
-                <div className="bg-card rounded-lg p-6">
-                  <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
                   
                   {teamLoading ? (
                     <div className="flex justify-center py-8">
@@ -708,20 +653,17 @@ const Event: React.FC<EventProps> = ({ id }) => {
                             ) : (
                               <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
                                 <span className="text-primary font-medium">
-                                  {member.user.firstName?.charAt(0) || ''}
-                                  {member.user.lastName?.charAt(0) || ''}
+                                  {getInitials(`${member.user.firstName} ${member.user.lastName}`)}
                                 </span>
                               </div>
                             )}
                             <div>
-                              <p className="font-medium">
-                                {member.user.firstName} {member.user.lastName}
-                              </p>
+                              <p className="font-medium">{member.user.firstName} {member.user.lastName}</p>
                               <p className="text-sm text-muted-foreground">
                                 {member.role === 'organizer' ? 'Organizador' : 
-                                member.role === 'team_member' ? 'Membro da Equipe' : 
-                                member.role === 'vendor' ? 'Fornecedor' : 
-                                member.role}
+                                 member.role === 'team_member' ? 'Membro da Equipe' : 
+                                 member.role === 'vendor' ? 'Fornecedor' : 
+                                 member.role}
                               </p>
                             </div>
                           </div>
@@ -730,13 +672,13 @@ const Event: React.FC<EventProps> = ({ id }) => {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <div className="mb-4 flex justify-center">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                          <i className="fas fa-users text-primary text-2xl"></i>
-                        </div>
+                      <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <i className="fas fa-users text-2xl text-primary"></i>
                       </div>
                       <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
-                      <p className="text-muted-foreground mb-6">Adicione membros à equipe para colaborar no evento</p>
+                      <p className="text-muted-foreground mb-6">
+                        Adicione membros à equipe para colaborar no evento.
+                      </p>
                       <Button onClick={() => navigate(`/events/${eventId}/team/add`)}>
                         <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
                       </Button>
@@ -744,9 +686,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
                   )}
                 </div>
               </TabsContent>
-          
               <TabsContent value="timeline">
-                <div className="bg-card rounded-lg p-6">
+                <div className="p-4 sm:p-6">
                   <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
                   
                   {tasksLoading ? (
@@ -757,10 +698,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
                     <div className="relative pl-8">
                       <div className="absolute left-3.5 top-0 bottom-0 w-0.5 bg-muted"></div>
                       
-                      {/* Agrupar tarefas por data de vencimento */}
                       {tasks
-                        .filter((task: any) => task.dueDate) // Filtrar apenas tarefas com data definida
-                        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()) // Ordenar por data
+                        .filter((task: any) => task.dueDate)
+                        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
                         .map((task: any, index: number) => {
                           const taskDate = new Date(task.dueDate);
                           const today = new Date();
@@ -818,36 +758,53 @@ const Event: React.FC<EventProps> = ({ id }) => {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <div className="mb-4 flex justify-center">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                          <i className="fas fa-calendar-day text-primary text-2xl"></i>
-                        </div>
+                      <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <i className="fas fa-calendar-day text-2xl text-primary"></i>
                       </div>
                       <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
-                      <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
-                      <Link href={`/events/${eventId}/checklist`}>
-                        <Button>
-                          <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
-                        </Button>
-                      </Link>
+                      <p className="text-muted-foreground mb-6">
+                        Adicione tarefas com prazos para visualizar o cronograma do evento.
+                      </p>
+                      <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)}>
+                        <i className="fas fa-plus mr-2"></i> Adicionar Tarefa
+                      </Button>
                     </div>
                   )}
                 </div>
               </TabsContent>
-              
               <TabsContent value="activity">
-                <ActivityFeed
-                  activities={activities as any[]}
-                  loading={activitiesLoading}
-                  limit={10}
-                />
+                <div className="p-4 sm:p-6">
+                  <h2 className="text-xl font-semibold mb-6">Atividades Recentes</h2>
+                  <ActivityFeed
+                    activities={activities}
+                    loading={activitiesLoading}
+                    limit={10}
+                  />
+                </div>
               </TabsContent>
-            </Tabs>
+            </div>
           </div>
-        </div>
+        </Tabs>
       </div>
     </div>
   );
+};
+
+// Helper functions for styling
+const getTaskStatusClass = (status: string) => {
+  switch (status) {
+    case "completed": return "bg-green-500/10 text-green-500";
+    case "in_progress": return "bg-blue-500/10 text-blue-500";
+    default: return "bg-gray-500/10 text-gray-400";
+  }
+};
+
+const getTaskPriorityClass = (priority: string) => {
+  switch (priority) {
+    case "high": return "bg-red-500/10 text-red-500";
+    case "medium": return "bg-yellow-500/10 text-yellow-500";
+    default: return "bg-gray-500/10 text-gray-400";
+  }
 };
 
 export default Event;
