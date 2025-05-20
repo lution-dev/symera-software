@@ -136,6 +136,12 @@
     @apply text-xl sm:text-2xl md:text-3xl;
   }
   
+  /* Specific fix for forms to prevent double scroll */
+  .form-page {
+    height: auto !important;
+    overflow-y: visible !important;
+  }
+  
   /* Custom scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

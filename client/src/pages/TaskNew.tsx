@@ -144,7 +144,7 @@ const TaskNew: React.FC = () => {
   }
   
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 form-page">
       {/* Header */}
       <div className="mb-4 md:mb-6">
         <Button 
