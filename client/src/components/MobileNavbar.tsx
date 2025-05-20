@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 
+
 // Define User interface based on what we found in the codebase
 interface User {
   id: string;
@@ -130,48 +131,32 @@ const MobileNavbar: React.FC = () => {
                     </button>
                   </SheetTrigger>
                   <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
-                    <div className="py-6 px-5 bg-card flex items-center border-b">
-                      <img 
-                        src={`${import.meta.env.BASE_URL || ''}src/assets/symera-icon.png`}
-                        alt="Symera Logo" 
-                        className="h-9 w-9 mr-3 object-contain"
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent) {
-                            const fallback = document.createElement('div');
-                            fallback.className = "h-9 w-9 mr-3 flex items-center justify-center bg-gradient-primary text-white font-bold text-lg rounded-full";
-                            fallback.textContent = "S";
-                            parent.appendChild(fallback);
-                          }
-                        }}
-                      />
-                      <div>
-                        <h2 className="text-primary text-xl font-semibold">Symera</h2>
-                        <p className="text-xs text-muted-foreground">Gerenciamento de Eventos</p>
+                    <div className="p-4 bg-card flex items-center border-b border-border">
+                      <div className="flex items-center">
+                        <img 
+                          src={`${import.meta.env.BASE_URL || ''}src/assets/symera-icon.png`}
+                          alt="Symera Logo" 
+                          className="h-8 w-auto" 
+                        />
+                        <h1 className="text-xl font-bold gradient-text ml-3">Symera</h1>
                       </div>
                     </div>
                     
                     <div className="p-5 pt-6">
-                      <div className="space-y-3">
+                      <div className="space-y-1">
                         {mainNavItems.concat(menuItems).map((item) => (
                           <SheetClose asChild key={item.path}>
                             <Link href={item.path}>
                               <div className={cn(
-                                "flex items-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-primary/5",
-                                isActivePath(item.path) && "bg-primary/10"
+                                "flex items-center rounded-md transition-colors cursor-pointer px-4 py-2",
+                                isActivePath(item.path)
+                                  ? "bg-primary text-white"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
                               )}>
                                 <i className={cn(
-                                  `fas fa-${item.icon} w-5 h-5 mr-3`,
-                                  isActivePath(item.path) ? "text-primary" : "text-muted-foreground"
+                                  `fas fa-${item.icon} w-5 h-5`
                                 )}></i>
-                                <span className={cn(
-                                  "font-medium",
-                                  isActivePath(item.path) ? "text-primary" : "text-foreground"
-                                )}>
-                                  {item.label}
-                                </span>
+                                <span className="ml-3">{item.label}</span>
                               </div>
                             </Link>
                           </SheetClose>
