@@ -394,8 +394,7 @@ const Schedule: React.FC = () => {
           </div>
         </div>
         
-        <Dialog open={showNewItemDialog} onOpenChange={setShowNewItemDialog}>
-          <DialogTrigger asChild>
+        <DialogTrigger asChild>
             <Button 
               variant="outline" 
               size="sm" 
@@ -405,49 +404,6 @@ const Schedule: React.FC = () => {
               <span>Criar</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[90%] sm:w-auto">
-            <DialogHeader>
-              <DialogTitle>Adicionar item</DialogTitle>
-              <DialogDescription>
-                {formatDate(selectedDate)}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <div className="flex justify-center space-x-4 w-full">
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => {
-                    try {
-                      setShowNewItemDialog(false);
-                      localStorage.setItem('selectedEventDate', selectedDate.toISOString().split('T')[0]);
-                      navigate("/events/new");
-                    } catch (err) {
-                      console.error("Erro ao navegar:", err);
-                    }
-                  }}
-                >
-                  Evento
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => {
-                    setShowNewItemDialog(false);
-                    navigate("/events");
-                  }}
-                >
-                  Tarefa
-                </Button>
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowNewItemDialog(false)}>Cancelar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
 
       <div className="grid grid-cols-1">
