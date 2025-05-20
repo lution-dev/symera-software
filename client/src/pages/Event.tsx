@@ -708,46 +708,48 @@ const Event: React.FC<EventProps> = ({ id }) => {
       </div>
       
       {/* Tabs for Tasks, Timeline, etc. */}
-      <div className="flex flex-col sm:flex-row mb-8">
-        {/* Coluna da esquerda (~260px) - Menu vertical com abas */}
-        <div className="w-full sm:w-[260px] pr-0 sm:pr-4 mb-4 sm:mb-0 sm:border-r">
-          <Tabs defaultValue="tasks" orientation="vertical" className="w-full">
-            <TabsList className="mb-4 sm:mb-0 w-full flex sm:flex-col space-x-1 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
+      <Tabs defaultValue="tasks" className="mb-8">
+        <div className="flex flex-col sm:flex-row">
+          {/* Left column (~260px) - Vertical menu */}
+          <div className="w-full sm:w-[260px] pr-0 sm:pr-4 mb-4 sm:mb-0 sm:border-r">
+            <TabsList className="mb-4 sm:mb-0 w-full flex flex-row sm:flex-col space-x-1 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
               <TabsTrigger value="tasks" className="flex-shrink-0 sm:justify-start w-full">
                 <i className="fas fa-tasks mr-2"></i> Tarefas 
-                {tasks?.length > 0 && <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{tasks.length}</span>}
+                {Array.isArray(tasks) && tasks.length > 0 && (
+                  <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                    {tasks.length}
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="team" className="flex-shrink-0 sm:justify-start w-full">
                 <i className="fas fa-users mr-2"></i> Equipe
-                {team?.length > 0 && <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{team.length}</span>}
+                {Array.isArray(team) && team.length > 0 && (
+                  <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                    {team.length}
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="timeline" className="flex-shrink-0 sm:justify-start w-full">
                 <i className="fas fa-calendar-alt mr-2"></i> Cronograma
-                {tasks?.filter((task: any) => !!task.dueDate)?.length > 0 && 
+                {Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
                   <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
                     {tasks.filter((task: any) => !!task.dueDate).length}
                   </span>
-                }
+                )}
               </TabsTrigger>
               <TabsTrigger value="activity" className="flex-shrink-0 sm:justify-start w-full">
                 <i className="fas fa-history mr-2"></i> Atividades
-                {activities?.length > 0 && <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{activities.length}</span>}
+                {Array.isArray(activities) && activities.length > 0 && (
+                  <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                    {activities.length}
+                  </span>
+                )}
               </TabsTrigger>
             </TabsList>
-          </Tabs>
-        </div>
-        
-        {/* Coluna da direita - Conteúdo da aba selecionada */}
-        <div className="flex-grow pl-0 sm:pl-4">
-          <Tabs defaultValue="tasks" className="w-full">
-            <div className="hidden">
-              <TabsList>
-                <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-                <TabsTrigger value="team">Equipe</TabsTrigger>
-                <TabsTrigger value="timeline">Cronograma</TabsTrigger>
-                <TabsTrigger value="activity">Atividade</TabsTrigger>
-              </TabsList>
-            </div>
+          </div>
+          
+          {/* Right column - Tab content */}
+          <div className="flex-grow pl-0 sm:pl-4 overflow-auto">
         
         <TabsContent value="tasks" className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
