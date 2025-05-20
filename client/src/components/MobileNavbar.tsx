@@ -11,6 +11,7 @@ import {
   SheetClose
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import symeraLogo from "@assets/symera-icon.png";
 
 
 // Define User interface based on what we found in the codebase
@@ -134,7 +135,7 @@ const MobileNavbar: React.FC = () => {
                     <div className="p-4 bg-card flex items-center border-b border-border">
                       <div className="flex items-center">
                         <img 
-                          src={`${import.meta.env.BASE_URL || ''}src/assets/symera-icon.png`}
+                          src={symeraLogo}
                           alt="Symera Logo" 
                           className="h-8 w-auto" 
                         />
