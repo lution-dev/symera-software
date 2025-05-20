@@ -141,8 +141,8 @@ const Sidebar: React.FC = () => {
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       )}
                     >
-                      <item.icon className="w-5 h-5" />
-                      {expanded && <span className="ml-3">{item.label}</span>}
+                      <item.icon className="w-5 h-5 min-w-5" />
+                      <span className={cn("ml-3", !expanded && "hidden")}>{item.label}</span>
                     </div>
                   </Link>
                 </TooltipTrigger>
