@@ -31,9 +31,7 @@ import {
   Store, 
   DollarSign, 
   Settings,
-  LogOut,
-  ChevronLeft,
-  ChevronRight
+  LogOut
 } from "lucide-react";
 
 // User type definition
@@ -48,25 +46,31 @@ interface User {
 const Sidebar: React.FC = () => {
   const [location] = useLocation();
   const { user } = useAuth() as { user: User | undefined | null };
-  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<boolean>(false);
   
-  // Load collapsed state from localStorage
+  // Initialize sidebar as collapsed by default
   useEffect(() => {
-    const savedState = localStorage.getItem('sidebar_collapsed');
-    if (savedState) {
-      setCollapsed(savedState === 'true');
-    }
+    // Dispatch event to notify layout that sidebar is collapsed
+    window.dispatchEvent(new CustomEvent('sidebarStateChange', { 
+      detail: { collapsed: true } 
+    }));
   }, []);
 
-  // Save collapsed state to localStorage and dispatch event
-  const toggleCollapsed = () => {
-    const newState = !collapsed;
-    setCollapsed(newState);
-    localStorage.setItem('sidebar_collapsed', String(newState));
-    
-    // Dispatch custom event for layout to listen to
+  // Handle mouse enter - expand the sidebar
+  const handleMouseEnter = () => {
+    setExpanded(true);
+    // Notify layout that sidebar is expanded
     window.dispatchEvent(new CustomEvent('sidebarStateChange', { 
-      detail: { collapsed: newState } 
+      detail: { collapsed: false } 
+    }));
+  };
+
+  // Handle mouse leave - collapse the sidebar
+  const handleMouseLeave = () => {
+    setExpanded(false);
+    // Notify layout that sidebar is collapsed
+    window.dispatchEvent(new CustomEvent('sidebarStateChange', { 
+      detail: { collapsed: true } 
     }));
   };
   
@@ -96,76 +100,53 @@ const Sidebar: React.FC = () => {
     <aside 
       className={cn(
         "hidden md:flex flex-col bg-card border-r border-border overflow-y-auto transition-all duration-300 fixed top-0 bottom-0 left-0 z-40 h-screen",
-        collapsed ? "w-16" : "w-64"
+        expanded ? "w-64" : "w-16"
       )}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      {/* Logo and toggle button */}
+      {/* Logo section */}
       <div className={cn(
         "relative flex items-center border-b border-border", 
-        collapsed ? "justify-center p-3 group" : "p-4"
+        expanded ? "p-4" : "justify-center p-3"
       )}>
         <div className={cn(
           "flex items-center",
-          collapsed ? "justify-center" : ""
+          !expanded ? "justify-center" : ""
         )}>
           <Logo className="h-8 w-auto" />
-          {!collapsed && <h1 className="text-xl font-bold gradient-text ml-3">Symera</h1>}
+          {expanded && <h1 className="text-xl font-bold gradient-text ml-3">Symera</h1>}
         </div>
-        
-        {!collapsed && (
-          <button 
-            onClick={toggleCollapsed}
-            className="absolute right-4 flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            title="Recolher menu"
-          >
-            <ChevronLeft size={16} />
-          </button>
-        )}
-        
-        {collapsed && (
-          <div className="relative">
-            <button 
-              onClick={toggleCollapsed}
-              className="absolute flex items-center justify-center p-1 rounded-full text-muted-foreground hover:text-foreground bg-card border border-border shadow-md z-50"
-              style={{ right: '-12px', top: '50%', transform: 'translate(50%, -50%)' }}
-              title="Expandir menu"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
       </div>
       
       {/* Navigation */}
       <nav className={cn(
         "flex-1 space-y-6",
-        collapsed ? "p-2" : "p-4"
+        expanded ? "p-4" : "p-2"
       )}>
         <div className="space-y-1">
           {navItems.map((item) => (
-            <TooltipProvider key={item.path} delayDuration={collapsed ? 100 : 1000}>
+            <TooltipProvider key={item.path} delayDuration={!expanded ? 100 : 1000}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div>
-                    <Link href={item.path}>
-                      <div
-                        className={cn(
-                          "flex items-center rounded-md transition-colors cursor-pointer px-4 py-2",
-                          collapsed ? "justify-center" : "",
-                          isActivePath(item.path)
-                            ? "bg-primary text-white"
-                            : item.highlight
-                            ? (collapsed ? "text-primary hover:bg-muted" : "border border-primary/50 text-primary hover:bg-muted")
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                        )}
-                      >
-                        <item.icon className="w-5 h-5" />
-                        {!collapsed && <span className="ml-3">{item.label}</span>}
-                      </div>
-                    </Link>
-                  </div>
+                  <Link href={item.path}>
+                    <div
+                      className={cn(
+                        "flex items-center rounded-md transition-colors cursor-pointer px-4 py-2",
+                        !expanded ? "justify-center" : "",
+                        isActivePath(item.path)
+                          ? "bg-primary text-white"
+                          : item.highlight
+                          ? (!expanded ? "text-primary hover:bg-muted" : "border border-primary/50 text-primary hover:bg-muted")
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      {expanded && <span className="ml-3">{item.label}</span>}
+                    </div>
+                  </Link>
                 </TooltipTrigger>
-                <TooltipContent side="right" className={cn("bg-card", !collapsed && "hidden")}>
+                <TooltipContent side="right" className={cn("bg-card", expanded && "hidden")}>
                   {item.label}
                 </TooltipContent>
               </Tooltip>
@@ -177,13 +158,13 @@ const Sidebar: React.FC = () => {
       {/* User profile */}
       <div className={cn(
         "border-t border-border",
-        collapsed ? "p-2" : "p-4"
+        expanded ? "p-4" : "p-2"
       )}>
         <div className={cn(
           "flex items-center",
-          collapsed ? "justify-center" : "justify-between w-full"
+          !expanded ? "justify-center" : "justify-between w-full"
         )}>
-          {!collapsed && (
+          {expanded && (
             <Link href="/profile" className="flex-1 min-w-0 mr-2">
               <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
                 <Avatar className="h-10 w-10 flex-shrink-0">
@@ -204,46 +185,37 @@ const Sidebar: React.FC = () => {
             </Link>
           )}
           
-          {/* Logout button - shown in both states but in different positions */}
-          <TooltipProvider delayDuration={collapsed ? 100 : 1000}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <div
-                      className={cn(
-                        "text-muted-foreground hover:text-foreground cursor-pointer flex-shrink-0",
-                        collapsed ? "" : "ml-2"
-                      )}
-                      title="Sair"
-                    >
-                      <LogOut className="h-4 w-4" />
-                    </div>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmar saída</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tem certeza que deseja sair da sua conta?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleLogout}
-                        className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                      >
-                        Sair
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </TooltipTrigger>
-              <TooltipContent side="right" className={cn(!collapsed && "hidden")}>
-                Sair
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {/* Logout button */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <div
+                className={cn(
+                  "text-muted-foreground hover:text-foreground cursor-pointer flex-shrink-0",
+                  expanded ? "ml-2" : ""
+                )}
+                title="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </div>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar saída</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja sair da sua conta?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleLogout}
+                  className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                >
+                  Sair
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </aside>
