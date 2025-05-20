@@ -48,6 +48,8 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
+  
+  // Estado para controlar a navegação em abas
   const [activeTab, setActiveTab] = useState('tasks');
   
   // Extrair o ID da URL se não recebido como prop
