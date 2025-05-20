@@ -250,49 +250,148 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </ol>
       </nav>
       
-      
-      
-      {/* Event Cover Image - Ajustado para mobile */}
-      <div className="relative w-full h-48 sm:h-64 md:h-80 mb-4 sm:mb-6 rounded-xl overflow-hidden shadow-md">
-        <img 
-          src={event.coverImageUrl || getDefaultCover()}
-          alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
-        <div className="absolute bottom-0 left-0 p-3 sm:p-6">
-          <div className="flex flex-wrap gap-2 mb-2">
-            <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
-              {getEventTypeLabel(event.type)}
-            </span>
-            <span className={`inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${
-              event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
-              event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
-              event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-              event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-              event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
-              event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
-              'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
-            }`}>
-              {event.status === 'planning' ? 'Planejamento' : 
-              event.status === 'confirmed' ? 'Confirmado' : 
-              event.status === 'in_progress' ? 'Em andamento' : 
-              event.status === 'active' ? 'Ativo' : 
-              event.status === 'completed' ? 'Concluído' : 
-              event.status === 'cancelled' ? 'Cancelado' : 
-              'Planejamento'}
-            </span>
+      {/* Novo layout com dois cards lado a lado */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
+        {/* Card da esquerda - Imagem de capa e informações básicas */}
+        <div className="relative w-full h-64 sm:h-72 rounded-xl overflow-hidden shadow-md">
+          <img 
+            src={event.coverImageUrl || getDefaultCover()}
+            alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
+          <div className="absolute bottom-0 left-0 p-3 sm:p-6">
+            <div className="flex flex-wrap gap-2 mb-2">
+              <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
+                {getEventTypeLabel(event.type)}
+              </span>
+              <span className={`inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${
+                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
+                'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
+              }`}>
+                {event.status === 'planning' ? 'Planejamento' : 
+                event.status === 'confirmed' ? 'Confirmado' : 
+                event.status === 'in_progress' ? 'Em andamento' : 
+                event.status === 'active' ? 'Ativo' : 
+                event.status === 'completed' ? 'Concluído' : 
+                event.status === 'cancelled' ? 'Cancelado' : 
+                'Planejamento'}
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
+            {event.description && (
+              <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
+                {event.description}
+              </p>
+            )}
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
-          {event.description && (
-            <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
-              {event.description}
-            </p>
-          )}
+        </div>
+        
+        {/* Card da direita - Informações do evento */}
+        <div className="bg-card rounded-xl overflow-hidden shadow-md">
+          <div className="p-4 sm:p-6 h-full flex flex-col">
+            <h2 className="text-xl font-semibold mb-4">Dados do Evento</h2>
+            
+            <div className="space-y-4">
+              {/* Data e Horário */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <i className="fas fa-calendar-day text-primary"></i>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Data e Horário</p>
+                  <p className="font-medium">{formatDate(event.date)}</p>
+                </div>
+              </div>
+              
+              {/* Local */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <i className="fas fa-map-marker-alt text-primary"></i>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Local</p>
+                  <p className="font-medium">{event.location || "Não definido"}</p>
+                </div>
+              </div>
+              
+              {/* Orçamento */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <i className="fas fa-wallet text-primary"></i>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Orçamento Estimado</p>
+                  <p className="font-medium">{formatCurrency(event.budget || 0)}</p>
+                </div>
+              </div>
+              
+              {/* Número de Convidados */}
+              {event.guestCount !== undefined && (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <i className="fas fa-users text-primary"></i>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Convidados</p>
+                    <p className="font-medium">{event.guestCount} pessoas</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Ações Rápidas */}
+            <div className="mt-auto pt-6">
+              <div className="flex items-center justify-between">
+                <Select
+                  defaultValue={event.status}
+                  onValueChange={(value) => {
+                    updateEventStatusMutation.mutate(value);
+                  }}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Status do Evento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Status</SelectLabel>
+                      <SelectItem value="planning">Planejamento</SelectItem>
+                      <SelectItem value="confirmed">Confirmado</SelectItem>
+                      <SelectItem value="in_progress">Em andamento</SelectItem>
+                      <SelectItem value="completed">Concluído</SelectItem>
+                      <SelectItem value="cancelled">Cancelado</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <i className="fas fa-ellipsis-v"></i>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/edit`)}>
+                      <i className="fas fa-edit mr-2"></i> Editar Evento
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleRegenerateChecklist}>
+                      <i className="fas fa-sync-alt mr-2"></i> Regenerar Checklist
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive" onClick={handleDeleteEvent}>
+                      <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      
-      {/* Status Change Control foi movido para o card de informações */}
       
       {/* Alerta para tarefas pendentes quando evento está próximo */}
       {(event as any).warningMessage && (
