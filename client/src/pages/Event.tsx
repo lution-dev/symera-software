@@ -1,28 +1,32 @@
 import React, { useState } from "react";
-import { useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
+import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectLabel, 
+  SelectTrigger, 
+  SelectValue 
 } from "@/components/ui/select";
-import {
+import { 
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -34,7 +38,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AlertTriangle } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import EventTabs from "@/components/Event/EventTabs";
 
 interface EventProps {
   id?: string;
@@ -46,479 +50,957 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
-  const queryClient = useQueryClient();
   
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
   
-  // Carregar dados do evento
-  const { data: event, isLoading } = useQuery({
+  console.log("[Debug] ID do evento recebido como prop:", id);
+  console.log("[Debug] ID do evento extraído da URL:", eventId);
+  
+  const { data: event, isLoading, error } = useQuery({
     queryKey: [`/api/events/${eventId}`],
-    enabled: isAuthenticated && !!eventId,
+    enabled: !!eventId && isAuthenticated,
+    retry: 1
   });
-
-  // Carregar tarefas do evento
+  
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/tasks`],
-    enabled: isAuthenticated && !!eventId,
+    enabled: !!eventId && !!event,
   });
-
-  // Carregar equipe do evento
+  
   const { data: team, isLoading: teamLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/team`],
-    enabled: isAuthenticated && !!eventId,
+    enabled: !!eventId && !!event,
   });
-
-  // Carregar atividades do evento
+  
   const { data: activities, isLoading: activitiesLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/activities`],
-    enabled: isAuthenticated && !!eventId,
+    enabled: !!eventId && !!event,
   });
-
-  // Mutação para atualizar o status do evento
-  const updateEventStatusMutation = useMutation({
-    mutationFn: async ({ status }: { status: string }) => {
-      return apiRequest(`/api/events/${eventId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
+  
+  const regenerateChecklistMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/events/${eventId}/generate-checklist`, {
+        method: "POST"
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       toast({
-        title: "Status atualizado",
-        description: "O status do evento foi atualizado com sucesso.",
+        title: "Checklist regenerado",
+        description: "O checklist foi regenerado com sucesso usando IA",
       });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
     },
-    onError: (error) => {
+    onError: () => {
       toast({
-        title: "Erro ao atualizar status",
-        description: "Não foi possível atualizar o status do evento.",
+        title: "Erro",
+        description: "Não foi possível regenerar o checklist. Tente novamente.",
         variant: "destructive",
       });
     },
   });
-
-  // Configurar as badges de status
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "planning":
-        return <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">Planejamento</Badge>;
-      case "active":
-        return <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">Ativo</Badge>;
-      case "completed":
-        return <Badge variant="outline" className="bg-purple-500/10 text-purple-500 border-purple-500/20">Concluído</Badge>;
-      case "cancelled":
-        return <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">Cancelado</Badge>;
-      case "postponed":
-        return <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20">Adiado</Badge>;
-      default:
-        return <Badge variant="outline">Desconhecido</Badge>;
+  
+  // Mutation para atualizar o status do evento
+  const updateEventStatusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      return apiRequest(`/api/events/${eventId}`, { 
+        method: "PATCH",
+        body: { status: newStatus }
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Status atualizado",
+        description: "O status do evento foi atualizado com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+      
+      // O registro de atividade já é feito no backend
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do evento. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const deleteEventMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/events/${eventId}`, {
+        method: "DELETE"
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Evento excluído",
+        description: "O evento foi excluído com sucesso",
+      });
+      navigate("/events");
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o evento. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleDeleteEvent = () => {
+    if (window.confirm("Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.")) {
+      deleteEventMutation.mutate();
     }
   };
-
+  
+  const handleRegenerateChecklist = () => {
+    if (window.confirm("Tem certeza que deseja regenerar o checklist? Isso criará novas tarefas baseadas na IA.")) {
+      regenerateChecklistMutation.mutate();
+    }
+  };
+  
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </div>
     );
   }
-
+  
   if (!event) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="text-center py-12">
-          <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Evento não encontrado</h2>
+      <div className="container mx-auto px-4 py-6">
+        <div className="bg-card rounded-xl p-8 text-center">
+          <div className="mb-4 flex justify-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+              <i className="fas fa-calendar-times text-destructive text-2xl"></i>
+            </div>
+          </div>
+          <h3 className="text-lg font-medium mb-2">Evento não encontrado</h3>
           <p className="text-muted-foreground mb-6">
             O evento que você está procurando não existe ou você não tem permissão para acessá-lo.
           </p>
-          <Button onClick={() => navigate("/events")}>Voltar para Eventos</Button>
+          <Link href="/events">
+            <Button>
+              <i className="fas fa-arrow-left mr-2"></i> Voltar para Eventos
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
+  
+  // Calculate progress
+  const progress = calculateTaskProgress(tasks || []);
+  
+  // Count tasks by status
+  const totalTasks = tasks?.length || 0;
+  const completedTasks = tasks?.filter((task: any) => task.status === 'completed').length || 0;
+  const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
+  const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
+
+  // Função para obter imagem de capa padrão com base no tipo de evento - usando as mesmas do EventCard
+  const getDefaultCover = () => {
+    switch (event.type) {
+      case 'wedding':
+        return 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      case 'corporate':
+        return 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      case 'birthday':
+        return 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      case 'conference':
+        return 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      case 'social':
+        return 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+      default:
+        return 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
+    }
+  };
 
   return (
-    <div className="container mx-auto py-8">
-      {/* Cabeçalho do evento */}
-      <div className="mb-8">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
-          <div>
-            <div className="flex flex-col md:flex-row md:items-center gap-3">
-              <h1 className="text-3xl font-bold">{event.name}</h1>
-              {getStatusBadge(event.status)}
+    <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
+      {/* Breadcrumb Navigation - visível em desktop e tablet, mas oculto em mobile */}
+      <nav className="hidden sm:flex mb-4" aria-label="Breadcrumb">
+        <ol className="inline-flex items-center space-x-1 md:space-x-3">
+          <li className="inline-flex items-center">
+            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+              <i className="fas fa-home mr-2"></i>
+              Início
+            </Link>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
+              <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
+                Eventos
+              </Link>
             </div>
-            <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-4 gap-y-1">
-              <span className="flex items-center">
-                <i className="fas fa-calendar-day mr-2"></i> 
-                {event.date ? formatDate(new Date(event.date)) : "Data não definida"}
+          </li>
+          <li aria-current="page">
+            <div className="flex items-center">
+              <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
+              <span className="text-sm font-medium text-primary truncate max-w-[150px]">
+                {event.name}
               </span>
-              <span className="flex items-center">
-                <i className="fas fa-users mr-2"></i> {event.attendees || 0} convidados
+            </div>
+          </li>
+        </ol>
+      </nav>
+      
+      
+      
+      {/* Layout de dois cards lado a lado (1:1) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 sm:mb-6">
+        {/* Card da esquerda - Mantém o design atual mas encapsulado como um card lateral */}
+        <div className="relative rounded-xl overflow-hidden shadow-md h-48 sm:h-64 md:h-[220px]">
+          <img 
+            src={event.coverImageUrl || getDefaultCover()}
+            alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
+          <div className="absolute bottom-0 left-0 p-3 sm:p-6">
+            <div className="flex flex-wrap gap-2 mb-2">
+              <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
+                {getEventTypeLabel(event.type)}
               </span>
-              <span className="flex items-center">
-                <i className="fas fa-map-marker-alt mr-2"></i> {event.location || "Local não definido"}
+              <span className={`inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${
+                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
+                'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
+              }`}>
+                {event.status === 'planning' ? 'Planejamento' : 
+                event.status === 'confirmed' ? 'Confirmado' : 
+                event.status === 'in_progress' ? 'Em andamento' : 
+                event.status === 'active' ? 'Ativo' : 
+                event.status === 'completed' ? 'Concluído' : 
+                event.status === 'cancelled' ? 'Cancelado' : 
+                'Planejamento'}
               </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
+            {event.description && (
+              <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
+                {event.description}
+              </p>
+            )}
+          </div>
+        </div>
+        
+        {/* Card da direita - Informações do evento em formato de lista */}
+        <div className="bg-card rounded-xl shadow-md p-5 flex flex-col h-48 sm:h-64 md:h-[220px]">
+          <div className="flex justify-between items-start mb-5">
+            <h2 className="text-lg font-semibold">Detalhes do Evento</h2>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <i className="fas fa-ellipsis-v"></i>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/edit`)}>
+                  <i className="fas fa-edit mr-2 text-muted-foreground"></i> Editar Evento
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate(`/events/${eventId}/team/add`)}>
+                  <i className="fas fa-user-plus mr-2 text-muted-foreground"></i> Adicionar Membro
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleRegenerateChecklist}>
+                  <i className="fas fa-sync-alt mr-2 text-muted-foreground"></i> Regenerar Checklist
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDeleteEvent} className="text-destructive focus:text-destructive">
+                  <i className="fas fa-trash-alt mr-2"></i> Excluir Evento
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3 xs:gap-4 mb-1">
+            {/* Coluna da esquerda */}
+            <div className="space-y-3 xs:space-y-4">
+              {/* Data do evento */}
+              <div className="flex items-start">
+                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                  <i className="fas fa-calendar-day text-sm"></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-xs text-muted-foreground">Data</p>
+                  <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
+                </div>
+              </div>
+              
+              {/* Número de convidados */}
+              {event.attendees && (
+                <div className="flex items-start">
+                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                    <i className="fas fa-user-friends text-sm"></i>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-xs text-muted-foreground">Convidados</p>
+                    <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Coluna da direita */}
+            <div className="space-y-3 xs:space-y-4">
+              {/* Local do evento */}
+              {event.location && (
+                <div className="flex items-start">
+                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                    <i className="fas fa-map-marker-alt text-sm"></i>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-xs text-muted-foreground">Local</p>
+                    <p className="mt-0.5 text-sm font-medium overflow-hidden text-ellipsis">{event.location}</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Orçamento */}
+              {event.budget && (
+                <div className="flex items-start">
+                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                    <i className="fas fa-coins text-sm"></i>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-xs text-muted-foreground">Orçamento</p>
+                    <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            <Select
-              defaultValue={event.status}
-              onValueChange={(value) => {
-                updateEventStatusMutation.mutate({ status: value });
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Alterar status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="planning">Planejamento</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
-                <SelectItem value="postponed">Adiado</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Status simplificado */}
+          <div className="flex items-center justify-between border-t border-border/30 pt-2 mt-0">
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]' : 
+                event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/15 text-[hsl(var(--event-confirmed))]' : 
+                event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/15 text-[hsl(var(--event-in-progress))]' : 
+                event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/15 text-[hsl(var(--event-completed))]' : 
+                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/15 text-[hsl(var(--event-cancelled))]' : 
+                'bg-[hsl(var(--event-planning))]/15 text-[hsl(var(--event-planning))]'
+              }`}>
+                <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                  event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]' : 
+                  event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]' : 
+                  event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]' : 
+                  event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]' : 
+                  event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]' : 
+                  'bg-[hsl(var(--event-planning))]'
+                }`}></span>
+                {event.status === 'planning' ? 'Planejamento' : 
+                event.status === 'confirmed' ? 'Confirmado' : 
+                event.status === 'in_progress' ? 'Em andamento' : 
+                event.status === 'active' ? 'Ativo' : 
+                event.status === 'completed' ? 'Concluído' : 
+                event.status === 'cancelled' ? 'Cancelado' : 
+                'Planejamento'}
+              </span>
+            </div>
             
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  <i className="fas fa-trash-alt mr-2"></i> Excluir
+                <Button variant="ghost" size="sm" className="h-8 w-8 px-0 rounded-full">
+                  <i className="fas fa-pencil-alt text-xs"></i>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                  <AlertDialogTitle>Alterar status do evento</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Esta ação não pode ser desfeita. Isso excluirá permanentemente este evento
-                    e removerá seus dados de nossos servidores.
+                    Selecione o novo status para o evento.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-red-500 hover:bg-red-600"
-                    onClick={() => {
-                      // Lógica para excluir evento aqui
-                      apiRequest(`/api/events/${eventId}`, {
-                        method: "DELETE",
-                      }).then(() => {
-                        toast({
-                          title: "Evento excluído",
-                          description: "O evento foi excluído com sucesso.",
-                        });
-                        navigate("/events");
-                      }).catch(() => {
-                        toast({
-                          title: "Erro ao excluir evento",
-                          description: "Não foi possível excluir o evento.",
-                          variant: "destructive",
-                        });
-                      });
+                <div className="py-4">
+                  <Select
+                    defaultValue={event.status}
+                    onValueChange={(value) => {
+                      updateEventStatusMutation.mutate(value);
                     }}
                   >
-                    Excluir
-                  </AlertDialogAction>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Status</SelectLabel>
+                        <SelectItem value="planning">🔵 Planejamento</SelectItem>
+                        <SelectItem value="confirmed">🟢 Confirmado</SelectItem>
+                        <SelectItem value="in_progress">🟠 Em andamento</SelectItem>
+                        <SelectItem value="completed">✅ Concluído</SelectItem>
+                        <SelectItem value="cancelled">🔴 Cancelado</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            
-            <Button variant="default" onClick={() => navigate(`/events/${eventId}/edit`)}>
-              <i className="fas fa-edit mr-2"></i> Editar
+          </div>
+        </div>
+      </div>
+      
+      {/* Alerta para tarefas pendentes quando evento está próximo */}
+      
+      {/* Alerta para tarefas pendentes quando evento está próximo */}
+      {(event as any).warningMessage && (
+        <div className="mb-6 p-4 bg-amber-950/30 border-l-4 border-amber-500 rounded-lg text-amber-100">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
+            <p>{(event as any).warningMessage}</p>
+          </div>
+        </div>
+      )}
+      
+
+      
+      {/* Painel de Gestão Estratégica do Evento */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
+        
+        {/* Card de Progresso & Etapas */}
+        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-primary/70 flex flex-col h-full">
+          <div className="flex items-center mb-4">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center mr-2 sm:mr-3">
+              <i className="fas fa-tasks text-primary text-sm sm:text-base"></i>
+            </div>
+            <h3 className="font-semibold text-base sm:text-lg">Progresso do Projeto</h3>
+          </div>
+          
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <div className={`w-3 h-3 rounded-full mr-2 ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
+              <span className="text-xs sm:text-sm font-medium">{progress}% completo</span>
+            </div>
+            <span className="text-primary font-medium text-xs sm:text-sm">{completedTasks}/{totalTasks} tarefas</span>
+          </div>
+          
+          <div className="w-full h-2 bg-muted rounded-full mb-4 sm:mb-5 overflow-hidden">
+            <div 
+              className={`h-full rounded-full ${progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-3 text-center mb-4">
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
+              <div className={`text-base sm:text-lg font-bold ${todoTasks > 0 ? 'text-red-500' : 'text-muted-foreground'}`}>{todoTasks}</div>
+              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Pendentes</div>
+            </div>
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
+              <div className={`text-base sm:text-lg font-bold ${inProgressTasks > 0 ? 'text-amber-500' : 'text-muted-foreground'}`}>{inProgressTasks}</div>
+              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Em progr.</div>
+            </div>
+            <div className="bg-muted/50 hover:bg-muted rounded-md p-1.5 sm:p-2 md:p-3 transition-colors">
+              <div className={`text-base sm:text-lg font-bold ${completedTasks > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{completedTasks}</div>
+              <div className="text-[0.65rem] sm:text-xs font-medium truncate">Concluídas</div>
+            </div>
+          </div>
+          
+          <div className="mt-auto pt-2">
+            <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => navigate(`/events/${eventId}/tasks`)}>
+              <i className="fas fa-chart-line mr-1 sm:mr-2"></i> Análise Detalhada
             </Button>
           </div>
         </div>
         
-        {/* Cards de resumo do evento */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Orçamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(event.budget || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Planejado para o evento
-              </p>
-            </CardContent>
-          </Card>
+        {/* Card de Orçamento & Financeiro */}
+        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-blue-500/70 flex flex-col h-full">
+          <div className="flex items-center mb-4">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-2 sm:mr-3">
+              <i className="fas fa-wallet text-blue-500 text-sm sm:text-base"></i>
+            </div>
+            <h3 className="font-semibold text-base sm:text-lg">Gestão Financeira</h3>
+          </div>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Despesas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(event.expenses || 0)}
+          {event.budget ? (
+            <>
+              <div className="space-y-4 sm:space-y-6 mb-4">
+                {/* Valores principais com formatação abreviada para valores grandes */}
+                <div className="flex justify-between items-center flex-wrap gap-y-3 sm:gap-y-4">
+                  <div className="min-w-[100px] sm:min-w-[110px]">
+                    <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Orçamento</div>
+                    <div className="text-base sm:text-xl font-bold">
+                      {event.budget >= 10000 
+                        ? `R$ ${(event.budget / 1000).toFixed(0)}${event.budget >= 1000000 ? 'M' : 'K'}`
+                        : formatCurrency(event.budget)
+                      }
+                    </div>
+                  </div>
+                  <div className="min-w-[100px] sm:min-w-[110px] text-right">
+                    <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Gasto atual</div>
+                    <div className="text-base sm:text-xl font-bold">
+                      {(event.expenses || 0) >= 10000 
+                        ? `R$ ${((event.expenses || 0) / 1000).toFixed(0)}${(event.expenses || 0) >= 1000000 ? 'M' : 'K'}`
+                        : formatCurrency(event.expenses || 0)
+                      }
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Barra de progresso e status */}
+                <div>
+                  <div className="flex flex-wrap justify-between mb-2 text-xs sm:text-sm gap-2">
+                    <span className={`font-medium whitespace-nowrap ${(event.expenses || 0) / event.budget > 0.8 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                      {Math.round((event.expenses || 0) / event.budget * 100)}% utilizado
+                    </span>
+                    <span className="font-medium whitespace-nowrap">
+                      {(event.budget - (event.expenses || 0)) >= 10000 
+                        ? `R$ ${((event.budget - (event.expenses || 0)) / 1000).toFixed(0)}${(event.budget - (event.expenses || 0)) >= 1000000 ? 'M' : 'K'} disponível`
+                        : `${formatCurrency(event.budget - (event.expenses || 0))} disponível`
+                      }
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2 sm:h-3 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${
+                        (event.expenses || 0) / event.budget > 0.9 ? 'bg-red-500' : 
+                        (event.expenses || 0) / event.budget > 0.7 ? 'bg-amber-500' : 
+                        'bg-blue-500'
+                      }`}
+                      style={{ width: `${Math.min(100, Math.round((event.expenses || 0) / event.budget * 100))}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {event.expenses && event.budget ? 
-                  `${Math.round((event.expenses / event.budget) * 100)}% do orçamento utilizado` : 
-                  "Sem orçamento definido"}
-              </p>
-            </CardContent>
-          </Card>
+              
+              <div className="mt-auto pt-2">
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => navigate(`/events/${eventId}/budget`)}>
+                  <i className="fas fa-chart-pie mr-1 sm:mr-2"></i> Análise de Gastos
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-4 sm:py-6 flex flex-col items-center flex-grow">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                <i className="fas fa-money-bill-wave text-muted-foreground text-base sm:text-xl"></i>
+              </div>
+              <p className="text-muted-foreground text-xs sm:text-sm mb-4">Nenhum orçamento definido</p>
+              <Button variant="outline" size="sm" className="mt-auto text-xs sm:text-sm">
+                <i className="fas fa-plus mr-1 sm:mr-2"></i> Adicionar Orçamento
+              </Button>
+            </div>
+          )}
+        </div>
+        
+        {/* Card de Cronograma & Prazos */}
+        <div className="bg-card p-4 sm:p-6 rounded-lg shadow-md border-t-4 border-purple-500/70 flex flex-col h-full">
+          <div className="flex items-center mb-4">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-2 sm:mr-3">
+              <i className="fas fa-calendar-alt text-purple-500 text-sm sm:text-base"></i>
+            </div>
+            <h3 className="font-semibold text-base sm:text-lg">Cronograma</h3>
+          </div>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Disponível</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency((event.budget || 0) - (event.expenses || 0))}
+          {event.date ? (() => {
+            const eventDate = new Date(event.date);
+            const today = new Date();
+            const diffTime = eventDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) {
+              // Evento já realizado
+              return (
+                <div className="flex flex-col items-center justify-center flex-grow text-center py-3 sm:py-4">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-2 sm:mb-3">
+                    <i className="fas fa-flag-checkered text-blue-500 text-base sm:text-xl"></i>
+                  </div>
+                  <h4 className="text-base sm:text-lg font-medium text-blue-500 mb-1">Evento Realizado</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">em {formatDate(event.date)}</p>
+                  <Button variant="outline" size="sm" className="mt-3 sm:mt-4 text-xs sm:text-sm">
+                    <i className="fas fa-clipboard-check mr-1 sm:mr-2"></i> Gerar Relatório
+                  </Button>
+                </div>
+              );
+            } else if (diffDays === 0) {
+              // Evento é hoje
+              return (
+                <div className="flex flex-col items-center justify-center flex-grow text-center">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-green-500/20 flex items-center justify-center mb-2 sm:mb-3 animate-pulse">
+                    <i className="fas fa-calendar-day text-green-500 text-2xl sm:text-3xl"></i>
+                  </div>
+                  <h4 className="text-xl sm:text-2xl font-bold text-green-500 mb-1">HOJE!</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">{formatDate(event.date)}</p>
+                  
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full mt-2">
+                    <div className="bg-muted/50 p-1.5 sm:p-2 rounded-md text-center">
+                      <div className="text-[0.65rem] sm:text-xs text-muted-foreground">Pendentes</div>
+                      <div className="text-base sm:text-lg font-bold text-red-500">{todoTasks}</div>
+                    </div>
+                    <div className="bg-muted/50 p-1.5 sm:p-2 rounded-md text-center">
+                      <div className="text-[0.65rem] sm:text-xs text-muted-foreground">Prontos</div>
+                      <div className="text-base sm:text-lg font-bold text-green-500">{completedTasks}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            } else {
+              // Evento futuro
+              const urgency = diffDays <= 7 ? 'text-amber-500' : (diffDays <= 30 ? 'text-blue-500' : 'text-purple-500');
+              
+              return (
+                <div className="flex flex-col items-center flex-grow">
+                  <div className="text-center mb-3 sm:mb-4">
+                    <span className={`text-4xl sm:text-5xl font-bold block ${urgency}`}>
+                      {diffDays}
+                    </span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {diffDays === 1 ? "dia restante" : "dias restantes"}
+                    </span>
+                  </div>
+                  
+                  <div className="w-full bg-muted/50 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <i className="fas fa-calendar-week text-muted-foreground mr-1 sm:mr-2"></i>
+                        <span className="text-xs sm:text-sm font-medium">{formatDate(event.date)}</span>
+                      </div>
+                      <Badge variant="outline" className={`text-xs ${diffDays <= 7 ? 'border-amber-500 text-amber-500' : ''}`}>
+                        {diffDays <= 7 ? 'Próximo' : 'Planejado'}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="w-full mt-auto">
+                    <div className="mb-1 sm:mb-2 text-xs sm:text-sm font-medium">Progresso da preparação</div>
+                    <div className="flex items-center justify-between text-[0.65rem] sm:text-xs text-muted-foreground mb-1">
+                      <span>0%</span>
+                      <span>50%</span>
+                      <span>100%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-1.5 sm:h-2">
+                      <div 
+                        className={`h-full rounded-full ${
+                          progress < 30 ? 'bg-red-500' : progress < 70 ? 'bg-amber-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          })() : (
+            <div className="text-center py-4 sm:py-6 flex flex-col items-center flex-grow">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-muted flex items-center justify-center mb-2 sm:mb-3">
+                <i className="fas fa-calendar-plus text-muted-foreground text-base sm:text-xl"></i>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {event.expenses && event.budget ? 
-                  `${Math.round(((event.budget - event.expenses) / event.budget) * 100)}% do orçamento restante` : 
-                  "Sem orçamento definido"}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Progresso</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {tasks?.filter((task: any) => task.status === "completed")?.length ? 
-                 Math.round((tasks.filter((task: any) => task.status === "completed").length / tasks.length) * 100) : 0}%
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {tasks?.filter((task: any) => task.status === "completed")?.length || 0} de {tasks?.length || 0} tarefas concluídas
-              </p>
-              <div className="w-full bg-muted rounded-full h-2 mt-2">
-                <div
-                  className="bg-primary h-2 rounded-full"
-                  style={{ width: `${tasks?.filter((task: any) => task.status === "completed")?.length ? 
-                    Math.round((tasks.filter((task: any) => task.status === "completed").length / tasks.length) * 100) : 0}%` }}
-                ></div>
-              </div>
-            </CardContent>
-          </Card>
+              <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4">Data do evento não definida</p>
+              <Button variant="outline" size="sm" className="mt-auto text-xs sm:text-sm">
+                <i className="fas fa-calendar-plus mr-1 sm:mr-2"></i> Definir Data
+              </Button>
+            </div>
+          )}
         </div>
       </div>
       
       {/* Navegação por abas vertical em formato de 2 colunas */}
       <div className="mb-8">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Coluna da esquerda (~260px) - Menu vertical com abas */}
-          <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
-            <div className="p-3 border-b">
-              <h2 className="font-medium text-primary">Seções do Evento</h2>
+        <Tabs defaultValue="tasks">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Coluna da esquerda (~260px) - Menu vertical com abas */}
+            <div className="w-full md:w-[260px] bg-card rounded-lg shadow-sm">
+              <div className="p-3 border-b">
+                <h2 className="font-medium text-primary">Seções do Evento</h2>
+              </div>
+              <TabsList className="flex flex-col w-full space-y-1 p-2">
+                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-tasks mr-3"></i> 
+                  Tarefas 
+                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-users mr-3"></i> 
+                  Equipe 
+                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-calendar-alt mr-3"></i> 
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-history mr-3"></i> 
+                  Atividades
+                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
             </div>
-            <div className="flex flex-col w-full space-y-1 p-2">
-              <Button 
-                variant={activeTab === "tasks" ? "default" : "ghost"}
-                className="w-full justify-start px-4 py-3 text-left h-auto"
-                onClick={() => setActiveTab("tasks")}
-              >
-                <i className="fas fa-tasks mr-3"></i> 
-                Tarefas 
-                {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
-              </Button>
-              <Button 
-                variant={activeTab === "team" ? "default" : "ghost"}
-                className="w-full justify-start px-4 py-3 text-left h-auto"
-                onClick={() => setActiveTab("team")}
-              >
-                <i className="fas fa-users mr-3"></i> 
-                Equipe 
-                {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
-              </Button>
-              <Button 
-                variant={activeTab === "timeline" ? "default" : "ghost"}
-                className="w-full justify-start px-4 py-3 text-left h-auto"
-                onClick={() => setActiveTab("timeline")}
-              >
-                <i className="fas fa-calendar-alt mr-3"></i> 
-                Cronograma
-              </Button>
-              <Button 
-                variant={activeTab === "activity" ? "default" : "ghost"}
-                className="w-full justify-start px-4 py-3 text-left h-auto"
-                onClick={() => setActiveTab("activity")}
-              >
-                <i className="fas fa-history mr-3"></i> 
-                Atividades
-                {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <i className="fas fa-bars mr-2"></i> Seções
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="tasks"]')?.click()}>
+                  <i className="fas fa-tasks mr-2"></i> Tarefas 
+                  {tasks?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="team"]')?.click()}>
+                  <i className="fas fa-users mr-2"></i> Equipe
+                  {team?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="timeline"]')?.click()}>
+                  <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => document.querySelector('[data-state="inactive"][value="activity"]')?.click()}>
+                  <i className="fas fa-history mr-2"></i> Atividades
+                  {activities?.length > 0 && <span className="ml-auto bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
-          {/* Coluna da direita - Conteúdo da aba selecionada */}
-          <div className="flex-1">
-            {/* Aba de Tarefas */}
-            {activeTab === "tasks" && (
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-                  <h2 className="text-xl font-semibold">Checklist do Evento</h2>
-                  <div className="flex flex-wrap w-full sm:w-auto gap-2">
-                    <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
-                      <i className="fas fa-plus mr-2"></i> Nova Tarefa
-                    </Button>
-                    <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                      <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
-                    </Button>
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Coluna da esquerda - Menu vertical com abas (260px) - Visível apenas em desktop/tablet */}
+            <div className="hidden md:block md:w-[260px] bg-card rounded-lg shadow-sm">
+              <TabsList className="flex flex-col w-full space-y-1 p-2">
+                <TabsTrigger value="tasks" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-tasks mr-3"></i> 
+                  Tarefas 
+                  {tasks?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{tasks.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="team" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-users mr-3"></i> 
+                  Equipe 
+                  {team?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{team.length}</span>}
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-calendar-alt mr-3"></i> 
+                  Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="w-full justify-start px-4 py-3 text-left">
+                  <i className="fas fa-history mr-3"></i> 
+                  Atividades
+                  {activities?.length > 0 && <span className="ml-2 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">{activities.length}</span>}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            {/* Coluna da direita - Conteúdo da aba selecionada - Ocupa toda a largura em mobile */}
+            <div className="flex-1">
+              <TabsContent value="tasks" className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
+                <h2 className="text-xl font-semibold">Checklist do Evento</h2>
+                <div className="flex flex-wrap w-full sm:w-auto gap-2">
+                  <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
+                    <i className="fas fa-plus mr-2"></i> Nova Tarefa
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
+                    <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
+                  </Button>
+                </div>
+              </div>
+              
+              <TaskList
+                title=""
+                tasks={tasks}
+                loading={tasksLoading}
+                showEventName={false}
+              />
+            </TabsContent>
+        
+        <TabsContent value="team">
+          <div className="bg-card rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
+            
+            {teamLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : team?.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {team.map((member: any) => (
+                  <div key={member.id} className="bg-muted p-4 rounded-lg">
+                    <div className="flex items-center">
+                      {member.user.profileImageUrl ? (
+                        <img 
+                          src={member.user.profileImageUrl} 
+                          alt={`${member.user.firstName} ${member.user.lastName}`}
+                          className="w-12 h-12 rounded-full object-cover mr-4"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+                          <span className="text-primary font-medium">
+                            {member.user.firstName?.charAt(0) || ''}
+                            {member.user.lastName?.charAt(0) || ''}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">
+                          {member.user.firstName} {member.user.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {member.role === 'organizer' ? 'Organizador' : 
+                           member.role === 'team_member' ? 'Membro da Equipe' : 
+                           'Fornecedor'}
+                        </p>
+                      </div>
+                    </div>
+                    {member.user.email && (
+                      <div className="mt-3 text-sm flex items-center text-muted-foreground">
+                        <i className="fas fa-envelope mr-2"></i>
+                        <span>{member.user.email}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                    <i className="fas fa-users text-primary text-2xl"></i>
                   </div>
                 </div>
-                
-                <TaskList
-                  title=""
-                  tasks={tasks}
-                  loading={tasksLoading}
-                  showEventName={false}
-                />
+                <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
+                <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
+                <Button>
+                  <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
+                </Button>
               </div>
-            )}
-            
-            {/* Aba de Equipe */}
-            {activeTab === "team" && (
-              <div className="bg-card rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
-                
-                {teamLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : team?.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {team.map((member: any) => (
-                      <div key={member.id} className="bg-muted p-4 rounded-lg">
-                        <div className="flex items-center">
-                          <Avatar className="h-10 w-10 mr-3">
-                            <AvatarImage src={member.user.profileImageUrl} alt={`${member.user.firstName} ${member.user.lastName}`} />
-                            <AvatarFallback>{getInitials(`${member.user.firstName} ${member.user.lastName}`)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{member.user.firstName} {member.user.lastName}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {member.role === 'organizer' ? 'Organizador' : 
-                              member.role === 'assistant' ? 'Assistente' : 
-                              member.role === 'vendor' ? 'Fornecedor' : 
-                              member.role === 'guest' ? 'Convidado' : 'Membro'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="mb-4 flex justify-center">
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <i className="fas fa-users text-primary text-2xl"></i>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
-                    <p className="text-muted-foreground mb-6">Adicione membros à equipe para colaborar no evento</p>
-                    <Button onClick={() => navigate(`/events/${eventId}/team/add`)}>
-                      <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Aba de Cronograma */}
-            {activeTab === "timeline" && (
-              <div className="bg-card rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
-                
-                {tasksLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : tasks && tasks.filter((task: any) => task.dueDate).length > 0 ? (
-                  <div className="space-y-6">
-                    {/* Implementação do cronograma aqui */}
-                    <div className="relative pl-6 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-border">
-                      {tasks
-                        .filter((task: any) => task.dueDate)
-                        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                        .map((task: any, index: number) => (
-                          <div key={task.id} className="relative mb-6 last:mb-0">
-                            <div className="absolute -left-6 top-0 flex items-center justify-center w-8 h-8 transform -translate-x-1/2 rounded-full bg-background border-4 border-background z-10">
-                              <div className={`w-5 h-5 rounded-full ${
-                                task.status === 'completed' ? 'bg-green-500' : 
-                                task.status === 'in_progress' ? 'bg-amber-500' : 
-                                task.status === 'todo' ? 'bg-primary' : 'bg-neutral-300'
-                              }`}></div>
-                            </div>
-                            <div className="ml-3 bg-background rounded-lg p-4 border">
-                              <div className="flex flex-col sm:flex-row justify-between gap-2">
-                                <div>
-                                  <p className="text-sm font-medium">{task.title}</p>
-                                  {task.description && (
-                                    <p className="text-xs text-muted-foreground mt-1">{task.description}</p>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                    task.status === 'completed' ? 'bg-green-500/10 text-green-500' : 
-                                    task.status === 'in_progress' ? 'bg-amber-500/10 text-amber-500' : 
-                                    task.status === 'todo' ? 'bg-primary/10 text-primary' : 'bg-neutral-300/10 text-neutral-300'
-                                  }`}>
-                                    {task.status === 'completed' ? 'Concluído' : 
-                                    task.status === 'in_progress' ? 'Em andamento' : 
-                                    task.status === 'todo' ? 'A fazer' : 'Pendente'}
-                                  </span>
-                                  <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                    task.priority === 'high' ? 'bg-red-500/10 text-red-500' : 
-                                    task.priority === 'medium' ? 'bg-amber-500/10 text-amber-500' : 
-                                    task.priority === 'low' ? 'bg-green-500/10 text-green-500' : 'bg-neutral-300/10 text-neutral-300'
-                                  }`}>
-                                    {task.priority === 'high' ? 'Alta' : 
-                                    task.priority === 'medium' ? 'Média' : 
-                                    task.priority === 'low' ? 'Baixa' : 'Normal'}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="mt-2 text-xs text-muted-foreground">
-                                <i className="fas fa-calendar-day mr-1"></i> {formatDate(task.dueDate)}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="mb-4 flex justify-center">
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <i className="fas fa-calendar-day text-primary text-2xl"></i>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
-                    <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
-                    <Button onClick={() => navigate(`/events/${eventId}/checklist`)}>
-                      <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Aba de Atividades */}
-            {activeTab === "activity" && (
-              <ActivityFeed
-                activities={activities}
-                loading={activitiesLoading}
-                limit={10}
-              />
             )}
           </div>
-        </div>
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="timeline">
+          <div className="bg-card rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-6">Cronograma do Evento</h2>
+            
+            {tasksLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : tasks?.length > 0 ? (
+              <div className="relative">
+                {/* Timeline line */}
+                <div className="absolute left-3.5 top-0 bottom-0 w-0.5 bg-muted"></div>
+                
+                <div className="space-y-6">
+                  {tasks
+                    .filter((task: any) => !!task.dueDate)
+                    .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                    .map((task: any) => {
+                      const today = new Date();
+                      const dueDate = new Date(task.dueDate);
+                      const isPast = dueDate < today;
+                      const isToday = dueDate.toDateString() === today.toDateString();
+                      
+                      let statusColor = "bg-muted";
+                      if (task.status === "completed") {
+                        statusColor = "bg-green-500";
+                      } else if (isPast) {
+                        statusColor = "bg-red-500";
+                      } else if (isToday) {
+                        statusColor = "bg-yellow-500";
+                      } else if (task.status === "in_progress") {
+                        statusColor = "bg-blue-500";
+                      }
+                      
+                      return (
+                        <div key={task.id} className="flex">
+                          <div className="flex-shrink-0 z-10">
+                            <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusColor} shadow-lg`}>
+                              <i className={`fas fa-${
+                                task.status === "completed" ? "check" : 
+                                isPast ? "exclamation" : 
+                                task.status === "in_progress" ? "spinner" : 
+                                "calendar"
+                              } text-white text-xs`}></i>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <h3 className={`font-medium ${task.status === "completed" ? "line-through opacity-60" : ""}`}>
+                              {task.title}
+                            </h3>
+                            <p className="text-muted-foreground text-sm mt-1">
+                              {formatDate(task.dueDate)}
+                            </p>
+                            <div className="mt-2 flex items-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full mr-2 ${getTaskStatusClass(task.status)}`}>
+                                {task.status === "completed" ? "Concluída" : 
+                                 task.status === "in_progress" ? "Em andamento" : 
+                                 "A fazer"}
+                              </span>
+                              {task.priority && (
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${getTaskPriorityClass(task.priority)}`}>
+                                  {task.priority === "high" ? "Alta prioridade" : 
+                                   task.priority === "medium" ? "Média prioridade" : 
+                                   "Baixa prioridade"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                    <i className="fas fa-calendar-day text-primary text-2xl"></i>
+                  </div>
+                </div>
+                <h3 className="text-lg font-medium mb-2">Nenhuma tarefa com prazo definido</h3>
+                <p className="text-muted-foreground mb-6">Adicione tarefas com prazos para visualizar o cronograma do evento</p>
+                <Link href={`/events/${id}/checklist`}>
+                  <Button>
+                    <i className="fas fa-tasks mr-2"></i> Gerenciar Checklist
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="activity">
+          <ActivityFeed
+            activities={activities}
+            loading={activitiesLoading}
+            limit={10}
+          />
+        </TabsContent>
+      </Tabs>
+      
+
     </div>
   );
+};
+
+// Helper functions for styling
+const getTaskStatusClass = (status: string) => {
+  switch (status) {
+    case "completed": return "bg-green-500/10 text-green-500";
+    case "in_progress": return "bg-blue-500/10 text-blue-500";
+    default: return "bg-gray-500/10 text-gray-400";
+  }
+};
+
+const getTaskPriorityClass = (priority: string) => {
+  switch (priority) {
+    case "high": return "bg-red-500/10 text-red-500";
+    case "medium": return "bg-yellow-500/10 text-yellow-500";
+    case "low": return "bg-green-500/10 text-green-500";
+    default: return "bg-gray-500/10 text-gray-400";
+  }
 };
 
 export default Event;
