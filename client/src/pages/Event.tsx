@@ -707,7 +707,60 @@ const Event: React.FC<EventProps> = ({ id }) => {
         </div>
       </div>
       
-      {/* Navegação por abas */}
+      {/* Menu vertical e conteúdo */}
+      <div className="flex flex-col sm:flex-row gap-6 mb-8">
+        {/* Estado para controlar a aba ativa */}
+        <div className="w-full sm:w-[260px] flex-shrink-0 mb-4 sm:mb-0 sm:border-r sm:pr-4">
+          <nav className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-visible">
+            <button 
+              onClick={() => setActiveTab('tasks')}
+              className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'tasks' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
+            >
+              <i className="fas fa-tasks mr-2"></i> Tarefas 
+              {Array.isArray(tasks) && tasks.length > 0 && (
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {tasks.length}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              onClick={() => setActiveTab('team')}
+              className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'team' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
+            >
+              <i className="fas fa-users mr-2"></i> Equipe
+              {Array.isArray(team) && team.length > 0 && (
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {team.length}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              onClick={() => setActiveTab('timeline')}
+              className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'timeline' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
+            >
+              <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+              {Array.isArray(tasks) && tasks.filter((task: any) => !!task.dueDate).length > 0 && (
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {tasks.filter((task: any) => !!task.dueDate).length}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              onClick={() => setActiveTab('activity')}
+              className={`flex justify-start items-center w-full px-3 py-2 rounded-md ${activeTab === 'activity' ? 'bg-muted text-primary font-medium' : 'hover:bg-muted hover:text-primary'}`}
+            >
+              <i className="fas fa-history mr-2"></i> Atividades
+              {Array.isArray(activities) && activities.length > 0 && (
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {activities.length}
+                </span>
+              )}
+            </button>
+          </nav>
+        </div>
       <div className="mb-8 flex flex-col sm:flex-row gap-6">
         {/* Coluna esquerda - Menu vertical (~260px) */}
         <div className="w-full sm:w-[260px] flex-shrink-0 mb-4 sm:mb-0 sm:border-r sm:pr-4">
