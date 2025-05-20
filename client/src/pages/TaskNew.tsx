@@ -66,6 +66,7 @@ const TaskNew: React.FC = () => {
       priority: "medium",
       eventId: Number(eventId),
       assigneeId: "unassigned",
+      assigneeIds: [],
     },
   });
   

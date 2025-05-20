@@ -436,9 +436,14 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async createTask(taskData: InsertTask): Promise<Task> {
+  async createTask(taskData: InsertTask, assigneeIds?: string[]): Promise<Task> {
     return executeWithRetry(async () => {
       const [task] = await db.insert(tasks).values(taskData).returning();
+      
+      // Add multiple assignees if provided
+      if (assigneeIds && assigneeIds.length > 0) {
+        await this.replaceTaskAssignees(task.id, assigneeIds);
+      }
       
       // Invalidar e atualizar cache
       taskCache.invalidate(`tasks:event:${taskData.eventId}`);
@@ -448,7 +453,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async updateTask(id: number, taskData: Partial<InsertTask>): Promise<Task> {
+  async updateTask(id: number, taskData: Partial<InsertTask>, assigneeIds?: string[]): Promise<Task> {
     return executeWithRetry(async () => {
       const [task] = await db
         .update(tasks)
@@ -458,6 +463,11 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(tasks.id, id))
         .returning();
+      
+      // Update multiple assignees if provided
+      if (assigneeIds !== undefined) {
+        await this.replaceTaskAssignees(task.id, assigneeIds);
+      }
       
       // Invalidar e atualizar caches
       taskCache.set(`task:${id}`, task);
@@ -796,6 +806,134 @@ export class DatabaseStorage implements IStorage {
       .where(eq(expenses.eventId, eventId));
       
     return Number(allExpenses[0]?.total || 0);
+  }
+  
+  // Task assignee operations
+  async getTaskAssignees(taskId: number): Promise<(TaskAssignee & { user: User })[]> {
+    return executeWithRetry(async () => {
+      const assignees = await db
+        .select()
+        .from(taskAssignees)
+        .where(eq(taskAssignees.taskId, taskId));
+      
+      // Get user details for each assignee
+      return Promise.all(
+        assignees.map(async (assignee) => {
+          const [user] = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, assignee.userId));
+          
+          return {
+            ...assignee,
+            user,
+          };
+        })
+      );
+    });
+  }
+
+  async addTaskAssignee(taskId: number, userId: string): Promise<TaskAssignee> {
+    return executeWithRetry(async () => {
+      // Check if already assigned
+      const existingAssignees = await db
+        .select()
+        .from(taskAssignees)
+        .where(
+          and(
+            eq(taskAssignees.taskId, taskId),
+            eq(taskAssignees.userId, userId)
+          )
+        );
+      
+      if (existingAssignees.length > 0) {
+        // Already assigned
+        return existingAssignees[0];
+      }
+      
+      // Add new assignee
+      const [assignee] = await db
+        .insert(taskAssignees)
+        .values({
+          taskId,
+          userId,
+        })
+        .returning();
+      
+      // Get the task to invalidate cache
+      const [task] = await db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.id, taskId));
+        
+      if (task && task.eventId) {
+        taskCache.invalidate(`tasks:event:${task.eventId}`);
+      }
+      
+      return assignee;
+    });
+  }
+
+  async removeTaskAssignee(taskId: number, userId: string): Promise<void> {
+    return executeWithRetry(async () => {
+      // Get the task to invalidate cache
+      const [task] = await db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.id, taskId));
+      
+      await db
+        .delete(taskAssignees)
+        .where(
+          and(
+            eq(taskAssignees.taskId, taskId),
+            eq(taskAssignees.userId, userId)
+          )
+        );
+        
+      if (task && task.eventId) {
+        taskCache.invalidate(`tasks:event:${task.eventId}`);
+      }
+    });
+  }
+
+  async replaceTaskAssignees(taskId: number, userIds: string[]): Promise<TaskAssignee[]> {
+    return executeWithRetry(async () => {
+      // Get the task to invalidate cache
+      const [task] = await db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.id, taskId));
+      
+      // Remove all existing assignees
+      await db
+        .delete(taskAssignees)
+        .where(eq(taskAssignees.taskId, taskId));
+      
+      if (!userIds || userIds.length === 0) {
+        return [];
+      }
+      
+      // Add all new assignees
+      const assignees = await Promise.all(
+        userIds.map(async (userId) => {
+          const [assignee] = await db
+            .insert(taskAssignees)
+            .values({
+              taskId,
+              userId,
+            })
+            .returning();
+          return assignee;
+        })
+      );
+      
+      if (task && task.eventId) {
+        taskCache.invalidate(`tasks:event:${task.eventId}`);
+      }
+      
+      return assignees;
+    });
   }
 }
 
