@@ -150,7 +150,7 @@ const TaskNew: React.FC = () => {
         <Button 
           variant="link" 
           onClick={() => navigate(`/events/${eventId}`)} 
-          className="text-primary hover:underline flex items-center mb-2 p-0"
+          className="text-primary hover:underline flex items-center mb-2 p-0 hidden md:flex"
         >
           <i className="fas fa-arrow-left mr-2"></i> Voltar para {event.name}
         </Button>
