@@ -121,10 +121,9 @@ const Sidebar: React.FC = () => {
       
       {/* Navigation */}
       <nav className={cn(
-        "flex-1",
-        expanded ? "p-4" : "p-4"
+        "flex-1 p-4"
       )}>
-        <div className="space-y-[12px]">
+        <div className="flex flex-col gap-3">
           {navItems.map((item) => (
             <TooltipProvider key={item.path} delayDuration={!expanded ? 100 : 1000}>
               <Tooltip>
@@ -132,7 +131,7 @@ const Sidebar: React.FC = () => {
                   <Link href={item.path}>
                     <div
                       className={cn(
-                        "flex items-center rounded-md transition-colors cursor-pointer h-10 px-4 py-0",
+                        "flex items-center rounded-md transition-colors cursor-pointer h-10 px-4",
                         !expanded ? "justify-center" : "",
                         isActivePath(item.path)
                           ? "bg-primary text-white"
