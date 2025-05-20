@@ -252,10 +252,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
       
       
       
-      {/* Dois cards lado a lado no layout grid (layout 1:1) */}
+      {/* Layout de dois cards lado a lado (1:1) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 sm:mb-6">
-        {/* Card da esquerda - Imagem e informações básicas do evento */}
-        <div className="relative rounded-xl overflow-hidden shadow-md h-48 sm:h-64 md:h-full min-h-[200px]">
+        {/* Card da esquerda - Mantém o design atual mas encapsulado como um card lateral */}
+        <div className="relative rounded-xl overflow-hidden shadow-md h-48 sm:h-64 md:h-72">
           <img 
             src={event.coverImageUrl || getDefaultCover()}
             alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
@@ -294,10 +294,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
           </div>
         </div>
         
-        {/* Card da direita - Informações detalhadas e ações rápidas */}
+        {/* Card da direita - Informações do evento em formato de lista */}
         <div className="bg-card rounded-xl shadow-md p-5 flex flex-col">
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-lg font-semibold mb-4">Informações do Evento</h2>
+          <div className="flex justify-between items-start mb-5">
+            <h2 className="text-lg font-semibold">Detalhes do Evento</h2>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -373,11 +373,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
             )}
           </div>
           
+          {/* Status no fundo do card */}
           <div className="mt-auto pt-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium">Status</span>
-              
-              {/* Status Change Button */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
