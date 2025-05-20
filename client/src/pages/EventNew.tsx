@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/useAuth";
+import moment from "moment";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -83,7 +84,7 @@ const EventNew: React.FC<EventProps> = ({ id }) => {
     mutationFn: async ({ status }: { status: string }) => {
       return apiRequest(`/api/events/${eventId}`, {
         method: "PATCH",
-        body: { status },
+        body: JSON.stringify({ status }),
       });
     },
     onSuccess: () => {
