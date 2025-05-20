@@ -547,15 +547,25 @@ const Event: React.FC<EventProps> = ({ id }) => {
           {event.budget ? (
             <>
               <div className="space-y-6 mb-4">
-                {/* Valores principais - Agora em layout vertical para melhor legibilidade */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted/40 p-3 rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Orçamento total</div>
-                    <div className="text-xl font-bold">{formatCurrency(event.budget)}</div>
+                {/* Valores principais com formatação abreviada para valores grandes */}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Orçamento total</div>
+                    <div className="text-xl font-bold">
+                      {event.budget >= 10000 
+                        ? `R$ ${(event.budget / 1000).toFixed(0)}${event.budget >= 1000000 ? 'M' : 'K'}`
+                        : formatCurrency(event.budget)
+                      }
+                    </div>
                   </div>
-                  <div className="bg-muted/40 p-3 rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Gasto atual</div>
-                    <div className="text-xl font-bold">{formatCurrency(event.expenses || 0)}</div>
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground">Gasto atual</div>
+                    <div className="text-xl font-bold">
+                      {(event.expenses || 0) >= 10000 
+                        ? `R$ ${((event.expenses || 0) / 1000).toFixed(0)}${(event.expenses || 0) >= 1000000 ? 'M' : 'K'}`
+                        : formatCurrency(event.expenses || 0)
+                      }
+                    </div>
                   </div>
                 </div>
                 
@@ -565,7 +575,12 @@ const Event: React.FC<EventProps> = ({ id }) => {
                     <span className={`font-medium ${(event.expenses || 0) / event.budget > 0.8 ? 'text-red-500' : 'text-muted-foreground'}`}>
                       {Math.round((event.expenses || 0) / event.budget * 100)}% utilizado
                     </span>
-                    <span className="font-medium">{formatCurrency(event.budget - (event.expenses || 0))} disponível</span>
+                    <span className="font-medium">
+                      {(event.budget - (event.expenses || 0)) >= 10000 
+                        ? `R$ ${((event.budget - (event.expenses || 0)) / 1000).toFixed(0)}${(event.budget - (event.expenses || 0)) >= 1000000 ? 'M' : 'K'} disponível`
+                        : `${formatCurrency(event.budget - (event.expenses || 0))} disponível`
+                      }
+                    </span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                     <div 
