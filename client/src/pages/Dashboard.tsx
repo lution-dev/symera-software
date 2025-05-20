@@ -337,7 +337,12 @@ const Dashboard: React.FC = () => {
                 <p className="text-muted-foreground text-xs sm:text-sm">Nenhuma atividade registrada.</p>
               </div>
             ) : (
-              <div className="space-y-2 sm:space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+              <div className="space-y-2 sm:space-y-3">
+                {/* Texto informativo sobre as 5 atividades mais recentes */}
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 text-center">
+                  Exibindo suas 5 atividades mais recentes
+                </p>
+                
                 {recentActivities.slice(0, 5).map((activity: any) => {
                   // Determinar o texto de cada atividade com base no tipo de ação
                   const getActivityText = () => {
@@ -376,41 +381,41 @@ const Dashboard: React.FC = () => {
                   // Pegar o nome do evento da API ou dos detalhes
                   const eventName = activeEventsList.find(e => e.id === activity.eventId)?.name || activity.details?.eventName || '';
                   
-                  // Determinar o ícone com base na ação
-                  const getActivityIcon = () => {
+                  // Ícones usando classes do Font Awesome padrão
+                  const getActivityIconClass = () => {
                     switch (activity.action) {
                       case "created_event":
                       case "event_created":
-                        return "calendar-plus";
+                        return "fas fa-calendar-plus";
                       case "updated_event":
-                        return "calendar-edit";
+                        return "fas fa-calendar-check";
                       case "created_task":
                       case "task_added":
-                        return "tasks";
+                        return "fas fa-tasks";
                       case "updated_task":
-                        return "edit";
+                        return "fas fa-edit";
                       case "task_completed":
-                        return "check";
+                        return "fas fa-check";
                       case "added_team_member":
                       case "team_member_added":
-                        return "user-plus";
+                        return "fas fa-user-plus";
                       case "vendor_added":
-                        return "store";
+                        return "fas fa-store";
                       case "vendor_updated":
-                        return "edit";
+                        return "fas fa-edit";
                       case "status_updated":
-                        return "refresh";
+                        return "fas fa-sync";
                       case "generated_ai_checklist":
-                        return "robot";
+                        return "fas fa-robot";
                       default:
-                        return "bell";
+                        return "fas fa-bell";
                     }
                   };
                   
                   return (
                     <div key={activity.id} className="flex items-start py-1 sm:py-2 border-b border-border/30 last:border-0">
                       <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                        <i className={`far fa-${getActivityIcon()} text-primary text-xs sm:text-sm`}></i>
+                        <i className={`${getActivityIconClass()} text-primary text-xs sm:text-sm`}></i>
                       </div>
                       <div className="ml-2 sm:ml-3 flex-1">
                         <p className="text-xs sm:text-sm">
