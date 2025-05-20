@@ -258,7 +258,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
           alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/95 to-background/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
         <div className="absolute bottom-0 left-0 p-3 sm:p-6">
           <div className="flex flex-wrap gap-2 mb-2">
             <span className="inline-block px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
