@@ -1,0 +1,107 @@
+Reestruturação da Tela de Detalhe do Evento (Symera)
+Objetivo:
+Reorganizar a tela de detalhe do evento da Symera para melhorar a usabilidade e clareza da navegação, mantendo todo o design visual atual (cores, estilos, espaçamentos, fonte e identidade visual) e ajustando apenas a disposição dos elementos na página.
+
+✅ Estrutura atual a manter:
+Design visual dos cards e blocos já utilizados
+
+Estilo da imagem de capa com texto sobreposto (nome, tipo, status, descrição)
+
+Cards de indicadores (Progresso, Orçamento, Cronograma)
+
+Estilo das seções internas (Checklist, Equipe, Cronograma, Atividades)
+
+🔄 Alterações solicitadas (estrutura e hierarquia)
+1. 🟩 Seção inicial em dois cards lado a lado (layout 1:1)
+Substituir o bloco atual de topo por dois cards dispostos horizontalmente (50% cada) no desktop:
+
+✅ Card da esquerda:
+Manter o design atual
+
+Imagem de capa como background
+
+Overlay escuro para contraste
+
+Texto sobreposto:
+
+Nome do evento
+
+Tipo do evento
+
+Status do evento
+
+Descrição (opcional)
+
+Ou seja: não alterar o estilo — apenas encapsular esse bloco como um card lateral
+
+✅ Card da direita:
+Exibir os seguintes dados organizados em formato de texto ou lista:
+
+📅 Data e horário do evento
+
+📍 Local
+
+💰 Orçamento estimado
+
+👥 Número de convidados (se houver)
+
+🔧 Ações rápidas (ex: botão editar ou menu ⋮)
+
+Importante: Os dois cards devem ser totalmente responsivos.
+Em mobile e tablet, eles devem se empilhar verticalmente.
+
+2. 📊 Cards de indicadores
+Manter como estão atualmente
+
+Progresso do projeto
+
+Gestão financeira
+
+Cronograma
+
+Sem alterações de design ou posição
+
+3. 📑 Navegação por abas (novas tabs verticais)
+Abaixo dos cards de indicadores, reorganizar a área de navegação por seções em layout de 2 colunas:
+
+➤ Coluna da esquerda (~260px):
+Menu vertical com abas:
+
+🏷️ Tarefas
+
+👥 Equipe
+
+📅 Cronograma
+
+🧾 Atividades
+
+Estilo semelhante a um sidebar fixo
+
+Pode conter ícones e contadores (ex: Equipe (3), Tarefas (6))
+
+➤ Coluna da direita:
+Mostra o conteúdo da aba selecionada
+
+Rolagem independente se necessário
+
+O conteúdo não deve mudar de design, apenas sua disposição.
+
+4. 📱 Responsividade
+Em resoluções menores:
+
+Os dois cards superiores devem se empilhar (imagem + dados)
+
+O menu lateral de abas vira menu dropdown ou botão ☰ Seções
+
+Conteúdo segue empilhado verticalmente
+
+Todos os componentes devem seguir boas práticas de legibilidade e toque para mobile
+
+❗ Regras importantes
+Não alterar o design visual existente
+
+Não mudar o conteúdo exibido
+
+Apenas reorganizar a estrutura e disposição dos elementos
+
+Garantir que a nova estrutura seja totalmente responsiva para desktop, tablet e celular
