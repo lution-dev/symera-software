@@ -2,6 +2,7 @@ import {
   users,
   events,
   tasks,
+  taskAssignees,
   eventTeamMembers,
   vendors,
   activityLogs,
@@ -18,6 +19,8 @@ import {
   type UpsertUser,
   type InsertEvent,
   type InsertTask,
+  type InsertTaskAssignee,
+  type TaskAssignee,
   type InsertEventTeamMember,
   type InsertVendor,
   type InsertActivityLog,
@@ -88,9 +91,15 @@ export interface IStorage {
   // Task operations
   getTasksByEventId(eventId: number): Promise<Task[]>;
   getTaskById(id: number): Promise<Task | undefined>;
-  createTask(task: InsertTask): Promise<Task>;
-  updateTask(id: number, task: Partial<InsertTask>): Promise<Task>;
+  createTask(task: InsertTask, assigneeIds?: string[]): Promise<Task>;
+  updateTask(id: number, task: Partial<InsertTask>, assigneeIds?: string[]): Promise<Task>;
   deleteTask(id: number): Promise<void>;
+  
+  // Task assignee operations
+  getTaskAssignees(taskId: number): Promise<(TaskAssignee & { user: User })[]>;
+  addTaskAssignee(taskId: number, userId: string): Promise<TaskAssignee>;
+  removeTaskAssignee(taskId: number, userId: string): Promise<void>;
+  replaceTaskAssignees(taskId: number, userIds: string[]): Promise<TaskAssignee[]>;
   
   // Team member operations
   getTeamMembersByEventId(eventId: number): Promise<(EventTeamMember & { user: User })[]>;

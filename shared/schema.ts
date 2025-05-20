@@ -125,7 +125,7 @@ export const tasks = pgTable("tasks", {
   eventId: integer("event_id")
     .notNull()
     .references(() => events.id, { onDelete: "cascade" }),
-  assigneeId: varchar("assignee_id").references(() => users.id),
+  assigneeId: varchar("assignee_id").references(() => users.id), // Keep for backward compatibility
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => {
@@ -134,13 +134,43 @@ export const tasks = pgTable("tasks", {
   }
 });
 
-export const tasksRelations = relations(tasks, ({ one }) => ({
+// Task assignees (join table for task-user M-N relationship)
+export const taskAssignees = pgTable("task_assignees", {
+  id: serial("id").primaryKey(),
+  taskId: integer("task_id")
+    .notNull()
+    .references(() => tasks.id, { onDelete: "cascade" }),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    unq: unique().on(table.taskId, table.userId),
+    taskIdIdx: index("task_assignees_task_id_idx").on(table.taskId),
+    userIdIdx: index("task_assignees_user_id_idx").on(table.userId),
+  }
+});
+
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
   event: one(events, {
     fields: [tasks.eventId],
     references: [events.id],
   }),
   assignee: one(users, {
     fields: [tasks.assigneeId],
+    references: [users.id],
+  }),
+  assignees: many(taskAssignees),
+}));
+
+export const taskAssigneesRelations = relations(taskAssignees, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskAssignees.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [taskAssignees.userId],
     references: [users.id],
   }),
 }));
@@ -299,6 +329,7 @@ export const insertVendorSchema = createInsertSchema(vendors);
 export const insertActivityLogSchema = createInsertSchema(activityLogs);
 export const insertBudgetItemSchema = createInsertSchema(budgetItems);
 export const insertExpenseSchema = createInsertSchema(expenses);
+export const insertTaskAssigneeSchema = createInsertSchema(taskAssignees);
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -309,6 +340,9 @@ export type Event = typeof events.$inferSelect;
 
 export type InsertTask = typeof tasks.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
+
+export type InsertTaskAssignee = typeof taskAssignees.$inferInsert;
+export type TaskAssignee = typeof taskAssignees.$inferSelect;
 
 export type InsertEventTeamMember = typeof eventTeamMembers.$inferInsert;
 export type EventTeamMember = typeof eventTeamMembers.$inferSelect;
@@ -352,7 +386,8 @@ export const createTaskSchema = z.object({
   status: z.enum(["todo", "in_progress", "completed"]).default("todo"),
   priority: z.enum(["low", "medium", "high"]).default("medium"),
   eventId: z.number(),
-  assigneeId: z.string().optional(),
+  assigneeId: z.string().optional(), // Keep for backward compatibility
+  assigneeIds: z.array(z.string()).optional(), // New field for multiple assignees
 });
 
 export type CreateTaskData = z.infer<typeof createTaskSchema>;
