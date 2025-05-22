@@ -301,13 +301,13 @@ const TaskList: React.FC<TaskListProps> = ({
                   {task.status === 'completed' ? 'Concluída' : task.status === 'in_progress' ? 'Em andamento' : 'A fazer'}
                 </span>
               </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <div className="flex -space-x-2">
+              <td className="px-4 py-3 whitespace-nowrap">
+                <div className="flex -space-x-1">
                   {task.assignees && task.assignees.slice(0, 3).map((assignee, index) => (
                     <TooltipProvider key={assignee.userId} delayDuration={300}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="w-8 h-8 rounded-full border-2 border-card overflow-hidden z-[1]" style={{ zIndex: 10 - index }}>
+                          <div className="w-6 h-6 rounded-full border border-border overflow-hidden z-[1]" style={{ zIndex: 10 - index }}>
                             {assignee.profileImageUrl ? (
                               <img
                                 src={assignee.profileImageUrl}
@@ -315,8 +315,8 @@ const TaskList: React.FC<TaskListProps> = ({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full bg-primary/20 flex items-center justify-center">
-                                <span className="text-primary text-xs">
+                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-primary text-[10px]">
                                   {assignee.firstName?.charAt(0) || ''}
                                   {assignee.lastName?.charAt(0) || ''}
                                 </span>
@@ -334,8 +334,8 @@ const TaskList: React.FC<TaskListProps> = ({
                     <TooltipProvider delayDuration={300}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border-2 border-card z-0">
-                            <span className="text-xs text-muted-foreground">+{task.assignees.length - 3}</span>
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center border border-border z-0">
+                            <span className="text-[10px] text-muted-foreground">+{task.assignees.length - 3}</span>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -348,24 +348,24 @@ const TaskList: React.FC<TaskListProps> = ({
                   )}
                 </div>
               </td>
-              <td className="px-4 py-4 whitespace-nowrap">
+              <td className="px-4 py-3 whitespace-nowrap">
                 <div className="flex items-center">
                   <button
                     onClick={() => openReminderDialog(task)}
-                    className="p-1 hover:bg-muted rounded-md flex items-center"
+                    className="p-1 hover:bg-muted/20 rounded flex items-center"
                   >
-                    <i className="fas fa-bell text-yellow-400 mr-1"></i>
+                    <i className="fas fa-bell text-yellow-400 mr-1 text-xs"></i>
                     {task.reminders && task.reminders.length > 0 ? (
-                      <span className="text-xs bg-muted rounded-full px-1.5 py-0.5">{task.reminders.length}</span>
+                      <span className="text-xs border border-border/50 rounded-full px-1.5 py-0.5">{task.reminders.length}</span>
                     ) : (
-                      <span className="text-xs bg-muted rounded-full px-1.5 py-0.5">0</span>
+                      <span className="text-xs border border-border/50 rounded-full px-1.5 py-0.5">0</span>
                     )}
                   </button>
                   <button
                     onClick={() => openReminderDialog(task)}
-                    className="ml-2 p-1 hover:bg-muted rounded-md"
+                    className="ml-2 p-1 hover:bg-muted/20 rounded"
                   >
-                    <i className="fas fa-cog text-blue-400"></i>
+                    <i className="fas fa-cog text-blue-400 text-xs"></i>
                   </button>
                 </div>
               </td>
