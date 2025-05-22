@@ -731,6 +731,57 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </div>
           </div>
           
+          <div className="bg-muted/30 rounded-lg p-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="w-full sm:w-1/2">
+                <label className="text-sm font-medium mb-1 block">Filtrar por</label>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <i className="fas fa-filter mr-1"></i> Status
+                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <i className="fas fa-tag mr-1"></i> Prioridade
+                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <i className="fas fa-calendar-day mr-1"></i> Data
+                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <i className="fas fa-user mr-1"></i> Responsável
+                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                  </Button>
+                </div>
+              </div>
+              <div className="w-full sm:w-1/2">
+                <label className="text-sm font-medium mb-1 block">Ordenar por</label>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <i className="fas fa-sort mr-1"></i> Data de vencimento
+                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <i className="fas fa-sort mr-1"></i> Prioridade
+                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <i className="fas fa-sort mr-1"></i> Status
+                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" className="text-xs px-3">
+                <i className="fas fa-search mr-1"></i> Pesquisar
+              </Button>
+              <Button variant="ghost" size="sm" className="text-xs">
+                <i className="fas fa-times mr-1"></i> Limpar Filtros
+              </Button>
+            </div>
+          </div>
+          
           <TaskList
             title=""
             tasks={tasks}
