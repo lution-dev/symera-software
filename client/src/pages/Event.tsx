@@ -859,207 +859,218 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </div>
           </div>
           
-          <div className="bg-muted/30 rounded-lg p-3 sm:p-4 mb-4">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-3 sm:mb-4">
-              <div className="w-full sm:w-1/2">
-                <label className="text-xs sm:text-sm font-medium mb-1 block">Filtrar por</label>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                  {/* Status filter */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant={statusFilter !== "all" ? "default" : "outline"} size="sm" className="text-xs">
-                        <i className="fas fa-filter mr-1"></i> Status
-                        {statusFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1">●</span>}
-                        <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Status da tarefa</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                        <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="todo">A fazer</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="in_progress">Em andamento</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="completed">Concluídas</DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  
-                  {/* Priority filter */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant={priorityFilter !== "all" ? "default" : "outline"} size="sm" className="text-xs">
-                        <i className="fas fa-tag mr-1"></i> Prioridade
-                        {priorityFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1">●</span>}
-                        <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Prioridade</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuRadioGroup value={priorityFilter} onValueChange={setPriorityFilter}>
-                        <DropdownMenuRadioItem value="all">Todas</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="high">Alta</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="medium">Média</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="low">Baixa</DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  
-                  {/* Date filter */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant={dateFilter !== "all" ? "default" : "outline"} size="sm" className="text-xs">
-                        <i className="fas fa-calendar-day mr-1"></i> Data
-                        {dateFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1">●</span>}
-                        <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Prazo</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuRadioGroup value={dateFilter} onValueChange={setDateFilter}>
-                        <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="today">Hoje</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="week">Próximos 7 dias</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="overdue">Atrasadas</DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  
-                  {/* Assignee filter */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant={assigneeFilter !== "all" ? "default" : "outline"} size="sm" className="text-xs">
-                        <i className="fas fa-user mr-1"></i> Responsável
-                        {assigneeFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1">●</span>}
-                        <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Responsável</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuRadioGroup value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                        <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="mine">Minhas tarefas</DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-              
-              <div className="w-full sm:w-1/2">
-                <label className="text-sm font-medium mb-1 block">Ordenar por</label>
-                <div className="flex flex-wrap gap-2">
-                  {/* Due date sort */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant={sortBy === "dueDate" ? "default" : "outline"} 
-                        size="sm" 
-                        className="text-xs"
-                      >
-                        <i className="fas fa-sort mr-1"></i> Data
-                        {sortBy === "dueDate" && 
-                          <i className={`fas fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-2 text-xs`}></i>
-                        }
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Ordem de data</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => { setSortBy("dueDate"); setSortOrder("asc"); }}>
-                        <i className={`fas fa-sort-up mr-2 ${sortBy === "dueDate" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
-                        Mais próxima primeiro
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setSortBy("dueDate"); setSortOrder("desc"); }}>
-                        <i className={`fas fa-sort-down mr-2 ${sortBy === "dueDate" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
-                        Mais distante primeiro
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  
-                  {/* Priority sort */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant={sortBy === "priority" ? "default" : "outline"} 
-                        size="sm" 
-                        className="text-xs"
-                      >
-                        <i className="fas fa-sort mr-1"></i> Prioridade
-                        {sortBy === "priority" && 
-                          <i className={`fas fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-2 text-xs`}></i>
-                        }
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Ordem de prioridade</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => { setSortBy("priority"); setSortOrder("desc"); }}>
-                        <i className={`fas fa-sort-down mr-2 ${sortBy === "priority" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
-                        Alta → Baixa
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setSortBy("priority"); setSortOrder("asc"); }}>
-                        <i className={`fas fa-sort-up mr-2 ${sortBy === "priority" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
-                        Baixa → Alta
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  
-                  {/* Status sort */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant={sortBy === "status" ? "default" : "outline"} 
-                        size="sm" 
-                        className="text-xs"
-                      >
-                        <i className="fas fa-sort mr-1"></i> Status
-                        {sortBy === "status" && 
-                          <i className={`fas fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-2 text-xs`}></i>
-                        }
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuLabel>Ordem de status</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => { setSortBy("status"); setSortOrder("asc"); }}>
-                        <i className={`fas fa-sort-up mr-2 ${sortBy === "status" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
-                        A fazer → Concluídas
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setSortBy("status"); setSortOrder("desc"); }}>
-                        <i className={`fas fa-sort-down mr-2 ${sortBy === "status" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
-                        Concluídas → A fazer
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-2 items-center">
-              <div className="relative w-full sm:w-72 flex-shrink-0">
+          <div className="bg-card border border-border/10 rounded-lg mb-4 overflow-hidden">
+            {/* Search bar at the top for easy access */}
+            <div className="border-b border-border/10 p-3">
+              <div className="relative">
                 <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs"></i>
                 <Input
                   placeholder="Pesquisar tarefas..."
-                  className="pl-8 text-sm h-9"
+                  className="pl-8 text-sm h-9 bg-muted/40"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
-              <div className="flex items-center ml-auto">
+            </div>
+            
+            {/* Filter and sort options in horizontal scrollable area */}
+            <div className="p-3 border-b border-border/10 overflow-x-auto">
+              <div className="flex space-x-2 min-w-fit pb-1">
+                {/* Filter Buttons - Icons only on mobile, text on larger screens */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant={statusFilter !== "all" ? "default" : "outline"} 
+                      size="sm" 
+                      className="h-9 px-3 min-w-[42px]"
+                    >
+                      <i className="fas fa-filter text-sm"></i>
+                      <span className="ml-2 hidden sm:inline">Status</span>
+                      {statusFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1.5">●</span>}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuLabel>Status</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                      <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="todo">A fazer</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="in_progress">Em andamento</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="completed">Concluídas</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant={priorityFilter !== "all" ? "default" : "outline"} 
+                      size="sm" 
+                      className="h-9 px-3 min-w-[42px]"
+                    >
+                      <i className="fas fa-tag text-sm"></i>
+                      <span className="ml-2 hidden sm:inline">Prioridade</span>
+                      {priorityFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1.5">●</span>}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuLabel>Prioridade</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={priorityFilter} onValueChange={setPriorityFilter}>
+                      <DropdownMenuRadioItem value="all">Todas</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="high">Alta</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="medium">Média</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="low">Baixa</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant={dateFilter !== "all" ? "default" : "outline"} 
+                      size="sm" 
+                      className="h-9 px-3 min-w-[42px]"
+                    >
+                      <i className="fas fa-calendar text-sm"></i>
+                      <span className="ml-2 hidden sm:inline">Data</span>
+                      {dateFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1.5">●</span>}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuLabel>Prazo</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={dateFilter} onValueChange={setDateFilter}>
+                      <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="today">Hoje</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="week">Próximos 7 dias</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="overdue">Atrasadas</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant={assigneeFilter !== "all" ? "default" : "outline"} 
+                      size="sm" 
+                      className="h-9 px-3 min-w-[42px]"
+                    >
+                      <i className="fas fa-user text-sm"></i>
+                      <span className="ml-2 hidden sm:inline">Responsável</span>
+                      {assigneeFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1.5">●</span>}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuLabel>Responsável</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                      <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="mine">Minhas tarefas</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-9 px-3 min-w-[42px]"
+                    >
+                      <i className="fas fa-sort text-sm"></i>
+                      <span className="ml-2 hidden sm:inline">Ordenar</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-60">
+                    <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => { setSortBy("dueDate"); setSortOrder("asc"); }}>
+                      <i className={`fas fa-calendar-day mr-2 ${sortBy === "dueDate" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
+                      Data (mais próxima primeiro)
+                      {sortBy === "dueDate" && sortOrder === "asc" && <i className="fas fa-check ml-2"></i>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setSortBy("dueDate"); setSortOrder("desc"); }}>
+                      <i className={`fas fa-calendar-day mr-2 ${sortBy === "dueDate" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
+                      Data (mais distante primeiro)
+                      {sortBy === "dueDate" && sortOrder === "desc" && <i className="fas fa-check ml-2"></i>}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => { setSortBy("priority"); setSortOrder("desc"); }}>
+                      <i className={`fas fa-tag mr-2 ${sortBy === "priority" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
+                      Prioridade (alta → baixa)
+                      {sortBy === "priority" && sortOrder === "desc" && <i className="fas fa-check ml-2"></i>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setSortBy("priority"); setSortOrder("asc"); }}>
+                      <i className={`fas fa-tag mr-2 ${sortBy === "priority" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
+                      Prioridade (baixa → alta)
+                      {sortBy === "priority" && sortOrder === "asc" && <i className="fas fa-check ml-2"></i>}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => { setSortBy("status"); setSortOrder("asc"); }}>
+                      <i className={`fas fa-tasks mr-2 ${sortBy === "status" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
+                      Status (a fazer → concluídas)
+                      {sortBy === "status" && sortOrder === "asc" && <i className="fas fa-check ml-2"></i>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setSortBy("status"); setSortOrder("desc"); }}>
+                      <i className={`fas fa-tasks mr-2 ${sortBy === "status" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
+                      Status (concluídas → a fazer)
+                      {sortBy === "status" && sortOrder === "desc" && <i className="fas fa-check ml-2"></i>}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
                 {(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all" || searchQuery) && (
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={resetFilters}>
-                    <i className="fas fa-times mr-1"></i> Limpar Filtros
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-9 px-3"
+                    onClick={resetFilters}
+                  >
+                    <i className="fas fa-times text-sm"></i>
+                    <span className="ml-2 hidden sm:inline">Limpar</span>
                   </Button>
                 )}
-                
-                <div className="ml-2 text-xs text-muted-foreground">
-                  {filteredAndSortedTasks.length} tarefa{filteredAndSortedTasks.length !== 1 ? 's' : ''} encontrada{filteredAndSortedTasks.length !== 1 ? 's' : ''}
-                </div>
               </div>
+            </div>
+            
+            {/* Result count */}
+            <div className="px-3 py-2 text-xs text-muted-foreground flex items-center">
+              <span>
+                {filteredAndSortedTasks.length} {filteredAndSortedTasks.length === 1 ? 'tarefa encontrada' : 'tarefas encontradas'}
+              </span>
+              
+              {/* Show active filters summary */}
+              {(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all") && (
+                <div className="ml-2 flex flex-wrap gap-1">
+                  {statusFilter !== "all" && (
+                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[10px]">
+                      {statusFilter === "todo" ? "A fazer" : 
+                       statusFilter === "in_progress" ? "Em andamento" : 
+                       "Concluídas"}
+                    </span>
+                  )}
+                  {priorityFilter !== "all" && (
+                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[10px]">
+                      {priorityFilter === "high" ? "Alta" : 
+                       priorityFilter === "medium" ? "Média" : 
+                       "Baixa"}
+                    </span>
+                  )}
+                  {dateFilter !== "all" && (
+                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[10px]">
+                      {dateFilter === "today" ? "Hoje" : 
+                       dateFilter === "week" ? "Esta semana" : 
+                       "Atrasadas"}
+                    </span>
+                  )}
+                  {assigneeFilter !== "all" && (
+                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[10px]">
+                      Minhas tarefas
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           
