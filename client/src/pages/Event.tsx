@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
@@ -16,6 +17,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { 
   Select, 
@@ -48,6 +53,15 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
+  
+  // Filtering and sorting state
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("dueDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
@@ -201,6 +215,120 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const completedTasks = tasks?.filter((task: any) => task.status === 'completed').length || 0;
   const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
   const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
+  
+  // Function to filter and sort tasks
+  const getFilteredAndSortedTasks = () => {
+    if (!tasks) return [];
+    
+    // Filter tasks
+    let filteredTasks = [...tasks];
+    
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filteredTasks = filteredTasks.filter((task: any) => task.status === statusFilter);
+    }
+    
+    // Apply priority filter
+    if (priorityFilter !== "all") {
+      filteredTasks = filteredTasks.filter((task: any) => task.priority === priorityFilter);
+    }
+    
+    // Apply assignee filter (user ID 8650891 is the current user)
+    if (assigneeFilter === "mine") {
+      filteredTasks = filteredTasks.filter((task: any) => 
+        task.assigneeId === "8650891" || 
+        task.assignees?.some((a: any) => a.userId === "8650891")
+      );
+    }
+    
+    // Apply date filter
+    if (dateFilter === "today") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      filteredTasks = filteredTasks.filter((task: any) => {
+        if (!task.dueDate) return false;
+        const taskDate = new Date(task.dueDate);
+        taskDate.setHours(0, 0, 0, 0);
+        return taskDate.getTime() === today.getTime();
+      });
+    } else if (dateFilter === "week") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const nextWeek = new Date(today);
+      nextWeek.setDate(today.getDate() + 7);
+      
+      filteredTasks = filteredTasks.filter((task: any) => {
+        if (!task.dueDate) return false;
+        const taskDate = new Date(task.dueDate);
+        taskDate.setHours(0, 0, 0, 0);
+        return taskDate >= today && taskDate <= nextWeek;
+      });
+    } else if (dateFilter === "overdue") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      filteredTasks = filteredTasks.filter((task: any) => {
+        if (!task.dueDate) return false;
+        const taskDate = new Date(task.dueDate);
+        taskDate.setHours(0, 0, 0, 0);
+        return taskDate < today && task.status !== "completed";
+      });
+    }
+    
+    // Apply search filter
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase().trim();
+      filteredTasks = filteredTasks.filter((task: any) => 
+        task.title.toLowerCase().includes(query) || 
+        (task.description && task.description.toLowerCase().includes(query))
+      );
+    }
+    
+    // Sort tasks
+    return filteredTasks.sort((a: any, b: any) => {
+      if (sortBy === "dueDate") {
+        // Handle null dates
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return sortOrder === "asc" ? 1 : -1;
+        if (!b.dueDate) return sortOrder === "asc" ? -1 : 1;
+        
+        // Sort by date
+        const dateA = new Date(a.dueDate).getTime();
+        const dateB = new Date(b.dueDate).getTime();
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      } else if (sortBy === "priority") {
+        // Map priorities to numeric values for sorting
+        const priorityMap = { high: 3, medium: 2, low: 1 };
+        const valueA = priorityMap[a.priority as keyof typeof priorityMap] || 0;
+        const valueB = priorityMap[b.priority as keyof typeof priorityMap] || 0;
+        return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
+      } else if (sortBy === "status") {
+        // Map status to numeric values for sorting
+        const statusMap = { todo: 1, in_progress: 2, completed: 3 };
+        const valueA = statusMap[a.status as keyof typeof statusMap] || 0;
+        const valueB = statusMap[b.status as keyof typeof statusMap] || 0;
+        return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
+      }
+      
+      return 0;
+    });
+  };
+  
+  // Get filtered and sorted tasks
+  const filteredAndSortedTasks = getFilteredAndSortedTasks();
+  
+  // Reset all filters
+  const resetFilters = () => {
+    setStatusFilter("all");
+    setPriorityFilter("all");
+    setAssigneeFilter("all");
+    setDateFilter("all");
+    setSortBy("dueDate");
+    setSortOrder("asc");
+    setSearchQuery("");
+  };
 
   // Função para obter imagem de capa padrão com base no tipo de evento - usando as mesmas do EventCard
   const getDefaultCover = () => {
@@ -736,58 +864,211 @@ const Event: React.FC<EventProps> = ({ id }) => {
               <div className="w-full sm:w-1/2">
                 <label className="text-sm font-medium mb-1 block">Filtrar por</label>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" className="text-xs">
-                    <i className="fas fa-filter mr-1"></i> Status
-                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    <i className="fas fa-tag mr-1"></i> Prioridade
-                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    <i className="fas fa-calendar-day mr-1"></i> Data
-                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    <i className="fas fa-user mr-1"></i> Responsável
-                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                  </Button>
+                  {/* Status filter */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant={statusFilter !== "all" ? "default" : "outline"} size="sm" className="text-xs">
+                        <i className="fas fa-filter mr-1"></i> Status
+                        {statusFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1">●</span>}
+                        <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuLabel>Status da tarefa</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                        <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="todo">A fazer</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="in_progress">Em andamento</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="completed">Concluídas</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {/* Priority filter */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant={priorityFilter !== "all" ? "default" : "outline"} size="sm" className="text-xs">
+                        <i className="fas fa-tag mr-1"></i> Prioridade
+                        {priorityFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1">●</span>}
+                        <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuLabel>Prioridade</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={priorityFilter} onValueChange={setPriorityFilter}>
+                        <DropdownMenuRadioItem value="all">Todas</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="high">Alta</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="medium">Média</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="low">Baixa</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {/* Date filter */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant={dateFilter !== "all" ? "default" : "outline"} size="sm" className="text-xs">
+                        <i className="fas fa-calendar-day mr-1"></i> Data
+                        {dateFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1">●</span>}
+                        <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuLabel>Prazo</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={dateFilter} onValueChange={setDateFilter}>
+                        <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="today">Hoje</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="week">Próximos 7 dias</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="overdue">Atrasadas</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {/* Assignee filter */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant={assigneeFilter !== "all" ? "default" : "outline"} size="sm" className="text-xs">
+                        <i className="fas fa-user mr-1"></i> Responsável
+                        {assigneeFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1">●</span>}
+                        <i className="fas fa-chevron-down ml-1 text-xs"></i>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuLabel>Responsável</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                        <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="mine">Minhas tarefas</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
+              
               <div className="w-full sm:w-1/2">
                 <label className="text-sm font-medium mb-1 block">Ordenar por</label>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" className="text-xs">
-                    <i className="fas fa-sort mr-1"></i> Data de vencimento
-                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    <i className="fas fa-sort mr-1"></i> Prioridade
-                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    <i className="fas fa-sort mr-1"></i> Status
-                    <i className="fas fa-chevron-down ml-1 text-xs"></i>
-                  </Button>
+                  {/* Due date sort */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant={sortBy === "dueDate" ? "default" : "outline"} 
+                        size="sm" 
+                        className="text-xs"
+                      >
+                        <i className="fas fa-sort mr-1"></i> Data
+                        {sortBy === "dueDate" && 
+                          <i className={`fas fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-2 text-xs`}></i>
+                        }
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuLabel>Ordem de data</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => { setSortBy("dueDate"); setSortOrder("asc"); }}>
+                        <i className={`fas fa-sort-up mr-2 ${sortBy === "dueDate" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
+                        Mais próxima primeiro
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setSortBy("dueDate"); setSortOrder("desc"); }}>
+                        <i className={`fas fa-sort-down mr-2 ${sortBy === "dueDate" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
+                        Mais distante primeiro
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {/* Priority sort */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant={sortBy === "priority" ? "default" : "outline"} 
+                        size="sm" 
+                        className="text-xs"
+                      >
+                        <i className="fas fa-sort mr-1"></i> Prioridade
+                        {sortBy === "priority" && 
+                          <i className={`fas fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-2 text-xs`}></i>
+                        }
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuLabel>Ordem de prioridade</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => { setSortBy("priority"); setSortOrder("desc"); }}>
+                        <i className={`fas fa-sort-down mr-2 ${sortBy === "priority" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
+                        Alta → Baixa
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setSortBy("priority"); setSortOrder("asc"); }}>
+                        <i className={`fas fa-sort-up mr-2 ${sortBy === "priority" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
+                        Baixa → Alta
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {/* Status sort */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant={sortBy === "status" ? "default" : "outline"} 
+                        size="sm" 
+                        className="text-xs"
+                      >
+                        <i className="fas fa-sort mr-1"></i> Status
+                        {sortBy === "status" && 
+                          <i className={`fas fa-sort-${sortOrder === "asc" ? "up" : "down"} ml-2 text-xs`}></i>
+                        }
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuLabel>Ordem de status</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => { setSortBy("status"); setSortOrder("asc"); }}>
+                        <i className={`fas fa-sort-up mr-2 ${sortBy === "status" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
+                        A fazer → Concluídas
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setSortBy("status"); setSortOrder("desc"); }}>
+                        <i className={`fas fa-sort-down mr-2 ${sortBy === "status" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
+                        Concluídas → A fazer
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" size="sm" className="text-xs px-3">
-                <i className="fas fa-search mr-1"></i> Pesquisar
-              </Button>
-              <Button variant="ghost" size="sm" className="text-xs">
-                <i className="fas fa-times mr-1"></i> Limpar Filtros
-              </Button>
+            
+            <div className="flex flex-col sm:flex-row gap-2 items-center">
+              <div className="relative w-full sm:w-72 flex-shrink-0">
+                <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs"></i>
+                <Input
+                  placeholder="Pesquisar tarefas..."
+                  className="pl-8 text-sm h-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex items-center ml-auto">
+                {(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all" || searchQuery) && (
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={resetFilters}>
+                    <i className="fas fa-times mr-1"></i> Limpar Filtros
+                  </Button>
+                )}
+                
+                <div className="ml-2 text-xs text-muted-foreground">
+                  {filteredAndSortedTasks.length} tarefa{filteredAndSortedTasks.length !== 1 ? 's' : ''} encontrada{filteredAndSortedTasks.length !== 1 ? 's' : ''}
+                </div>
+              </div>
             </div>
           </div>
           
           <TaskList
             title=""
-            tasks={tasks}
+            tasks={filteredAndSortedTasks}
             loading={tasksLoading}
             showEventName={false}
-            showFilters={true}
+            showFilters={false}
           />
         </TabsContent>
         
