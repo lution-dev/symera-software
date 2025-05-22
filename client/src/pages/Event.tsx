@@ -859,118 +859,144 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </div>
           </div>
           
-          <div className="bg-card border border-border/10 rounded-lg mb-4 overflow-hidden">
-            {/* Search bar at the top for easy access */}
-            <div className="border-b border-border/10 p-3">
-              <div className="relative">
-                <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs"></i>
-                <Input
-                  placeholder="Pesquisar tarefas..."
-                  className="pl-8 text-sm h-9 bg-muted/40"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            {/* Filter and sort options in horizontal scrollable area */}
-            <div className="p-3 border-b border-border/10 overflow-x-auto">
-              <div className="flex space-x-2 min-w-fit pb-1">
-                {/* Filter Buttons - Icons only on mobile, text on larger screens */}
+          <div className="bg-card rounded-lg mb-4 overflow-hidden border border-border/10">
+            {/* Barra de pesquisa e filtros minimalista */}
+            <div className="p-3">
+              <div className="flex gap-2">
+                {/* Campo de pesquisa */}
+                <div className="relative flex-1">
+                  <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs"></i>
+                  <Input
+                    placeholder="Pesquisar tarefas..."
+                    className="pl-8 text-sm h-9 bg-muted/40"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                
+                {/* Botão de filtro único */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
-                      variant={statusFilter !== "all" ? "default" : "outline"} 
+                      variant={(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all") ? "default" : "outline"} 
                       size="sm" 
                       className="h-9 px-3 min-w-[42px]"
                     >
                       <i className="fas fa-filter text-sm"></i>
-                      <span className="ml-2 hidden sm:inline">Status</span>
-                      {statusFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1.5">●</span>}
+                      {(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all") && 
+                        <span className="ml-1 bg-primary-foreground/20 rounded-full h-2 w-2 inline-block"></span>
+                      }
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuLabel>Status</DropdownMenuLabel>
+                  <DropdownMenuContent align="start" className="w-72">
+                    <DropdownMenuLabel>Filtrar tarefas</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                      <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="todo">A fazer</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="in_progress">Em andamento</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="completed">Concluídas</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
+                    
+                    <div className="p-2">
+                      <h4 className="text-xs font-medium mb-1.5">Status</h4>
+                      <RadioGroup value={statusFilter} onValueChange={setStatusFilter} className="flex flex-wrap gap-1">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="all" id="status-all" className="h-3.5 w-3.5" />
+                          <Label htmlFor="status-all" className="text-xs">Todos</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="todo" id="status-todo" className="h-3.5 w-3.5" />
+                          <Label htmlFor="status-todo" className="text-xs">A fazer</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="in_progress" id="status-progress" className="h-3.5 w-3.5" />
+                          <Label htmlFor="status-progress" className="text-xs">Em andamento</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="completed" id="status-done" className="h-3.5 w-3.5" />
+                          <Label htmlFor="status-done" className="text-xs">Concluídas</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    <div className="p-2">
+                      <h4 className="text-xs font-medium mb-1.5">Prioridade</h4>
+                      <RadioGroup value={priorityFilter} onValueChange={setPriorityFilter} className="flex flex-wrap gap-1">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="all" id="priority-all" className="h-3.5 w-3.5" />
+                          <Label htmlFor="priority-all" className="text-xs">Todas</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="high" id="priority-high" className="h-3.5 w-3.5" />
+                          <Label htmlFor="priority-high" className="text-xs">Alta</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="medium" id="priority-medium" className="h-3.5 w-3.5" />
+                          <Label htmlFor="priority-medium" className="text-xs">Média</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="low" id="priority-low" className="h-3.5 w-3.5" />
+                          <Label htmlFor="priority-low" className="text-xs">Baixa</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    <div className="p-2">
+                      <h4 className="text-xs font-medium mb-1.5">Data</h4>
+                      <RadioGroup value={dateFilter} onValueChange={setDateFilter} className="flex flex-wrap gap-1">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="all" id="date-all" className="h-3.5 w-3.5" />
+                          <Label htmlFor="date-all" className="text-xs">Todas</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="today" id="date-today" className="h-3.5 w-3.5" />
+                          <Label htmlFor="date-today" className="text-xs">Hoje</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="week" id="date-week" className="h-3.5 w-3.5" />
+                          <Label htmlFor="date-week" className="text-xs">Esta semana</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="overdue" id="date-overdue" className="h-3.5 w-3.5" />
+                          <Label htmlFor="date-overdue" className="text-xs">Atrasadas</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    <div className="p-2">
+                      <h4 className="text-xs font-medium mb-1.5">Responsável</h4>
+                      <RadioGroup value={assigneeFilter} onValueChange={setAssigneeFilter} className="flex gap-1">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="all" id="assignee-all" className="h-3.5 w-3.5" />
+                          <Label htmlFor="assignee-all" className="text-xs">Todos</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="mine" id="assignee-mine" className="h-3.5 w-3.5" />
+                          <Label htmlFor="assignee-mine" className="text-xs">Minhas tarefas</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all") && (
+                      <div className="p-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full h-8 text-xs"
+                          onClick={resetFilters}
+                        >
+                          <i className="fas fa-times mr-2"></i>
+                          Limpar filtros
+                        </Button>
+                      </div>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant={priorityFilter !== "all" ? "default" : "outline"} 
-                      size="sm" 
-                      className="h-9 px-3 min-w-[42px]"
-                    >
-                      <i className="fas fa-tag text-sm"></i>
-                      <span className="ml-2 hidden sm:inline">Prioridade</span>
-                      {priorityFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1.5">●</span>}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuLabel>Prioridade</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={priorityFilter} onValueChange={setPriorityFilter}>
-                      <DropdownMenuRadioItem value="all">Todas</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="high">Alta</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="medium">Média</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="low">Baixa</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant={dateFilter !== "all" ? "default" : "outline"} 
-                      size="sm" 
-                      className="h-9 px-3 min-w-[42px]"
-                    >
-                      <i className="fas fa-calendar text-sm"></i>
-                      <span className="ml-2 hidden sm:inline">Data</span>
-                      {dateFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1.5">●</span>}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuLabel>Prazo</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={dateFilter} onValueChange={setDateFilter}>
-                      <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="today">Hoje</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="week">Próximos 7 dias</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="overdue">Atrasadas</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant={assigneeFilter !== "all" ? "default" : "outline"} 
-                      size="sm" 
-                      className="h-9 px-3 min-w-[42px]"
-                    >
-                      <i className="fas fa-user text-sm"></i>
-                      <span className="ml-2 hidden sm:inline">Responsável</span>
-                      {assigneeFilter !== "all" && <span className="ml-1 text-xs bg-primary-foreground/20 rounded-full px-1.5">●</span>}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuLabel>Responsável</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                      <DropdownMenuRadioItem value="all">Todos</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="mine">Minhas tarefas</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
+                {/* Botão de ordenação */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
@@ -979,7 +1005,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       className="h-9 px-3 min-w-[42px]"
                     >
                       <i className="fas fa-sort text-sm"></i>
-                      <span className="ml-2 hidden sm:inline">Ordenar</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-60">
@@ -1020,29 +1045,22 @@ const Event: React.FC<EventProps> = ({ id }) => {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
+                {/* Botão limpar - visível apenas quando houver filtros ou pesquisa ativa */}
                 {(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all" || searchQuery) && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-9 px-3"
+                    className="h-9 px-3 min-w-[42px]"
                     onClick={resetFilters}
                   >
                     <i className="fas fa-times text-sm"></i>
-                    <span className="ml-2 hidden sm:inline">Limpar</span>
                   </Button>
                 )}
               </div>
-            </div>
-            
-            {/* Result count */}
-            <div className="px-3 py-2 text-xs text-muted-foreground flex items-center">
-              <span>
-                {filteredAndSortedTasks.length} {filteredAndSortedTasks.length === 1 ? 'tarefa encontrada' : 'tarefas encontradas'}
-              </span>
               
-              {/* Show active filters summary */}
+              {/* Resumo de filtros aplicados - mostra apenas quando houver filtros ativos */}
               {(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all") && (
-                <div className="ml-2 flex flex-wrap gap-1">
+                <div className="mt-2 flex flex-wrap gap-1">
                   {statusFilter !== "all" && (
                     <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[10px]">
                       {statusFilter === "todo" ? "A fazer" : 
@@ -1069,6 +1087,16 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       Minhas tarefas
                     </span>
                   )}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {filteredAndSortedTasks.length} {filteredAndSortedTasks.length === 1 ? 'tarefa encontrada' : 'tarefas encontradas'}
+                  </span>
+                </div>
+              )}
+              
+              {/* Contador de resultados - mostra apenas quando não há filtros, mas há resultados */}
+              {(statusFilter === "all" && priorityFilter === "all" && dateFilter === "all" && assigneeFilter === "all") && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {filteredAndSortedTasks.length} {filteredAndSortedTasks.length === 1 ? 'tarefa' : 'tarefas'}
                 </div>
               )}
             </div>
