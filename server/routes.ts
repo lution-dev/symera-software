@@ -501,6 +501,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Task routes
+  // Endpoint para buscar os responsáveis de uma tarefa
+  app.get('/api/tasks/:taskId/assignees', ensureDevAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const taskId = parseInt(req.params.taskId, 10);
+      
+      if (isNaN(taskId)) {
+        return res.status(400).json({ message: "ID de tarefa inválido" });
+      }
+      
+      // Buscar a tarefa para verificar acesso
+      const task = await storage.getTaskById(taskId);
+      
+      if (!task) {
+        return res.status(404).json({ message: "Tarefa não encontrada" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento da tarefa
+      const hasAccess = await storage.hasUserAccessToEvent(userId, task.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
+      }
+      
+      // Buscar os responsáveis da tarefa
+      const assignees = await storage.getTaskAssignees(taskId);
+      
+      res.json(assignees);
+    } catch (error) {
+      console.error("Erro ao buscar responsáveis da tarefa:", error);
+      res.status(500).json({ message: "Falha ao buscar responsáveis da tarefa" });
+    }
+  });
+  
   // Endpoint para buscar uma tarefa específica pelo ID
   app.get('/api/tasks/:id', ensureDevAuth, async (req: any, res) => {
     try {
@@ -556,14 +590,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
       }
       
+      // Extrair os IDs dos responsáveis adicionais, se enviados
+      const { assigneeIds, ...taskDataRest } = req.body;
+      
       // Atualizar a tarefa
       const taskData = {
-        ...req.body,
+        ...taskDataRest,
         // Converter a data se existir
         dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
       };
       
-      const updatedTask = await storage.updateTask(taskId, taskData);
+      // Atualizar a tarefa e seus responsáveis
+      const updatedTask = await storage.updateTask(taskId, taskData, assigneeIds);
       
       // Registrar atividade
       await storage.createActivityLog({
