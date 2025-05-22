@@ -152,10 +152,10 @@ const TaskList: React.FC<TaskListProps> = ({
   const tasks = propTasks || apiTasks || [];
   const loading = propLoading || (apiLoading && !propTasks);
 
-  // Enhance tasks with assignees and reminders data
+  // Usar os dados reais de responsáveis, apenas adicionar reminders mock
   const enhancedTasks = tasks.map(task => ({
     ...task,
-    assignees: getMockTaskAssignees(task.id),
+    // Usar os dados de responsáveis que vêm da API, não substituir por mocks
     reminders: getMockReminders(task.id)
   }));
 
