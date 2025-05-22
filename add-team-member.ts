@@ -15,7 +15,7 @@ async function addTeamMembers() {
       {
         eventId: eventId,
         userId: '999001', // João Silva
-        role: 'member',
+        role: 'team_member',
         permissions: {
           canEdit: true,
           canDelete: false, 
@@ -25,7 +25,7 @@ async function addTeamMembers() {
       {
         eventId: eventId,
         userId: '999002', // Maria Santos
-        role: 'coordinator',
+        role: 'team_member',
         permissions: {
           canEdit: true,
           canDelete: true,
@@ -35,7 +35,7 @@ async function addTeamMembers() {
       {
         eventId: eventId,
         userId: '999003', // Carlos Oliveira
-        role: 'assistant',
+        role: 'team_member',
         permissions: {
           canEdit: true,
           canDelete: false,
