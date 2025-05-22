@@ -321,42 +321,16 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="assigneeId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Responsável Principal</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o responsável principal" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="unassigned">Não atribuído</SelectItem>
-                        {team?.map((member: any) => (
-                          <SelectItem key={member.user.id} value={member.user.id}>
-                            {member.user.firstName} {member.user.lastName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Seleção de múltiplos responsáveis */}
+              {/* Seleção de responsáveis */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-3">Responsáveis Adicionais</h3>
+                  <h3 className="text-sm font-medium mb-3">Responsáveis (opcional)</h3>
                   <p className="text-muted-foreground text-sm mb-4">
                     Selecione todos os usuários que devem ser responsáveis por esta tarefa
                   </p>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {team?.map((member: any) => (
                     <div key={member.user.id} className="flex items-center space-x-2">
                       <Checkbox 
@@ -364,12 +338,21 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
                         checked={selectedAssignees.includes(member.user.id)}
                         onCheckedChange={() => toggleAssignee(member.user.id)}
                       />
-                      <label
-                        htmlFor={`member-${member.user.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {member.user.firstName} {member.user.lastName}
-                      </label>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                          <img 
+                            src={member.user.profileImageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user.firstName || '')}+${encodeURIComponent(member.user.lastName || '')}&background=random`} 
+                            alt={`${member.user.firstName} ${member.user.lastName}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <label
+                          htmlFor={`member-${member.user.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {member.user.firstName} {member.user.lastName}
+                        </label>
+                      </div>
                     </div>
                   ))}
                 </div>
