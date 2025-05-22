@@ -251,13 +251,16 @@ const TaskList: React.FC<TaskListProps> = ({
         <tbody className="bg-card divide-y divide-border">
           {enhancedTasks.map((task) => (
             <tr key={task.id} className="hover:bg-muted transition-colors">
-              <td className="px-4 py-4 whitespace-nowrap">
+              <td className="px-4 py-4">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-8 w-8 bg-muted rounded-md flex items-center justify-center">
                     <i className={`fas fa-${task.status === 'completed' ? 'check' : 'tasks'} ${task.status === 'completed' ? 'text-green-500' : 'text-primary'}`}></i>
                   </div>
-                  <div className="ml-4">
+                  <div className="ml-4 max-w-xs">
                     <div className={`text-sm font-medium ${task.status === 'completed' ? 'line-through opacity-60 text-muted-foreground' : 'text-white'}`}>{task.title}</div>
+                    {task.description && (
+                      <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{task.description.replace(/\*\*Colaboradores:.+$/gm, '').trim()}</div>
+                    )}
                   </div>
                 </div>
               </td>
@@ -440,9 +443,12 @@ const TaskList: React.FC<TaskListProps> = ({
               <div className="flex-shrink-0 h-8 w-8 bg-muted rounded-md flex items-center justify-center">
                 <i className={`fas fa-${task.status === 'completed' ? 'check' : 'tasks'} ${task.status === 'completed' ? 'text-green-500' : 'text-primary'}`}></i>
               </div>
-              <div className="ml-3">
+              <div className="ml-3 flex-1">
                 <div className={`text-sm font-medium ${task.status === 'completed' ? 'line-through opacity-60 text-muted-foreground' : 'text-white'}`}>{task.title}</div>
-                <div className="flex items-center mt-1 space-x-2">
+                {task.description && (
+                  <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 pr-2">{task.description.replace(/\*\*Colaboradores:.+$/gm, '').trim()}</div>
+                )}
+                <div className="flex items-center mt-1.5 space-x-2">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTaskStatusColor(task.status)}`}>
                     {task.status === 'completed' ? 'Concluída' : task.status === 'in_progress' ? 'Em andamento' : 'A fazer'}
                   </span>
