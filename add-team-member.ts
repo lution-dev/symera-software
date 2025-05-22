@@ -1,40 +1,86 @@
-import { db } from "./server/db";
-import { storage } from "./server/storage";
+// Script para adicionar membros à equipe do evento "Lançamento Coleção Primavera 2025"
+import { db } from './server/db';
+import { eventTeamMembers } from './shared/schema';
+import { eq, and } from 'drizzle-orm';
 
-async function addCreatorToEvent() {
+async function addTeamMembers() {
   try {
-    const eventId = 10; // Lançamento Coleção Primavera 2025
-    const userId = "8650891"; // Seu ID de usuário
+    console.log('Adicionando membros à equipe do evento Lançamento Coleção Primavera 2025...');
     
-    // Adicionar o criador como membro da equipe com função de organizador
-    const teamMember = await storage.addTeamMember({
-      eventId,
-      userId,
-      role: "organizer",
-      permissions: { canDelete: true, canEdit: true, canInvite: true }
-    });
+    // ID do evento "Lançamento Coleção Primavera 2025"
+    const eventId = 10;
     
-    console.log("Membro adicionado com sucesso:", teamMember);
+    // Membros para adicionar
+    const teamMembers = [
+      {
+        eventId: eventId,
+        userId: '999001', // João Silva
+        role: 'member',
+        permissions: {
+          canEdit: true,
+          canDelete: false, 
+          canInvite: false
+        }
+      },
+      {
+        eventId: eventId,
+        userId: '999002', // Maria Santos
+        role: 'coordinator',
+        permissions: {
+          canEdit: true,
+          canDelete: true,
+          canInvite: true
+        }
+      },
+      {
+        eventId: eventId,
+        userId: '999003', // Carlos Oliveira
+        role: 'assistant',
+        permissions: {
+          canEdit: true,
+          canDelete: false,
+          canInvite: false
+        }
+      }
+    ];
     
-    // Adicionar atividade de log
-    await storage.createActivityLog({
-      eventId,
-      userId,
-      action: "added_team_member",
-      details: { role: "organizer", addedBy: "system" }
-    });
+    // Adicionar cada membro à equipe
+    for (const member of teamMembers) {
+      try {
+        // Verificar se já existe na equipe
+        const existing = await db.select()
+          .from(eventTeamMembers)
+          .where(and(
+            eq(eventTeamMembers.eventId, member.eventId),
+            eq(eventTeamMembers.userId, member.userId)
+          ));
+        
+        if (existing.length === 0) {
+          // Inserir membro na equipe
+          await db.insert(eventTeamMembers).values({
+            eventId: member.eventId,
+            userId: member.userId,
+            role: member.role,
+            permissions: member.permissions,
+            createdAt: new Date()
+          });
+          
+          console.log(`Adicionado usuário ${member.userId} como ${member.role} à equipe do evento ${eventId}`);
+        } else {
+          console.log(`Usuário ${member.userId} já é membro da equipe do evento ${eventId}`);
+        }
+      } catch (error) {
+        console.error(`Erro ao adicionar membro ${member.userId}:`, error);
+      }
+    }
     
-    console.log("Log de atividade criado");
-    
-    const teamMembers = await storage.getTeamMembersByEventId(eventId);
-    console.log(`Agora o evento tem ${teamMembers.length} membros na equipe`);
-    
+    console.log('Adição de membros à equipe concluída!');
     process.exit(0);
   } catch (error) {
-    console.error("Erro ao adicionar membro da equipe:", error);
+    console.error('Erro ao adicionar membros à equipe:', error);
     process.exit(1);
   }
 }
 
 // Executar a função
-addCreatorToEvent();
+addTeamMembers();
