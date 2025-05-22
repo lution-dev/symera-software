@@ -574,25 +574,6 @@ const TaskList: React.FC<TaskListProps> = ({
   return (
     <>
       <div className="bg-card rounded-lg shadow-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <h2 className="text-xl font-semibold text-white">{title}</h2>
-              <span className="ml-3 px-2 py-0.5 bg-primary/20 text-primary rounded-full text-xs">
-                {enhancedTasks.length} {enhancedTasks.length === 1 ? 'tarefa' : 'tarefas'}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="text-sm text-muted-foreground">
-                <span className="hidden sm:inline">Prioridade:</span>
-                <i className="fas fa-circle text-red-500 ml-2 text-xs" title="Alta"></i>
-                <i className="fas fa-circle text-amber-500 ml-1 text-xs" title="Média"></i>
-                <i className="fas fa-circle text-blue-500 ml-1 text-xs" title="Baixa"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {desktopView}
         {mobileView}
       </div>
