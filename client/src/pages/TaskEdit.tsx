@@ -89,7 +89,6 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
       status: "todo",
       priority: "medium",
       eventId: Number(eventId),
-      assigneeId: "unassigned",
       assigneeIds: [] as string[],
     },
   });
@@ -104,7 +103,6 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
         status: task.status,
         priority: task.priority,
         eventId: Number(eventId),
-        assigneeId: task.assigneeId || "unassigned",
         assigneeIds: [],
       });
     }
@@ -149,7 +147,8 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
     // Incluir os IDs dos responsáveis selecionados
     const formattedData = {
       ...data,
-      assigneeId: data.assigneeId === "unassigned" ? "" : data.assigneeId,
+      // Definir o primeiro responsável da lista como o principal (para compatibilidade)
+      assigneeId: selectedAssignees.length > 0 ? selectedAssignees[0] : "",
       assigneeIds: selectedAssignees
     };
     updateTaskMutation.mutate(formattedData);
