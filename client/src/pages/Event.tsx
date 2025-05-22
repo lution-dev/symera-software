@@ -859,11 +859,11 @@ const Event: React.FC<EventProps> = ({ id }) => {
             </div>
           </div>
           
-          <div className="bg-muted/30 rounded-lg p-4 mb-4">
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="bg-muted/30 rounded-lg p-3 sm:p-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-3 sm:mb-4">
               <div className="w-full sm:w-1/2">
-                <label className="text-sm font-medium mb-1 block">Filtrar por</label>
-                <div className="flex flex-wrap gap-2">
+                <label className="text-xs sm:text-sm font-medium mb-1 block">Filtrar por</label>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {/* Status filter */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
