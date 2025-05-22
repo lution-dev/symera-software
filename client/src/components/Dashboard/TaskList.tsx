@@ -64,6 +64,8 @@ interface TaskListProps {
   showEventName?: boolean;
   onTaskUpdate?: (taskId: number, data: Partial<Task>) => void;
   onTaskDelete?: (taskId: number) => void;
+  limitTasks?: boolean; // Indica se deve limitar a exibição para apenas 5 tarefas
+  showFilters?: boolean; // Indica se deve mostrar filtros rápidos
 }
 
 // Este é um mock dos dados de assignees e reminders
@@ -136,11 +138,15 @@ const TaskList: React.FC<TaskListProps> = ({
   loading: propLoading,
   showEventName = true,
   onTaskUpdate,
-  onTaskDelete
+  onTaskDelete,
+  limitTasks = false,
+  showFilters = false
 }) => {
   const [, navigate] = useLocation();
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'mine' | 'pending' | 'week'>('all');
+  const [showAllTasks, setShowAllTasks] = useState(!limitTasks);
   
   // If tasks are not provided via props, fetch them from the API
   const { data: apiTasks, isLoading: apiLoading } = useQuery({
@@ -152,8 +158,42 @@ const TaskList: React.FC<TaskListProps> = ({
   const tasks = propTasks || apiTasks || [];
   const loading = propLoading || (apiLoading && !propTasks);
 
+  // Aplicar filtros às tarefas
+  const filteredTasks = tasks.filter(task => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'mine') return task.assignees?.some(a => a.userId === '8650891'); // ID do usuário logado
+    if (activeFilter === 'pending') return task.status !== 'completed';
+    if (activeFilter === 'week') {
+      const taskDate = task.dueDate ? new Date(task.dueDate) : null;
+      if (!taskDate) return false;
+      const today = new Date();
+      const nextWeek = new Date(today);
+      nextWeek.setDate(today.getDate() + 7);
+      return taskDate <= nextWeek;
+    }
+    return true;
+  });
+
+  // Ordenar por data (as mais próximas primeiro) e prioridade
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    // Primeiro ordenar por data
+    const dateA = a.dueDate ? new Date(a.dueDate) : new Date(9999, 11, 31);
+    const dateB = b.dueDate ? new Date(b.dueDate) : new Date(9999, 11, 31);
+    
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA.getTime() - dateB.getTime();
+    }
+    
+    // Se as datas forem iguais, ordenar por prioridade (high, medium, low)
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  });
+
+  // Limitar a 5 tarefas se limitTasks for true e showAllTasks for false
+  const displayTasks = (!showAllTasks && limitTasks) ? sortedTasks.slice(0, 5) : sortedTasks;
+  
   // Usar os dados reais de responsáveis, apenas adicionar reminders mock
-  const enhancedTasks = tasks.map(task => ({
+  const enhancedTasks = displayTasks.map(task => ({
     ...task,
     // Usar os dados de responsáveis que vêm da API, não substituir por mocks
     reminders: getMockReminders(task.id)
@@ -369,17 +409,17 @@ const TaskList: React.FC<TaskListProps> = ({
                   </button>
                 </div>
               </td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm">
+              <td className="px-4 py-3 whitespace-nowrap text-sm">
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className={`h-8 px-2 ${
+                    className={`h-7 px-2 border ${
                       task.status === 'todo' 
-                        ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/30' 
+                        ? 'border-blue-500/30 text-blue-400 hover:bg-blue-500/5' 
                         : task.status === 'in_progress' 
-                          ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20 border-green-500/30' 
-                          : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-amber-500/30'
+                          ? 'border-green-500/30 text-green-400 hover:bg-green-500/5' 
+                          : 'border-amber-500/30 text-amber-400 hover:bg-amber-500/5'
                     }`}
                     onClick={() => handleStatusChange(
                       task.id, 
