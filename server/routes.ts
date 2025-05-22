@@ -644,12 +644,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let allTasks = [];
       for (const event of events) {
         const eventTasks = await storage.getTasksByEventId(event.id);
-        // Adicionar o nome do evento a cada tarefa para exibir no calendário
-        const tasksWithEventName = eventTasks.map(task => ({
-          ...task,
-          eventName: event.name
+        
+        // Para cada tarefa, buscar os responsáveis
+        const enhancedTasks = await Promise.all(eventTasks.map(async task => {
+          try {
+            // Buscar os responsáveis da tarefa
+            const taskAssignees = await storage.getTaskAssignees(task.id);
+            
+            // Transformar para o formato esperado pelo frontend
+            const assignees = taskAssignees.map(assignee => ({
+              userId: assignee.userId,
+              firstName: assignee.user.firstName,
+              lastName: assignee.user.lastName,
+              profileImageUrl: assignee.user.profileImageUrl,
+              phone: assignee.user.phone
+            }));
+            
+            // Retornar a tarefa com nome do evento e responsáveis
+            return {
+              ...task,
+              eventName: event.name,
+              assignees: assignees
+            };
+          } catch (error) {
+            console.error(`Erro ao buscar responsáveis para tarefa ${task.id}:`, error);
+            // Em caso de erro, retornar a tarefa sem responsáveis
+            return {
+              ...task,
+              eventName: event.name,
+              assignees: []
+            };
+          }
         }));
-        allTasks = [...allTasks, ...tasksWithEventName];
+        
+        allTasks = [...allTasks, ...enhancedTasks];
       }
       
       // Retornar todas as tarefas em ordem de data de vencimento

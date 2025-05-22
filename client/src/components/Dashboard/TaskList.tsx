@@ -48,7 +48,12 @@ interface Task {
   eventName?: string;
   assigneeId?: string;
   assigneeName?: string;
-  assignees?: TaskAssignee[];
+  assignees?: Array<{
+    userId: string;
+    firstName?: string;
+    lastName?: string;
+    profileImageUrl?: string;
+  }>;
   reminders?: Reminder[];
 }
 
