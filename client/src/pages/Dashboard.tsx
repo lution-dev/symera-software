@@ -275,17 +275,26 @@ const Dashboard: React.FC = () => {
             ) : (
               <>
                 {/* Mobile task list component */}
-                <TaskList 
-                  tasks={pendingTasks}
-                  loading={false}
-                  showEventName={true}
-                />
+                <div className="sm:hidden">
+                  <TaskList 
+                    title="📝 Minhas Tarefas"
+                    tasks={pendingTasks}
+                    loading={false}
+                    showEventName={true}
+                    limitTasks={true}
+                    showFilters={true}
+                  />
+                </div>
                 
                 {/* Desktop view para tarefas */}
                 <div className="hidden sm:block">
                   <TaskList 
+                    title="📝 Minhas Tarefas"
                     tasks={pendingTasks}
                     loading={false}
+                    showEventName={true}
+                    limitTasks={true}
+                    showFilters={true}
                   />
                 </div>
               </>

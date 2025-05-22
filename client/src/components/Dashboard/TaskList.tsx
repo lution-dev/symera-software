@@ -617,8 +617,76 @@ const TaskList: React.FC<TaskListProps> = ({
   return (
     <>
       <div className="bg-card rounded-lg shadow-lg overflow-hidden">
+        {/* Área de Filtros Rápidos */}
+        {showFilters && (
+          <div className="px-4 py-2 border-b border-border/30 flex flex-wrap gap-2 overflow-x-auto">
+            <button 
+              onClick={() => setActiveFilter('all')}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                activeFilter === 'all' 
+                  ? 'bg-primary/10 border-primary/30 text-primary' 
+                  : 'border-border/50 text-muted-foreground hover:bg-muted/10'
+              }`}
+            >
+              🔘 Todas
+            </button>
+            <button 
+              onClick={() => setActiveFilter('mine')}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                activeFilter === 'mine' 
+                  ? 'bg-primary/10 border-primary/30 text-primary' 
+                  : 'border-border/50 text-muted-foreground hover:bg-muted/10'
+              }`}
+            >
+              🔘 Somente minhas
+            </button>
+            <button 
+              onClick={() => setActiveFilter('pending')}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                activeFilter === 'pending' 
+                  ? 'bg-primary/10 border-primary/30 text-primary' 
+                  : 'border-border/50 text-muted-foreground hover:bg-muted/10'
+              }`}
+            >
+              🔘 Somente pendentes
+            </button>
+            <button 
+              onClick={() => setActiveFilter('week')}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                activeFilter === 'week' 
+                  ? 'bg-primary/10 border-primary/30 text-primary' 
+                  : 'border-border/50 text-muted-foreground hover:bg-muted/10'
+              }`}
+            >
+              🔘 Até 7 dias
+            </button>
+          </div>
+        )}
+        
         {desktopView}
         {mobileView}
+        
+        {/* Botão Ver Todas as Tarefas */}
+        {limitTasks && sortedTasks.length > 5 && (
+          <div className="p-3 border-t border-border/30 flex justify-center">
+            <button
+              onClick={() => setShowAllTasks(!showAllTasks)}
+              className="text-primary hover:text-primary/80 text-sm font-medium flex items-center"
+            >
+              {showAllTasks ? (
+                <>
+                  <i className="fas fa-chevron-up mr-2 text-xs"></i>
+                  Mostrar menos tarefas
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-chevron-down mr-2 text-xs"></i>
+                  Ver todas as tarefas ({sortedTasks.length})
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Dialog para configuração de lembretes */}
