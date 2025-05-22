@@ -233,8 +233,8 @@ const TaskList: React.FC<TaskListProps> = ({
   // Desktop version
   const desktopView = (
     <div className="hidden sm:block overflow-x-auto">
-      <table className="min-w-full divide-y divide-border">
-        <thead className="bg-muted">
+      <table className="min-w-full divide-y divide-border/30">
+        <thead>
           <tr>
             <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Tarefa</th>
             {showEventName && (
@@ -248,16 +248,18 @@ const TaskList: React.FC<TaskListProps> = ({
             <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Ações</th>
           </tr>
         </thead>
-        <tbody className="bg-card divide-y divide-border">
+        <tbody className="divide-y divide-border/30">
           {enhancedTasks.map((task) => (
-            <tr key={task.id} className="hover:bg-muted transition-colors">
-              <td className="px-4 py-4">
+            <tr key={task.id}>
+              <td className="px-4 py-3">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 h-8 w-8 bg-muted rounded-md flex items-center justify-center">
-                    <i className={`fas fa-${task.status === 'completed' ? 'check' : 'tasks'} ${task.status === 'completed' ? 'text-green-500' : 'text-primary'}`}></i>
-                  </div>
-                  <div className="ml-4 max-w-xs">
-                    <div className={`text-sm font-medium ${task.status === 'completed' ? 'line-through opacity-60 text-muted-foreground' : 'text-white'}`}>{task.title}</div>
+                  <div className={`mt-0.5 h-2 w-2 rounded-full flex-shrink-0 ${
+                    task.priority === 'high' ? 'bg-red-500' : 
+                    task.priority === 'medium' ? 'bg-orange-400' : 
+                    'bg-blue-400'
+                  }`}></div>
+                  <div className="ml-3 max-w-xs">
+                    <div className={`text-sm font-medium ${task.status === 'completed' ? 'line-through opacity-60 text-muted-foreground' : ''}`}>{task.title}</div>
                     {task.description && (
                       <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{task.description.replace(/\*\*Colaboradores:.+$/gm, '').trim()}</div>
                     )}
@@ -265,14 +267,14 @@ const TaskList: React.FC<TaskListProps> = ({
                 </div>
               </td>
               {showEventName && (
-                <td className="px-4 py-4 whitespace-nowrap">
+                <td className="px-4 py-3 whitespace-nowrap">
                   <div className="text-sm text-muted-foreground">{task.eventName}</div>
                 </td>
               )}
-              <td className="px-4 py-4 whitespace-nowrap">
+              <td className="px-4 py-3 whitespace-nowrap">
                 {task.dueDate ? (
                   <>
-                    <div className="text-sm text-white">{formatTaskDueDate(task.dueDate).split('(')[0]}</div>
+                    <div className="text-sm">{formatTaskDueDate(task.dueDate).split('(')[0]}</div>
                     {formatTaskDueDate(task.dueDate).includes('(') && (
                       <div className={`text-xs ${
                         formatTaskDueDate(task.dueDate).includes('Atrasado') 
@@ -289,12 +291,12 @@ const TaskList: React.FC<TaskListProps> = ({
                   <div className="text-sm text-muted-foreground">Sem data</div>
                 )}
               </td>
-              <td className="px-4 py-4 whitespace-nowrap">
+              <td className="px-4 py-3 whitespace-nowrap">
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTaskPriorityColor(task.priority)}`}>
                   {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
                 </span>
               </td>
-              <td className="px-4 py-4 whitespace-nowrap">
+              <td className="px-4 py-3 whitespace-nowrap">
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTaskStatusColor(task.status)}`}>
                   {task.status === 'completed' ? 'Concluída' : task.status === 'in_progress' ? 'Em andamento' : 'A fazer'}
                 </span>
@@ -435,67 +437,68 @@ const TaskList: React.FC<TaskListProps> = ({
 
   // Mobile version
   const mobileView = (
-    <div className="sm:hidden space-y-4">
+    <div className="sm:hidden space-y-3">
       {enhancedTasks.map((task) => (
-        <div key={task.id} className="bg-muted/30 rounded-lg overflow-hidden">
-          <div className="p-4 flex items-start justify-between">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 h-8 w-8 bg-muted rounded-md flex items-center justify-center">
-                <i className={`fas fa-${task.status === 'completed' ? 'check' : 'tasks'} ${task.status === 'completed' ? 'text-green-500' : 'text-primary'}`}></i>
-              </div>
-              <div className="ml-3 flex-1">
-                <div className={`text-sm font-medium ${task.status === 'completed' ? 'line-through opacity-60 text-muted-foreground' : 'text-white'}`}>{task.title}</div>
-                {task.description && (
-                  <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 pr-2">{task.description.replace(/\*\*Colaboradores:.+$/gm, '').trim()}</div>
-                )}
-                <div className="flex items-center mt-1.5 space-x-2">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTaskStatusColor(task.status)}`}>
-                    {task.status === 'completed' ? 'Concluída' : task.status === 'in_progress' ? 'Em andamento' : 'A fazer'}
-                  </span>
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTaskPriorityColor(task.priority)}`}>
-                    {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
-                  </span>
+        <div key={task.id} className="border border-border/40 rounded-lg overflow-hidden">
+          <div className="p-3 flex items-start">
+            <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
+              task.priority === 'high' ? 'bg-red-500' : 
+              task.priority === 'medium' ? 'bg-orange-400' : 
+              'bg-blue-400'
+            }`}></div>
+            <div className="ml-2 flex-1 min-w-0">
+              <div className="flex justify-between items-start">
+                <div className={`text-sm font-medium ${task.status === 'completed' ? 'line-through opacity-60 text-muted-foreground' : ''} truncate pr-2`}>
+                  {task.title}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {task.dueDate ? formatTaskDueDate(task.dueDate) : "Sem data"}
-                </div>
-              </div>
-            </div>
-            
-            {/* Avatar stack */}
-            <div className="flex -space-x-2">
-              {task.assignees && task.assignees.slice(0, 2).map((assignee, index) => (
-                <div 
-                  key={assignee.userId} 
-                  className="w-7 h-7 rounded-full border-2 border-card overflow-hidden z-[1]" 
-                  style={{ zIndex: 10 - index }}
-                >
-                  {assignee.profileImageUrl ? (
-                    <img
-                      src={assignee.profileImageUrl}
-                      alt={`${assignee.firstName} ${assignee.lastName}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-primary/20 flex items-center justify-center">
-                      <span className="text-primary text-xs">
-                        {assignee.firstName?.charAt(0) || ''}
-                        {assignee.lastName?.charAt(0) || ''}
-                      </span>
+                <div className="flex -space-x-1 flex-shrink-0 ml-1">
+                  {task.assignees && task.assignees.slice(0, 2).map((assignee, index) => (
+                    <div 
+                      key={assignee.userId} 
+                      className="w-5 h-5 rounded-full border border-border overflow-hidden" 
+                      style={{ zIndex: 10 - index }}
+                    >
+                      {assignee.profileImageUrl ? (
+                        <img
+                          src={assignee.profileImageUrl}
+                          alt={`${assignee.firstName} ${assignee.lastName}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-primary/20 flex items-center justify-center">
+                          <span className="text-primary text-[9px]">
+                            {assignee.firstName?.charAt(0) || ''}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {task.assignees && task.assignees.length > 2 && (
+                    <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center border border-border">
+                      <span className="text-[9px] text-muted-foreground">+{task.assignees.length - 2}</span>
                     </div>
                   )}
                 </div>
-              ))}
-              {task.assignees && task.assignees.length > 2 && (
-                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center border-2 border-card z-0">
-                  <span className="text-xs text-muted-foreground">+{task.assignees.length - 2}</span>
-                </div>
-              )}
+              </div>
+              
+              <div className="flex items-center justify-between mt-1.5">
+                <span className="text-xs text-muted-foreground truncate">
+                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sem data'}
+                </span>
+                <span className={`text-xs px-1.5 py-0.5 rounded-sm ${
+                  task.status === 'in_progress' ? 'bg-amber-400/10 text-amber-400' :
+                  task.status === 'completed' ? 'bg-green-400/10 text-green-400' :
+                  'bg-blue-400/10 text-blue-400'
+                }`}>
+                  {task.status === 'in_progress' ? 'Em progresso' : 
+                   task.status === 'completed' ? 'Concluída' : 'Pendente'}
+                </span>
+              </div>
             </div>
           </div>
           
           {/* Mobile actions */}
-          <div className="px-4 py-3 bg-muted/40 flex flex-wrap justify-between items-center gap-2">
+          <div className="px-3 py-2 border-t border-border/30 flex justify-between items-center gap-2">
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => openReminderDialog(task)}

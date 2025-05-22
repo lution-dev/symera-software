@@ -274,34 +274,12 @@ const Dashboard: React.FC = () => {
               </div>
             ) : (
               <>
-                {/* Mobile scroll view para tarefas - grid compacto sem scroll horizontal */}
-                <div className="sm:hidden grid grid-cols-1 gap-2">
-                  {pendingTasks.slice(0, 5).map((task: any, index: number) => (
-                      <div key={task.id} className="flex items-start bg-muted/20 p-2 rounded-md">
-                        <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
-                          task.priority === 'high' ? 'bg-red-500' : 
-                          task.priority === 'medium' ? 'bg-orange-400' : 
-                          'bg-blue-400'
-                        }`}></div>
-                        <div className="ml-2 flex-1 min-w-0">
-                          <h4 className="font-medium text-sm line-clamp-1">{task.title}</h4>
-                          <div className="flex items-center justify-between mt-1">
-                            <span className="text-xs text-muted-foreground truncate">
-                              {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sem data'}
-                            </span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-sm flex-shrink-0 ${
-                              task.status === 'in_progress' ? 'bg-amber-400/10 text-amber-400' :
-                              task.status === 'completed' ? 'bg-green-400/10 text-green-400' :
-                              'bg-blue-400/10 text-blue-400'
-                            }`}>
-                              {task.status === 'in_progress' ? 'Em progresso' : 
-                               task.status === 'completed' ? 'Concluída' : 'Pendente'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                  ))}
-                </div>
+                {/* Mobile task list component */}
+                <TaskList 
+                  tasks={pendingTasks}
+                  loading={false}
+                  showEventName={true}
+                />
                 
                 {/* Desktop view para tarefas */}
                 <div className="hidden sm:block">
