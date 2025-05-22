@@ -258,7 +258,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-10">
         {/* Pending Tasks - Versão mobile com scroll horizontal para economizar espaço vertical */}
         <div className="lg:col-span-2 order-1">
-          <div className="bg-card rounded-lg shadow-sm p-3 sm:p-5">
+          <div className="rounded-lg p-3 sm:p-5">
             <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 flex items-center">
               <i className="fas fa-tasks text-primary mr-2"></i>
               Tarefas Pendentes
@@ -274,38 +274,33 @@ const Dashboard: React.FC = () => {
               </div>
             ) : (
               <>
-                {/* Mobile scroll view para tarefas */}
-                <div className="sm:hidden mobile-scroll-container overflow-x-auto pb-1 custom-scrollbar">
-                  <div className="flex pb-2 w-max space-x-2">
-                    {pendingTasks.slice(0, 5).map((task: any, index: number) => (
-                      <div key={task.id} className="w-[260px] flex-shrink-0 bg-muted/40 p-2 rounded-md">
-                        <div className="flex items-start">
-                          <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
-                            task.priority === 'high' ? 'bg-red-500' : 
-                            task.priority === 'medium' ? 'bg-orange-400' : 
-                            'bg-blue-400'
-                          }`}></div>
-                          <div className="ml-2 flex-1">
-                            <h4 className="font-medium text-sm line-clamp-1">{task.title}</h4>
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{task.description}</p>
-                            <div className="mt-1 flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground">
-                                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sem data'}
-                              </span>
-                              <span className={`text-xs px-1.5 py-0.5 rounded-sm ${
-                                task.status === 'in_progress' ? 'bg-amber-400/10 text-amber-400' :
-                                task.status === 'completed' ? 'bg-green-400/10 text-green-400' :
-                                'bg-blue-400/10 text-blue-400'
-                              }`}>
-                                {task.status === 'in_progress' ? 'Em progresso' : 
-                                 task.status === 'completed' ? 'Concluída' : 'Pendente'}
-                              </span>
-                            </div>
+                {/* Mobile scroll view para tarefas - grid compacto sem scroll horizontal */}
+                <div className="sm:hidden grid grid-cols-1 gap-2">
+                  {pendingTasks.slice(0, 5).map((task: any, index: number) => (
+                      <div key={task.id} className="flex items-start bg-muted/20 p-2 rounded-md">
+                        <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
+                          task.priority === 'high' ? 'bg-red-500' : 
+                          task.priority === 'medium' ? 'bg-orange-400' : 
+                          'bg-blue-400'
+                        }`}></div>
+                        <div className="ml-2 flex-1 min-w-0">
+                          <h4 className="font-medium text-sm line-clamp-1">{task.title}</h4>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-xs text-muted-foreground truncate">
+                              {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sem data'}
+                            </span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-sm flex-shrink-0 ${
+                              task.status === 'in_progress' ? 'bg-amber-400/10 text-amber-400' :
+                              task.status === 'completed' ? 'bg-green-400/10 text-green-400' :
+                              'bg-blue-400/10 text-blue-400'
+                            }`}>
+                              {task.status === 'in_progress' ? 'Em progresso' : 
+                               task.status === 'completed' ? 'Concluída' : 'Pendente'}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                  ))}
                 </div>
                 
                 {/* Desktop view para tarefas */}
@@ -322,7 +317,7 @@ const Dashboard: React.FC = () => {
 
         {/* Timeline de Atividades Recentes */}
         <div className="order-2 mt-3 sm:mt-0">
-          <div className="bg-card rounded-lg shadow-sm p-3 sm:p-5">
+          <div className="rounded-lg p-3 sm:p-5">
             <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 flex items-center">
               <i className="fas fa-history text-primary mr-2"></i>
               Atividades Recentes
