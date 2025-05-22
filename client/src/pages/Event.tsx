@@ -725,15 +725,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
               <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
                 <i className="fas fa-plus mr-2"></i> Nova Tarefa
               </Button>
-              <Button 
-                variant="secondary" 
-                className="flex-1 sm:flex-auto"
-                onClick={handleRegenerateChecklist}
-                disabled={regenerateChecklistMutation.isPending}
-              >
-                <i className={`fas ${regenerateChecklistMutation.isPending ? 'fa-spinner fa-spin' : 'fa-robot'} mr-2`}></i>
-                {regenerateChecklistMutation.isPending ? 'Gerando...' : 'Gerar Checklist com IA'}
-              </Button>
               <Button variant="outline" onClick={() => navigate(`/events/${eventId}/checklist`)}>
                 <i className="fas fa-external-link-alt mr-2"></i> Ver tudo
               </Button>
@@ -745,6 +736,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
             tasks={tasks}
             loading={tasksLoading}
             showEventName={false}
+            showFilters={true}
           />
         </TabsContent>
         
