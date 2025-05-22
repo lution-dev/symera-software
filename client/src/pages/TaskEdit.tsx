@@ -330,10 +330,7 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {team?.filter((member: any) => 
-                    // Na edição, mostrar apenas os responsáveis já selecionados
-                    taskId ? selectedAssignees.includes(member.user.id) : true
-                  ).map((member: any) => (
+                  {team?.map((member: any) => (
                     <div key={member.user.id} className="flex items-center space-x-2">
                       <Checkbox 
                         id={`member-${member.user.id}`}
