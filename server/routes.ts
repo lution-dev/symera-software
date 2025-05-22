@@ -726,7 +726,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const tasks = await storage.getTasksByEventId(eventId);
-      res.json(tasks);
+      
+      // Para cada tarefa, buscar os responsáveis
+      const enhancedTasks = await Promise.all(tasks.map(async task => {
+        try {
+          // Buscar os responsáveis da tarefa
+          const taskAssignees = await storage.getTaskAssignees(task.id);
+          
+          // Transformar para o formato esperado pelo frontend
+          const assignees = taskAssignees.map(assignee => ({
+            userId: assignee.userId,
+            firstName: assignee.user.firstName,
+            lastName: assignee.user.lastName,
+            profileImageUrl: assignee.user.profileImageUrl,
+            phone: assignee.user.phone
+          }));
+          
+          // Retornar a tarefa com os responsáveis
+          return {
+            ...task,
+            assignees: assignees
+          };
+        } catch (error) {
+          console.error(`Erro ao buscar responsáveis para tarefa ${task.id}:`, error);
+          // Em caso de erro, retornar a tarefa sem responsáveis
+          return {
+            ...task,
+            assignees: []
+          };
+        }
+      }));
+      
+      res.json(enhancedTasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
       res.status(500).json({ message: "Failed to fetch tasks" });
