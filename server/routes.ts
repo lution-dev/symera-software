@@ -1468,6 +1468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create tasks from checklist
       const tasks = [];
       for (const item of checklistItems) {
+        // Criar tarefa com o proprietário como único responsável
         const task = await storage.createTask({
           title: item.title,
           description: item.description,
@@ -1475,7 +1476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           priority: item.priority as any || 'medium',
           eventId: event.id,
           assigneeId: userId,
-        });
+        }, [userId]); // Adicionamos o userId como o único responsável na tabela de assignees
         tasks.push(task);
       }
       
