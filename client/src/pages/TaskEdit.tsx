@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { z } from "zod";
@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { createTaskSchema } from "@shared/schema";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TaskEditProps {
   eventId?: string;
@@ -70,6 +71,15 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
     enabled: !!eventId && !!event && isAuthenticated,
   });
   
+  // Buscar responsáveis atuais da tarefa
+  const { data: taskAssignees, isLoading: assigneesLoading } = useQuery({
+    queryKey: [`/api/tasks/${taskId}/assignees`],
+    enabled: !!taskId && isAuthenticated,
+  });
+  
+  // Estado para controlar responsáveis selecionados
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  
   // Form para edição de tarefa
   const form = useForm({
     resolver: zodResolver(createTaskSchema),
@@ -81,6 +91,7 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
       priority: "medium",
       eventId: Number(eventId),
       assigneeId: "unassigned",
+      assigneeIds: [] as string[],
     },
   });
   
@@ -95,9 +106,19 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
         priority: task.priority,
         eventId: Number(eventId),
         assigneeId: task.assigneeId || "unassigned",
+        assigneeIds: [],
       });
     }
   }, [task, form, eventId]);
+  
+  // Carregar os responsáveis atuais quando disponíveis
+  useEffect(() => {
+    if (taskAssignees && Array.isArray(taskAssignees)) {
+      const assigneeIds = taskAssignees.map((assignee: any) => assignee.userId);
+      setSelectedAssignees(assigneeIds);
+      form.setValue('assigneeIds', assigneeIds);
+    }
+  }, [taskAssignees, form]);
   
   // Mutation para atualizar tarefa
   const updateTaskMutation = useMutation({
@@ -126,12 +147,33 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
   });
   
   const handleUpdateTask = (data: any) => {
-    // Converter o valor "unassigned" para string vazia, conforme esperado pelo backend
+    // Incluir os IDs dos responsáveis selecionados
     const formattedData = {
       ...data,
-      assigneeId: data.assigneeId === "unassigned" ? "" : data.assigneeId
+      assigneeId: data.assigneeId === "unassigned" ? "" : data.assigneeId,
+      assigneeIds: selectedAssignees
     };
     updateTaskMutation.mutate(formattedData);
+  };
+  
+  // Função para alternar seleção de responsável
+  const toggleAssignee = (userId: string) => {
+    setSelectedAssignees(prev => {
+      const isSelected = prev.includes(userId);
+      let updated = [];
+      
+      if (isSelected) {
+        // Remover da seleção
+        updated = prev.filter(id => id !== userId);
+      } else {
+        // Adicionar à seleção
+        updated = [...prev, userId];
+      }
+      
+      // Atualizar o formulário
+      form.setValue('assigneeIds', updated);
+      return updated;
+    });
   };
   
   if (eventLoading || taskLoading) {
@@ -285,17 +327,17 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
                 name="assigneeId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Responsável (opcional)</FormLabel>
+                    <FormLabel>Responsável Principal</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione um responsável" />
+                          <SelectValue placeholder="Selecione o responsável principal" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="unassigned">Não atribuído</SelectItem>
                         {team?.map((member: any) => (
-                          <SelectItem key={member.userId} value={member.userId}>
+                          <SelectItem key={member.user.id} value={member.user.id}>
                             {member.user.firstName} {member.user.lastName}
                           </SelectItem>
                         ))}
@@ -305,6 +347,34 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
                   </FormItem>
                 )}
               />
+              
+              {/* Seleção de múltiplos responsáveis */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Responsáveis Adicionais</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Selecione todos os usuários que devem ser responsáveis por esta tarefa
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  {team?.map((member: any) => (
+                    <div key={member.user.id} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`member-${member.user.id}`}
+                        checked={selectedAssignees.includes(member.user.id)}
+                        onCheckedChange={() => toggleAssignee(member.user.id)}
+                      />
+                      <label
+                        htmlFor={`member-${member.user.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {member.user.firstName} {member.user.lastName}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
               
               <div className="flex justify-end space-x-2 pt-4">
                 <Button
