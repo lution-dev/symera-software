@@ -368,11 +368,17 @@ const TaskList: React.FC<TaskListProps> = ({
                 </div>
               </td>
               <td className="px-4 py-4 whitespace-nowrap text-sm">
-                <div className="flex space-x-1">
+                <div className="flex space-x-2">
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
+                    variant="outline"
+                    size="sm"
+                    className={`h-8 px-2 ${
+                      task.status === 'todo' 
+                        ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/30' 
+                        : task.status === 'in_progress' 
+                          ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20 border-green-500/30' 
+                          : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-amber-500/30'
+                    }`}
                     onClick={() => handleStatusChange(
                       task.id, 
                       task.status === 'todo' 
@@ -381,13 +387,6 @@ const TaskList: React.FC<TaskListProps> = ({
                           ? 'completed' 
                           : 'todo'
                     )}
-                    title={
-                      task.status === 'todo' 
-                        ? 'Iniciar' 
-                        : task.status === 'in_progress' 
-                          ? 'Concluir' 
-                          : 'Reabrir'
-                    }
                   >
                     <i className={`fas fa-${
                       task.status === 'todo' 
@@ -395,13 +394,14 @@ const TaskList: React.FC<TaskListProps> = ({
                         : task.status === 'in_progress' 
                           ? 'check' 
                           : 'redo'
-                    } text-${
-                      task.status === 'todo' 
-                        ? 'blue' 
+                    } mr-1.5`}></i>
+                    <span className="text-xs whitespace-nowrap">
+                      {task.status === 'todo' 
+                        ? 'Iniciar' 
                         : task.status === 'in_progress' 
-                          ? 'green' 
-                          : 'yellow'
-                    }-400`}></i>
+                          ? 'Concluir' 
+                          : 'Reabrir'}
+                    </span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -495,11 +495,11 @@ const TaskList: React.FC<TaskListProps> = ({
           </div>
           
           {/* Mobile actions */}
-          <div className="px-4 py-2 bg-muted/40 flex justify-between items-center">
-            <div className="flex items-center">
+          <div className="px-4 py-3 bg-muted/40 flex flex-wrap justify-between items-center gap-2">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => openReminderDialog(task)}
-                className="mr-2 p-1 hover:bg-muted rounded-md flex items-center"
+                className="p-1.5 hover:bg-muted rounded-md flex items-center"
               >
                 <i className="fas fa-bell text-yellow-400 mr-1"></i>
                 {task.reminders && task.reminders.length > 0 ? (
@@ -508,19 +508,17 @@ const TaskList: React.FC<TaskListProps> = ({
                   <i className="fas fa-exclamation-triangle text-amber-500 text-xs"></i>
                 )}
               </button>
-              <button
-                onClick={() => openReminderDialog(task)}
-                className="mr-2 p-1 hover:bg-muted rounded-md"
-              >
-                <i className="fas fa-cog text-blue-400"></i>
-              </button>
-            </div>
-            
-            <div className="flex space-x-1">
+              
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
+                variant="outline"
+                size="sm"
+                className={`h-8 px-2 ${
+                  task.status === 'todo' 
+                    ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/30' 
+                    : task.status === 'in_progress' 
+                      ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20 border-green-500/30' 
+                      : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-amber-500/30'
+                }`}
                 onClick={() => handleStatusChange(
                   task.id, 
                   task.status === 'todo' 
@@ -536,29 +534,35 @@ const TaskList: React.FC<TaskListProps> = ({
                     : task.status === 'in_progress' 
                       ? 'check' 
                       : 'redo'
-                } text-${
-                  task.status === 'todo' 
-                    ? 'blue' 
+                } mr-1.5`}></i>
+                <span className="text-xs whitespace-nowrap">
+                  {task.status === 'todo' 
+                    ? 'Iniciar' 
                     : task.status === 'in_progress' 
-                      ? 'green' 
-                      : 'yellow'
-                }-400`}></i>
+                      ? 'Concluir' 
+                      : 'Reabrir'}
+                </span>
               </Button>
+            </div>
+            
+            <div className="flex space-x-2">
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8"
+                size="sm"
+                className="h-8 px-2"
                 onClick={() => navigate(`/events/${task.eventId}/tasks/${task.id}/edit`)}
               >
-                <i className="fas fa-pencil-alt text-amber-400"></i>
+                <i className="fas fa-pencil-alt text-amber-400 mr-1.5"></i>
+                <span className="text-xs">Editar</span>
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8"
+                size="sm"
+                className="h-8 px-2"
                 onClick={() => handleDeleteTask(task.id)}
               >
-                <i className="fas fa-trash text-red-400"></i>
+                <i className="fas fa-trash text-red-400 mr-1.5"></i>
+                <span className="text-xs">Excluir</span>
               </Button>
             </div>
           </div>
