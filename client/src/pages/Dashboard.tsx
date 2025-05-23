@@ -304,7 +304,7 @@ const Dashboard: React.FC = () => {
 
         {/* Timeline de Atividades Recentes */}
         <div className="order-2 mt-3 sm:mt-0">
-          <div className="rounded-lg p-3 sm:p-5 bg-secondary/10 border border-border/50">
+          <div className="rounded-lg p-3 sm:p-5 bg-card border shadow-sm">
             <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 flex items-center">
               <i className="fas fa-history text-primary mr-2"></i>
               Atividades Recentes
