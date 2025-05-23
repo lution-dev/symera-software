@@ -174,23 +174,11 @@ const TaskList: React.FC<TaskListProps> = ({
     return true;
   });
 
-  // Ordenar por data (as mais próximas primeiro) e prioridade
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    // Primeiro ordenar por data
-    const dateA = a.dueDate ? new Date(a.dueDate) : new Date(9999, 11, 31);
-    const dateB = b.dueDate ? new Date(b.dueDate) : new Date(9999, 11, 31);
-    
-    if (dateA.getTime() !== dateB.getTime()) {
-      return dateA.getTime() - dateB.getTime();
-    }
-    
-    // Se as datas forem iguais, ordenar por prioridade (high, medium, low)
-    const priorityOrder = { high: 0, medium: 1, low: 2 };
-    return priorityOrder[a.priority] - priorityOrder[b.priority];
-  });
+  // Vamos usar as tarefas já ordenadas enviadas pelo componente pai
+  // As tarefas já vêm ordenadas do Event.tsx
 
   // Limitar a 5 tarefas se limitTasks for true e showAllTasks for false
-  const displayTasks = (!showAllTasks && limitTasks) ? sortedTasks.slice(0, 5) : sortedTasks;
+  const displayTasks = (!showAllTasks && limitTasks) ? filteredTasks.slice(0, 5) : filteredTasks;
   
   // Usar os dados reais de responsáveis, apenas adicionar reminders mock
   const enhancedTasks = displayTasks.map(task => ({
