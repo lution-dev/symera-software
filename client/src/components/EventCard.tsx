@@ -234,18 +234,7 @@ const EventCard: React.FC<EventCardProps> = ({
               </div>
             )}
             
-            <div className="flex items-center">
-              <i className="fas fa-tasks text-primary mr-1.5 w-4 text-center text-xs"></i>
-              <div className="flex items-center w-full min-w-0">
-                <span className="text-muted-foreground text-xs mr-1.5">{progressPercentage}%</span>
-                <div className="w-12 sm:w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden flex-shrink-0">
-                  <div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500" 
-                    style={{ width: `${progressPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+
           </div>
           
           {/* Team members and progress bar in the same line */}
@@ -277,6 +266,7 @@ const EventCard: React.FC<EventCardProps> = ({
             </div>
             
             <div className="flex items-center">
+              <i className="fas fa-tasks text-primary mr-1.5 w-4 text-center text-xs"></i>
               <span className="text-muted-foreground text-xs mr-1.5">{progressPercentage}%</span>
               <div className="w-16 sm:w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden flex-shrink-0">
                 <div 
