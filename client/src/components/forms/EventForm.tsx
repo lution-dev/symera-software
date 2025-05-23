@@ -412,6 +412,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   <FormControl>
                     <Input 
                       type="date" 
+                      className="date-input text-foreground [&::-webkit-calendar-picker-indicator]:text-foreground [&::-webkit-calendar-picker-indicator]:brightness-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
                       {...field} 
                       onChange={(e) => {
                         field.onChange(e);
@@ -432,7 +433,11 @@ const EventForm: React.FC<EventFormProps> = ({
                 <FormItem>
                   <FormLabel>Horário de início</FormLabel>
                   <FormControl>
-                    <Input type="time" {...field} />
+                    <Input 
+                      type="time" 
+                      className="time-input text-foreground [&::-webkit-calendar-picker-indicator]:text-foreground [&::-webkit-calendar-picker-indicator]:brightness-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -448,7 +453,11 @@ const EventForm: React.FC<EventFormProps> = ({
                 <FormItem>
                   <FormLabel>Data de término</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input 
+                      type="date" 
+                      className="date-input text-foreground [&::-webkit-calendar-picker-indicator]:text-foreground [&::-webkit-calendar-picker-indicator]:brightness-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -462,7 +471,11 @@ const EventForm: React.FC<EventFormProps> = ({
                 <FormItem>
                   <FormLabel>Horário de término</FormLabel>
                   <FormControl>
-                    <Input type="time" {...field} />
+                    <Input 
+                      type="time" 
+                      className="time-input text-foreground [&::-webkit-calendar-picker-indicator]:text-foreground [&::-webkit-calendar-picker-indicator]:brightness-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
