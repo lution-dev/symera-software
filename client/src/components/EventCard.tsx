@@ -30,11 +30,13 @@ interface EventCardProps {
   id: number;
   name: string;
   type: string;
-  startDate: string; // Agora obrigatório
-  endDate: string;   // Agora obrigatório
-  startTime: string; // Agora obrigatório
-  endTime: string;   // Agora obrigatório
+  format?: string;        // Formato do evento (online, in_person, hybrid)
+  startDate: string;      // Agora obrigatório
+  endDate: string;        // Agora obrigatório
+  startTime: string;      // Agora obrigatório
+  endTime: string;        // Agora obrigatório
   location?: string;
+  meetingUrl?: string;    // URL da reunião para eventos online/híbridos
   status: string;
   attendees?: number;
   team?: TeamMember[];
@@ -47,11 +49,13 @@ const EventCard: React.FC<EventCardProps> = ({
   id,
   name,
   type,
+  format = "in_person",
   startDate,
   endDate,
   startTime,
   endTime,
   location,
+  meetingUrl,
   attendees,
   team = [],
   tasks = [],
@@ -188,12 +192,38 @@ const EventCard: React.FC<EventCardProps> = ({
               </span>
             </div>
             
-            {location && (
+            {/* Formato do evento */}
+            <div className="flex items-center">
+              <i className={`fas ${format === 'online' ? 'fa-video' : format === 'hybrid' ? 'fa-users-cog' : 'fa-users'} text-primary mr-1.5 w-4 text-center text-xs`}></i>
+              <span className="text-muted-foreground text-xs truncate">
+                {format === 'online' ? 'Online' : 
+                 format === 'hybrid' ? 'Híbrido' : 
+                 'Presencial'}
+              </span>
+            </div>
+            
+            {/* Local ou link da reunião */}
+            {format === 'in_person' && location ? (
               <div className="flex items-center">
                 <i className="fas fa-map-marker-alt text-primary mr-1.5 w-4 text-center text-xs"></i>
                 <span className="text-muted-foreground text-xs truncate">{location}</span>
               </div>
-            )}
+            ) : format === 'hybrid' && location ? (
+              <div className="flex items-center">
+                <i className="fas fa-map-marker-alt text-primary mr-1.5 w-4 text-center text-xs"></i>
+                <span className="text-muted-foreground text-xs truncate">{location}</span>
+              </div>
+            ) : format === 'online' && meetingUrl ? (
+              <div className="flex items-center">
+                <i className="fas fa-link text-primary mr-1.5 w-4 text-center text-xs"></i>
+                <span className="text-muted-foreground text-xs truncate">{meetingUrl}</span>
+              </div>
+            ) : location ? (
+              <div className="flex items-center">
+                <i className="fas fa-map-marker-alt text-primary mr-1.5 w-4 text-center text-xs"></i>
+                <span className="text-muted-foreground text-xs truncate">{location}</span>
+              </div>
+            ) : null}
             
             {attendees && (
               <div className="flex items-center">
