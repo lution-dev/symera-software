@@ -38,7 +38,8 @@ const Events: React.FC = () => {
       .sort((a: any, b: any) => {
         // Sort events
         if (sortBy === "date") {
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
+          // Usar startDate em vez de date, que foi removido
+          return new Date(a.startDate || Date.now()).getTime() - new Date(b.startDate || Date.now()).getTime();
         } else if (sortBy === "name") {
           return a.name.localeCompare(b.name);
         } else if (sortBy === "progress") {
@@ -219,7 +220,10 @@ const Events: React.FC = () => {
               id={event.id}
               name={event.name}
               type={event.type}
-              date={event.date}
+              startDate={event.start_date || event.startDate}
+              endDate={event.end_date || event.endDate}
+              startTime={event.start_time || event.startTime || "19:00"}
+              endTime={event.end_time || event.endTime || "23:00"}
               location={event.location}
               status={event.status}
               attendees={event.attendees}

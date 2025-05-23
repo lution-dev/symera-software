@@ -30,11 +30,10 @@ interface EventCardProps {
   id: number;
   name: string;
   type: string;
-  date: string;
-  startDate?: string;
-  endDate?: string;
-  startTime?: string;
-  endTime?: string;
+  startDate: string; // Agora obrigatório
+  endDate: string;   // Agora obrigatório
+  startTime: string; // Agora obrigatório
+  endTime: string;   // Agora obrigatório
   location?: string;
   status: string;
   attendees?: number;
@@ -48,7 +47,6 @@ const EventCard: React.FC<EventCardProps> = ({
   id,
   name,
   type,
-  date,
   startDate,
   endDate,
   startTime,
