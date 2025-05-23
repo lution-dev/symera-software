@@ -90,14 +90,14 @@ const Event: React.FC<EventProps> = ({ id }) => {
     }
   }, [eventId, refetch]);
   
-  // Log dos dados do evento quando recebidos e forçar valores padrão para campos críticos
+  // Log dos dados do evento quando recebidos
   useEffect(() => {
     if (event) {
       console.log("[Debug] Dados completos do evento carregado:", event);
       console.log("[Debug] Formato do evento (original):", event.format);
       console.log("[Debug] Link da reunião do evento (original):", event.meetingUrl);
       
-      // SOLUÇÃO TEMPORÁRIA: Forçar valores do banco
+      // SOLUÇÃO TEMPORÁRIA: Forçar valores do banco somente para o evento Workshop
       if (event.id === 9) {
         // Sobrescrever os valores no objeto de eventos para forçar renderização correta
         // @ts-ignore - Hack para sobrescrever o objeto imutável do React Query
@@ -107,14 +107,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
         
         console.log("[Debug] Formato do evento (corrigido):", event.format);
         console.log("[Debug] Link da reunião do evento (corrigido):", event.meetingUrl);
-      }
-      
-      // Corrigir formato para o evento "Lançamento Coleção Primavera 2025"
-      if (event.id === 10) {
-        // @ts-ignore - Hack para sobrescrever o objeto imutável do React Query
-        event.format = "in_person";
-        
-        console.log("[Debug] Formato do evento (corrigido):", event.format);
       }
     }
   }, [event]);
@@ -561,7 +553,7 @@ const getFilteredAndSortedTasks = () => {
                   {event.format === 'in_person' ? 'Presencial' : 
                    event.format === 'online' ? 'Online' : 
                    event.format === 'hybrid' ? 'Híbrido' : 
-                   event.type === 'birthday' || event.type === 'wedding' || event.type === 'social' ? 'Presencial' : 'Online'}
+                   'Não definido'}
                 </p>
               </div>
             </div>
