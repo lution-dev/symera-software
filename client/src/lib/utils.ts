@@ -7,12 +7,23 @@ export function cn(...inputs: ClassValue[]) {
 
 // Format date to display in a human-readable format
 export function formatDate(date: string | Date) {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return dateObj.toLocaleDateString('pt-BR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  }).replace('.', '');
+  if (!date) return '';
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    // Formato exato como mostrado na imagem
+    const day = dateObj.getDate();
+    // Pegar apenas a abreviação do mês em minúsculo sem o ponto
+    const monthFormat = new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(dateObj);
+    const month = monthFormat.replace('.', '');
+    const year = dateObj.getFullYear();
+    
+    return `${day} de ${month} de ${year}`;
+  } catch (error) {
+    console.error('Erro ao formatar data:', error);
+    return '';
+  }
 }
 
 // Format task due date with relative time indicator

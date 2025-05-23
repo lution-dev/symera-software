@@ -163,13 +163,7 @@ const EventCard: React.FC<EventCardProps> = ({
               <i className="fas fa-calendar-day text-primary mr-1.5 w-4 text-center text-xs"></i>
               <span className="text-muted-foreground text-xs truncate">
                 {/* Simplificado para corresponder exatamente ao formato na captura de tela */}
-                {date && 
-                  <>
-                    {date.getDate()} de {
-                      new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(date).replace('.', '')
-                    } de {date.getFullYear()}
-                  </>
-                }
+                {date && formatDate(date)}
               </span>
             </div>
             
