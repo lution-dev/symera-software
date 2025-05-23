@@ -998,15 +998,16 @@ const Event: React.FC<EventProps> = ({ id }) => {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                {/* Botão de ordenação */}
+                {/* Botão de ordenação com indicador visual */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
-                      variant="outline" 
+                      variant={sortBy !== "dueDate" || sortOrder !== "asc" ? "default" : "outline"} 
                       size="sm" 
                       className="h-9 px-3 min-w-[42px]"
                     >
                       <i className="fas fa-sort text-sm"></i>
+                      <span className="w-1 h-1 ml-1 rounded-full bg-primary-foreground/70"></span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-60">
