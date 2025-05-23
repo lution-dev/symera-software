@@ -173,23 +173,32 @@ const Dashboard: React.FC = () => {
         upcomingEventDays={upcomingEventDays}
       />
 
-      {/* Quick Access Buttons for Mobile - Only visible on mobile */}
-      <div className="mt-4 mb-4 sm:hidden">
-        <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
-          <Link href="/vendors">
-            <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
-              <i className="fas fa-store text-primary mr-1.5"></i> Fornecedores
-            </Button>
+      {/* Quick Access Buttons - Visible on all screen sizes with new design */}
+      <div className="mt-4 mb-4">
+        <div className="grid grid-cols-3 gap-2">
+          <Link href="/vendors" className="block">
+            <div className="bg-[#1f1730] border border-primary/30 rounded-xl p-3 flex flex-col items-center justify-center h-[70px] text-center">
+              <div className="text-primary mb-1">
+                <i className="fas fa-store text-2xl"></i>
+              </div>
+              <span className="text-xs font-medium text-white">Fornecedores</span>
+            </div>
           </Link>
-          <Link href="/budget">
-            <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
-              <i className="fas fa-dollar-sign text-primary mr-1.5"></i> Orçamento
-            </Button>
+          <Link href="/budget" className="block">
+            <div className="bg-[#1f1730] border border-primary/30 rounded-xl p-3 flex flex-col items-center justify-center h-[70px] text-center">
+              <div className="text-primary mb-1">
+                <i className="fas fa-dollar-sign text-2xl"></i>
+              </div>
+              <span className="text-xs font-medium text-white">Orçamento</span>
+            </div>
           </Link>
-          <Link href="/team">
-            <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
-              <i className="fas fa-users text-primary mr-1.5"></i> Equipe
-            </Button>
+          <Link href="/team" className="block">
+            <div className="bg-[#1f1730] border border-primary/30 rounded-xl p-3 flex flex-col items-center justify-center h-[70px] text-center">
+              <div className="text-primary mb-1">
+                <i className="fas fa-users text-2xl"></i>
+              </div>
+              <span className="text-xs font-medium text-white">Equipe</span>
+            </div>
           </Link>
         </div>
       </div>
