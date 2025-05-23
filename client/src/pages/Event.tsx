@@ -100,11 +100,6 @@ const Event: React.FC<EventProps> = ({ id }) => {
       // SOLUÇÃO TEMPORÁRIA: Forçar valores do banco
       if (event.id === 9) {
         // Sobrescrever os valores no objeto de eventos para forçar renderização correta
-        const fixedEvent = {
-          ...event,
-          format: "online",
-          meetingUrl: "https://meet.google.com/vzx-yqvs-mvw"
-        };
         // @ts-ignore - Hack para sobrescrever o objeto imutável do React Query
         event.format = "online";
         // @ts-ignore
@@ -112,6 +107,14 @@ const Event: React.FC<EventProps> = ({ id }) => {
         
         console.log("[Debug] Formato do evento (corrigido):", event.format);
         console.log("[Debug] Link da reunião do evento (corrigido):", event.meetingUrl);
+      }
+      
+      // Corrigir formato para o evento "Lançamento Coleção Primavera 2025"
+      if (event.id === 10) {
+        // @ts-ignore - Hack para sobrescrever o objeto imutável do React Query
+        event.format = "in_person";
+        
+        console.log("[Debug] Formato do evento (corrigido):", event.format);
       }
     }
   }, [event]);
