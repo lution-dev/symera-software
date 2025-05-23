@@ -455,6 +455,19 @@ const Schedule: React.FC = () => {
         {/* Dialog mostrando os detalhes do dia - substitui o painel lateral */}
         <Dialog open={showDayDetailsDialog} onOpenChange={setShowDayDetailsDialog}>
           <DialogContent className="sm:max-w-md">
+            {/* Removido o botão de fechar automático do DialogContent */}
+            <div className="absolute right-4 top-4 hidden sm:block">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 rounded-full"
+                onClick={() => setShowDayDetailsDialog(false)}
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Fechar</span>
+              </Button>
+            </div>
+            
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 <CalendarIcon className="h-5 w-5 mr-2" />
@@ -563,7 +576,7 @@ const Schedule: React.FC = () => {
               </div>
             </div>
             
-            <DialogFooter className="flex sm:justify-between items-center gap-2">
+            <DialogFooter className="flex justify-between items-center gap-2 pt-3 mt-2 border-t">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -577,9 +590,21 @@ const Schedule: React.FC = () => {
                 Adicionar item
               </Button>
               
+              {/* Botão de fechar explícito no rodapé para mobile */}
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="sm:hidden"
+                onClick={() => setShowDayDetailsDialog(false)}
+              >
+                Fechar
+              </Button>
+              
+              {/* Mantém o botão de fechar no desktop mas com aparência suave */}
               <Button 
                 variant="ghost" 
                 size="sm" 
+                className="hidden sm:flex"
                 onClick={() => setShowDayDetailsDialog(false)}
               >
                 Fechar
