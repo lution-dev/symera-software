@@ -31,12 +31,14 @@ interface EventFormProps {
   defaultValues?: {
     name?: string;
     type?: string;
+    format?: string;
     date?: string;
     startDate?: string;
     endDate?: string;
     startTime?: string;
     endTime?: string;
     location?: string;
+    meetingUrl?: string;
     description?: string;
     budget?: number;
     attendees?: number;
@@ -62,12 +64,14 @@ const EventForm: React.FC<EventFormProps> = ({
   const defaultValues = {
     name: "",
     type: "",
+    format: "in_person",
     date: defaultDate,
     startDate: defaultDate,
     endDate: defaultDate,
     startTime: "09:00",
     endTime: "18:00",
     location: "",
+    meetingUrl: "",
     description: "",
     budget: undefined,
     attendees: undefined,
@@ -94,6 +98,7 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const [imagePreview, setImagePreview] = useState<string | null>(defaultValues.coverImageUrl || null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [eventFormat, setEventFormat] = useState<string>(defaultValues.format || "in_person");
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -267,6 +272,36 @@ const EventForm: React.FC<EventFormProps> = ({
         />
             
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Formato do evento - como primeiro campo */}
+          <FormField
+            control={form.control}
+            name="format"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Formato do evento</FormLabel>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    setEventFormat(value);
+                  }}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o formato" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="in_person">Presencial</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="hybrid">Híbrido</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="name"

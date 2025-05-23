@@ -55,6 +55,13 @@ export const eventTypeEnum = pgEnum("event_type", [
   "other",
 ]);
 
+// Event Format
+export const eventFormatEnum = pgEnum("event_format", [
+  "in_person",  // Presencial
+  "online",     // Online
+  "hybrid",     // Híbrido
+]);
+
 // Event Status
 export const eventStatusEnum = pgEnum("event_status", [
   "planning",   // Planejamento
@@ -70,11 +77,13 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: eventTypeEnum("type").notNull(),
+  format: eventFormatEnum("format").default("in_person"), // Formato do evento (presencial, online, híbrido)
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   startTime: text("start_time").notNull(),
   endTime: text("end_time").notNull(),
   location: text("location"),
+  meetingUrl: text("meeting_url"), // URL para eventos online
   description: text("description"),
   budget: real("budget"),
   expenses: real("expenses").default(0),
@@ -408,11 +417,13 @@ export type TaskReminder = typeof taskReminders.$inferSelect;
 export const createEventSchema = z.object({
   name: z.string().min(3, "Nome do evento é obrigatório").max(100),
   type: z.enum(["wedding", "birthday", "corporate", "conference", "social", "other"]),
+  format: z.enum(["in_person", "online", "hybrid"]).default("in_person"),
   startDate: z.string().or(z.date()),
   endDate: z.string().or(z.date()),
   startTime: z.string(),
   endTime: z.string(),
   location: z.string().optional(),
+  meetingUrl: z.string().optional(),
   description: z.string().optional(),
   budget: z.number().optional(),
   attendees: z.number().int().optional(),
