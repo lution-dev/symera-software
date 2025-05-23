@@ -151,6 +151,32 @@ const Dashboard: React.FC = () => {
               Você não tem eventos ativos no momento. {pendingTasks.length > 0 && `Você tem ${pendingTasks.length} tarefas pendentes.`}
             </p>
           )}
+
+          {/* Quick Access Buttons for Mobile - Only visible on mobile */}
+          <div className="mt-3 sm:hidden">
+            <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+              <Link href="/tasks">
+                <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
+                  <i className="fas fa-tasks text-primary mr-1.5"></i> Tarefas
+                </Button>
+              </Link>
+              <Link href="/vendors">
+                <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
+                  <i className="fas fa-store text-primary mr-1.5"></i> Fornecedores
+                </Button>
+              </Link>
+              <Link href="/team">
+                <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
+                  <i className="fas fa-users text-primary mr-1.5"></i> Equipe
+                </Button>
+              </Link>
+              <Link href="/checklist">
+                <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
+                  <i className="fas fa-clipboard-check text-primary mr-1.5"></i> Checklists
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
         {/* Botão de criar evento removido no mobile, mantido apenas em telas maiores */}
         <div className="mt-3 md:mt-0 hidden sm:block">
