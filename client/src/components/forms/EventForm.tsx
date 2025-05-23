@@ -412,7 +412,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   <FormControl>
                     <Input 
                       type="date" 
-                      className="date-input text-foreground [&::-webkit-calendar-picker-indicator]:text-foreground [&::-webkit-calendar-picker-indicator]:brightness-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
+                      className="date-input text-foreground dark:text-white dark:bg-slate-900 [&::-webkit-calendar-picker-indicator]:bg-transparent [&::-webkit-calendar-picker-indicator]:dark:filter-none dark:[&::-webkit-calendar-picker-indicator]:opacity-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
                       {...field} 
                       onChange={(e) => {
                         field.onChange(e);
@@ -435,7 +435,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   <FormControl>
                     <Input 
                       type="time" 
-                      className="time-input text-foreground [&::-webkit-calendar-picker-indicator]:text-foreground [&::-webkit-calendar-picker-indicator]:brightness-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
+                      className="time-input text-foreground dark:text-white dark:bg-slate-900 [&::-webkit-calendar-picker-indicator]:bg-transparent [&::-webkit-calendar-picker-indicator]:dark:filter-none dark:[&::-webkit-calendar-picker-indicator]:opacity-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
                       {...field} 
                     />
                   </FormControl>
@@ -455,7 +455,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   <FormControl>
                     <Input 
                       type="date" 
-                      className="date-input text-foreground [&::-webkit-calendar-picker-indicator]:text-foreground [&::-webkit-calendar-picker-indicator]:brightness-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
+                      className="date-input text-foreground dark:text-white dark:bg-slate-900 [&::-webkit-calendar-picker-indicator]:bg-transparent [&::-webkit-calendar-picker-indicator]:dark:filter-none dark:[&::-webkit-calendar-picker-indicator]:opacity-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
                       {...field} 
                     />
                   </FormControl>
@@ -473,7 +473,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   <FormControl>
                     <Input 
                       type="time" 
-                      className="time-input text-foreground [&::-webkit-calendar-picker-indicator]:text-foreground [&::-webkit-calendar-picker-indicator]:brightness-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
+                      className="time-input text-foreground dark:text-white dark:bg-slate-900 [&::-webkit-calendar-picker-indicator]:bg-transparent [&::-webkit-calendar-picker-indicator]:dark:filter-none dark:[&::-webkit-calendar-picker-indicator]:opacity-100 dark:[&::-webkit-calendar-picker-indicator]:invert"
                       {...field} 
                     />
                   </FormControl>
