@@ -248,8 +248,8 @@ const EventCard: React.FC<EventCardProps> = ({
             </div>
           </div>
           
-          {/* Team members - optimized size for mobile */}
-          <div className="mt-3 flex">
+          {/* Team members and progress bar in the same line */}
+          <div className="mt-3 flex items-center justify-between">
             <div className="flex">
               {teamData.slice(0, 3).map((member, idx) => (
                 <Avatar
@@ -274,6 +274,16 @@ const EventCard: React.FC<EventCardProps> = ({
                   </AvatarFallback>
                 </Avatar>
               )}
+            </div>
+            
+            <div className="flex items-center">
+              <span className="text-muted-foreground text-xs mr-1.5">{progressPercentage}%</span>
+              <div className="w-16 sm:w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden flex-shrink-0">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500" 
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
