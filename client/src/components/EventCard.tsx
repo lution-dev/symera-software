@@ -162,7 +162,28 @@ const EventCard: React.FC<EventCardProps> = ({
             <div className="flex items-center">
               <i className="fas fa-calendar-day text-primary mr-1.5 w-4 text-center text-xs"></i>
               <span className="text-muted-foreground text-xs truncate">
-                {startDate ? formatDate(startDate) : formatDate(date)}
+                {startDate && endDate ? (
+                  <>
+                    {startDate === endDate ? (
+                      <>
+                        {formatDate(startDate)}
+                        {startTime && endTime && (
+                          <> às {startTime.substring(0, 5)}{startTime !== endTime ? ` ➝ ${endTime.substring(0, 5)}` : ''}
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {formatDate(startDate).split(' de ')[0]} de {formatDate(startDate).split(' de ')[1].split(' ')[0]}
+                        {startTime && <> às {startTime.substring(0, 5)}</>}
+                        <> ➝ {formatDate(endDate).split(' de ')[0]} de {formatDate(endDate).split(' de ')[1].split(' ')[0]}</>
+                        {endTime && <> às {endTime.substring(0, 5)}</>}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  formatDate(date)
+                )}
               </span>
             </div>
             
