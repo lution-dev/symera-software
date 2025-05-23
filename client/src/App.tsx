@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
 import Event from "@/pages/Event";
 import CreateEvent from "@/pages/CreateEvent";
+import EditEvent from "@/pages/EditEvent";
 import Checklist from "@/pages/Checklist";
 import TaskNew from "@/pages/TaskNew";
 import TaskEdit from "@/pages/TaskEdit";
@@ -68,6 +69,7 @@ function Router() {
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
       <Route path="/events/new" component={() => <ProtectedRoute component={CreateEvent} />} />
       <Route path="/events/:id" component={(params: any) => <ProtectedRoute component={Event} id={params.id} />} />
+      <Route path="/events/:id/edit" component={(params: any) => <ProtectedRoute component={EditEvent} id={params.id} />} />
       <Route path="/events/:id/checklist" component={(params: any) => <ProtectedRoute component={Checklist} id={params.id} />} />
       <Route path="/events/:id/tasks/new" component={(params: any) => <ProtectedRoute component={TaskNew} />} />
       <Route path="/events/:id/tasks/:taskId/edit" component={(params: any) => <ProtectedRoute component={TaskEdit} eventId={params.id} taskId={params.taskId} />} />
