@@ -367,18 +367,26 @@ export class DatabaseStorage implements IStorage {
 
   async updateEvent(id: number, eventData: Partial<InsertEvent>): Promise<Event> {
     return executeWithRetry(async () => {
-      console.log('Atualizando evento com dados:', eventData);
+      console.log('Atualizando evento com dados:', JSON.stringify(eventData, null, 2));
+      console.log('Formato do evento recebido:', eventData.format);
+      console.log('MeetingUrl recebido:', eventData.meetingUrl);
+      
+      // Garantir que o formato seja salvo corretamente
+      let dataToUpdate = {
+        ...eventData,
+        updatedAt: new Date(),
+      };
+      
+      // Log detalhado do que será salvo
+      console.log('Dados a serem salvos:', JSON.stringify(dataToUpdate, null, 2));
       
       const [event] = await db
         .update(events)
-        .set({
-          ...eventData,
-          updatedAt: new Date(),
-        })
+        .set(dataToUpdate)
         .where(eq(events.id, id))
         .returning();
       
-      console.log('Evento atualizado no banco:', event);
+      console.log('Evento atualizado no banco:', JSON.stringify(event, null, 2));
       
       // Limpar completamente os caches relacionados a eventos
       eventCache.invalidate(`event:${id}`);

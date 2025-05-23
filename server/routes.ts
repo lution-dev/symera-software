@@ -379,7 +379,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...eventData,
         // Garantir que o formato do evento seja corretamente incluído como um valor específico
         format: eventData.format as 'in_person' | 'online' | 'hybrid', 
-        date: new Date(eventData.date),
       };
       
       console.log("Atualizando evento com formato:", updateData.format, "tipo:", typeof updateData.format);
@@ -387,8 +386,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Adicionar startDate se disponível
       if (eventData.startDate) {
         updateData.startDate = new Date(eventData.startDate);
-      } else {
-        updateData.startDate = new Date(eventData.date);
       }
       
       // Adicionar endDate se disponível
