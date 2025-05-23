@@ -536,11 +536,18 @@ const getFilteredAndSortedTasks = () => {
                 <div className="ml-3">
                   <p className="text-xs text-muted-foreground">Formato</p>
                   <p className="mt-0.5 text-sm font-medium">
-                    {console.log("[Debug] Formato exato do evento:", event.format, typeof event.format)}
-                    {/* Solução atualizada para garantir compatibilidade */}
-                    {event.format && event.format.toString().includes('online') ? 'Online' : 
-                     event.format && event.format.toString().includes('hybrid') ? 'Híbrido' : 
-                     event.format && event.format.toString().includes('in_person') ? 'Presencial' : 'Presencial'}
+                    {/* Solução simplificada e direta para exibir o formato */}
+                    {(() => {
+                      // Obter o formato do evento de forma segura
+                      const format = event.format || '';
+                      console.log("[Debug] Formato do evento na renderização:", format);
+                      
+                      // Retornar a versão traduzida com base no formato
+                      if (format === 'online') return 'Online';
+                      if (format === 'hybrid') return 'Híbrido';
+                      if (format === 'in_person') return 'Presencial';
+                      return 'Presencial'; // Valor padrão
+                    })()}
                   </p>
                 </div>
               </div>

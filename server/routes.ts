@@ -377,9 +377,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Preparar os dados para atualização com tipos corretos
       const updateData: any = {
         ...eventData,
-        format: eventData.format, // Garantir que o formato do evento seja incluído
+        // Garantir que o formato do evento seja corretamente incluído como um valor específico
+        format: eventData.format as 'in_person' | 'online' | 'hybrid', 
         date: new Date(eventData.date),
       };
+      
+      console.log("Atualizando evento com formato:", updateData.format, "tipo:", typeof updateData.format);
       
       // Adicionar startDate se disponível
       if (eventData.startDate) {
