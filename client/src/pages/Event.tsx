@@ -220,10 +220,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
   
   // Function to filter and sort tasks
   const getFilteredAndSortedTasks = () => {
-    if (!tasks) return [];
+    if (!tasks || !Array.isArray(tasks)) return [];
     
-    // Filter tasks
-    let filteredTasks = [...tasks];
+    // Deep clone tasks array to avoid reference issues
+    let filteredTasks = JSON.parse(JSON.stringify(tasks));
     
     // Apply status filter
     if (statusFilter !== "all") {
@@ -288,9 +288,29 @@ const Event: React.FC<EventProps> = ({ id }) => {
       );
     }
     
-    // Sort tasks
-    return filteredTasks.sort((a: any, b: any) => {
-      if (sortBy === "dueDate") {
+    // Sort tasks based on current sortBy and sortOrder
+    if (sortBy === "priority") {
+      console.log("Sorting by priority, order:", sortOrder);
+      // Map priorities to numeric values for sorting
+      const priorityValues: Record<string, number> = { high: 3, medium: 2, low: 1, "": 0 };
+      
+      filteredTasks.sort((a: any, b: any) => {
+        const valueA = priorityValues[a.priority || ""] || 0;
+        const valueB = priorityValues[b.priority || ""] || 0;
+        
+        // Print debug info
+        console.log(`Compare: ${a.title} (${a.priority}: ${valueA}) vs ${b.title} (${b.priority}: ${valueB})`);
+        
+        if (sortOrder === "desc") {
+          // High to low (3 -> 1)
+          return valueB - valueA;
+        } else {
+          // Low to high (1 -> 3)
+          return valueA - valueB;
+        }
+      });
+    } else if (sortBy === "dueDate") {
+      filteredTasks.sort((a: any, b: any) => {
         // Handle null dates
         if (!a.dueDate && !b.dueDate) return 0;
         if (!a.dueDate) return sortOrder === "asc" ? 1 : -1;
@@ -300,22 +320,19 @@ const Event: React.FC<EventProps> = ({ id }) => {
         const dateA = new Date(a.dueDate).getTime();
         const dateB = new Date(b.dueDate).getTime();
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-      } else if (sortBy === "priority") {
-        // Map priorities to numeric values for sorting
-        const priorityMap = { high: 3, medium: 2, low: 1 };
-        const valueA = priorityMap[a.priority as keyof typeof priorityMap] || 0;
-        const valueB = priorityMap[b.priority as keyof typeof priorityMap] || 0;
-        return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
-      } else if (sortBy === "status") {
-        // Map status to numeric values for sorting
-        const statusMap = { todo: 1, in_progress: 2, completed: 3 };
-        const valueA = statusMap[a.status as keyof typeof statusMap] || 0;
-        const valueB = statusMap[b.status as keyof typeof statusMap] || 0;
-        return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
-      }
+      });
+    } else if (sortBy === "status") {
+      // Map status to numeric values for sorting
+      const statusValues: Record<string, number> = { todo: 1, in_progress: 2, completed: 3, "": 0 };
       
-      return 0;
-    });
+      filteredTasks.sort((a: any, b: any) => {
+        const valueA = statusValues[a.status || ""] || 0;
+        const valueB = statusValues[b.status || ""] || 0;
+        return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
+      });
+    }
+    
+    return filteredTasks;
   };
   
   // Get filtered and sorted tasks
