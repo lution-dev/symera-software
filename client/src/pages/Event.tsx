@@ -1237,13 +1237,89 @@ const getFilteredAndSortedTasks = () => {
           <div className="bg-card rounded-lg p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">Equipe do Evento</h2>
-              <Button 
-                onClick={() => navigate(`/events/${eventId}/team`)}
-                size="sm"
-              >
-                <i className="fas fa-user-plus mr-2"></i>
-                Gerenciar Equipe
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm">
+                    <i className="fas fa-user-plus mr-2"></i>
+                    Adicionar Membro
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Adicionar Membro à Equipe</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Selecione um usuário para adicionar à equipe do evento.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="add-member-user">Usuário</Label>
+                      <Select id="add-member-user">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar usuário" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user1">Carlos Oliveira</SelectItem>
+                          <SelectItem value="user2">Maria Santos</SelectItem>
+                          <SelectItem value="user3">João Silva</SelectItem>
+                          <SelectItem value="user4">Ana Pereira</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="add-member-role">Função</Label>
+                      <Select id="add-member-role" defaultValue="team_member">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar função" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="organizer">Organizador</SelectItem>
+                          <SelectItem value="team_member">Membro da Equipe</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => {
+                      const userSelect = document.getElementById("add-member-user") as HTMLSelectElement;
+                      const roleSelect = document.getElementById("add-member-role") as HTMLSelectElement;
+                      
+                      if (!userSelect || !userSelect.value) {
+                        toast({
+                          title: "Erro",
+                          description: "Selecione um usuário para adicionar à equipe.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
+                      const userId = userSelect.value;
+                      const role = roleSelect?.value || "team_member";
+                      
+                      apiRequest(`/api/events/${eventId}/team`, {
+                        method: "POST",
+                        body: JSON.stringify({ userId, role })
+                      }).then(() => {
+                        queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+                        toast({
+                          title: "Membro adicionado",
+                          description: "Membro adicionado à equipe com sucesso.",
+                        });
+                      }).catch((err) => {
+                        console.error("Erro ao adicionar membro:", err);
+                        toast({
+                          title: "Erro",
+                          description: "Não foi possível adicionar o membro à equipe.",
+                          variant: "destructive",
+                        });
+                      });
+                    }}>
+                      Adicionar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
             
             {teamLoading ? (
@@ -1253,7 +1329,7 @@ const getFilteredAndSortedTasks = () => {
             ) : team?.filter((member: any) => member.role !== 'vendor').length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {team.filter((member: any) => member.role !== 'vendor').map((member: any) => (
-                  <div key={member.id} className="bg-muted p-4 rounded-lg">
+                  <div key={member.id} className="bg-muted p-4 rounded-lg group relative">
                     <div className="flex items-center">
                       {member.user.profileImageUrl ? (
                         <img 
@@ -1286,6 +1362,77 @@ const getFilteredAndSortedTasks = () => {
                         <span>{member.user.email}</span>
                       </div>
                     )}
+                    
+                    {/* Botões de ação - visíveis ao passar o mouse */}
+                    <div className="absolute top-2 right-2 hidden group-hover:flex gap-1">
+                      {/* Alterar função */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                            <i className="fas fa-user-cog"></i>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuLabel>Alterar função</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuRadioGroup value={member.role} onValueChange={(value) => {
+                            if (value === member.role) return;
+                            
+                            if (confirm(`Deseja alterar a função de ${member.user.firstName} para ${value === 'organizer' ? 'Organizador' : 'Membro da Equipe'}?`)) {
+                              apiRequest(`/api/events/${eventId}/team/${member.user.id}`, {
+                                method: "PATCH",
+                                body: JSON.stringify({ role: value })
+                              }).then(() => {
+                                queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+                                toast({
+                                  title: "Função atualizada",
+                                  description: `A função de ${member.user.firstName} foi atualizada com sucesso.`,
+                                });
+                              }).catch((err) => {
+                                console.error("Erro ao alterar função:", err);
+                                toast({
+                                  title: "Erro",
+                                  description: "Não foi possível atualizar a função do membro.",
+                                  variant: "destructive",
+                                });
+                              });
+                            }
+                          }}>
+                            <DropdownMenuRadioItem value="organizer">Organizador</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="team_member">Membro da Equipe</DropdownMenuRadioItem>
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      
+                      {/* Remover membro */}
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => {
+                          if (confirm(`Tem certeza que deseja remover ${member.user.firstName} da equipe?`)) {
+                            apiRequest(`/api/events/${eventId}/team/${member.user.id}`, {
+                              method: "DELETE"
+                            }).then(() => {
+                              queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+                              toast({
+                                title: "Membro removido",
+                                description: `${member.user.firstName} foi removido da equipe.`,
+                              });
+                            }).catch((err) => {
+                              console.error("Erro ao remover membro:", err);
+                              toast({
+                                title: "Erro",
+                                description: "Não foi possível remover o membro da equipe.",
+                                variant: "destructive",
+                              });
+                            });
+                          }
+                        }}
+                      >
+                        <i className="fas fa-times"></i>
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1298,9 +1445,88 @@ const getFilteredAndSortedTasks = () => {
                 </div>
                 <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
                 <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
-                <Button>
-                  <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button>
+                      <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Adicionar Membro à Equipe</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Selecione um usuário para adicionar à equipe do evento.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="add-empty-member-user">Usuário</Label>
+                        <Select id="add-empty-member-user">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar usuário" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user1">Carlos Oliveira</SelectItem>
+                            <SelectItem value="user2">Maria Santos</SelectItem>
+                            <SelectItem value="user3">João Silva</SelectItem>
+                            <SelectItem value="user4">Ana Pereira</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="add-empty-member-role">Função</Label>
+                        <Select id="add-empty-member-role" defaultValue="team_member">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar função" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="organizer">Organizador</SelectItem>
+                            <SelectItem value="team_member">Membro da Equipe</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => {
+                        const userSelect = document.getElementById("add-empty-member-user") as HTMLSelectElement;
+                        const roleSelect = document.getElementById("add-empty-member-role") as HTMLSelectElement;
+                        
+                        if (!userSelect || !userSelect.value) {
+                          toast({
+                            title: "Erro",
+                            description: "Selecione um usuário para adicionar à equipe.",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        
+                        const userId = userSelect.value;
+                        const role = roleSelect?.value || "team_member";
+                        
+                        apiRequest(`/api/events/${eventId}/team`, {
+                          method: "POST",
+                          body: JSON.stringify({ userId, role })
+                        }).then(() => {
+                          queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+                          toast({
+                            title: "Membro adicionado",
+                            description: "Membro adicionado à equipe com sucesso.",
+                          });
+                        }).catch((err) => {
+                          console.error("Erro ao adicionar membro:", err);
+                          toast({
+                            title: "Erro",
+                            description: "Não foi possível adicionar o membro à equipe.",
+                            variant: "destructive",
+                          });
+                        });
+                      }}>
+                        Adicionar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             )}
           </div>

@@ -52,7 +52,7 @@ const EventTeam: React.FC = () => {
   
   // Estado para o modal de adicionar membros
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
-  const [email, setEmail] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState("");
   const [role, setRole] = useState("team_member");
   
   // Extrair ID do evento da URL
@@ -64,15 +64,21 @@ const EventTeam: React.FC = () => {
     enabled: !!eventId
   });
   
-  // Buscar membros da equipe
+  // Buscar membros da equipe atual
   const { data: team, isLoading: teamLoading, refetch: refetchTeam } = useQuery({
     queryKey: [`/api/events/${eventId}/team`],
     enabled: !!eventId
   });
   
+  // Buscar todos os usuários disponíveis
+  const { data: availableUsers, isLoading: usersLoading } = useQuery({
+    queryKey: ["/api/users"],
+    enabled: !!eventId
+  });
+  
   // Mutation para adicionar membro à equipe
   const addTeamMemberMutation = useMutation({
-    mutationFn: async (data: { email: string; role: string }) => {
+    mutationFn: async (data: { userId: string; role: string }) => {
       return apiRequest(`/api/events/${eventId}/team`, {
         method: "POST",
         body: data
@@ -84,13 +90,13 @@ const EventTeam: React.FC = () => {
         description: "O membro foi adicionado à equipe com sucesso",
       });
       setIsAddMemberOpen(false);
-      setEmail("");
+      setSelectedUserId("");
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
     },
     onError: (error) => {
       toast({
         title: "Erro",
-        description: "Não foi possível adicionar o membro à equipe. Verifique se o e-mail está correto.",
+        description: "Não foi possível adicionar o membro à equipe. Tente novamente.",
         variant: "destructive",
       });
     },
@@ -145,17 +151,17 @@ const EventTeam: React.FC = () => {
   
   // Handler para adicionar membro
   const handleAddMember = () => {
-    if (!email) {
+    if (!selectedUserId) {
       toast({
-        title: "E-mail obrigatório",
-        description: "Digite o e-mail do membro que deseja adicionar.",
+        title: "Seleção obrigatória",
+        description: "Selecione um usuário para adicionar à equipe.",
         variant: "destructive",
       });
       return;
     }
     
     addTeamMemberMutation.mutate({
-      email,
+      userId: selectedUserId,
       role
     });
   };
@@ -260,14 +266,30 @@ const EventTeam: React.FC = () => {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="email@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  <Label htmlFor="userId">Selecione um membro</Label>
+                  <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um usuário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Usuários disponíveis</SelectLabel>
+                        {availableUsers?.filter(user => 
+                          // Filtra os usuários que já estão na equipe
+                          !team?.some((member: any) => member.user.id === user.id)
+                        ).map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.firstName} {user.lastName}
+                          </SelectItem>
+                        ))}
+                        {(!availableUsers || availableUsers.length === 0) && (
+                          <SelectItem value="" disabled>
+                            Nenhum usuário disponível
+                          </SelectItem>
+                        )}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Função</Label>
