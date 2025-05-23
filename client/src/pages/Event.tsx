@@ -565,8 +565,8 @@ const getFilteredAndSortedTasks = () => {
                 </div>
               </div>
 
-              {/* Local do evento - apenas para eventos presenciais ou híbridos */}
-              {event.location && (event.format === 'in_person' || event.format === 'hybrid') && (
+              {/* Local do evento - sempre mostrar se disponível */}
+              {event.location && (
                 <div className="flex items-start">
                   <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
                     <i className="fas fa-map-marker-alt text-sm"></i>
@@ -578,8 +578,8 @@ const getFilteredAndSortedTasks = () => {
                 </div>
               )}
               
-              {/* Link da reunião - apenas para eventos online ou híbridos */}
-              {event.meetingUrl && (event.format === 'online' || event.format === 'hybrid') && (
+              {/* Link da reunião - sempre mostrar se disponível */}
+              {event.meetingUrl && (
                 <div className="flex items-start">
                   <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
                     <i className="fas fa-link text-sm"></i>
