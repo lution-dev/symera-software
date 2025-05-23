@@ -528,8 +528,23 @@ const getFilteredAndSortedTasks = () => {
             
             {/* Coluna da direita */}
             <div className="space-y-3 xs:space-y-4">
-              {/* Local do evento */}
-              {event.location && (
+              {/* Formato do evento */}
+              <div className="flex items-start">
+                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                  <i className={`fas ${event.format === 'online' ? 'fa-video' : event.format === 'hybrid' ? 'fa-users-cog' : 'fa-users'} text-sm`}></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-xs text-muted-foreground">Formato</p>
+                  <p className="mt-0.5 text-sm font-medium">
+                    {event.format === 'online' ? 'Online' : 
+                     event.format === 'hybrid' ? 'Híbrido' : 
+                     event.format === 'in_person' ? 'Presencial' : 'Presencial'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Local do evento - apenas para eventos presenciais ou híbridos */}
+              {event.location && (event.format === 'in_person' || event.format === 'hybrid') && (
                 <div className="flex items-start">
                   <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
                     <i className="fas fa-map-marker-alt text-sm"></i>
@@ -537,6 +552,26 @@ const getFilteredAndSortedTasks = () => {
                   <div className="ml-3">
                     <p className="text-xs text-muted-foreground">Local</p>
                     <p className="mt-0.5 text-sm font-medium overflow-hidden text-ellipsis">{event.location}</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Link da reunião - apenas para eventos online ou híbridos */}
+              {event.meetingUrl && (event.format === 'online' || event.format === 'hybrid') && (
+                <div className="flex items-start">
+                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
+                    <i className="fas fa-link text-sm"></i>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-xs text-muted-foreground">Link da reunião</p>
+                    <a 
+                      href={event.meetingUrl.startsWith('http') ? event.meetingUrl : `https://${event.meetingUrl}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="mt-0.5 text-sm font-medium text-primary hover:underline overflow-hidden text-ellipsis inline-block max-w-[200px]"
+                    >
+                      {event.meetingUrl}
+                    </a>
                   </div>
                 </div>
               )}

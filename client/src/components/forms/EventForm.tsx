@@ -412,19 +412,42 @@ const EventForm: React.FC<EventFormProps> = ({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Local</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ex: Hotel Meridien" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Mostrar campo de local apenas para eventos presenciais ou híbridos */}
+          {(eventFormat === "in_person" || eventFormat === "hybrid") && (
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Local</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Hotel Meridien" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          
+          {/* Mostrar campo de URL da reunião apenas para eventos online ou híbridos */}
+          {(eventFormat === "online" || eventFormat === "hybrid") && (
+            <FormField
+              control={form.control}
+              name="meetingUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link da reunião</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: https://meet.google.com/abc-defg-hij" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Adicione o link da videoconferência (Zoom, Google Meet, Teams, etc.)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}
