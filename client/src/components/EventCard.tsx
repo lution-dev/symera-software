@@ -249,7 +249,7 @@ const EventCard: React.FC<EventCardProps> = ({
           </div>
           
           {/* Team members - optimized size for mobile */}
-          <div className="mt-3 flex">
+          <div className="mt-3 flex justify-between items-center">
             <div className="flex">
               {teamData.slice(0, 3).map((member, idx) => (
                 <Avatar
@@ -275,6 +275,9 @@ const EventCard: React.FC<EventCardProps> = ({
                 </Avatar>
               )}
             </div>
+            
+            {/* Barra vertical ao lado dos avatares */}
+            <div className="h-6 sm:h-7 w-0.5 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full mx-2"></div>
           </div>
         </div>
       </div>
