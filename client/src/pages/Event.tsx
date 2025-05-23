@@ -94,19 +94,10 @@ const Event: React.FC<EventProps> = ({ id }) => {
   useEffect(() => {
     if (event) {
       console.log("[Debug] Dados completos do evento carregado:", event);
-      console.log("[Debug] Formato do evento (original):", event.format);
-      console.log("[Debug] Link da reunião do evento (original):", event.meetingUrl);
       
-      // SOLUÇÃO TEMPORÁRIA: Forçar valores do banco somente para o evento Workshop
-      if (event.id === 9) {
-        // Sobrescrever os valores no objeto de eventos para forçar renderização correta
-        // @ts-ignore - Hack para sobrescrever o objeto imutável do React Query
-        event.format = "online";
-        // @ts-ignore
-        event.meetingUrl = "https://meet.google.com/vzx-yqvs-mvw";
-        
-        console.log("[Debug] Formato do evento (corrigido):", event.format);
-        console.log("[Debug] Link da reunião do evento (corrigido):", event.meetingUrl);
+      // APENAS para debugging - sem modificar os valores
+      if (event.id === 10) {
+        console.log("[Debug] Evento ID 10 - format:", event.format); 
       }
     }
   }, [event]);

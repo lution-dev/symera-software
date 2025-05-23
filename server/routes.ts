@@ -1,6 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { events, users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { devModeAuth, ensureDevAuth } from "./devMode";
 import { 
@@ -146,7 +149,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`Buscando evento ${eventId} para usuário ${userId}`);
-      const event = await storage.getEventById(eventId);
+      
+      // Obter dados do evento diretamente do banco de dados para garantir valores corretos
+      const eventFromDb = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+      let event;
+      
+      if (eventFromDb && eventFromDb.length > 0) {
+        event = eventFromDb[0];
+      } else {
+        event = await storage.getEventById(eventId);
+      }
       
       if (!event) {
         console.log(`Evento ${eventId} não encontrado`);
