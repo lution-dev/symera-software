@@ -73,83 +73,88 @@ const Dashboard: React.FC = () => {
             Olá, {user?.firstName || ""}!
           </h2>
           {activeEvents > 0 ? (
-            <p className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
+            <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
               {isMobile ? (
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <span className="cursor-pointer underline decoration-dotted touch-target inline-flex items-center h-[40px]">
-                      <span className="mr-1 text-primary font-medium">{activeEvents}</span>
-                      <span>eventos ativos</span>
-                    </span>
-                  </DialogTrigger>
-                  <DialogContent className="w-[90%] max-w-[350px] rounded-xl">
-                    <DialogHeader>
-                      <DialogTitle>Distribuição dos eventos ativos</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-3">
-                      <div className="space-y-4">
-                        {planningEvents > 0 && (
-                          <div className="flex items-center touch-target h-[40px]">
-                            <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-planning))]"></span>
-                            <span className="text-base">{planningEvents} em Planejamento</span>
-                          </div>
-                        )}
-                        {confirmedEvents > 0 && (
-                          <div className="flex items-center touch-target h-[40px]">
-                            <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
-                            <span className="text-base">{confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
-                          </div>
-                        )}
-                        {inProgressEvents > 0 && (
-                          <div className="flex items-center touch-target h-[40px]">
-                            <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                            <span className="text-base">{inProgressEvents} Em andamento</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              ) : (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="cursor-pointer underline decoration-dotted">
-                        Você tem {activeEvents} eventos ativos
+                <>
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <span className="cursor-pointer underline decoration-dotted touch-target inline-flex items-center h-[40px]">
+                        <span className="mr-1 text-primary font-medium">{activeEvents}</span>
+                        <span>eventos ativos</span>
                       </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="start" className="p-4 w-[300px] md:w-[320px]">
-                      <div className="text-left font-medium mb-2">Distribuição dos eventos ativos:</div>
-                      <div className="space-y-2">
-                        {planningEvents > 0 && (
-                          <div className="flex items-center">
-                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-planning))]"></span>
-                            <span className="text-sm whitespace-nowrap">{planningEvents} em Planejamento</span>
-                          </div>
-                        )}
-                        {confirmedEvents > 0 && (
-                          <div className="flex items-center">
-                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
-                            <span className="text-sm whitespace-nowrap">{confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
-                          </div>
-                        )}
-                        {inProgressEvents > 0 && (
-                          <div className="flex items-center">
-                            <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
-                            <span className="text-sm whitespace-nowrap">{inProgressEvents} Em andamento</span>
-                          </div>
-                        )}
+                    </DialogTrigger>
+                    <DialogContent className="w-[90%] max-w-[350px] rounded-xl">
+                      <DialogHeader>
+                        <DialogTitle>Distribuição dos eventos ativos</DialogTitle>
+                      </DialogHeader>
+                      <div className="py-3">
+                        <div className="space-y-4">
+                          {planningEvents > 0 && (
+                            <div className="flex items-center touch-target h-[40px]">
+                              <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-planning))]"></span>
+                              <span className="text-base">{planningEvents} em Planejamento</span>
+                            </div>
+                          )}
+                          {confirmedEvents > 0 && (
+                            <div className="flex items-center touch-target h-[40px]">
+                              <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
+                              <span className="text-base">{confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
+                            </div>
+                          )}
+                          {inProgressEvents > 0 && (
+                            <div className="flex items-center touch-target h-[40px]">
+                              <span className="mr-3 h-4 w-4 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                              <span className="text-base">{inProgressEvents} Em andamento</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                    </DialogContent>
+                  </Dialog>
+                  <span>{' '}e {pendingTasks.length} tarefas pendentes.</span>
+                </>
+              ) : (
+                <>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-pointer underline decoration-dotted">
+                          Você tem {activeEvents} eventos ativos
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" align="start" className="p-4 w-[300px] md:w-[320px]">
+                        <div className="text-left font-medium mb-2">Distribuição dos eventos ativos:</div>
+                        <div className="space-y-2">
+                          {planningEvents > 0 && (
+                            <div className="flex items-center">
+                              <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-planning))]"></span>
+                              <span className="text-sm whitespace-nowrap">{planningEvents} em Planejamento</span>
+                            </div>
+                          )}
+                          {confirmedEvents > 0 && (
+                            <div className="flex items-center">
+                              <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-confirmed))]"></span>
+                              <span className="text-sm whitespace-nowrap">{confirmedEvents} Confirmado{confirmedEvents > 1 ? 's' : ''}</span>
+                            </div>
+                          )}
+                          {inProgressEvents > 0 && (
+                            <div className="flex items-center">
+                              <span className="mr-2 h-3 w-3 rounded-full bg-[hsl(var(--event-in-progress))]"></span>
+                              <span className="text-sm whitespace-nowrap">{inProgressEvents} Em andamento</span>
+                            </div>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <span>{' '}e {pendingTasks.length} tarefas pendentes.</span>
+                </>
               )}
-              {' '}e {pendingTasks.length} tarefas pendentes.
-            </p>
+            </div>
           ) : (
-            <p className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
+            <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
               Você não tem eventos ativos no momento. {pendingTasks.length > 0 && `Você tem ${pendingTasks.length} tarefas pendentes.`}
-            </p>
+            </div>
           )}
 
 
