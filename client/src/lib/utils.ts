@@ -12,7 +12,7 @@ export function formatDate(date: string | Date) {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
-  });
+  }).replace('.', '');
 }
 
 // Format task due date with relative time indicator
