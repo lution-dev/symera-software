@@ -243,6 +243,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Garantir que o formato esteja correto na resposta (correção do bug)
+      // Consultar diretamente o banco para obter o formato atualizado
+      const formatResult = await db.execute(`
+        SELECT format FROM events WHERE id = $1
+      `, [eventId]);
+      
+      // Se encontrarmos o formato no banco, usá-lo na resposta
+      if (formatResult && formatResult.rows && formatResult.rows.length > 0) {
+        const format = formatResult.rows[0].format;
+        console.log(`[Debug] Formato do evento ${eventId} obtido diretamente do banco:`, format);
+        // Atualizar o formato no objeto do evento para que seja exibido corretamente na interface
+        event.format = format;
+      }
+      
+      console.log(`[Debug] Objeto evento completo:`, JSON.stringify({
+        id: event.id,
+        name: event.name,
+        format: event.format
+      }));
+      
       console.log(`Retornando dados do evento ${eventId} para usuário ${userId}`);
       res.json(event);
     } catch (error) {

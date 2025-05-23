@@ -536,10 +536,10 @@ const getFilteredAndSortedTasks = () => {
                 <div className="ml-3">
                   <p className="text-xs text-muted-foreground">Formato</p>
                   <p className="mt-0.5 text-sm font-medium">
-                    {console.log("[Debug] Formato do evento:", event.format)}
-                    {event.format === 'online' ? 'Online' : 
-                     event.format === 'hybrid' ? 'Híbrido' : 
-                     event.format === 'in_person' ? 'Presencial' : 'Presencial'}
+                    {/* Corrigido o processamento do formato */}
+                    {String(event.format) === 'online' ? 'Online' : 
+                     String(event.format) === 'hybrid' ? 'Híbrido' : 
+                     String(event.format) === 'in_person' ? 'Presencial' : 'Presencial'}
                   </p>
                 </div>
               </div>
