@@ -218,122 +218,130 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
   const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
   
-  // Function to filter and sort tasks
-  const getFilteredAndSortedTasks = () => {
-    if (!tasks || !Array.isArray(tasks)) return [];
+// Função direta para ordenar tarefas por prioridade
+const orderByPriority = (tasks: any[], descending: boolean = true) => {
+  const priorityOrder: { [key: string]: number } = { high: 3, medium: 2, low: 1 };
+  
+  // Fazemos uma cópia profunda para evitar modificar o array original
+  const sortedTasks = [...tasks].sort((a, b) => {
+    const priorityA = priorityOrder[a.priority] || 0;
+    const priorityB = priorityOrder[b.priority] || 0;
     
-    // Deep clone tasks array to avoid reference issues
-    let filteredTasks = JSON.parse(JSON.stringify(tasks));
-    
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filteredTasks = filteredTasks.filter((task: any) => task.status === statusFilter);
+    if (descending) {
+      return priorityB - priorityA;
+    } else {
+      return priorityA - priorityB;
     }
+  });
+  
+  return sortedTasks;
+};
+
+// Função direta para ordenar tarefas por data
+const orderByDate = (tasks: any[], ascending: boolean = true) => {
+  return [...tasks].sort((a, b) => {
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return ascending ? 1 : -1;
+    if (!b.dueDate) return ascending ? -1 : 1;
     
-    // Apply priority filter
-    if (priorityFilter !== "all") {
-      filteredTasks = filteredTasks.filter((task: any) => task.priority === priorityFilter);
-    }
+    const dateA = new Date(a.dueDate).getTime();
+    const dateB = new Date(b.dueDate).getTime();
+    return ascending ? dateA - dateB : dateB - dateA;
+  });
+};
+
+// Função direta para ordenar tarefas por status
+const orderByStatus = (tasks: any[], ascending: boolean = true) => {
+  const statusOrder: { [key: string]: number } = { todo: 1, in_progress: 2, completed: 3 };
+  
+  return [...tasks].sort((a, b) => {
+    const statusA = statusOrder[a.status] || 0;
+    const statusB = statusOrder[b.status] || 0;
+    return ascending ? statusA - statusB : statusB - statusA;
+  });
+};
+  
+// Function to filter and sort tasks
+const getFilteredAndSortedTasks = () => {
+  if (!tasks || !Array.isArray(tasks)) return [];
+  
+  // Deep clone tasks array to avoid reference issues
+  let filteredTasks = JSON.parse(JSON.stringify(tasks));
+  
+  // Apply status filter
+  if (statusFilter !== "all") {
+    filteredTasks = filteredTasks.filter((task: any) => task.status === statusFilter);
+  }
+  
+  // Apply priority filter
+  if (priorityFilter !== "all") {
+    filteredTasks = filteredTasks.filter((task: any) => task.priority === priorityFilter);
+  }
+  
+  // Apply assignee filter (user ID 8650891 is the current user)
+  if (assigneeFilter === "mine") {
+    filteredTasks = filteredTasks.filter((task: any) => 
+      task.assigneeId === "8650891" || 
+      task.assignees?.some((a: any) => a.userId === "8650891")
+    );
+  }
+  
+  // Apply date filter
+  if (dateFilter === "today") {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
-    // Apply assignee filter (user ID 8650891 is the current user)
-    if (assigneeFilter === "mine") {
-      filteredTasks = filteredTasks.filter((task: any) => 
-        task.assigneeId === "8650891" || 
-        task.assignees?.some((a: any) => a.userId === "8650891")
-      );
-    }
+    filteredTasks = filteredTasks.filter((task: any) => {
+      if (!task.dueDate) return false;
+      const taskDate = new Date(task.dueDate);
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate.getTime() === today.getTime();
+    });
+  } else if (dateFilter === "week") {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
-    // Apply date filter
-    if (dateFilter === "today") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      filteredTasks = filteredTasks.filter((task: any) => {
-        if (!task.dueDate) return false;
-        const taskDate = new Date(task.dueDate);
-        taskDate.setHours(0, 0, 0, 0);
-        return taskDate.getTime() === today.getTime();
-      });
-    } else if (dateFilter === "week") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const nextWeek = new Date(today);
-      nextWeek.setDate(today.getDate() + 7);
-      
-      filteredTasks = filteredTasks.filter((task: any) => {
-        if (!task.dueDate) return false;
-        const taskDate = new Date(task.dueDate);
-        taskDate.setHours(0, 0, 0, 0);
-        return taskDate >= today && taskDate <= nextWeek;
-      });
-    } else if (dateFilter === "overdue") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      filteredTasks = filteredTasks.filter((task: any) => {
-        if (!task.dueDate) return false;
-        const taskDate = new Date(task.dueDate);
-        taskDate.setHours(0, 0, 0, 0);
-        return taskDate < today && task.status !== "completed";
-      });
-    }
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
     
-    // Apply search filter
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase().trim();
-      filteredTasks = filteredTasks.filter((task: any) => 
-        task.title.toLowerCase().includes(query) || 
-        (task.description && task.description.toLowerCase().includes(query))
-      );
-    }
+    filteredTasks = filteredTasks.filter((task: any) => {
+      if (!task.dueDate) return false;
+      const taskDate = new Date(task.dueDate);
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate >= today && taskDate <= nextWeek;
+    });
+  } else if (dateFilter === "overdue") {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
-    // Sort tasks based on current sortBy and sortOrder
-    if (sortBy === "priority") {
-      console.log("Sorting by priority, order:", sortOrder);
-      // Map priorities to numeric values for sorting
-      const priorityValues: Record<string, number> = { high: 3, medium: 2, low: 1, "": 0 };
-      
-      filteredTasks.sort((a: any, b: any) => {
-        const valueA = priorityValues[a.priority || ""] || 0;
-        const valueB = priorityValues[b.priority || ""] || 0;
-        
-        // Print debug info
-        console.log(`Compare: ${a.title} (${a.priority}: ${valueA}) vs ${b.title} (${b.priority}: ${valueB})`);
-        
-        if (sortOrder === "desc") {
-          // High to low (3 -> 1)
-          return valueB - valueA;
-        } else {
-          // Low to high (1 -> 3)
-          return valueA - valueB;
-        }
-      });
-    } else if (sortBy === "dueDate") {
-      filteredTasks.sort((a: any, b: any) => {
-        // Handle null dates
-        if (!a.dueDate && !b.dueDate) return 0;
-        if (!a.dueDate) return sortOrder === "asc" ? 1 : -1;
-        if (!b.dueDate) return sortOrder === "asc" ? -1 : 1;
-        
-        // Sort by date
-        const dateA = new Date(a.dueDate).getTime();
-        const dateB = new Date(b.dueDate).getTime();
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-      });
-    } else if (sortBy === "status") {
-      // Map status to numeric values for sorting
-      const statusValues: Record<string, number> = { todo: 1, in_progress: 2, completed: 3, "": 0 };
-      
-      filteredTasks.sort((a: any, b: any) => {
-        const valueA = statusValues[a.status || ""] || 0;
-        const valueB = statusValues[b.status || ""] || 0;
-        return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
-      });
-    }
-    
-    return filteredTasks;
-  };
+    filteredTasks = filteredTasks.filter((task: any) => {
+      if (!task.dueDate) return false;
+      const taskDate = new Date(task.dueDate);
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate < today && task.status !== "completed";
+    });
+  }
+  
+  // Apply search filter
+  if (searchQuery.trim() !== "") {
+    const query = searchQuery.toLowerCase().trim();
+    filteredTasks = filteredTasks.filter((task: any) => 
+      task.title.toLowerCase().includes(query) || 
+      (task.description && task.description.toLowerCase().includes(query))
+    );
+  }
+  
+  // Aplicar ordenação conforme seleção
+  if (sortBy === "priority") {
+    return orderByPriority(filteredTasks, sortOrder === "desc");
+  } else if (sortBy === "dueDate") {
+    return orderByDate(filteredTasks, sortOrder === "asc");
+  } else if (sortBy === "status") {
+    return orderByStatus(filteredTasks, sortOrder === "asc");
+  }
+  
+  return filteredTasks;
+};
   
   // Get filtered and sorted tasks
   const filteredAndSortedTasks = getFilteredAndSortedTasks();
@@ -1043,9 +1051,13 @@ const Event: React.FC<EventProps> = ({ id }) => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={() => { 
-                        setSortBy("priority"); 
-                        setSortOrder("desc"); 
-                        console.log("Ordenando por prioridade (alta → baixa)");
+                        // Forçar a reordenação definindo em ordem reversa primeiro
+                        setSortBy("status");
+                        setTimeout(() => {
+                          setSortBy("priority"); 
+                          setSortOrder("desc");
+                          console.log("Forçando ordenação: prioridade (alta → baixa)");
+                        }, 10);
                       }}
                     >
                       <i className={`fas fa-tag mr-2 ${sortBy === "priority" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
@@ -1054,9 +1066,13 @@ const Event: React.FC<EventProps> = ({ id }) => {
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => { 
-                        setSortBy("priority"); 
-                        setSortOrder("asc"); 
-                        console.log("Ordenando por prioridade (baixa → alta)");
+                        // Forçar a reordenação definindo em ordem reversa primeiro
+                        setSortBy("status");
+                        setTimeout(() => {
+                          setSortBy("priority"); 
+                          setSortOrder("asc");
+                          console.log("Forçando ordenação: prioridade (baixa → alta)");
+                        }, 10);
                       }}
                     >
                       <i className={`fas fa-tag mr-2 ${sortBy === "priority" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
