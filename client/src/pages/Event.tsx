@@ -493,14 +493,14 @@ const getFilteredAndSortedTasks = () => {
                           <>
                             {new Date(event.startDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} 
                             {event.startTime && event.endTime && (
-                              <> às {event.startTime.substring(0, 5)}{event.startTime !== event.endTime ? ` → ${event.endTime.substring(0, 5)}` : ''}</>
+                              <>às {event.startTime.substring(0, 5)}{event.startTime !== event.endTime ? ` ➝ ${event.endTime.substring(0, 5)}` : ''}</>
                             )}
                           </>
                         ) : (
                           <>
                             {new Date(event.startDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} 
-                            {event.startTime && <> às {event.startTime.substring(0, 5)}</>} 
-                            <> → {new Date(event.endDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</>
+                            {event.startTime && <>às {event.startTime.substring(0, 5)}</>} 
+                            <> ➝ {new Date(event.endDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</>
                             {event.endTime && <> às {event.endTime.substring(0, 5)}</>}
                           </>
                         )}
