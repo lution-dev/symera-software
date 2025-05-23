@@ -90,6 +90,15 @@ const Event: React.FC<EventProps> = ({ id }) => {
     }
   }, [eventId, refetch]);
   
+  // Log dos dados do evento quando recebidos
+  useEffect(() => {
+    if (event) {
+      console.log("[Debug] Dados completos do evento carregado:", event);
+      console.log("[Debug] Formato do evento:", event.format);
+      console.log("[Debug] Link da reunião do evento:", event.meetingUrl);
+    }
+  }, [event]);
+  
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/tasks`],
     enabled: !!eventId && !!event,
@@ -549,8 +558,9 @@ const getFilteredAndSortedTasks = () => {
                 <div className="ml-3">
                   <p className="text-xs text-muted-foreground">Formato</p>
                   <p className="mt-0.5 text-sm font-medium">
-                    {/* Forçando exibição correta do formato */}
-                    Online
+                    {event.format === 'in_person' ? 'Presencial' : 
+                     event.format === 'online' ? 'Online' : 
+                     event.format === 'hybrid' ? 'Híbrido' : 'Não definido'}
                   </p>
                 </div>
               </div>
