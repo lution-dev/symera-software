@@ -655,7 +655,7 @@ const TaskList: React.FC<TaskListProps> = ({
         {mobileView}
         
         {/* Botão Ver Todas as Tarefas */}
-        {limitTasks && data && Array.isArray(data) && data.length > 5 && (
+        {limitTasks && tasks && Array.isArray(tasks) && tasks.length > 5 && (
           <div className="p-3 border-t border-border/30 flex justify-center">
             <button
               onClick={() => setShowAllTasks(!showAllTasks)}
@@ -669,7 +669,7 @@ const TaskList: React.FC<TaskListProps> = ({
               ) : (
                 <>
                   <i className="fas fa-chevron-down mr-2 text-xs"></i>
-                  Ver todas as tarefas ({data.length})
+                  Ver todas as tarefas ({tasks.length})
                 </>
               )}
             </button>
