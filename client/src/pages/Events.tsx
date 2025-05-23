@@ -220,6 +220,7 @@ const Events: React.FC = () => {
               id={event.id}
               name={event.name}
               type={event.type}
+              format={event.format}
               startDate={event.start_date || event.startDate}
               endDate={event.end_date || event.endDate}
               startTime={event.start_time || event.startTime || "19:00"}
