@@ -1,0 +1,47 @@
+Refatoração da Tela de Detalhe do Evento com Menu Lateral (Symera)
+Olá! Precisamos atualizar e refatorar a tela de detalhe do evento da Symera, utilizando uma navegação lateral fixa (sidebar) no desktop. A navegação deve ser clara, responsiva e refletir todas as áreas de gestão do evento.
+
+📐 Estrutura com menu lateral (desktop)
+A sidebar lateral (no lado esquerdo da tela) deve conter as seguintes abas, nesta ordem:
+
+css
+Copiar
+Editar
+Resumo  
+Tarefas  
+Equipe  
+Lista de Participantes  
+Cronograma  
+Financeiro  
+Documentos  
+Atividades  
+Feedback pós-evento
+Cada aba deve carregar seu respectivo conteúdo no painel principal da direita, sem reload de página.
+
+📋 Descrição rápida de cada aba:
+Aba	Função
+Resumo	Visão geral com dados do evento, indicadores e status principais
+Tarefas	Lista com tarefas do evento, responsáveis, status e lembretes
+Equipe	Colaboradores internos com acesso e papéis definidos
+Lista de Participantes	Participantes convidados ao evento. Campos: nome, presença, observação
+Cronograma	Linha do tempo ou lista de blocos de atividade por horário
+Financeiro	Resumo de orçamento, gastos com fornecedores e extras
+Documentos	Uploads e gestão de contratos, orçamentos e arquivos do evento
+Atividades	Log cronológico do que foi feito (tarefas, uploads, edições, etc.)
+Feedback pós-evento	Coleta de percepções, notas e aprendizados sobre o evento
+
+📱 Responsividade
+No mobile: o menu lateral vira um menu dropdown fixo ou botão ☰ Seções
+
+O conteúdo de cada aba deve se reorganizar verticalmente com scroll fluido
+
+Os botões e campos devem ser touch-friendly
+
+🧠 Observações
+As abas "Financeiro" e "Lista de Participantes" devem ser implementadas do zero, conforme prompts anteriores
+
+Cada aba deve ter conteúdo independente, com navegação suave e sem reload
+
+🎯 Objetivo
+Oferecer uma experiência profissional e estratégica para o organizador, com navegação lateral fixa, e acesso rápido a todas as áreas de planejamento e execução do evento — incluindo agora o controle de participantes.
+
