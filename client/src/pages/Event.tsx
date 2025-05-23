@@ -1235,7 +1235,16 @@ const getFilteredAndSortedTasks = () => {
         
         <TabsContent value="team">
           <div className="bg-card rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-6">Equipe do Evento</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Equipe do Evento</h2>
+              <Button 
+                onClick={() => navigate(`/events/${eventId}/team`)}
+                size="sm"
+              >
+                <i className="fas fa-user-plus mr-2"></i>
+                Gerenciar Equipe
+              </Button>
+            </div>
             
             {teamLoading ? (
               <div className="flex justify-center py-8">
