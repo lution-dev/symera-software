@@ -396,10 +396,18 @@ const getFilteredAndSortedTasks = () => {
     }
   };
 
+  // Estado para a navegação via tabs
+  const [activeTab, setActiveTab] = useState("resumo");
+  
+  // Função para navegação entre abas
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+  
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
+    <div className="container mx-auto px-0 sm:px-4 py-4 sm:py-6 mobile-spacing">
       {/* Breadcrumb Navigation - visível em desktop e tablet, mas oculto em mobile */}
-      <nav className="hidden sm:flex mb-4" aria-label="Breadcrumb">
+      <nav className="hidden sm:flex mb-4 px-4" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
           <li className="inline-flex items-center">
             <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
@@ -425,6 +433,9 @@ const getFilteredAndSortedTasks = () => {
           </li>
         </ol>
       </nav>
+      
+      {/* Layout principal com sidebar lateral e conteúdo */}
+      <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
       
       
       
