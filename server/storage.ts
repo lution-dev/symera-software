@@ -345,17 +345,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getEventById(id: number): Promise<Event | undefined> {
-    // Verificar cache
-    const cacheKey = `event:${id}`;
-    const cachedEvent = eventCache.get<Event>(cacheKey);
-    if (cachedEvent) return cachedEvent;
-    
+    // Desativando cache temporariamente para garantir dados atualizados
     return executeWithRetry(async () => {
       const [event] = await db.select().from(events).where(eq(events.id, id));
-      // Armazenar em cache
-      if (event) {
-        eventCache.set(cacheKey, event);
-      }
+      console.log(`Evento ${id} recuperado diretamente do banco:`, event);
       return event;
     });
   }
@@ -374,6 +367,8 @@ export class DatabaseStorage implements IStorage {
 
   async updateEvent(id: number, eventData: Partial<InsertEvent>): Promise<Event> {
     return executeWithRetry(async () => {
+      console.log('Atualizando evento com dados:', eventData);
+      
       const [event] = await db
         .update(events)
         .set({
@@ -383,10 +378,15 @@ export class DatabaseStorage implements IStorage {
         .where(eq(events.id, id))
         .returning();
       
-      // Invalidar e atualizar caches
+      console.log('Evento atualizado no banco:', event);
+      
+      // Limpar completamente os caches relacionados a eventos
       eventCache.invalidate(`event:${id}`);
-      eventCache.invalidate(`events:user:`); // Invalidar todos os caches de lista de eventos
-      eventCache.set(`event:${id}`, event);
+      eventCache.invalidate(`events:user:`); 
+      eventCache.invalidate(`events:`);
+      
+      // Não armazenar em cache imediatamente para forçar 
+      // a obtenção de dados frescos da próxima vez
       
       return event;
     });

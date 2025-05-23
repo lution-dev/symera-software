@@ -71,11 +71,24 @@ const Event: React.FC<EventProps> = ({ id }) => {
   console.log("[Debug] ID do evento recebido como prop:", id);
   console.log("[Debug] ID do evento extraído da URL:", eventId);
   
-  const { data: event, isLoading, error } = useQuery({
+  // Configuração para garantir que dados recentes sejam carregados sempre
+  const { data: event, isLoading, error, refetch } = useQuery({
     queryKey: [`/api/events/${eventId}`],
     enabled: !!eventId && isAuthenticated,
-    retry: 1
+    retry: 1,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
+  
+  // Forçar recarga quando a página for montada
+  useEffect(() => {
+    if (eventId) {
+      console.log("[Debug] Forçando recarga dos dados do evento:", eventId);
+      // Pequeno atraso para garantir que a atualização do banco foi concluída
+      setTimeout(() => refetch(), 500);
+    }
+  }, [eventId, refetch]);
   
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/tasks`],
