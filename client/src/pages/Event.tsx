@@ -479,14 +479,33 @@ const getFilteredAndSortedTasks = () => {
           <div className="grid grid-cols-2 gap-3 xs:gap-4 mb-2">
             {/* Coluna da esquerda */}
             <div className="space-y-3 xs:space-y-4">
-              {/* Data do evento */}
+              {/* Período do evento */}
               <div className="flex items-start">
                 <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
                   <i className="fas fa-calendar-day text-sm"></i>
                 </div>
                 <div className="ml-3">
-                  <p className="text-xs text-muted-foreground">Data</p>
-                  <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
+                  <p className="text-xs text-muted-foreground">Período</p>
+                  <div>
+                    {event.startDate && event.endDate ? (
+                      <>
+                        <p className="mt-0.5 text-sm font-medium">
+                          {event.startDate === event.endDate ? (
+                            <>{formatDate(event.startDate)}</>
+                          ) : (
+                            <>De {formatDate(event.startDate)} até {formatDate(event.endDate)}</>
+                          )}
+                        </p>
+                        {event.startTime && event.endTime && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {event.startTime} - {event.endTime}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
+                    )}
+                  </div>
                 </div>
               </div>
               
