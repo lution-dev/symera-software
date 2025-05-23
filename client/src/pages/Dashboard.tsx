@@ -228,7 +228,7 @@ const Dashboard: React.FC = () => {
       {/* Events Section - Horizontal scroll on mobile - Otimizado */}
       <div className="mb-6 sm:mb-8">
         <div className="flex justify-between items-center mb-2 sm:mb-4">
-          <h2 className="text-base sm:text-xl font-semibold sm:font-bold">Seus Eventos</h2>
+          <h2 className="text-base sm:text-xl font-semibold sm:font-bold">Próximos Eventos</h2>
           <Link href="/events">
             <div className="text-primary hover:text-primary/80 flex items-center text-xs sm:text-sm font-medium cursor-pointer h-[40px] flex items-center">
               Ver todos
