@@ -226,58 +226,32 @@ const EventForm: React.FC<EventFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="coverImageUrl"
-          render={({ field }) => (
-            <FormItem className="col-span-full mb-6">
-              <FormLabel>Imagem de capa</FormLabel>
-              <FormControl>
-                <div className="w-full">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    id="coverImage"
-                    onChange={handleImageUpload}
-                    disabled={imageUploading}
-                    className="hidden"
-                  />
-                  
-                  {imagePreview ? (
-                    <div className="relative w-full h-40 sm:h-48 rounded-lg overflow-hidden bg-secondary">
-                      <img
-                        src={imagePreview}
-                        alt="Prévia da imagem"
-                        className="w-full h-full object-cover"
-                      />
-                      {/* Mobile: Posicionar botões na parte inferior com fundo gradiente para legibilidade */}
-                      <div className="sm:hidden absolute bottom-0 left-0 right-0 flex justify-between p-2 bg-gradient-to-t from-black/70 to-transparent">
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="h-8 text-xs"
-                          onClick={() => {
-                            setImagePreview(null);
-                            form.setValue("coverImageUrl", "");
-                          }}
-                        >
-                          Remover
-                        </Button>
-                        
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          className="h-8 text-xs"
-                          onClick={() => document.getElementById("coverImage")?.click()}
-                        >
-                          Trocar
-                        </Button>
-                      </div>
-                      
-                      {/* Desktop: Manter layout original */}
-                      <div className="hidden sm:block">
+        {/* Versão desktop */}
+        <div className="hidden sm:block">
+          <FormField
+            control={form.control}
+            name="coverImageUrl"
+            render={({ field }) => (
+              <FormItem className="col-span-full mb-6">
+                <FormLabel>Imagem de capa</FormLabel>
+                <FormControl>
+                  <div className="w-full">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      id="coverImage"
+                      onChange={handleImageUpload}
+                      disabled={imageUploading}
+                      className="hidden"
+                    />
+                    
+                    {imagePreview ? (
+                      <div className="relative w-full h-48 rounded-lg overflow-hidden bg-secondary">
+                        <img
+                          src={imagePreview}
+                          alt="Prévia da imagem"
+                          className="w-full h-full object-cover"
+                        />
                         <Button
                           type="button"
                           variant="destructive"
@@ -301,127 +275,124 @@ const EventForm: React.FC<EventFormProps> = ({
                           Trocar
                         </Button>
                       </div>
-                    </div>
-                  ) : (
-                    <label htmlFor="coverImage" className="cursor-pointer w-full block">
-                      <div className="w-full h-40 sm:h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
-                        {imageUploading ? (
-                          <div className="flex flex-col items-center">
-                            <div className="animate-spin mb-2">
-                              <i className="fas fa-spinner text-2xl" />
+                    ) : (
+                      <label htmlFor="coverImage" className="cursor-pointer w-full block">
+                        <div className="w-full h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                          {imageUploading ? (
+                            <div className="flex flex-col items-center">
+                              <div className="animate-spin mb-2">
+                                <i className="fas fa-spinner text-2xl" />
+                              </div>
+                              <p className="text-sm text-muted-foreground">Carregando imagem...</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">Carregando imagem...</p>
-                          </div>
-                        ) : (
-                          <>
-                            {/* Versão mobile e desktop do upload */}
-                            <div className="sm:hidden">
-                              <Upload className="w-8 h-8 text-muted-foreground mb-1" />
-                              <p className="text-xs text-muted-foreground px-2 text-center">Toque para adicionar uma foto</p>
-                            </div>
-                            <div className="hidden sm:block">
+                          ) : (
+                            <>
                               <Upload className="w-10 h-10 text-muted-foreground mb-2" />
                               <p className="text-sm text-muted-foreground">Clique para adicionar uma imagem de capa</p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </label>
-                  )}
-                </div>
-              </FormControl>
-              <FormDescription>
-                Adicione uma imagem de capa para seu evento (opcional). Tamanho máximo: 5MB.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                            </>
+                          )}
+                        </div>
+                      </label>
+                    )}
+                  </div>
+                </FormControl>
+                <FormDescription>
+                  Adicione uma imagem de capa para seu evento (opcional). Tamanho máximo: 5MB.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
             
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Formato do evento com opções responsivas para mobile */}
+          {/* Formato do evento */}
           <FormField
             control={form.control}
             name="format"
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <FormLabel>Formato do evento</FormLabel>
-                {/* Mobile: Layout em grade 3 colunas */}
-                <div className="sm:hidden grid grid-cols-3 gap-1">
-                  <Badge 
-                    variant={field.value === "in_person" ? "default" : "outline"}
-                    className={`py-3 px-1 cursor-pointer touch-action-manipulation hover:bg-primary/90 transition-colors flex flex-col items-center justify-center ${field.value === "in_person" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
-                    onClick={() => {
-                      field.onChange("in_person");
-                      setEventFormat("in_person");
-                    }}
-                  >
-                    <Users className="w-4 h-4 mb-1" />
-                    <span className="text-xs">Presencial</span>
-                  </Badge>
-                  <Badge 
-                    variant={field.value === "online" ? "default" : "outline"}
-                    className={`py-3 px-1 cursor-pointer touch-action-manipulation hover:bg-primary/90 transition-colors flex flex-col items-center justify-center ${field.value === "online" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
-                    onClick={() => {
-                      field.onChange("online");
-                      setEventFormat("online");
-                    }}
-                  >
-                    <Video className="w-4 h-4 mb-1" />
-                    <span className="text-xs">Online</span>
-                  </Badge>
-                  <Badge 
-                    variant={field.value === "hybrid" ? "default" : "outline"}
-                    className={`py-3 px-1 cursor-pointer touch-action-manipulation hover:bg-primary/90 transition-colors flex flex-col items-center justify-center ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
-                    onClick={() => {
-                      field.onChange("hybrid");
-                      setEventFormat("hybrid");
-                    }}
-                  >
-                    <UserCog className="w-4 h-4 mb-1" />
-                    <span className="text-xs">Híbrido</span>
-                  </Badge>
+                {/* Mobile: Layout circular como no design */}
+                <div className="sm:hidden">
+                  <div className="flex justify-center space-x-3">
+                    <div 
+                      className={`w-[86px] h-[86px] rounded-full flex flex-col items-center justify-center cursor-pointer touch-action-manipulation ${field.value === "in_person" ? "bg-primary text-white" : "bg-background dark:bg-secondary/40 border border-muted"}`}
+                      onClick={() => {
+                        field.onChange("in_person");
+                        setEventFormat("in_person");
+                      }}
+                    >
+                      <Users className="w-6 h-6 mb-1" />
+                      <span className="text-xs font-medium">Presencial</span>
+                    </div>
+                    <div 
+                      className={`w-[86px] h-[86px] rounded-full flex flex-col items-center justify-center cursor-pointer touch-action-manipulation ${field.value === "online" ? "bg-primary text-white" : "bg-background dark:bg-secondary/40 border border-muted"}`}
+                      onClick={() => {
+                        field.onChange("online");
+                        setEventFormat("online");
+                      }}
+                    >
+                      <Video className="w-6 h-6 mb-1" />
+                      <span className="text-xs font-medium">Online</span>
+                    </div>
+                    <div 
+                      className={`w-[86px] h-[86px] rounded-full flex flex-col items-center justify-center cursor-pointer touch-action-manipulation ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background dark:bg-secondary/40 border border-muted"}`}
+                      onClick={() => {
+                        field.onChange("hybrid");
+                        setEventFormat("hybrid");
+                      }}
+                    >
+                      <UserCog className="w-6 h-6 mb-1" />
+                      <span className="text-xs font-medium">Híbrido</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center mt-2">
+                    Selecione o formato do seu evento
+                  </p>
                 </div>
                 
                 {/* Desktop: Versão original em linha */}
-                <div className="hidden sm:flex flex-wrap gap-2 mt-1.5">
-                  <Badge 
-                    variant={field.value === "in_person" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "in_person" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
-                    onClick={() => {
-                      field.onChange("in_person");
-                      setEventFormat("in_person");
-                    }}
-                  >
-                    <Users className="w-4 h-4" />
-                    Presencial
-                  </Badge>
-                  <Badge 
-                    variant={field.value === "online" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "online" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
-                    onClick={() => {
-                      field.onChange("online");
-                      setEventFormat("online");
-                    }}
-                  >
-                    <Video className="w-4 h-4" />
-                    Online
-                  </Badge>
-                  <Badge 
-                    variant={field.value === "hybrid" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
-                    onClick={() => {
-                      field.onChange("hybrid");
-                      setEventFormat("hybrid");
-                    }}
-                  >
-                    <UserCog className="w-4 h-4" />
-                    Híbrido
-                  </Badge>
+                <div className="hidden sm:block">
+                  <FormLabel>Formato do evento</FormLabel>
+                  <div className="flex flex-wrap gap-2 mt-1.5">
+                    <Badge 
+                      variant={field.value === "in_person" ? "default" : "outline"}
+                      className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "in_person" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                      onClick={() => {
+                        field.onChange("in_person");
+                        setEventFormat("in_person");
+                      }}
+                    >
+                      <Users className="w-4 h-4" />
+                      Presencial
+                    </Badge>
+                    <Badge 
+                      variant={field.value === "online" ? "default" : "outline"}
+                      className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "online" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                      onClick={() => {
+                        field.onChange("online");
+                        setEventFormat("online");
+                      }}
+                    >
+                      <Video className="w-4 h-4" />
+                      Online
+                    </Badge>
+                    <Badge 
+                      variant={field.value === "hybrid" ? "default" : "outline"}
+                      className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                      onClick={() => {
+                        field.onChange("hybrid");
+                        setEventFormat("hybrid");
+                      }}
+                    >
+                      <UserCog className="w-4 h-4" />
+                      Híbrido
+                    </Badge>
+                  </div>
+                  <FormDescription>
+                    Selecione o formato do seu evento
+                  </FormDescription>
                 </div>
-                <FormDescription>
-                  Selecione o formato do seu evento
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
