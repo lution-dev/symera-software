@@ -5,6 +5,7 @@ import { createEventSchema } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Form,
   FormControl,
@@ -25,7 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Image, Upload } from "lucide-react";
+import { Image, Upload, Users, Video, UserCog } from "lucide-react";
 
 interface EventFormProps {
   defaultValues?: {
@@ -272,31 +273,51 @@ const EventForm: React.FC<EventFormProps> = ({
         />
             
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Formato do evento - como primeiro campo */}
+          {/* Formato do evento - como primeiro campo usando chips/badges */}
           <FormField
             control={form.control}
             name="format"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-2">
                 <FormLabel>Formato do evento</FormLabel>
-                <Select
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    setEventFormat(value);
-                  }}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o formato" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="in_person">Presencial</SelectItem>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="hybrid">Híbrido</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-2 mt-1.5">
+                  <Badge 
+                    variant={field.value === "in_person" ? "default" : "outline"}
+                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "in_person" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    onClick={() => {
+                      field.onChange("in_person");
+                      setEventFormat("in_person");
+                    }}
+                  >
+                    <Users className="w-4 h-4" />
+                    Presencial
+                  </Badge>
+                  <Badge 
+                    variant={field.value === "online" ? "default" : "outline"}
+                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "online" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    onClick={() => {
+                      field.onChange("online");
+                      setEventFormat("online");
+                    }}
+                  >
+                    <Video className="w-4 h-4" />
+                    Online
+                  </Badge>
+                  <Badge 
+                    variant={field.value === "hybrid" ? "default" : "outline"}
+                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    onClick={() => {
+                      field.onChange("hybrid");
+                      setEventFormat("hybrid");
+                    }}
+                  >
+                    <UserCog className="w-4 h-4" />
+                    Híbrido
+                  </Badge>
+                </div>
+                <FormDescription>
+                  Selecione o formato do seu evento
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
