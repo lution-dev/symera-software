@@ -357,6 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Preparar os dados para atualização com tipos corretos
       const updateData: any = {
         ...eventData,
+        format: eventData.format, // Garantir que o formato do evento seja incluído
         date: new Date(eventData.date),
       };
       
@@ -370,6 +371,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Adicionar endDate se disponível
       if (eventData.endDate) {
         updateData.endDate = new Date(eventData.endDate);
+      }
+      
+      // Verificar campos específicos para cada formato
+      if (eventData.format === 'online' || eventData.format === 'hybrid') {
+        // Certifique-se de incluir o campo meetingUrl para formatos online ou híbrido
+        updateData.meetingUrl = eventData.meetingUrl || '';
+      }
+      
+      if (eventData.format === 'in_person' || eventData.format === 'hybrid') {
+        // Certifique-se de incluir o campo location para formatos presencial ou híbrido
+        updateData.location = eventData.location || '';
       }
       
       // Update event
