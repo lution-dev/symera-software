@@ -179,7 +179,7 @@ const Dashboard: React.FC = () => {
           <Link href="/vendors" className="block">
             <div className="bg-[#1f1730] border border-primary/30 rounded-xl p-3 flex flex-col items-center justify-center h-[70px] text-center">
               <div className="text-primary mb-1">
-                <i className="fas fa-store text-2xl"></i>
+                <i className="fas fa-store text-lg"></i>
               </div>
               <span className="text-xs font-medium text-white">Fornecedores</span>
             </div>
@@ -187,7 +187,7 @@ const Dashboard: React.FC = () => {
           <Link href="/budget" className="block">
             <div className="bg-[#1f1730] border border-primary/30 rounded-xl p-3 flex flex-col items-center justify-center h-[70px] text-center">
               <div className="text-primary mb-1">
-                <i className="fas fa-dollar-sign text-2xl"></i>
+                <i className="fas fa-dollar-sign text-lg"></i>
               </div>
               <span className="text-xs font-medium text-white">Orçamento</span>
             </div>
@@ -195,7 +195,7 @@ const Dashboard: React.FC = () => {
           <Link href="/team" className="block">
             <div className="bg-[#1f1730] border border-primary/30 rounded-xl p-3 flex flex-col items-center justify-center h-[70px] text-center">
               <div className="text-primary mb-1">
-                <i className="fas fa-users text-2xl"></i>
+                <i className="fas fa-users text-lg"></i>
               </div>
               <span className="text-xs font-medium text-white">Equipe</span>
             </div>
