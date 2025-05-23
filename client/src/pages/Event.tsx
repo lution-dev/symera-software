@@ -1241,9 +1241,9 @@ const getFilteredAndSortedTasks = () => {
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
-            ) : team?.length > 0 ? (
+            ) : team?.filter((member: any) => member.role !== 'vendor').length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {team.map((member: any) => (
+                {team.filter((member: any) => member.role !== 'vendor').map((member: any) => (
                   <div key={member.id} className="bg-muted p-4 rounded-lg">
                     <div className="flex items-center">
                       {member.user.profileImageUrl ? (
