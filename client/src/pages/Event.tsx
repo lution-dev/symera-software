@@ -490,7 +490,7 @@ const getFilteredAndSortedTasks = () => {
         
         {/* Card da direita - Informações do evento em formato de lista */}
         <div className="bg-card rounded-xl shadow-md p-5 flex flex-col min-h-[220px]">
-          <div className="flex justify-between items-start mb-5">
+          <div className="flex justify-between items-start mb-4">
             <h2 className="text-lg font-semibold">Detalhes do Evento</h2>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -515,119 +515,111 @@ const getFilteredAndSortedTasks = () => {
             </DropdownMenu>
           </div>
           
-          <div className="grid grid-cols-2 gap-3 xs:gap-4 mb-2">
-            {/* Coluna da esquerda */}
-            <div className="space-y-3 xs:space-y-4">
-              {/* Período do evento */}
-              <div className="flex items-start">
-                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                  <i className="fas fa-calendar-day text-sm"></i>
-                </div>
-                <div className="ml-3">
-                  <p className="text-xs text-muted-foreground">Quando</p>
-                  <div>
-                    {event.startDate && event.endDate ? (
-                      <p className="mt-0.5 text-sm font-medium">
-                        {event.startDate === event.endDate ? (
-                          <>
-                            {new Date(event.startDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} 
-                            {event.startTime && event.endTime && (
-                              <>às {event.startTime.substring(0, 5)}{event.startTime !== event.endTime ? ` ➝ ${event.endTime.substring(0, 5)}` : ''}</>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            {new Date(event.startDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} 
-                            {event.startTime && <>às {event.startTime.substring(0, 5)}</>} 
-                            <> ➝ {new Date(event.endDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</>
-                            {event.endTime && <> às {event.endTime.substring(0, 5)}</>}
-                          </>
-                        )}
-                      </p>
-                    ) : (
-                      <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
-                    )}
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+            {/* Período do evento */}
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                <i className="fas fa-calendar-day text-sm"></i>
               </div>
-              
-              {/* Número de convidados */}
-              {event.attendees && (
-                <div className="flex items-start">
-                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                    <i className="fas fa-user-friends text-sm"></i>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs text-muted-foreground">Convidados</p>
-                    <p className="mt-0.5 text-sm font-medium">{event.attendees}</p>
-                  </div>
-                </div>
-              )}
+              <div>
+                <p className="text-xs text-muted-foreground">Quando</p>
+                <p className="text-sm font-medium">
+                  {event.startDate && event.endDate ? (
+                    event.startDate === event.endDate ? (
+                      <>
+                        {new Date(event.startDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} 
+                        {event.startTime && event.endTime && (
+                          <>às {event.startTime.substring(0, 5)}{event.startTime !== event.endTime ? ` ➝ ${event.endTime.substring(0, 5)}` : ''}</>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {new Date(event.startDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} 
+                        {event.startTime && <>às {event.startTime.substring(0, 5)}</>} 
+                        <> ➝ {new Date(event.endDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</>
+                        {event.endTime && <> às {event.endTime.substring(0, 5)}</>}
+                      </>
+                    )
+                  ) : (
+                    formatDate(event.date)
+                  )}
+                </p>
+              </div>
             </div>
             
-            {/* Coluna da direita */}
-            <div className="space-y-3 xs:space-y-4">
-              {/* Formato do evento */}
-              <div className="flex items-start">
-                <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                  <i className="fas fa-video text-sm"></i>
+            {/* Formato do evento */}
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                <i className="fas fa-video text-sm"></i>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Formato</p>
+                <p className="text-sm font-medium">
+                  {event.format === 'in_person' ? 'Presencial' : 
+                   event.format === 'online' ? 'Online' : 
+                   event.format === 'hybrid' ? 'Híbrido' : 'Não definido'}
+                </p>
+              </div>
+            </div>
+
+            {/* Local do evento - sempre mostrar se disponível */}
+            {event.location && (
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                  <i className="fas fa-map-marker-alt text-sm"></i>
                 </div>
-                <div className="ml-3">
-                  <p className="text-xs text-muted-foreground">Formato</p>
-                  <p className="mt-0.5 text-sm font-medium">
-                    {event.format === 'in_person' ? 'Presencial' : 
-                     event.format === 'online' ? 'Online' : 
-                     event.format === 'hybrid' ? 'Híbrido' : 'Não definido'}
-                  </p>
+                <div>
+                  <p className="text-xs text-muted-foreground">Local</p>
+                  <p className="text-sm font-medium truncate max-w-[180px]">{event.location}</p>
                 </div>
               </div>
-
-              {/* Local do evento - sempre mostrar se disponível */}
-              {event.location && (
-                <div className="flex items-start">
-                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                    <i className="fas fa-map-marker-alt text-sm"></i>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs text-muted-foreground">Local</p>
-                    <p className="mt-0.5 text-sm font-medium overflow-hidden text-ellipsis">{event.location}</p>
-                  </div>
+            )}
+            
+            {/* Link da reunião - sempre mostrar se disponível */}
+            {event.meetingUrl && (
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                  <i className="fas fa-link text-sm"></i>
                 </div>
-              )}
-              
-              {/* Link da reunião - sempre mostrar se disponível */}
-              {event.meetingUrl && (
-                <div className="flex items-start">
-                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                    <i className="fas fa-link text-sm"></i>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs text-muted-foreground">Link da reunião</p>
-                    <a 
-                      href={event.meetingUrl.startsWith('http') ? event.meetingUrl : `https://${event.meetingUrl}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="mt-0.5 text-sm font-medium text-primary hover:underline overflow-hidden text-ellipsis inline-block max-w-[200px]"
-                    >
-                      {event.meetingUrl}
-                    </a>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Link da reunião</p>
+                  <a 
+                    href={event.meetingUrl.startsWith('http') ? event.meetingUrl : `https://${event.meetingUrl}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-primary hover:underline truncate inline-block max-w-[180px]"
+                  >
+                    {event.meetingUrl}
+                  </a>
                 </div>
-              )}
-              
-              {/* Orçamento */}
-              {event.budget && (
-                <div className="flex items-start">
-                  <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                    <i className="fas fa-coins text-sm"></i>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs text-muted-foreground">Orçamento</p>
-                    <p className="mt-0.5 text-sm font-medium">{formatCurrency(event.budget)}</p>
-                  </div>
+              </div>
+            )}
+            
+            {/* Número de convidados */}
+            {event.attendees && (
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                  <i className="fas fa-user-friends text-sm"></i>
                 </div>
-              )}
-            </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Convidados</p>
+                  <p className="text-sm font-medium">{event.attendees}</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Orçamento */}
+            {event.budget && (
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                  <i className="fas fa-coins text-sm"></i>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Orçamento</p>
+                  <p className="text-sm font-medium">{formatCurrency(event.budget)}</p>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Status simplificado */}
