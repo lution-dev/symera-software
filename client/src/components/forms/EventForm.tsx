@@ -155,23 +155,33 @@ const EventForm: React.FC<EventFormProps> = ({
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      // Garantir que o meetingUrl seja incluído quando o formato for online
-      if (data.format === "online" || data.format === "hybrid") {
-        // Se o campo meetingUrl estiver vazio, definir um valor padrão
-        if (!data.meetingUrl) {
-          data.meetingUrl = data.meetingUrl || "";
-        }
-        console.log("[Debug EventForm] Dados de envio com meetingUrl:", data);
+      // Preparar os dados para envio com garantia de tipo correto
+      const formData = {
+        ...data,
+        // Garantir que o formato seja explicitamente definido
+        format: data.format || 'in_person',
+      };
+      
+      // Garantir que o meetingUrl seja incluído quando o formato for online ou híbrido
+      if (formData.format === "online" || formData.format === "hybrid") {
+        formData.meetingUrl = data.meetingUrl || "";
+      } else {
+        // Para eventos presenciais, limpar o meetingUrl
+        formData.meetingUrl = "";
       }
+      
+      console.log("[Debug EventForm] Dados finais para envio:", formData);
+      console.log("[Debug EventForm] Formato sendo enviado:", formData.format);
+      console.log("[Debug EventForm] MeetingUrl sendo enviado:", formData.meetingUrl);
 
       if (isEdit && eventId) {
         // Update existing event
-        console.log("[Debug EventForm] Enviando dados para atualização:", data);
+        console.log("[Debug EventForm] Enviando dados para atualização:", formData);
         const response = await apiRequest(
           `/api/events/${eventId}`, 
           { 
             method: "PUT", 
-            body: data  // O apiRequest já faz a serialização correta
+            body: formData  // O apiRequest já faz a serialização correta
           }
         );
         const updatedEvent = await response.json();
