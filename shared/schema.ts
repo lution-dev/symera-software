@@ -70,11 +70,10 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: eventTypeEnum("type").notNull(),
-  startDate: timestamp("start_date"), // Permitir NULL para compatibilidade com eventos existentes
-  endDate: timestamp("end_date"),
-  startTime: text("start_time"),
-  endTime: text("end_time"),
-  date: timestamp("date").notNull(), // Mantido para compatibilidade com código existente
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  startTime: text("start_time").notNull(),
+  endTime: text("end_time").notNull(),
   location: text("location"),
   description: text("description"),
   budget: real("budget"),
