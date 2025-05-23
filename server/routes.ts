@@ -377,11 +377,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Preparar os dados para atualização com tipos corretos
       const updateData: any = {
         ...eventData,
-        // Garantir que o formato do evento seja corretamente incluído como um valor específico
-        format: eventData.format as 'in_person' | 'online' | 'hybrid', 
       };
       
-      console.log("Atualizando evento com formato:", updateData.format, "tipo:", typeof updateData.format);
+      // Forçar o formato correto do evento
+      console.log("[Debug API] Formato recebido do cliente:", eventData.format);
+      
+      // Garantir que o formato seja definido explicitamente, não pode ser nulo
+      updateData.format = eventData.format || 'in_person';
+      
+      console.log("[Debug API] Atualizando evento com formato:", updateData.format, "tipo:", typeof updateData.format);
       
       // Adicionar startDate se disponível
       if (eventData.startDate) {
@@ -394,17 +398,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar campos específicos para cada formato
-      if (eventData.format === 'online' || eventData.format === 'hybrid') {
+      if (updateData.format === 'online' || updateData.format === 'hybrid') {
         // Certifique-se de incluir o campo meetingUrl para formatos online ou híbrido
         updateData.meetingUrl = eventData.meetingUrl || '';
-        console.log("[Debug API] Encontrado formato online/híbrido, meetingUrl:", eventData.meetingUrl);
-        console.log("[Debug API] Dados completos recebidos:", eventData);
+        console.log("[Debug API] Encontrado formato online/híbrido, meetingUrl:", updateData.meetingUrl);
+      } else {
+        // Para eventos presenciais, definir meetingUrl como null ou string vazia
+        updateData.meetingUrl = '';
       }
       
-      if (eventData.format === 'in_person' || eventData.format === 'hybrid') {
+      if (updateData.format === 'in_person' || updateData.format === 'hybrid') {
         // Certifique-se de incluir o campo location para formatos presencial ou híbrido
         updateData.location = eventData.location || '';
+      } else {
+        // Para eventos online, location pode ser vazio
+        updateData.location = '';
       }
+      
+      // Remover campo date se estiver presente (obsoleto)
+      if ('date' in updateData) {
+        delete updateData.date;
+      }
+      
+      console.log("[Debug API] Dados finais para atualização:", JSON.stringify(updateData, null, 2));
       
       // Update event
       const updatedEvent = await storage.updateEvent(eventId, updateData);
