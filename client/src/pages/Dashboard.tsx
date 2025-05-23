@@ -173,8 +173,8 @@ const Dashboard: React.FC = () => {
         upcomingEventDays={upcomingEventDays}
       />
 
-      {/* Quick Access Buttons - Visible on all screen sizes with new design */}
-      <div className="mt-4 mb-4">
+      {/* Quick Access Buttons - Only visible on mobile screens */}
+      <div className="mt-4 mb-4 sm:hidden">
         <div className="grid grid-cols-3 gap-2">
           <Link href="/vendors" className="block">
             <div className="bg-[#1f1730] border border-primary/30 rounded-xl p-3 flex flex-col items-center justify-center h-[70px] text-center">
