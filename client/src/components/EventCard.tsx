@@ -73,7 +73,8 @@ const EventCard: React.FC<EventCardProps> = ({
   React.useEffect(() => {
     console.log(`[Debug] EventCard ${id} - tasks data:`, tasks);
     console.log(`[Debug] EventCard ${id} - progress:`, calculateTaskProgress(tasks));
-  }, [id, tasks]);
+    console.log(`[Debug] EventCard ${id} - formato:`, format); // Debugando formato
+  }, [id, tasks, format]);
   
   // Get default cover image based on event type
   const getDefaultCover = () => {
@@ -195,11 +196,11 @@ const EventCard: React.FC<EventCardProps> = ({
             {/* Formato do evento - exibindo exatamente como vem do banco */}
             <div className="flex items-center">
               <i className={`fas ${format === 'online' ? 'fa-video' : format === 'hybrid' ? 'fa-users-cog' : 'fa-users'} text-primary mr-1.5 w-4 text-center text-xs`}></i>
-              <span className="text-muted-foreground text-xs truncate">
-                {format === 'online' ? 'Online' : 
-                 format === 'hybrid' ? 'Híbrido' : 
-                 format === 'in_person' ? 'Presencial' : 
-                 format || 'Não definido'}
+              <span className="text-muted-foreground text-xs truncate font-medium">
+                {format === 'online' && 'Online'}
+                {format === 'hybrid' && 'Híbrido'}
+                {format === 'in_person' && 'Presencial'}
+                {!format && 'Não definido'}
               </span>
             </div>
             
