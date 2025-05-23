@@ -225,13 +225,13 @@ const EventForm: React.FC<EventFormProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
         <FormField
           control={form.control}
           name="coverImageUrl"
           render={({ field }) => (
-            <FormItem className="col-span-full mb-6">
-              <FormLabel>Imagem de capa</FormLabel>
+            <FormItem className="col-span-full mb-4 sm:mb-6">
+              <FormLabel className="text-sm font-medium">Imagem de capa</FormLabel>
               <FormControl>
                 <div className="w-full">
                   <Input
@@ -244,49 +244,51 @@ const EventForm: React.FC<EventFormProps> = ({
                   />
                   
                   {imagePreview ? (
-                    <div className="relative w-full h-48 rounded-lg overflow-hidden bg-secondary">
+                    <div className="relative w-full h-36 sm:h-48 rounded-lg overflow-hidden bg-secondary">
                       <img
                         src={imagePreview}
                         alt="Prévia da imagem"
                         className="w-full h-full object-cover"
                       />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2"
-                        onClick={() => {
-                          setImagePreview(null);
-                          form.setValue("coverImageUrl", "");
-                        }}
-                      >
-                        Remover
-                      </Button>
-                      
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        className="absolute bottom-2 right-2"
-                        onClick={() => document.getElementById("coverImage")?.click()}
-                      >
-                        Trocar
-                      </Button>
+                      <div className="absolute bottom-0 left-0 right-0 flex justify-between p-2 bg-gradient-to-t from-black/70 to-transparent">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => {
+                            setImagePreview(null);
+                            form.setValue("coverImageUrl", "");
+                          }}
+                        >
+                          Remover
+                        </Button>
+                        
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => document.getElementById("coverImage")?.click()}
+                        >
+                          Trocar
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <label htmlFor="coverImage" className="cursor-pointer w-full block">
-                      <div className="w-full h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                      <div className="w-full h-32 sm:h-48 flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/50 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-colors">
                         {imageUploading ? (
                           <div className="flex flex-col items-center">
                             <div className="animate-spin mb-2">
-                              <i className="fas fa-spinner text-2xl" />
+                              <i className="fas fa-spinner text-xl" />
                             </div>
-                            <p className="text-sm text-muted-foreground">Carregando imagem...</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Carregando imagem...</p>
                           </div>
                         ) : (
                           <>
-                            <Upload className="w-10 h-10 text-muted-foreground mb-2" />
-                            <p className="text-sm text-muted-foreground">Clique para adicionar uma imagem de capa</p>
+                            <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground mb-1 sm:mb-2" />
+                            <p className="text-xs sm:text-sm text-muted-foreground px-2 text-center">Toque para adicionar uma foto de capa</p>
                           </>
                         )}
                       </div>
@@ -294,60 +296,57 @@ const EventForm: React.FC<EventFormProps> = ({
                   )}
                 </div>
               </FormControl>
-              <FormDescription>
-                Adicione uma imagem de capa para seu evento (opcional). Tamanho máximo: 5MB.
+              <FormDescription className="text-xs mt-1.5">
+                Adicione uma imagem de capa para seu evento (opcional). Máx: 5MB.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
             
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Formato do evento - como primeiro campo usando chips/badges */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          {/* Formato do evento - redesenhado para mobile */}
           <FormField
             control={form.control}
             name="format"
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <FormLabel>Formato do evento</FormLabel>
-                <div className="flex flex-wrap gap-2 mt-1.5">
+                <FormLabel className="text-sm font-medium mb-1">Formato do evento</FormLabel>
+                <div className="grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:gap-2 mt-1">
                   <Badge 
                     variant={field.value === "in_person" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "in_person" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    className={`py-3 sm:py-2 px-1 sm:px-4 cursor-pointer touch-action-manipulation hover:bg-primary/90 transition-colors flex flex-col sm:flex-row items-center justify-center sm:justify-start sm:gap-2 ${field.value === "in_person" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
                     onClick={() => {
                       field.onChange("in_person");
                       setEventFormat("in_person");
                     }}
                   >
-                    <Users className="w-4 h-4" />
-                    Presencial
+                    <Users className="w-4 h-4 mb-1 sm:mb-0" />
+                    <span className="text-xs sm:text-sm">Presencial</span>
                   </Badge>
                   <Badge 
                     variant={field.value === "online" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "online" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    className={`py-3 sm:py-2 px-1 sm:px-4 cursor-pointer touch-action-manipulation hover:bg-primary/90 transition-colors flex flex-col sm:flex-row items-center justify-center sm:justify-start sm:gap-2 ${field.value === "online" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
                     onClick={() => {
                       field.onChange("online");
                       setEventFormat("online");
                     }}
                   >
-                    <Video className="w-4 h-4" />
-                    Online
+                    <Video className="w-4 h-4 mb-1 sm:mb-0" />
+                    <span className="text-xs sm:text-sm">Online</span>
                   </Badge>
                   <Badge 
                     variant={field.value === "hybrid" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    className={`py-3 sm:py-2 px-1 sm:px-4 cursor-pointer touch-action-manipulation hover:bg-primary/90 transition-colors flex flex-col sm:flex-row items-center justify-center sm:justify-start sm:gap-2 ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
                     onClick={() => {
                       field.onChange("hybrid");
                       setEventFormat("hybrid");
                     }}
                   >
-                    <UserCog className="w-4 h-4" />
-                    Híbrido
+                    <UserCog className="w-4 h-4 mb-1 sm:mb-0" />
+                    <span className="text-xs sm:text-sm">Híbrido</span>
                   </Badge>
                 </div>
-                <FormDescription>
-                  Selecione o formato do seu evento
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -358,11 +357,12 @@ const EventForm: React.FC<EventFormProps> = ({
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nome do evento</FormLabel>
+                <FormLabel className="text-sm font-medium">Nome do evento</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Ex: Lançamento Produto XYZ"
                     {...field}
+                    className="h-10 text-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -375,13 +375,13 @@ const EventForm: React.FC<EventFormProps> = ({
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tipo de evento</FormLabel>
+                <FormLabel className="text-sm font-medium">Tipo de evento</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10 text-sm">
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                   </FormControl>
@@ -399,156 +399,176 @@ const EventForm: React.FC<EventFormProps> = ({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de início</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="date" 
-                    {...field} 
-                    onChange={(e) => {
-                      field.onChange(e);
-                      // Atualiza o campo date para manter compatibilidade
-                      form.setValue("date", e.target.value);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Seção de data e hora - Layout otimizado para mobile */}
+          <div className="col-span-1 md:col-span-2 rounded-lg border border-muted p-3 bg-muted/10 mb-1 mt-2">
+            <h3 className="text-sm font-medium mb-3">Data e horário</h3>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">Data de início</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        className="h-9 text-sm"
+                        onChange={(e) => {
+                          field.onChange(e);
+                          // Atualiza o campo date para manter compatibilidade
+                          form.setValue("date", e.target.value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="startTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">Hora início</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} className="h-9 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">Data de término</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} className="h-9 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="endTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">Hora término</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} className="h-9 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
 
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de término</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+          {/* Seção de localização - com base no formato do evento */}
+          <div className="col-span-1 md:col-span-2 mt-2 mb-1">
+            {/* Mostrar campo de local apenas para eventos presenciais ou híbridos */}
+            {(eventFormat === "in_person" || eventFormat === "hybrid") && (
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">Local</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Hotel Meridien" {...field} className="h-10 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-          />
-
-          <FormField
-            control={form.control}
-            name="startTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Horário de início</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            
+            {/* Mostrar campo de URL da reunião apenas para eventos online ou híbridos */}
+            {(eventFormat === "online" || eventFormat === "hybrid") && (
+              <FormField
+                control={form.control}
+                name="meetingUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">Link da reunião</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: https://meet.google.com/abc-defg-hij" {...field} className="h-10 text-sm" />
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      Link para Zoom, Google Meet, MS Teams, etc.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-          />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="endTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Horário de término</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Seção de detalhes financeiros */}
+          <div className="col-span-1 md:col-span-2 rounded-lg border border-muted p-3 bg-muted/10 mt-4 mb-1">
+            <h3 className="text-sm font-medium mb-3">Detalhes do planejamento</h3>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="attendees"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">Número de convidados</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ex: 100"
+                        {...field}
+                        className="h-9 text-sm"
+                        onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Mostrar campo de local apenas para eventos presenciais ou híbridos */}
-          {(eventFormat === "in_person" || eventFormat === "hybrid") && (
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Local</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Hotel Meridien" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-          
-          {/* Mostrar campo de URL da reunião apenas para eventos online ou híbridos */}
-          {(eventFormat === "online" || eventFormat === "hybrid") && (
-            <FormField
-              control={form.control}
-              name="meetingUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Link da reunião</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: https://meet.google.com/abc-defg-hij" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Adicione o link da videoconferência (Zoom, Google Meet, Teams, etc.)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          <FormField
-            control={form.control}
-            name="attendees"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número de convidados</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 100"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="budget"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Orçamento estimado (R$)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 30000"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="budget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">Orçamento (R$)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ex: 30000"
+                        {...field}
+                        className="h-9 text-sm"
+                        onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
         </div>
 
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição do evento</FormLabel>
+            <FormItem className="mt-4">
+              <FormLabel className="text-sm font-medium">Descrição do evento</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Descreva detalhes específicos do seu evento..."
-                  className="h-24"
+                  className="h-20 sm:h-24 text-sm resize-none"
                   {...field}
                 />
               </FormControl>
@@ -562,7 +582,7 @@ const EventForm: React.FC<EventFormProps> = ({
             control={form.control}
             name="generateAIChecklist"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 sm:p-4 mt-4">
                 <FormControl>
                   <Switch
                     checked={field.value}
@@ -570,8 +590,8 @@ const EventForm: React.FC<EventFormProps> = ({
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>Gerar checklist inteligente com IA</FormLabel>
-                  <p className="text-sm text-muted-foreground">
+                  <FormLabel className="text-sm font-medium">Gerar checklist com IA</FormLabel>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Crie automaticamente um checklist com tarefas baseadas nos detalhes do evento
                   </p>
                 </div>
@@ -580,16 +600,21 @@ const EventForm: React.FC<EventFormProps> = ({
           />
         )}
 
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-between sm:justify-end mt-6 space-x-3">
           <Button
             type="button"
             variant="outline"
+            className="flex-1 sm:flex-initial text-xs sm:text-sm h-10"
             onClick={() => navigate(isEdit && eventId ? `/events/${eventId}` : "/events")}
             disabled={isSubmitting}
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="flex-1 sm:flex-initial text-xs sm:text-sm h-10 font-medium"
+          >
             {isSubmitting ? (
               <>
                 <span className="animate-spin mr-2">
