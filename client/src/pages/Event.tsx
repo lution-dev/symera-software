@@ -557,7 +557,8 @@ const getFilteredAndSortedTasks = () => {
                 <p className="text-sm font-medium">
                   {event.format === 'in_person' ? 'Presencial' : 
                    event.format === 'online' ? 'Online' : 
-                   event.format === 'hybrid' ? 'Híbrido' : 'Não definido'}
+                   event.format === 'hybrid' ? 'Híbrido' : 
+                   event.type === 'birthday' || event.type === 'wedding' || event.type === 'social' ? 'Presencial' : 'Online'}
                 </p>
               </div>
             </div>
