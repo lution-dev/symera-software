@@ -1024,12 +1024,24 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       {sortBy === "dueDate" && sortOrder === "desc" && <i className="fas fa-check ml-2"></i>}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => { setSortBy("priority"); setSortOrder("desc"); }}>
+                    <DropdownMenuItem 
+                      onClick={() => { 
+                        setSortBy("priority"); 
+                        setSortOrder("desc"); 
+                        console.log("Ordenando por prioridade (alta → baixa)");
+                      }}
+                    >
                       <i className={`fas fa-tag mr-2 ${sortBy === "priority" && sortOrder === "desc" ? "text-primary" : ""}`}></i>
                       Prioridade (alta → baixa)
                       {sortBy === "priority" && sortOrder === "desc" && <i className="fas fa-check ml-2"></i>}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { setSortBy("priority"); setSortOrder("asc"); }}>
+                    <DropdownMenuItem 
+                      onClick={() => { 
+                        setSortBy("priority"); 
+                        setSortOrder("asc"); 
+                        console.log("Ordenando por prioridade (baixa → alta)");
+                      }}
+                    >
                       <i className={`fas fa-tag mr-2 ${sortBy === "priority" && sortOrder === "asc" ? "text-primary" : ""}`}></i>
                       Prioridade (baixa → alta)
                       {sortBy === "priority" && sortOrder === "asc" && <i className="fas fa-check ml-2"></i>}
