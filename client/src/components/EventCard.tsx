@@ -162,28 +162,33 @@ const EventCard: React.FC<EventCardProps> = ({
             <div className="flex items-center">
               <i className="fas fa-calendar-day text-primary mr-1.5 w-4 text-center text-xs"></i>
               <span className="text-muted-foreground text-xs truncate">
-                {startDate && endDate ? (
-                  <>
-                    {startDate === endDate ? (
-                      <>
-                        {formatDate(startDate)}
-                        {startTime && endTime && (
-                          <> às {startTime.substring(0, 5)}{startTime !== endTime ? ` ➝ ${endTime.substring(0, 5)}` : ''}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')}
-                        {startTime && <> às {startTime.substring(0, 5)}</>}
-                        <> ➝ {new Date(endDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(endDate)).replace('.', '')}</>
-                        {endTime && <> às {endTime.substring(0, 5)}</>}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  formatDate(date)
-                )}
+                {(() => {
+                  try {
+                    // Usando formato fixo para debug
+                    if (startDate && endDate && startTime && endTime) {
+                      // Se não for no mesmo dia, mostrar período completo
+                      if (startDate !== endDate) {
+                        const startDay = new Date(startDate).getDate();
+                        const startMonth = new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '');
+                        const endDay = new Date(endDate).getDate();
+                        const endMonth = new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(endDate)).replace('.', '');
+                        
+                        return `${startDay} de ${startMonth} às ${startTime.substring(0, 5)} ➝ ${endDay} de ${endMonth} às ${endTime.substring(0, 5)}`;
+                      } 
+                      // Mesmo dia
+                      else {
+                        return `${formatDate(startDate)} às ${startTime.substring(0, 5)}${startTime !== endTime ? ` ➝ ${endTime.substring(0, 5)}` : ''}`;
+                      }
+                    } 
+                    else if (date) {
+                      // Padrão para eventos sem hora definida
+                      return formatDate(date);
+                    }
+                    return "Sem data definida";
+                  } catch (error) {
+                    return "Erro ao formatar data";
+                  }
+                })()}
               </span>
             </div>
             
