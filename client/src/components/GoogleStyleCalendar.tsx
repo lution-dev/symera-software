@@ -71,9 +71,6 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>('month');
-  const [isProcessingData, setIsProcessingData] = useState(true);
-  const [tasksByDate, setTasksByDate] = useState<{[key: string]: Task[]}>({});
-  const [eventsByDate, setEventsByDate] = useState<{[key: string]: Event[]}>({});
 
   // Navegação no calendário
   const goToToday = () => {
@@ -101,68 +98,68 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
     }
   };
 
-  const getEventsForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-    return eventsByDate[dateKey] || [];
-  };
-
-  // Mapeamento para armazenar tarefas por data (cache)
-  const [tasksByDate, setTasksByDate] = React.useState<{[key: string]: Task[]}>({});
-  const [eventsByDate, setEventsByDate] = React.useState<{[key: string]: Event[]}>({});
-  
-  // Processar todas as tarefas e eventos uma vez quando o componente carrega
-  React.useEffect(() => {
-    const newTasksByDate: {[key: string]: Task[]} = {};
+  // Usar useMemo para calcular eficientemente os eventos e tarefas por data
+  const { eventsByDateMap, tasksByDateMap } = React.useMemo(() => {
+    const eventMap: {[key: string]: Event[]} = {};
+    const taskMap: {[key: string]: Task[]} = {};
     
+    // Processar eventos
+    events.forEach(event => {
+      const eventStartDate = event.startDate ? new Date(event.startDate) : new Date(event.date);
+      const eventEndDate = event.endDate ? new Date(event.endDate) : eventStartDate;
+      
+      // Para cada dia no intervalo do evento
+      let current = new Date(eventStartDate);
+      current.setHours(0, 0, 0, 0);
+      
+      const endDay = new Date(eventEndDate);
+      endDay.setHours(0, 0, 0, 0);
+      
+      while (current <= endDay) {
+        const dateKey = `${current.getFullYear()}-${current.getMonth()}-${current.getDate()}`;
+        
+        if (!eventMap[dateKey]) {
+          eventMap[dateKey] = [];
+        }
+        
+        eventMap[dateKey].push(event);
+        
+        // Avançar para o próximo dia
+        const nextDay = new Date(current);
+        nextDay.setDate(nextDay.getDate() + 1);
+        current = nextDay;
+      }
+    });
+    
+    // Processar tarefas
     tasks.forEach(task => {
       if (!task.dueDate) return;
       
       const taskDate = new Date(task.dueDate);
       const dateKey = `${taskDate.getFullYear()}-${taskDate.getMonth()}-${taskDate.getDate()}`;
       
-      if (!newTasksByDate[dateKey]) {
-        newTasksByDate[dateKey] = [];
+      if (!taskMap[dateKey]) {
+        taskMap[dateKey] = [];
       }
       
-      newTasksByDate[dateKey].push(task);
+      taskMap[dateKey].push(task);
     });
     
-    setTasksByDate(newTasksByDate);
-    
-    // Fazer o mesmo para eventos
-    const newEventsByDate: {[key: string]: Event[]} = {};
-    
-    events.forEach(event => {
-      const eventStartDate = event.startDate ? new Date(event.startDate) : new Date(event.date);
-      const eventEndDate = event.endDate ? new Date(event.endDate) : eventStartDate;
-      
-      // Para cada dia no intervalo do evento
-      let currentDate = new Date(eventStartDate);
-      currentDate.setHours(0, 0, 0, 0);
-      
-      const endDay = new Date(eventEndDate);
-      endDay.setHours(0, 0, 0, 0);
-      
-      while (currentDate <= endDay) {
-        const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
-        
-        if (!newEventsByDate[dateKey]) {
-          newEventsByDate[dateKey] = [];
-        }
-        
-        newEventsByDate[dateKey].push(event);
-        
-        // Avançar para o próximo dia
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-    });
-    
-    setEventsByDate(newEventsByDate);
-  }, [tasks, events]);
+    return { 
+      eventsByDateMap: eventMap, 
+      tasksByDateMap: taskMap 
+    };
+  }, [events, tasks]);
 
+  // Funções otimizadas para obter eventos e tarefas por data
+  const getEventsForDate = (date: Date) => {
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    return eventsByDateMap[dateKey] || [];
+  };
+  
   const getTasksForDate = (date: Date) => {
     const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-    return tasksByDate[dateKey] || [];
+    return tasksByDateMap[dateKey] || [];
   };
 
   // Renderizar cabeçalho do calendário
