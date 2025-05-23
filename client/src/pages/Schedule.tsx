@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import GoogleStyleCalendar from "@/components/GoogleStyleCalendar";
+import ScheduleCalendar from "@/components/ScheduleCalendar";
 
 interface Task {
   id: number;
@@ -442,12 +442,13 @@ const Schedule: React.FC = () => {
               </div>
             </div>
             
-            <GoogleStyleCalendar
+            <ScheduleCalendar
               events={events}
               tasks={tasks}
               onDateSelect={handleDateSelect}
               selectedDate={selectedDate}
               onAddItem={handleAddItem}
+              isLoading={isLoadingTasks || isLoadingEvents}
             />
           </CardContent>
         </Card>

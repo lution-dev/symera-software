@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   format, 
   startOfWeek, 
@@ -24,11 +24,10 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Plus, 
-  ArrowLeft,
-  ListTodo,
   Calendar as CalendarIcon,
   CalendarRange,
-  ClipboardList
+  ClipboardList,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from "@/components/ui/badge";
@@ -54,26 +53,88 @@ interface Task {
 
 type CalendarView = 'day' | 'week' | 'month';
 
-interface GoogleStyleCalendarProps {
+interface ScheduleCalendarProps {
   events: Event[];
   tasks: Task[];
   onDateSelect: (date: Date) => void;
   selectedDate: Date;
   onAddItem?: (date: Date) => void;
+  isLoading?: boolean;
 }
 
-const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({ 
+const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({ 
   events = [], 
   tasks = [], 
   onDateSelect,
   selectedDate,
-  onAddItem
+  onAddItem,
+  isLoading = false
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>('month');
-  const [isProcessingData, setIsProcessingData] = useState(true);
-  const [tasksByDate, setTasksByDate] = useState<{[key: string]: Task[]}>({});
-  const [eventsByDate, setEventsByDate] = useState<{[key: string]: Event[]}>({});
+
+  // Usar useMemo para processamento pesado que só precisa ser recalculado quando as dependências mudam
+  const { tasksByDate, eventsByDate } = useMemo(() => {
+    // Processar tarefas para um lookup rápido por data
+    const taskMap: {[key: string]: Task[]} = {};
+    tasks.forEach(task => {
+      if (!task.dueDate) return;
+      
+      const taskDate = new Date(task.dueDate);
+      const dateKey = `${taskDate.getFullYear()}-${taskDate.getMonth()}-${taskDate.getDate()}`;
+      
+      if (!taskMap[dateKey]) {
+        taskMap[dateKey] = [];
+      }
+      
+      taskMap[dateKey].push(task);
+    });
+    
+    // Processar eventos para um lookup rápido por data
+    const eventMap: {[key: string]: Event[]} = {};
+    events.forEach(event => {
+      const eventStartDate = event.startDate ? new Date(event.startDate) : new Date(event.date);
+      const eventEndDate = event.endDate ? new Date(event.endDate) : eventStartDate;
+      
+      // Para cada dia no intervalo do evento
+      let currentDate = new Date(eventStartDate);
+      currentDate.setHours(0, 0, 0, 0);
+      
+      const endDay = new Date(eventEndDate);
+      endDay.setHours(0, 0, 0, 0);
+      
+      while (currentDate <= endDay) {
+        const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
+        
+        if (!eventMap[dateKey]) {
+          eventMap[dateKey] = [];
+        }
+        
+        eventMap[dateKey].push(event);
+        
+        // Avançar para o próximo dia
+        const nextDate = new Date(currentDate);
+        nextDate.setDate(nextDate.getDate() + 1);
+        currentDate = nextDate;
+      }
+    });
+    
+    return { 
+      tasksByDate: taskMap, 
+      eventsByDate: eventMap 
+    };
+  }, [tasks, events]);
+
+  // Funções para obter eventos e tarefas por data
+  const getTasksForDate = (date: Date) => {
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    return tasksByDate[dateKey] || [];
+  };
+
+  const getEventsForDate = (date: Date) => {
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    return eventsByDate[dateKey] || [];
+  };
 
   // Navegação no calendário
   const goToToday = () => {
@@ -99,70 +160,6 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
     } else {
       setCurrentDate(addDays(currentDate, 1));
     }
-  };
-
-  const getEventsForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-    return eventsByDate[dateKey] || [];
-  };
-
-  // Mapeamento para armazenar tarefas por data (cache)
-  const [tasksByDate, setTasksByDate] = React.useState<{[key: string]: Task[]}>({});
-  const [eventsByDate, setEventsByDate] = React.useState<{[key: string]: Event[]}>({});
-  
-  // Processar todas as tarefas e eventos uma vez quando o componente carrega
-  React.useEffect(() => {
-    const newTasksByDate: {[key: string]: Task[]} = {};
-    
-    tasks.forEach(task => {
-      if (!task.dueDate) return;
-      
-      const taskDate = new Date(task.dueDate);
-      const dateKey = `${taskDate.getFullYear()}-${taskDate.getMonth()}-${taskDate.getDate()}`;
-      
-      if (!newTasksByDate[dateKey]) {
-        newTasksByDate[dateKey] = [];
-      }
-      
-      newTasksByDate[dateKey].push(task);
-    });
-    
-    setTasksByDate(newTasksByDate);
-    
-    // Fazer o mesmo para eventos
-    const newEventsByDate: {[key: string]: Event[]} = {};
-    
-    events.forEach(event => {
-      const eventStartDate = event.startDate ? new Date(event.startDate) : new Date(event.date);
-      const eventEndDate = event.endDate ? new Date(event.endDate) : eventStartDate;
-      
-      // Para cada dia no intervalo do evento
-      let currentDate = new Date(eventStartDate);
-      currentDate.setHours(0, 0, 0, 0);
-      
-      const endDay = new Date(eventEndDate);
-      endDay.setHours(0, 0, 0, 0);
-      
-      while (currentDate <= endDay) {
-        const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
-        
-        if (!newEventsByDate[dateKey]) {
-          newEventsByDate[dateKey] = [];
-        }
-        
-        newEventsByDate[dateKey].push(event);
-        
-        // Avançar para o próximo dia
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-    });
-    
-    setEventsByDate(newEventsByDate);
-  }, [tasks, events]);
-
-  const getTasksForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-    return tasksByDate[dateKey] || [];
   };
 
   // Renderizar cabeçalho do calendário
@@ -194,6 +191,7 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
               size="icon"
               className="h-7 w-7 sm:h-8 sm:w-8"
               onClick={goToPrevious}
+              disabled={isLoading}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -209,6 +207,7 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
               size="icon"
               className="h-7 w-7 sm:h-8 sm:w-8"
               onClick={goToNext}
+              disabled={isLoading}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -221,6 +220,7 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
               size="sm"
               className="text-xs h-7 px-2.5"
               onClick={goToToday}
+              disabled={isLoading}
             >
               Hoje
             </Button>
@@ -235,6 +235,7 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
                   view === 'day' ? "rounded-md" : "rounded-none"
                 )}
                 onClick={() => setView('day')}
+                disabled={isLoading}
               >
                 <CalendarIcon className="h-3.5 w-3.5" />
               </Button>
@@ -246,6 +247,7 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
                   view === 'week' ? "rounded-md" : "rounded-none"
                 )}
                 onClick={() => setView('week')}
+                disabled={isLoading}
               >
                 <ClipboardList className="h-3.5 w-3.5" />
               </Button>
@@ -257,6 +259,7 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
                   view === 'month' ? "rounded-md" : "rounded-none"
                 )}
                 onClick={() => setView('month')}
+                disabled={isLoading}
               >
                 <CalendarRange className="h-3.5 w-3.5" />
               </Button>
@@ -463,31 +466,30 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
                 
                 {/* Indicadores na parte inferior */}
                 {totalItems.length > 0 && (
-                  <div className="absolute bottom-1 left-1 right-1 flex gap-0.5">
-                    {dayEvents.length > 0 && (
-                      <Badge variant="outline" className="bg-primary h-1 w-1/3 p-0 rounded-full border-none" />
-                    )}
-                    {hasPendingTask && (
-                      <Badge variant="outline" className="bg-amber-500 h-1 w-1/3 p-0 rounded-full border-none" />
-                    )}
-                    {dayTasks.some(task => task.status === "completed") && (
-                      <Badge variant="outline" className="bg-green-500 h-1 w-1/3 p-0 rounded-full border-none" />
-                    )}
+                  <div className="absolute bottom-1 left-1 right-1 flex justify-center">
+                    <div className="flex gap-0.5">
+                      {hasPendingTask && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+                      )}
+                      {dayEvents.length > 0 && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>
+                      )}
+                    </div>
                   </div>
                 )}
                 
-                {/* Botão adicionar */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 absolute top-1 right-1 opacity-0 hover:opacity-100 group-hover:opacity-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onAddItem) onAddItem(day);
-                  }}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                </Button>
+                {/* Botão de adicionar */}
+                {onAddItem && (
+                  <button 
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddItem(day);
+                    }}
+                  >
+                    <Plus className="h-3 w-3 text-primary" />
+                  </button>
+                )}
               </div>
             );
           })}
@@ -526,150 +528,108 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
     const rows = [];
     let days = [];
     let day = startDate;
+    let formattedDate = '';
 
-    // Criar todas as células do calendário
+    // Loop através de cada semana
     while (day <= endDate) {
+      // Loop através de cada dia da semana
       for (let i = 0; i < 7; i++) {
-        const formattedDate = format(day, 'd');
-        const cloneDay = new Date(day);
+        formattedDate = format(day, 'd');
+        const cloneDay = day;
+        
+        // Verificar número de eventos e tarefas para o dia
         const dayEvents = getEventsForDate(day);
         const dayTasks = getTasksForDate(day);
-        const totalItems = dayEvents.length + dayTasks.length;
+        const hasHighPriorityTask = dayTasks.some(task => task.priority === 'high');
         
-        // Verificar se tem tarefa pendente
-        const hasPendingTask = dayTasks.some(task => task.status !== "completed");
-        
-        // Célula do dia - altura reduzida no mobile
         days.push(
           <div
-            key={day.toString()}
             className={cn(
-              "min-h-[4.5rem] sm:min-h-[8rem] p-1 relative cursor-pointer transition-colors border-r group",
-              !isSameMonth(day, monthStart) && "text-muted-foreground bg-muted/5",
-              isSameDay(day, selectedDate) && !isToday(day) && "bg-accent/30",
-              isToday(day) && "bg-primary/5",
-              isSameDay(day, selectedDate) && isToday(day) && "bg-primary/10 font-medium"
+              "w-full h-24 border p-1 relative",
+              !isSameMonth(day, monthStart) ? "text-muted-foreground bg-muted/5" : "",
+              isToday(day) ? "bg-primary/5 border-primary/40" : "",
+              isSameDay(day, selectedDate) ? "bg-accent/20" : "",
+              "hover:bg-accent/10 cursor-pointer"
             )}
+            key={day.toString()}
             onClick={() => onDateSelect(cloneDay)}
           >
-            {/* Número do dia - menor no mobile */}
-            <div className="flex justify-between items-start mb-0.5 sm:mb-1">
-              <div
+            {/* Cabeçalho do dia com número e contador de tarefas */}
+            <div className="flex justify-between items-start w-full">
+              <span
                 className={cn(
-                  "flex items-center justify-center text-xs sm:text-sm",
-                  "h-5 w-5 sm:h-7 sm:w-7",
-                  isToday(day) && "bg-primary text-primary-foreground rounded-full font-bold",
-                  !isToday(day) && isSameDay(day, selectedDate) && "font-semibold"
+                  "text-sm font-medium",
+                  isToday(day) ? "text-primary" : ""
                 )}
               >
                 {formattedDate}
-              </div>
+              </span>
               
-              {/* Botão de adicionar (apenas em desktop) */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 sm:h-6 sm:w-6 hidden sm:inline-flex opacity-0 group-hover:opacity-100 hover:bg-accent/50"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onAddItem) onAddItem(cloneDay);
-                }}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
+              {(dayEvents.length > 0 || dayTasks.length > 0) && (
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    "h-5 px-1 text-xs",
+                    hasHighPriorityTask ? "bg-red-100 border-red-200 dark:bg-red-900/30 dark:border-red-800" : ""
+                  )}
+                >
+                  {dayEvents.length + dayTasks.length}
+                </Badge>
+              )}
             </div>
             
-            {/* Eventos e tarefas */}
-            <div className="flex flex-col gap-0.5 sm:gap-1 max-h-[calc(100%-1.5rem)] overflow-hidden">
-              {/* Eventos - exibição diferente para mobile e desktop */}
-              <div className="hidden sm:block">
-                {dayEvents
-                  .slice(0, 2)
-                  .map((event, idx) => (
-                    <div 
-                      key={`event-${idx}`}
-                      className="px-1.5 py-0.5 text-xs font-medium rounded truncate bg-primary/80 text-primary-foreground"
-                    >
-                      {event.name}
-                    </div>
-                  ))}
-                  
-                {/* Tarefas em desktop */}
-                {dayTasks
-                  .slice(0, 2)
-                  .map((task, idx) => {
-                    // Determinar a cor da tarefa baseada no status e prioridade
-                    let bgColorClass = task.status === "completed" 
-                      ? "bg-green-500/80 text-white" 
-                      : task.priority === "high" 
-                        ? "bg-red-500/80 text-white" 
-                        : task.status === "in_progress" 
-                          ? "bg-amber-500/80 text-white" 
-                          : "bg-blue-500/80 text-white";
-                    
-                    return (
-                      <div 
-                        key={`task-${idx}`}
-                        className={cn(
-                          "px-1.5 py-0.5 text-xs font-medium rounded truncate flex items-center",
-                          bgColorClass
-                        )}
-                      >
-                        <span className="mr-1">▢</span> {task.title}
-                      </div>
-                    );
-                  })}
-              </div>
+            {/* Lista de eventos e tarefas - limitado a 3 itens */}
+            <div className="mt-1 flex flex-col gap-0.5">
+              {dayEvents.slice(0, 1).map((event, idx) => (
+                <div
+                  key={`event-${idx}`}
+                  className="h-4 px-1 text-[0.65rem] rounded truncate bg-primary/70 text-primary-foreground"
+                >
+                  {event.name}
+                </div>
+              ))}
               
-              {/* Mobile: versão compacta com pontos indicadores */}
-              <div className="sm:hidden flex flex-col gap-0.5">
-                {dayEvents.slice(0, 1).map((event, idx) => (
-                  <div 
-                    key={`event-m-${idx}`}
-                    className="h-1.5 rounded-full bg-primary/80"
-                  />
-                ))}
-                
-                {dayTasks.slice(0, 1).map((task, idx) => {
-                  let bgColorClass = task.status === "completed" 
-                    ? "bg-green-500/80" 
-                    : task.priority === "high" 
-                      ? "bg-red-500/80" 
-                      : "bg-blue-500/80";
+              {dayTasks.slice(0, hasHighPriorityTask ? 2 : 1).map((task, idx) => {
+                // Determinar a cor da tarefa baseada no status e prioridade
+                let bgColorClass = task.status === "completed" 
+                  ? "bg-green-500/70 text-white" 
+                  : task.priority === "high" 
+                    ? "bg-red-500/70 text-white" 
+                    : task.status === "in_progress" 
+                      ? "bg-amber-500/70 text-white" 
+                      : "bg-blue-500/70 text-white";
                   
-                  return (
-                    <div 
-                      key={`task-m-${idx}`}
-                      className={cn("h-1.5 rounded-full", bgColorClass)}
-                    />
-                  );
-                })}
-              </div>
+                return (
+                  <div
+                    key={`task-${idx}`}
+                    className={cn(
+                      "h-4 px-1 text-[0.65rem] rounded truncate flex items-center",
+                      bgColorClass
+                    )}
+                  >
+                    <span className="mr-0.5 text-[0.6rem]">▢</span> {task.title}
+                  </div>
+                );
+              })}
               
-              {/* Indicador de mais itens - adaptado para mobile */}
-              {totalItems > 2 && (
-                <div className={cn(
-                  "text-muted-foreground mt-0.5",
-                  "text-[0.6rem] sm:text-xs"
-                )}>
-                  +{totalItems - 2}
+              {(dayEvents.length + dayTasks.length) > 2 && (
+                <div className="text-[0.65rem] text-muted-foreground pl-1">
+                  + {(dayEvents.length + dayTasks.length) - 2} mais
                 </div>
               )}
             </div>
             
-            {/* Indicadores na parte inferior */}
-            {totalItems > 0 && (
-              <div className="absolute bottom-1 left-1 right-1 flex gap-0.5">
-                {dayEvents.length > 0 && (
-                  <Badge variant="outline" className="bg-primary h-1 w-1/3 p-0 rounded-full border-none" />
-                )}
-                {hasPendingTask && (
-                  <Badge variant="outline" className="bg-amber-500 h-1 w-1/3 p-0 rounded-full border-none" />
-                )}
-                {dayTasks.some(task => task.status === "completed") && (
-                  <Badge variant="outline" className="bg-green-500 h-1 w-1/3 p-0 rounded-full border-none" />
-                )}
-              </div>
+            {/* Botão de adicionar - só aparece ao passar o mouse */}
+            {onAddItem && (
+              <button 
+                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddItem(cloneDay);
+                }}
+              >
+                <Plus className="h-3 w-3 text-primary" />
+              </button>
             )}
           </div>
         );
@@ -678,8 +638,8 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
       }
       
       rows.push(
-        <div key={`row-${day}`} className="grid grid-cols-7 border-b">
-          {days}
+        <div className="grid grid-cols-7" key={day.toString()}>
+        {days}
         </div>
       );
       days = [];
@@ -695,6 +655,15 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
 
   // Escolher a visualização correta
   const renderCalendarView = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center p-12 h-96">
+          <Loader2 className="h-12 w-12 animate-spin text-primary/70 mb-4" />
+          <p className="text-muted-foreground">Carregando eventos e tarefas...</p>
+        </div>
+      );
+    }
+    
     switch(view) {
       case 'day':
         return renderDayView();
@@ -714,4 +683,4 @@ const GoogleStyleCalendar: React.FC<GoogleStyleCalendarProps> = ({
   );
 };
 
-export default GoogleStyleCalendar;
+export default ScheduleCalendar;
