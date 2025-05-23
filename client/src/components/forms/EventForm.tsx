@@ -279,13 +279,13 @@ const EventForm: React.FC<EventFormProps> = ({
                         {imageUploading ? (
                           <div className="flex flex-col items-center">
                             <div className="animate-spin mb-2">
-                              <i className="fas fa-spinner text-2xl" />
+                              <i className="fas fa-spinner text-2xl text-foreground" />
                             </div>
                             <p className="text-sm text-muted-foreground">Carregando imagem...</p>
                           </div>
                         ) : (
                           <>
-                            <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+                            <Upload className="w-10 h-10 text-foreground mb-2" />
                             <p className="text-sm text-muted-foreground">Clique para adicionar uma imagem de capa</p>
                           </>
                         )}
@@ -320,7 +320,7 @@ const EventForm: React.FC<EventFormProps> = ({
                       setEventFormat("in_person");
                     }}
                   >
-                    <Users className="w-4 h-4" />
+                    <Users className="w-4 h-4 text-current" />
                     Presencial
                   </Badge>
                   <Badge 
@@ -331,7 +331,7 @@ const EventForm: React.FC<EventFormProps> = ({
                       setEventFormat("online");
                     }}
                   >
-                    <Video className="w-4 h-4" />
+                    <Video className="w-4 h-4 text-current" />
                     Online
                   </Badge>
                   <Badge 
@@ -342,7 +342,7 @@ const EventForm: React.FC<EventFormProps> = ({
                       setEventFormat("hybrid");
                     }}
                   >
-                    <UserCog className="w-4 h-4" />
+                    <UserCog className="w-4 h-4 text-current" />
                     Híbrido
                   </Badge>
                 </div>
@@ -606,7 +606,7 @@ const EventForm: React.FC<EventFormProps> = ({
             {isSubmitting ? (
               <>
                 <span className="animate-spin mr-2">
-                  <i className="fas fa-spinner" />
+                  <i className="fas fa-spinner text-current" />
                 </span>
                 {isEdit ? "Atualizando..." : "Criando..."}
               </>
