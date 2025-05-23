@@ -155,15 +155,31 @@ const EventForm: React.FC<EventFormProps> = ({
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
+      // Garantir que o meetingUrl seja incluído quando o formato for online
+      if (data.format === "online" || data.format === "hybrid") {
+        // Se o campo meetingUrl estiver vazio, definir um valor padrão
+        if (!data.meetingUrl) {
+          data.meetingUrl = data.meetingUrl || "";
+        }
+        console.log("[Debug EventForm] Dados de envio com meetingUrl:", data);
+      }
+
       if (isEdit && eventId) {
         // Update existing event
-        await apiRequest(
+        console.log("[Debug EventForm] Enviando dados para atualização:", data);
+        const response = await apiRequest(
           `/api/events/${eventId}`, 
           { 
             method: "PUT", 
-            body: data 
+            body: JSON.stringify(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
           }
         );
+        const updatedEvent = await response.json();
+        console.log("[Debug EventForm] Evento atualizado:", updatedEvent);
+        
         toast({
           title: "Evento atualizado",
           description: "O evento foi atualizado com sucesso!",
@@ -171,14 +187,20 @@ const EventForm: React.FC<EventFormProps> = ({
         navigate(`/events/${eventId}`);
       } else {
         // Create new event
+        console.log("[Debug EventForm] Enviando dados para criação:", data);
         const response = await apiRequest(
           "/api/events", 
           { 
             method: "POST", 
-            body: data 
+            body: JSON.stringify(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
           }
         );
         const newEvent = await response.json();
+        console.log("[Debug EventForm] Evento criado:", newEvent);
+        
         toast({
           title: "Evento criado",
           description: "O evento foi criado com sucesso!",

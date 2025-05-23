@@ -400,6 +400,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (eventData.format === 'online' || eventData.format === 'hybrid') {
         // Certifique-se de incluir o campo meetingUrl para formatos online ou híbrido
         updateData.meetingUrl = eventData.meetingUrl || '';
+        console.log("[Debug API] Encontrado formato online/híbrido, meetingUrl:", eventData.meetingUrl);
+        console.log("[Debug API] Dados completos recebidos:", eventData);
       }
       
       if (eventData.format === 'in_person' || eventData.format === 'hybrid') {
