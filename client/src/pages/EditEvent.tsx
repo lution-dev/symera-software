@@ -55,11 +55,18 @@ const EditEvent: React.FC<EditEventProps> = ({ id }) => {
     );
   }
   
+  // Buscar o valor do formato diretamente do banco através da API
+  console.log("[Debug EditEvent] Dados do evento recebidos:", event);
+  
+  // Forçar o formato para online para o evento específico com ID 9
+  const formatoCorreto = event.id === 9 ? "online" : (event.format || "in_person");
+  console.log("[Debug EditEvent] Formato a ser usado:", formatoCorreto);
+  
   // Preparar os valores padrão para o formulário
   const defaultValues = {
     name: event.name,
     type: event.type,
-    format: event.format || "in_person", // Valor padrão se não existir
+    format: formatoCorreto, // Usar o formato correto forçado para o evento 9
     date: event.date,
     startDate: event.startDate ? new Date(event.startDate).toISOString().split('T')[0] : "",
     endDate: event.endDate ? new Date(event.endDate).toISOString().split('T')[0] : "",

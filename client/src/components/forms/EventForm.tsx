@@ -99,7 +99,11 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const [imagePreview, setImagePreview] = useState<string | null>(defaultValues.coverImageUrl || null);
   const [imageUploading, setImageUploading] = useState(false);
-  const [eventFormat, setEventFormat] = useState<string>(defaultValues.format || "in_person");
+  // Inicializar o estado do formato com o valor do evento ou "in_person" como padrão
+  // Usar console.log para depuração do formato
+  const initialFormat = defaultValues.format || "in_person";
+  console.log("[Debug EventForm] Formato recebido:", defaultValues.format);
+  const [eventFormat, setEventFormat] = useState<string>(initialFormat);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
