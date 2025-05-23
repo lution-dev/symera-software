@@ -1099,24 +1099,25 @@ const Vendors: React.FC = () => {
                           className="bg-card border rounded-lg shadow-sm hover:shadow-md transition-shadow"
                         >
                           <div className="p-4">
+                            {/* Header Section - Optimized for mobile */}
                             <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-start gap-3">
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
-                                  {vendor.service === "catering" ? <Store className="h-5 w-5" /> :
-                                   vendor.service === "venue" ? <Store className="h-5 w-5" /> :
-                                   vendor.service === "photography" ? <Store className="h-5 w-5" /> :
-                                   vendor.service === "decoration" ? <Store className="h-5 w-5" /> :
-                                   vendor.service === "music" ? <Store className="h-5 w-5" /> :
-                                   vendor.service === "invitation" ? <Store className="h-5 w-5" /> :
-                                   vendor.service === "transport" ? <Store className="h-5 w-5" /> :
-                                   vendor.service === "cake" ? <Store className="h-5 w-5" /> :
-                                   vendor.service === "costume" ? <Store className="h-5 w-5" /> :
-                                   <Store className="h-5 w-5" />}
+                              <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 text-primary flex-shrink-0">
+                                  {vendor.service === "catering" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   vendor.service === "venue" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   vendor.service === "photography" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   vendor.service === "decoration" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   vendor.service === "music" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   vendor.service === "invitation" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   vendor.service === "transport" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   vendor.service === "cake" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   vendor.service === "costume" ? <Store className="h-4 w-4 sm:h-5 sm:w-5" /> :
+                                   <Store className="h-4 w-4 sm:h-5 sm:w-5" />}
                                 </div>
-                                <div>
-                                  <h3 className="font-medium">{vendor.name}</h3>
-                                  <div className="flex items-center text-sm text-muted-foreground mt-1">
-                                    <Badge variant="outline" className="mr-2">
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-medium truncate">{vendor.name}</h3>
+                                  <div className="flex flex-wrap items-center text-sm text-muted-foreground mt-1 gap-y-1 gap-x-2">
+                                    <Badge variant="outline" className="flex-shrink-0">
                                       {vendor.service === "catering" ? "Buffet" :
                                        vendor.service === "venue" ? "Local" :
                                        vendor.service === "photography" ? "Fotografia" :
@@ -1128,7 +1129,7 @@ const Vendors: React.FC = () => {
                                        vendor.service === "costume" ? "Vestuário" : "Outro"}
                                     </Badge>
                                     {vendor.cost && (
-                                      <div className="flex items-center">
+                                      <div className="flex items-center flex-shrink-0">
                                         <DollarSign className="h-3 w-3 mr-1" />
                                         {formatCurrency(vendor.cost)}
                                       </div>
@@ -1136,10 +1137,11 @@ const Vendors: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex space-x-1">
+                              <div className="flex space-x-1 flex-shrink-0 ml-2">
                                 <Button
                                   size="icon"
                                   variant="ghost"
+                                  className="h-8 w-8"
                                   onClick={() => handleEditVendor(vendor)}
                                 >
                                   <Edit2 className="h-4 w-4" />
@@ -1147,38 +1149,42 @@ const Vendors: React.FC = () => {
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="text-destructive hover:text-destructive/80"
+                                  className="text-destructive hover:text-destructive/80 h-8 w-8"
                                   onClick={() => handleDeleteVendor(vendor.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
+                            
+                            {/* Contact Information - Mobile optimized */}
                             {(vendor.contactName || vendor.contactEmail || vendor.contactPhone) && (
                               <div className="border-t pt-3 mt-3">
                                 <h4 className="text-sm font-medium mb-2">Informações de Contato</h4>
                                 <div className="grid grid-cols-1 gap-2">
                                   {vendor.contactName && (
-                                    <div className="flex items-center text-sm">
-                                      <User className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                                      {vendor.contactName}
+                                    <div className="flex items-center text-sm overflow-hidden">
+                                      <User className="h-3.5 w-3.5 mr-2 text-muted-foreground flex-shrink-0" />
+                                      <span className="truncate">{vendor.contactName}</span>
                                     </div>
                                   )}
                                   {vendor.contactEmail && (
-                                    <div className="flex items-center text-sm">
-                                      <Mail className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                                      {vendor.contactEmail}
+                                    <div className="flex items-center text-sm overflow-hidden">
+                                      <Mail className="h-3.5 w-3.5 mr-2 text-muted-foreground flex-shrink-0" />
+                                      <span className="truncate">{vendor.contactEmail}</span>
                                     </div>
                                   )}
                                   {vendor.contactPhone && (
                                     <div className="flex items-center text-sm">
-                                      <Phone className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                                      {vendor.contactPhone}
+                                      <Phone className="h-3.5 w-3.5 mr-2 text-muted-foreground flex-shrink-0" />
+                                      <span>{vendor.contactPhone}</span>
                                     </div>
                                   )}
                                 </div>
                               </div>
                             )}
+                            
+                            {/* Notes Section - Mobile optimized */}
                             {vendor.notes && (
                               <div className="border-t pt-3 mt-3">
                                 <div className="flex items-start text-sm">
@@ -1203,8 +1209,8 @@ const Vendors: React.FC = () => {
                     <div className="space-y-6">
                       {Object.entries(groupedByService).map(([service, serviceVendors]) => (
                         <div key={service} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-lg font-medium">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
+                            <h3 className="text-lg font-medium mb-1 sm:mb-0">
                               {service === "catering" ? "Buffet" :
                                service === "venue" ? "Local" :
                                service === "photography" ? "Fotografia" :
@@ -1230,16 +1236,16 @@ const Vendors: React.FC = () => {
                                 className="border rounded-lg p-3 hover:border-primary transition-colors"
                               >
                                 <div className="flex justify-between items-start">
-                                  <div>
-                                    <h4 className="font-medium">{vendor.name}</h4>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-medium truncate">{vendor.name}</h4>
                                     {vendor.cost && (
                                       <div className="text-sm text-muted-foreground flex items-center">
-                                        <DollarSign className="h-3 w-3 mr-1" />
-                                        {formatCurrency(vendor.cost)}
+                                        <DollarSign className="h-3 w-3 mr-1 flex-shrink-0" />
+                                        <span className="truncate">{formatCurrency(vendor.cost)}</span>
                                       </div>
                                     )}
                                   </div>
-                                  <div className="flex space-x-1">
+                                  <div className="flex space-x-1 flex-shrink-0 ml-2">
                                     <Button
                                       size="icon"
                                       variant="ghost"
@@ -1248,12 +1254,20 @@ const Vendors: React.FC = () => {
                                     >
                                       <Edit2 className="h-4 w-4" />
                                     </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-destructive hover:text-destructive/80"
+                                      onClick={() => handleDeleteVendor(vendor.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
                                 </div>
                                 {vendor.contactName && (
-                                  <div className="mt-1 text-sm flex items-center">
-                                    <User className="h-3 w-3 mr-1 text-muted-foreground" />
-                                    {vendor.contactName}
+                                  <div className="mt-1 text-sm flex items-center overflow-hidden">
+                                    <User className="h-3 w-3 mr-1 text-muted-foreground flex-shrink-0" />
+                                    <span className="truncate">{vendor.contactName}</span>
                                   </div>
                                 )}
                               </div>
