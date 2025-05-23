@@ -21,8 +21,8 @@ const handleOpenAIError = (error: any) => {
 // Esta é uma versão alternativa que não depende da OpenAI API
 export async function generateEventChecklist(eventData: CreateEventData): Promise<Array<{ title: string, dueDate?: Date, description?: string, priority?: string }>> {
   try {
-    // Use startDate if available, otherwise fallback to the date field
-    const eventStartDate = new Date(eventData.startDate || eventData.date);
+    // Use startDate which is now required
+    const eventStartDate = new Date(eventData.startDate);
     const today = new Date();
     const daysUntilEvent = Math.ceil((eventStartDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     

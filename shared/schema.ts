@@ -409,10 +409,9 @@ export const createEventSchema = z.object({
   name: z.string().min(3, "Nome do evento é obrigatório").max(100),
   type: z.enum(["wedding", "birthday", "corporate", "conference", "social", "other"]),
   startDate: z.string().or(z.date()),
-  endDate: z.string().or(z.date()).optional(),
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
-  date: z.string().or(z.date()), // Mantido para compatibilidade com código existente
+  endDate: z.string().or(z.date()),
+  startTime: z.string(),
+  endTime: z.string(),
   location: z.string().optional(),
   description: z.string().optional(),
   budget: z.number().optional(),
