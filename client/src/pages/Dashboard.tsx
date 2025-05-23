@@ -152,31 +152,7 @@ const Dashboard: React.FC = () => {
             </p>
           )}
 
-          {/* Quick Access Buttons for Mobile - Only visible on mobile */}
-          <div className="mt-3 sm:hidden">
-            <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
-              <Link href="/tasks">
-                <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
-                  <i className="fas fa-tasks text-primary mr-1.5"></i> Tarefas
-                </Button>
-              </Link>
-              <Link href="/vendors">
-                <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
-                  <i className="fas fa-store text-primary mr-1.5"></i> Fornecedores
-                </Button>
-              </Link>
-              <Link href="/team">
-                <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
-                  <i className="fas fa-users text-primary mr-1.5"></i> Equipe
-                </Button>
-              </Link>
-              <Link href="/checklist">
-                <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
-                  <i className="fas fa-clipboard-check text-primary mr-1.5"></i> Checklists
-                </Button>
-              </Link>
-            </div>
-          </div>
+
         </div>
         {/* Botão de criar evento removido no mobile, mantido apenas em telas maiores */}
         <div className="mt-3 md:mt-0 hidden sm:block">
@@ -196,6 +172,27 @@ const Dashboard: React.FC = () => {
         upcomingEvents={upcomingEvents.length}
         upcomingEventDays={upcomingEventDays}
       />
+
+      {/* Quick Access Buttons for Mobile - Only visible on mobile */}
+      <div className="mt-4 mb-4 sm:hidden">
+        <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+          <Link href="/vendors">
+            <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
+              <i className="fas fa-store text-primary mr-1.5"></i> Fornecedores
+            </Button>
+          </Link>
+          <Link href="/budget">
+            <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
+              <i className="fas fa-dollar-sign text-primary mr-1.5"></i> Orçamento
+            </Button>
+          </Link>
+          <Link href="/team">
+            <Button variant="outline" size="sm" className="h-10 px-3 border-primary/30 whitespace-nowrap">
+              <i className="fas fa-users text-primary mr-1.5"></i> Equipe
+            </Button>
+          </Link>
+        </div>
+      </div>
 
       {/* Card de dicas/recursos com sistema de rotação e interação */}
       <TipsCard 
