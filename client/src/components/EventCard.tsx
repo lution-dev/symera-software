@@ -49,7 +49,7 @@ const EventCard: React.FC<EventCardProps> = ({
   id,
   name,
   type,
-  format = "in_person",
+  format,
   startDate,
   endDate,
   startTime,
