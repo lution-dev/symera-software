@@ -192,13 +192,14 @@ const EventCard: React.FC<EventCardProps> = ({
               </span>
             </div>
             
-            {/* Formato do evento */}
+            {/* Formato do evento - exibindo exatamente como vem do banco */}
             <div className="flex items-center">
               <i className={`fas ${format === 'online' ? 'fa-video' : format === 'hybrid' ? 'fa-users-cog' : 'fa-users'} text-primary mr-1.5 w-4 text-center text-xs`}></i>
               <span className="text-muted-foreground text-xs truncate">
                 {format === 'online' ? 'Online' : 
                  format === 'hybrid' ? 'Híbrido' : 
-                 'Presencial'}
+                 format === 'in_person' ? 'Presencial' : 
+                 format || 'Não definido'}
               </span>
             </div>
             
