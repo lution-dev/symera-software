@@ -455,18 +455,7 @@ const Schedule: React.FC = () => {
         {/* Dialog mostrando os detalhes do dia - substitui o painel lateral */}
         <Dialog open={showDayDetailsDialog} onOpenChange={setShowDayDetailsDialog}>
           <DialogContent className="sm:max-w-md">
-            {/* Removido o botão de fechar automático do DialogContent */}
-            <div className="absolute right-4 top-4 hidden sm:block">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 rounded-full"
-                onClick={() => setShowDayDetailsDialog(false)}
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Fechar</span>
-              </Button>
-            </div>
+            {/* Sem botão de fechar no topo para manter hierarquia em mobile */}
             
             <DialogHeader>
               <DialogTitle className="flex items-center">
@@ -576,7 +565,7 @@ const Schedule: React.FC = () => {
               </div>
             </div>
             
-            <DialogFooter className="flex justify-between items-center gap-2 pt-3 mt-2 border-t">
+            <DialogFooter className="flex justify-between items-center gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -590,21 +579,10 @@ const Schedule: React.FC = () => {
                 Adicionar item
               </Button>
               
-              {/* Botão de fechar explícito no rodapé para mobile */}
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="sm:hidden"
-                onClick={() => setShowDayDetailsDialog(false)}
-              >
-                Fechar
-              </Button>
-              
-              {/* Mantém o botão de fechar no desktop mas com aparência suave */}
+              {/* Botão de fechar no rodapé - mesmo estilo para mobile e desktop */}
               <Button 
                 variant="ghost" 
-                size="sm" 
-                className="hidden sm:flex"
+                size="sm"
                 onClick={() => setShowDayDetailsDialog(false)}
               >
                 Fechar
