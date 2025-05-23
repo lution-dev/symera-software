@@ -90,15 +90,11 @@ const Event: React.FC<EventProps> = ({ id }) => {
     }
   }, [eventId, refetch]);
   
-  // Log dos dados do evento quando recebidos
+  // Log dos dados do evento quando recebidos - SEM MODIFICAÇÕES
   useEffect(() => {
     if (event) {
-      console.log("[Debug] Dados completos do evento carregado:", event);
-      
-      // APENAS para debugging - sem modificar os valores
-      if (event.id === 10) {
-        console.log("[Debug] Evento ID 10 - format:", event.format); 
-      }
+      console.log("[Debug] Dados do evento exatamente como vieram do banco:", event);
+      console.log("[Debug] Formato do evento (original):", event.format);
     }
   }, [event]);
   
@@ -541,10 +537,11 @@ const getFilteredAndSortedTasks = () => {
               <div>
                 <p className="text-xs text-muted-foreground">Formato</p>
                 <p className="text-sm font-medium">
+                  {/* Exibir exatamente o formato recebido do banco de dados com tradução */}
                   {event.format === 'in_person' ? 'Presencial' : 
                    event.format === 'online' ? 'Online' : 
                    event.format === 'hybrid' ? 'Híbrido' : 
-                   'Não definido'}
+                   event.format || 'Não definido'}
                 </p>
               </div>
             </div>

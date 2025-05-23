@@ -150,14 +150,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Buscando evento ${eventId} para usuário ${userId}`);
       
-      // Obter dados do evento diretamente do banco de dados para garantir valores corretos
-      const eventFromDb = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
-      let event;
-      
-      if (eventFromDb && eventFromDb.length > 0) {
-        event = eventFromDb[0];
-      } else {
-        event = await storage.getEventById(eventId);
+      try {
+        // Obter dados do evento diretamente do banco de dados para garantir valores corretos
+        const eventFromDb = await db.select().from(events).where(eq(events.id, parseInt(eventId))).limit(1);
+        console.log("Evento encontrado no banco:", eventFromDb);
+        
+        if (eventFromDb && eventFromDb.length > 0) {
+          return res.json(eventFromDb[0]);
+        } else {
+          // Fallback para o método de storage
+          const event = await storage.getEventById(eventId);
+          
+          if (!event) {
+            console.log(`Evento ${eventId} não encontrado`);
+            return res.status(404).json({ message: "Event not found" });
+          }
+          
+          return res.json(event);
+        }
+      } catch (error) {
+        console.error("Error fetching event:", error);
+        return res.status(500).json({ message: "Failed to fetch event" });
       }
       
       if (!event) {
