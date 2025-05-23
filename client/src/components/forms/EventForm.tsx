@@ -171,10 +171,7 @@ const EventForm: React.FC<EventFormProps> = ({
           `/api/events/${eventId}`, 
           { 
             method: "PUT", 
-            body: JSON.stringify(data),
-            headers: {
-              'Content-Type': 'application/json'
-            }
+            body: data  // O apiRequest já faz a serialização correta
           }
         );
         const updatedEvent = await response.json();
@@ -192,10 +189,7 @@ const EventForm: React.FC<EventFormProps> = ({
           "/api/events", 
           { 
             method: "POST", 
-            body: JSON.stringify(data),
-            headers: {
-              'Content-Type': 'application/json'
-            }
+            body: data  // O apiRequest já faz a serialização correta
           }
         );
         const newEvent = await response.json();
