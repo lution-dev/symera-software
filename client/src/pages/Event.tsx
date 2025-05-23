@@ -485,23 +485,26 @@ const getFilteredAndSortedTasks = () => {
                   <i className="fas fa-calendar-day text-sm"></i>
                 </div>
                 <div className="ml-3">
-                  <p className="text-xs text-muted-foreground">Período</p>
+                  <p className="text-xs text-muted-foreground">Quando</p>
                   <div>
                     {event.startDate && event.endDate ? (
-                      <>
-                        <p className="mt-0.5 text-sm font-medium">
-                          {event.startDate === event.endDate ? (
-                            <>{formatDate(event.startDate)}</>
-                          ) : (
-                            <>De {formatDate(event.startDate)} até {formatDate(event.endDate)}</>
-                          )}
-                        </p>
-                        {event.startTime && event.endTime && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {event.startTime} - {event.endTime}
-                          </p>
+                      <p className="mt-0.5 text-sm font-medium">
+                        {event.startDate === event.endDate ? (
+                          <>
+                            {new Date(event.startDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} 
+                            {event.startTime && event.endTime && (
+                              <> às {event.startTime.substring(0, 5)}{event.startTime !== event.endTime ? ` → ${event.endTime.substring(0, 5)}` : ''}</>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {new Date(event.startDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} 
+                            {event.startTime && <> às {event.startTime.substring(0, 5)}</>} 
+                            <> → {new Date(event.endDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</>
+                            {event.endTime && <> às {event.endTime.substring(0, 5)}</>}
+                          </>
                         )}
-                      </>
+                      </p>
                     ) : (
                       <p className="mt-0.5 text-sm font-medium">{formatDate(event.date)}</p>
                     )}
