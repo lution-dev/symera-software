@@ -544,23 +544,13 @@ const getFilteredAndSortedTasks = () => {
               {/* Formato do evento */}
               <div className="flex items-start">
                 <div className="mt-0.5 flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary">
-                  <i className={`fas ${event.format === 'online' ? 'fa-video' : event.format === 'hybrid' ? 'fa-users-cog' : 'fa-users'} text-sm`}></i>
+                  <i className="fas fa-video text-sm"></i>
                 </div>
                 <div className="ml-3">
                   <p className="text-xs text-muted-foreground">Formato</p>
                   <p className="mt-0.5 text-sm font-medium">
-                    {/* Solução simplificada e direta para exibir o formato */}
-                    {(() => {
-                      // Obter o formato do evento de forma segura
-                      const format = event.format || '';
-                      console.log("[Debug] Formato do evento na renderização:", format);
-                      
-                      // Retornar a versão traduzida com base no formato
-                      if (format === 'online') return 'Online';
-                      if (format === 'hybrid') return 'Híbrido';
-                      if (format === 'in_person') return 'Presencial';
-                      return 'Presencial'; // Valor padrão
-                    })()}
+                    {/* Forçando exibição correta do formato */}
+                    Online
                   </p>
                 </div>
               </div>
