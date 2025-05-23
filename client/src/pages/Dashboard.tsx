@@ -258,7 +258,10 @@ const Dashboard: React.FC = () => {
                       id={event.id}
                       name={event.name}
                       type={event.type}
-                      date={event.date}
+                      startDate={event.start_date || event.startDate}
+                      endDate={event.end_date || event.endDate}
+                      startTime={event.start_time || event.startTime || "19:00"}
+                      endTime={event.end_time || event.endTime || "23:00"}
                       location={event.location}
                       status={event.status}
                       attendees={event.attendees}
@@ -278,7 +281,10 @@ const Dashboard: React.FC = () => {
                   id={event.id}
                   name={event.name}
                   type={event.type}
-                  date={event.date}
+                  startDate={event.start_date || event.startDate}
+                  endDate={event.end_date || event.endDate}
+                  startTime={event.start_time || event.startTime || "19:00"}
+                  endTime={event.end_time || event.endTime || "23:00"}
                   location={event.location}
                   status={event.status}
                   attendees={event.attendees}
