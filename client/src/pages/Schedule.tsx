@@ -565,11 +565,11 @@ const Schedule: React.FC = () => {
               </div>
             </div>
             
-            <DialogFooter className="flex justify-between items-center gap-2">
+            <DialogFooter className="flex flex-col items-center gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="gap-2"
+                className="gap-2 w-full"
                 onClick={() => {
                   setShowNewItemDialog(true);
                   setShowDayDetailsDialog(false);
@@ -579,10 +579,11 @@ const Schedule: React.FC = () => {
                 Adicionar item
               </Button>
               
-              {/* Botão de fechar no rodapé - mesmo estilo para mobile e desktop */}
+              {/* Botão de fechar abaixo */}
               <Button 
                 variant="ghost" 
                 size="sm"
+                className="w-full"
                 onClick={() => setShowDayDetailsDialog(false)}
               >
                 Fechar
