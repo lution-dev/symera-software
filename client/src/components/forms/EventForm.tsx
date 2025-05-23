@@ -302,18 +302,19 @@ const EventForm: React.FC<EventFormProps> = ({
           )}
         />
             
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Grid otimizado para mobile - colunas únicas no mobile, duas colunas no desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* Formato do evento - como primeiro campo usando chips/badges */}
           <FormField
             control={form.control}
             name="format"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem className="col-span-full">
                 <FormLabel>Formato do evento</FormLabel>
-                <div className="flex flex-wrap gap-2 mt-1.5">
+                <div className="flex flex-wrap gap-3 mt-1.5">
                   <Badge 
                     variant={field.value === "in_person" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "in_person" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    className={`px-4 py-3 md:py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "in_person" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
                     onClick={() => {
                       field.onChange("in_person");
                       setEventFormat("in_person");
@@ -324,7 +325,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   </Badge>
                   <Badge 
                     variant={field.value === "online" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "online" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    className={`px-4 py-3 md:py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "online" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
                     onClick={() => {
                       field.onChange("online");
                       setEventFormat("online");
@@ -335,7 +336,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   </Badge>
                   <Badge 
                     variant={field.value === "hybrid" ? "default" : "outline"}
-                    className={`px-4 py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
+                    className={`px-4 py-3 md:py-2 cursor-pointer hover:bg-primary/90 transition-colors flex items-center gap-2 ${field.value === "hybrid" ? "bg-primary text-white" : "bg-background hover:bg-secondary/40"}`}
                     onClick={() => {
                       field.onChange("hybrid");
                       setEventFormat("hybrid");
@@ -399,69 +400,75 @@ const EventForm: React.FC<EventFormProps> = ({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de início</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="date" 
-                    {...field} 
-                    onChange={(e) => {
-                      field.onChange(e);
-                      // Atualiza o campo date para manter compatibilidade
-                      form.setValue("date", e.target.value);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Date/Time fields reorganized for better mobile responsiveness */}
+          {/* Col-span-full for mobile, but md:col-span-1 for desktop to maintain grid */}
+          <div className="col-span-full md:col-span-1 space-y-4">
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de início</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date" 
+                      {...field} 
+                      onChange={(e) => {
+                        field.onChange(e);
+                        // Atualiza o campo date para manter compatibilidade
+                        form.setValue("date", e.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de término</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="startTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Horário de início</FormLabel>
+                  <FormControl>
+                    <Input type="time" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="startTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Horário de início</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="col-span-full md:col-span-1 space-y-4">
+            <FormField
+              control={form.control}
+              name="endDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de término</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="endTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Horário de término</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="endTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Horário de término</FormLabel>
+                  <FormControl>
+                    <Input type="time" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {/* Mostrar campo de local apenas para eventos presenciais ou híbridos */}
           {(eventFormat === "in_person" || eventFormat === "hybrid") && (
@@ -548,7 +555,7 @@ const EventForm: React.FC<EventFormProps> = ({
               <FormControl>
                 <Textarea
                   placeholder="Descreva detalhes específicos do seu evento..."
-                  className="h-24"
+                  className="h-20 md:h-24"
                   {...field}
                 />
               </FormControl>
@@ -580,16 +587,22 @@ const EventForm: React.FC<EventFormProps> = ({
           />
         )}
 
-        <div className="flex justify-end space-x-3">
+        {/* Action buttons that stack on mobile */}
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate(isEdit && eventId ? `/events/${eventId}` : "/events")}
             disabled={isSubmitting}
+            className="w-full sm:w-auto"
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="w-full sm:w-auto"
+          >
             {isSubmitting ? (
               <>
                 <span className="animate-spin mr-2">
