@@ -1,172 +1,172 @@
-# Symera - AI-Powered Event Management Platform
+# Symera - Plataforma de Gestão de Eventos com IA
 
-Symera is an intelligent event management platform designed to streamline team collaboration through sophisticated task management and financial planning. The application features a mobile-first, responsive design with a focus on enhanced user experience.
+Symera é uma plataforma inteligente de gestão de eventos projetada para otimizar a colaboração em equipe através de gerenciamento sofisticado de tarefas e planejamento financeiro. A aplicação apresenta um design mobile-first, responsivo, com foco em experiência do usuário aprimorada.
 
-## 🚀 Features
+## 🚀 Funcionalidades
 
-- **AI-Assisted Planning**: Intelligent task prioritization and tracking
-- **Collaborative Task Management**: Real-time collaborative task planning features
-- **Financial Planning**: Budget tracking and vendor management
-- **Mobile-First Design**: Responsive UI with context-aware navigation
-- **Multiple Event Types**: Support for weddings, birthdays, corporate events, conferences, and more
-- **Internationalization**: Portuguese language support
-- **Dynamic Visualization**: Event format tracking and visualization
-- **Advanced Filtering**: Powerful filtering and sorting capabilities for events and tasks
+- **Planejamento Assistido por IA**: Priorização e acompanhamento inteligente de tarefas
+- **Gerenciamento Colaborativo de Tarefas**: Recursos de planejamento colaborativo de tarefas em tempo real
+- **Planejamento Financeiro**: Acompanhamento de orçamento e gestão de fornecedores
+- **Design Mobile-First**: Interface responsiva com navegação contextual
+- **Múltiplos Tipos de Eventos**: Suporte para casamentos, aniversários, eventos corporativos, conferências e mais
+- **Internacionalização**: Suporte ao idioma português
+- **Visualização Dinâmica**: Acompanhamento e visualização do formato do evento
+- **Filtragem Avançada**: Recursos poderosos de filtragem e classificação para eventos e tarefas
 
-## 📋 Technical Stack
+## 📋 Stack Tecnológica
 
 ### Frontend
-- **React**: Core UI library
-- **Tailwind CSS**: Utility-first CSS framework
-- **shadcn/ui**: High-quality UI components built on Radix UI
-- **Wouter**: Lightweight routing for React
-- **TanStack Query (React Query)**: Data fetching and state management
-- **React Hook Form**: Form validation and handling
-- **Zod**: Schema validation
-- **Framer Motion**: Animations and transitions
+- **React**: Biblioteca principal de UI
+- **Tailwind CSS**: Framework CSS utilitário
+- **shadcn/ui**: Componentes de UI de alta qualidade construídos sobre Radix UI
+- **Wouter**: Roteamento leve para React
+- **TanStack Query (React Query)**: Busca de dados e gerenciamento de estado
+- **React Hook Form**: Validação e manipulação de formulários
+- **Zod**: Validação de esquemas
+- **Framer Motion**: Animações e transições
 
 ### Backend
-- **Express.js**: Web server framework
-- **Drizzle ORM**: Database ORM for PostgreSQL
-- **PostgreSQL**: Relational database
-- **Passport.js**: Authentication middleware
-- **Replit Auth**: Authentication integration
+- **Express.js**: Framework de servidor web
+- **Drizzle ORM**: ORM de banco de dados para PostgreSQL
+- **PostgreSQL**: Banco de dados relacional
+- **Passport.js**: Middleware de autenticação
+- **Replit Auth**: Integração de autenticação
 
-## 🗄️ Database Schema
+## 🗄️ Esquema do Banco de Dados
 
-The application uses a PostgreSQL database with Drizzle ORM. Key entities include:
+A aplicação utiliza um banco de dados PostgreSQL com Drizzle ORM. As principais entidades incluem:
 
-- **Users**: User accounts and profiles
-- **Events**: Event details including type, format, date, and location
-- **Tasks**: Tasks associated with events
-- **Team Members**: Collaborators for events
-- **Vendors**: Service providers for events
-- **Budget Items**: Financial planning for events
+- **Usuários**: Contas e perfis de usuários
+- **Eventos**: Detalhes do evento, incluindo tipo, formato, data e localização
+- **Tarefas**: Tarefas associadas aos eventos
+- **Membros da Equipe**: Colaboradores para eventos
+- **Fornecedores**: Prestadores de serviços para eventos
+- **Itens de Orçamento**: Planejamento financeiro para eventos
 
-## 📁 Project Structure
+## 📁 Estrutura do Projeto
 
 ```
 /
-├── client/               # Frontend code
+├── client/               # Código do Frontend
 │   ├── src/
-│   │   ├── assets/       # Images and static assets
-│   │   ├── components/   # Reusable React components
-│   │   ├── hooks/        # Custom React hooks
-│   │   ├── lib/          # Utility functions
-│   │   ├── pages/        # Page components
-│   │   ├── App.tsx       # Main application component
-│   │   └── main.tsx      # Application entry point
-│   └── index.html        # HTML template
-├── server/               # Backend code
-│   ├── db.ts             # Database connection
-│   ├── routes.ts         # API routes
-│   ├── storage.ts        # Data access layer
-│   ├── index.ts          # Server entry point
-│   ├── replitAuth.ts     # Replit authentication
-│   └── openai.ts         # OpenAI integration
-├── shared/               # Shared code between frontend and backend
-│   ├── schema.ts         # Database schema definitions
-│   └── types.ts          # TypeScript type definitions
-├── .replit               # Replit configuration
-├── drizzle.config.ts     # Drizzle ORM configuration
-├── package.json          # Project dependencies
-└── vite.config.ts        # Vite bundler configuration
+│   │   ├── assets/       # Imagens e recursos estáticos
+│   │   ├── components/   # Componentes React reutilizáveis
+│   │   ├── hooks/        # Hooks React personalizados
+│   │   ├── lib/          # Funções utilitárias
+│   │   ├── pages/        # Componentes de página
+│   │   ├── App.tsx       # Componente principal da aplicação
+│   │   └── main.tsx      # Ponto de entrada da aplicação
+│   └── index.html        # Template HTML
+├── server/               # Código do Backend
+│   ├── db.ts             # Conexão com o banco de dados
+│   ├── routes.ts         # Rotas da API
+│   ├── storage.ts        # Camada de acesso a dados
+│   ├── index.ts          # Ponto de entrada do servidor
+│   ├── replitAuth.ts     # Autenticação Replit
+│   └── openai.ts         # Integração com OpenAI
+├── shared/               # Código compartilhado entre frontend e backend
+│   ├── schema.ts         # Definições de esquema do banco de dados
+│   └── types.ts          # Definições de tipos TypeScript
+├── .replit               # Configuração do Replit
+├── drizzle.config.ts     # Configuração do Drizzle ORM
+├── package.json          # Dependências do projeto
+└── vite.config.ts        # Configuração do bundler Vite
 ```
 
-## 🚀 Running the Project
+## 🚀 Executando o Projeto
 
-### Development
+### Desenvolvimento
 
-1. Ensure you have Node.js installed (v18 or newer recommended)
-2. Install dependencies:
+1. Certifique-se de ter o Node.js instalado (v18 ou mais recente recomendado)
+2. Instale as dependências:
    ```
    npm install
    ```
-3. Start the development server:
+3. Inicie o servidor de desenvolvimento:
    ```
    npm run dev
    ```
-   This will start both the backend Express server and the frontend Vite development server.
+   Isso iniciará tanto o servidor Express do backend quanto o servidor de desenvolvimento Vite do frontend.
 
-### Database Management
+### Gerenciamento do Banco de Dados
 
-To apply schema changes to the database:
+Para aplicar alterações de esquema ao banco de dados:
 
 ```
 npm run db:push
 ```
 
-Note: Always use the ORM for database operations rather than writing raw SQL.
+Nota: Sempre use o ORM para operações de banco de dados em vez de escrever SQL bruto.
 
-## 📱 Mobile and Responsive Design
+## 📱 Design Mobile e Responsivo
 
-Symera is designed to be mobile-first with responsive layouts:
-- Adaptive sidebar that transforms into a bottom navigation bar on mobile
-- Context-aware navigation based on screen size
-- Touch-friendly UI elements
-- Optimized forms and interactions for mobile devices
+Symera é projetada para ser mobile-first com layouts responsivos:
+- Barra lateral adaptativa que se transforma em uma barra de navegação inferior em dispositivos móveis
+- Navegação contextual baseada no tamanho da tela
+- Elementos de UI amigáveis ao toque
+- Formulários e interações otimizados para dispositivos móveis
 
-## 🔧 API Structure
+## 🔧 Estrutura da API
 
-The API follows RESTful conventions with the following primary endpoints:
+A API segue convenções RESTful com os seguintes endpoints principais:
 
-- `/api/auth/*`: Authentication endpoints
-- `/api/events/*`: Event management endpoints
-- `/api/tasks/*`: Task management endpoints
-- `/api/team/*`: Team management endpoints
-- `/api/vendors/*`: Vendor management endpoints
-- `/api/budget/*`: Budget management endpoints
+- `/api/auth/*`: Endpoints de autenticação
+- `/api/events/*`: Endpoints de gerenciamento de eventos
+- `/api/tasks/*`: Endpoints de gerenciamento de tarefas
+- `/api/team/*`: Endpoints de gerenciamento de equipe
+- `/api/vendors/*`: Endpoints de gerenciamento de fornecedores
+- `/api/budget/*`: Endpoints de gerenciamento de orçamento
 
-## 👥 Authentication
+## 👥 Autenticação
 
-The application uses Replit Auth for production and a dev authentication mode for development. Authentication state is managed through session cookies.
+A aplicação utiliza Replit Auth para produção e um modo de autenticação de desenvolvimento para desenvolvimento. O estado de autenticação é gerenciado através de cookies de sessão.
 
-## 📊 Data Visualization
+## 📊 Visualização de Dados
 
-Event progress and statistics are visualized through:
-- Progress indicators
-- Task completion charts
-- Budget allocation visualization
-- Time-based event scheduling
+O progresso e as estatísticas dos eventos são visualizados através de:
+- Indicadores de progresso
+- Gráficos de conclusão de tarefas
+- Visualização de alocação de orçamento
+- Agendamento de eventos baseado em tempo
 
-## 🚀 Deployment
+## 🚀 Implantação
 
-The application is configured for deployment on Replit. To deploy:
+A aplicação está configurada para implantação no Replit. Para implantar:
 
-1. Build the application:
+1. Construa a aplicação:
    ```
    npm run build
    ```
-2. Start the production server:
+2. Inicie o servidor de produção:
    ```
    npm run start
    ```
 
-## 📝 Development Guidelines
+## 📝 Diretrizes de Desenvolvimento
 
-- Update the database schema in `shared/schema.ts` when adding new data models
-- Use React Query for data fetching in the frontend
-- Follow the established component structure for consistency
-- Implement form validation using Zod schemas
-- Keep the codebase modular and maintainable
-- Use shadcn components for UI consistency
+- Atualize o esquema do banco de dados em `shared/schema.ts` ao adicionar novos modelos de dados
+- Use React Query para busca de dados no frontend
+- Siga a estrutura de componentes estabelecida para consistência
+- Implemente validação de formulário usando esquemas Zod
+- Mantenha o código modular e de fácil manutenção
+- Use componentes shadcn para consistência da UI
 
-## 🌐 Environment Variables
+## 🌐 Variáveis de Ambiente
 
-The following environment variables are used:
+As seguintes variáveis de ambiente são utilizadas:
 
-- `DATABASE_URL`: PostgreSQL connection string
-- `NODE_ENV`: Environment (development or production)
-- `OPENAI_API_KEY`: For AI-assisted features (optional)
+- `DATABASE_URL`: String de conexão PostgreSQL
+- `NODE_ENV`: Ambiente (desenvolvimento ou produção)
+- `OPENAI_API_KEY`: Para recursos assistidos por IA (opcional)
 
-## ⚙️ Dependencies
+## ⚙️ Dependências
 
-See `package.json` for the complete list of dependencies.
+Veja `package.json` para a lista completa de dependências.
 
-## 📅 Last Updated
+## 📅 Última Atualização
 
-May 23, 2025
+23 de Maio de 2025
 
 ---
 
-© 2025 Symera. All Rights Reserved.
+© 2025 Symera. Todos os Direitos Reservados.
