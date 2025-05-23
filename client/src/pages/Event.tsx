@@ -907,9 +907,10 @@ const getFilteredAndSortedTasks = () => {
                     <Button 
                       variant={(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all") ? "default" : "outline"} 
                       size="sm" 
-                      className="h-9 px-3 min-w-[42px]"
+                      className="h-9 px-3 min-w-[42px] sm:min-w-[120px]"
                     >
-                      <i className="fas fa-filter text-sm"></i>
+                      <i className="fas fa-filter text-sm sm:mr-2"></i>
+                      <span className="hidden sm:inline">Filtrar por</span>
                       {(statusFilter !== "all" || priorityFilter !== "all" || dateFilter !== "all" || assigneeFilter !== "all") && 
                         <span className="ml-1 bg-primary-foreground/20 rounded-full h-2 w-2 inline-block"></span>
                       }
@@ -1029,9 +1030,10 @@ const getFilteredAndSortedTasks = () => {
                     <Button 
                       variant={sortBy !== "dueDate" || sortOrder !== "asc" ? "default" : "outline"} 
                       size="sm" 
-                      className="h-9 px-3 min-w-[42px]"
+                      className="h-9 px-3 min-w-[42px] sm:min-w-[120px]"
                     >
-                      <i className="fas fa-sort text-sm"></i>
+                      <i className="fas fa-sort text-sm sm:mr-2"></i>
+                      <span className="hidden sm:inline">Ordenar por</span>
                       <span className="w-1 h-1 ml-1 rounded-full bg-primary-foreground/70"></span>
                     </Button>
                   </DropdownMenuTrigger>
