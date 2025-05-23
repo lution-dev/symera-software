@@ -258,7 +258,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-10">
         {/* Pending Tasks - Versão mobile com scroll horizontal para economizar espaço vertical */}
         <div className="lg:col-span-2 order-1">
-          <div className="rounded-lg p-3 sm:p-5">
+          <div>
             <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 flex items-center">
               <i className="fas fa-tasks text-primary mr-2"></i>
               Tarefas Pendentes
