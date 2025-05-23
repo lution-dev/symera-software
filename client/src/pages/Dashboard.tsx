@@ -34,7 +34,16 @@ const Dashboard: React.FC = () => {
   });
 
   const upcomingEvents = data?.upcomingEvents || [];
-  const activeEventsList = data?.activeEventsList || [];
+  // Get events list and sort by start date (upcoming first)
+  const activeEventsList = React.useMemo(() => {
+    const events = data?.activeEventsList || [];
+    return [...events].sort((a, b) => {
+      const dateA = new Date(a.start_date || a.startDate || "2099-12-31");
+      const dateB = new Date(b.start_date || b.startDate || "2099-12-31");
+      return dateA.getTime() - dateB.getTime();
+    });
+  }, [data?.activeEventsList]);
+  
   const totalEvents = data?.totalEvents || 0;
   const pendingTasks = data?.pendingTasks || [];
   const recentActivities = data?.recentActivities || [];
