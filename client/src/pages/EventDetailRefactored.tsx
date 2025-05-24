@@ -380,11 +380,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
         {/* Menu dropdown para mobile */}
         <div className="md:hidden px-4 mb-4">
           <Select value={activeSection} onValueChange={(value) => {
-            if (value === 'editar') {
-              navigate(`/events/${eventId}/edit`);
-            } else {
-              setActiveSection(value);
-            }
+            setActiveSection(value);
           }}>
             <SelectTrigger className="w-full" aria-label="Selecionar seção">
               <SelectValue placeholder="Selecionar seção" />
