@@ -892,20 +892,215 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             />
           )}
           
-          {/* Placeholder para seções em desenvolvimento */}
-          {(activeSection === "participantes" || 
-            activeSection === "cronograma" || 
-            activeSection === "financeiro" || 
-            activeSection === "documentos" ||
-            activeSection === "feedback") && (
-            <div className="bg-card rounded-lg p-8 text-center">
-              <div className="w-16 h-16 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
-                <i className="fas fa-tools text-muted-foreground text-2xl"></i>
+          {/* Lista de Participantes */}
+          {activeSection === "participantes" && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                <h2 className="text-xl font-semibold">Lista de Participantes</h2>
+                <div className="flex space-x-2 w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="flex-1 sm:flex-auto">
+                    <i className="fas fa-file-import mr-2"></i> Importar
+                  </Button>
+                  <Button variant="default" size="sm" className="flex-1 sm:flex-auto">
+                    <i className="fas fa-plus mr-2"></i> Adicionar
+                  </Button>
+                </div>
               </div>
-              <h3 className="text-lg font-medium mb-2">Em desenvolvimento</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Esta funcionalidade está sendo implementada e estará disponível em breve.
-              </p>
+              
+              <div className="bg-card rounded-lg border border-border p-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                  <div className="w-full sm:w-72">
+                    <Input
+                      placeholder="Buscar participantes..."
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Select defaultValue="todos">
+                      <SelectTrigger className="w-full sm:w-[140px] h-9">
+                        <SelectValue placeholder="Filtrar por..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todos">Todos</SelectItem>
+                        <SelectItem value="confirmados">Confirmados</SelectItem>
+                        <SelectItem value="pendentes">Pendentes</SelectItem>
+                        <SelectItem value="cancelados">Cancelados</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="text-center py-12 border border-dashed border-border rounded-lg mt-4">
+                  <i className="fas fa-user-friends text-3xl text-muted-foreground/50 mb-3"></i>
+                  <h3 className="font-medium text-lg mb-2">Nenhum participante cadastrado</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Adicione participantes para gerenciar presenças no seu evento</p>
+                  <Button variant="default">
+                    <i className="fas fa-plus mr-2"></i> Adicionar Primeiro Participante
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Cronograma */}
+          {activeSection === "cronograma" && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                <h2 className="text-xl font-semibold">Cronograma do Evento</h2>
+                <Button variant="default" className="w-full sm:w-auto">
+                  <i className="fas fa-plus mr-2"></i> Adicionar Atividade
+                </Button>
+              </div>
+              
+              <div className="bg-card rounded-lg border border-border p-6">
+                <div className="border-l-2 border-primary/30 pl-4 space-y-8 relative py-4">
+                  <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-primary"></div>
+                  
+                  <div className="text-center py-12">
+                    <i className="fas fa-calendar-day text-3xl text-muted-foreground/50 mb-3"></i>
+                    <h3 className="font-medium text-lg mb-2">Cronograma vazio</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Adicione atividades com horários para criar o cronograma do seu evento
+                    </p>
+                    <Button variant="default">
+                      <i className="fas fa-plus mr-2"></i> Adicionar Primeira Atividade
+                    </Button>
+                  </div>
+                  
+                  <div className="absolute left-[-8px] bottom-0 w-4 h-4 rounded-full bg-primary/30"></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Financeiro */}
+          {activeSection === "financeiro" && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                <h2 className="text-xl font-semibold">Financeiro</h2>
+                <div className="flex space-x-2 w-full sm:w-auto">
+                  <Button variant="outline" className="flex-1 sm:flex-auto">
+                    <i className="fas fa-file-export mr-2"></i> Exportar
+                  </Button>
+                  <Button variant="default" className="flex-1 sm:flex-auto">
+                    <i className="fas fa-plus mr-2"></i> Registrar Gasto
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Cards de resumo financeiro */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-card rounded-lg border border-border p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Orçamento Total</p>
+                  <p className="text-2xl font-bold mb-0">R$ {formatCurrency(event.budget || 0)}</p>
+                </div>
+                <div className="bg-card rounded-lg border border-border p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Gastos Atuais</p>
+                  <p className="text-2xl font-bold mb-0">R$ {formatCurrency(event.expenses || 0)}</p>
+                </div>
+                <div className="bg-card rounded-lg border border-border p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Saldo</p>
+                  <p className="text-2xl font-bold mb-0 text-green-500">
+                    R$ {formatCurrency((event.budget || 0) - (event.expenses || 0))}
+                  </p>
+                </div>
+                <div className="bg-card rounded-lg border border-border p-4">
+                  <p className="text-sm text-muted-foreground mb-1">Custo por Convidado</p>
+                  <p className="text-2xl font-bold mb-0">
+                    R$ {event.attendees ? formatCurrency((event.budget || 0) / event.attendees) : '0,00'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-card rounded-lg border border-border p-6">
+                <h3 className="font-medium mb-4">Categorias de Gastos</h3>
+                
+                <div className="text-center py-8">
+                  <i className="fas fa-coins text-3xl text-muted-foreground/50 mb-3"></i>
+                  <h3 className="font-medium text-lg mb-2">Sem gastos registrados</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Registre gastos para começar a controlar o orçamento do seu evento
+                  </p>
+                  <Button variant="default">
+                    <i className="fas fa-plus mr-2"></i> Registrar Primeiro Gasto
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Documentos */}
+          {activeSection === "documentos" && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                <h2 className="text-xl font-semibold">Documentos</h2>
+                <Button variant="default" className="w-full sm:w-auto">
+                  <i className="fas fa-upload mr-2"></i> Fazer Upload
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-card rounded-lg border border-border p-4">
+                  <p className="font-medium mb-1">Contratos</p>
+                  <p className="text-sm text-muted-foreground">0 documentos</p>
+                </div>
+                <div className="bg-card rounded-lg border border-border p-4">
+                  <p className="font-medium mb-1">Orçamentos</p>
+                  <p className="text-sm text-muted-foreground">0 documentos</p>
+                </div>
+                <div className="bg-card rounded-lg border border-border p-4">
+                  <p className="font-medium mb-1">Outros</p>
+                  <p className="text-sm text-muted-foreground">0 documentos</p>
+                </div>
+              </div>
+              
+              <div className="bg-card rounded-lg border border-border p-6">
+                <div className="text-center py-12">
+                  <i className="fas fa-file-alt text-3xl text-muted-foreground/50 mb-3"></i>
+                  <h3 className="font-medium text-lg mb-2">Nenhum documento disponível</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Faça upload de contratos, orçamentos e outros documentos relacionados ao evento
+                  </p>
+                  <Button variant="default">
+                    <i className="fas fa-upload mr-2"></i> Fazer Upload do Primeiro Documento
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Feedback pós-evento */}
+          {activeSection === "feedback" && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                <h2 className="text-xl font-semibold">Feedback pós-evento</h2>
+                <Button variant="default" className="w-full sm:w-auto">
+                  <i className="fas fa-paper-plane mr-2"></i> Enviar Pesquisa
+                </Button>
+              </div>
+              
+              <div className="bg-card rounded-lg border border-border p-6">
+                <div className="mb-6">
+                  <h3 className="font-medium mb-2">Resumo de Feedbacks</h3>
+                  <p className="text-sm text-muted-foreground">Colete feedbacks sobre o evento após sua realização</p>
+                </div>
+                
+                <div className="text-center py-8">
+                  <i className="fas fa-comment-alt text-3xl text-muted-foreground/50 mb-3"></i>
+                  <h3 className="font-medium text-lg mb-2">Nenhum feedback recebido</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {event.startDate && getRemainingDays(event.startDate) > 0 ? 
+                      `O evento acontecerá em ${getRemainingDays(event.startDate)} dias. Os feedbacks serão coletados após o evento.` : 
+                      'Envie um formulário de feedback para os participantes avaliarem o evento.'
+                    }
+                  </p>
+                  {event.startDate && getRemainingDays(event.startDate) <= 0 && (
+                    <Button variant="default">
+                      <i className="fas fa-paper-plane mr-2"></i> Enviar Pesquisa de Feedback
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
