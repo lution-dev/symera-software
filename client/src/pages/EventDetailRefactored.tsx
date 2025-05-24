@@ -953,29 +953,39 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               
               <div className="bg-card rounded-lg border border-border p-6">
                 <div className="border-l-2 border-primary/30 pl-4 space-y-8 relative py-4">
-                  {/* Início do cronograma com data do evento */}
-                  <div className="relative mb-2">
-                    <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-primary"></div>
+                  {/* Início do cronograma com data do evento - estilo conforme imagem */}
+                  <div className="relative mb-6">
+                    <div className="absolute left-[-8px] top-4 w-4 h-4 rounded-full bg-primary"></div>
                     <div className="ml-5 bg-primary/10 p-3 rounded-lg border border-primary/20 mb-6">
-                      <div className="flex items-center gap-2">
-                        <i className="fas fa-calendar-day text-primary"></i>
-                        <span className="font-medium">
-                          {event.startDate ? formatDate(event.startDate) : "Data do evento"}
-                          {event.startTime && event.endTime && (
-                            <span className="ml-1 text-primary/80">
-                              {event.startTime.substring(0, 5)} - {event.endTime.substring(0, 5)}
-                            </span>
-                          )}
-                        </span>
+                      <div className="flex items-start gap-2">
+                        <i className="fas fa-calendar-day text-primary mt-0.5"></i>
+                        <div>
+                          <span className="font-medium">
+                            {event.startDate ? (
+                              <>
+                                {new Date(event.startDate).getDate()} de{' '}
+                                {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(event.startDate)).replace('.', '')} de{' '}
+                                {new Date(event.startDate).getFullYear()}
+                                {event.startTime && event.endTime && (
+                                  <span className="ml-1 text-primary">
+                                    {event.startTime.substring(0, 5)} - {event.endTime.substring(0, 5)}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              "Data do evento"
+                            )}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <i className="fas fa-map-marker-alt text-primary text-sm"></i>
+                      <div className="flex items-start gap-2 mt-2">
+                        <i className="fas fa-map-marker-alt text-primary text-sm mt-0.5"></i>
                         <span className="text-sm">
                           {event.name} - {event.location || "Local não definido"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <i className="fas fa-info-circle text-primary text-sm"></i>
+                      <div className="flex items-start gap-2 mt-2">
+                        <i className="fas fa-info-circle text-primary text-sm mt-0.5"></i>
                         <span className="text-xs text-muted-foreground">
                           Programação completa do evento com {event.attendees || 0} convidados esperados
                         </span>
@@ -994,7 +1004,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
                         <h4 className="font-medium">Recepção dos convidados</h4>
                         <p className="text-sm text-muted-foreground">Credenciamento e entrega de materiais promocionais</p>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">Saguão Principal</Badge>
                           <Badge variant="outline" className="text-xs">Equipe de Recepção</Badge>
                         </div>
@@ -1010,7 +1020,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
                         <h4 className="font-medium">Apresentação da coleção</h4>
                         <p className="text-sm text-muted-foreground">Discurso de abertura e apresentação das principais peças da coleção</p>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">Auditório</Badge>
                           <Badge variant="outline" className="text-xs">Diretor Criativo</Badge>
                         </div>
@@ -1026,7 +1036,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
                         <h4 className="font-medium">Almoço de networking</h4>
                         <p className="text-sm text-muted-foreground">Buffet completo e networking entre convidados</p>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">Salão de Festas</Badge>
                           <Badge variant="outline" className="text-xs">Todos os convidados</Badge>
                         </div>
@@ -1042,7 +1052,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
                         <h4 className="font-medium">Desfile com modelos</h4>
                         <p className="text-sm text-muted-foreground">Apresentação das peças em passarela com modelos profissionais</p>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">Área de Exposição</Badge>
                           <Badge variant="outline" className="text-xs">Equipe de Produção</Badge>
                         </div>
@@ -1058,7 +1068,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
                         <h4 className="font-medium">Coquetel de encerramento</h4>
                         <p className="text-sm text-muted-foreground">Drinks, canapés e networking para finalizar o evento</p>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">Terraço</Badge>
                           <Badge variant="outline" className="text-xs">Todos os convidados</Badge>
                         </div>
