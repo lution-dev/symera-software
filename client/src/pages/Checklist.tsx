@@ -32,7 +32,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createTaskSchema } from "@shared/schema";
+import { insertTaskSchema } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ChecklistProps {

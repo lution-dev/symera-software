@@ -299,7 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       
       // Validate event data
-      const eventData = createEventSchema.parse(req.body);
+      const eventData = insertEventSchema.parse(req.body);
       
       // Preparar os dados para criação do evento com tipos corretos
       const createData: any = {
@@ -384,7 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate event data
-      const eventData = createEventSchema.parse(req.body);
+      const eventData = insertEventSchema.parse(req.body);
       
       // Check if user is the owner
       const event = await storage.getEventById(eventId);
@@ -1194,6 +1194,202 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Falha ao excluir item do orçamento" });
     }
   });
+  
+  // ROTAS PARA CRONOGRAMA DE EVENTOS
+  
+  // Rota para buscar todos os itens do cronograma de um evento
+  app.get('/api/events/:eventId/schedule', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a este evento" });
+      }
+      
+      // Buscar itens do cronograma do evento
+      const scheduleItems = await db.select().from(schema.scheduleItems)
+        .where(eq(schema.scheduleItems.eventId, eventId))
+        .orderBy(schema.scheduleItems.startTime);
+      
+      res.json(scheduleItems);
+    } catch (error) {
+      console.error("Erro ao buscar itens do cronograma:", error);
+      res.status(500).json({ message: "Falha ao buscar itens do cronograma" });
+    }
+  });
+  
+  // Rota para adicionar um item ao cronograma de um evento
+  app.post('/api/events/:eventId/schedule', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a este evento" });
+      }
+      
+      // Validar dados do item do cronograma
+      const itemData = insertScheduleItemSchema.omit({ id: true, eventId: true }).parse(req.body);
+      
+      // Criar item do cronograma
+      const newItem = await db.insert(schema.scheduleItems).values({
+        ...itemData,
+        eventId,
+      }).returning();
+      
+      // Log da atividade
+      await storage.createActivityLog({
+        eventId,
+        userId,
+        action: "schedule_item_created",
+        details: { 
+          title: itemData.title,
+          startTime: itemData.startTime
+        }
+      });
+      
+      res.status(201).json(newItem[0]);
+    } catch (error) {
+      console.error("Erro ao adicionar item ao cronograma:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos para o item do cronograma", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Falha ao adicionar item ao cronograma" });
+    }
+  });
+  
+  // Rota para atualizar um item do cronograma
+  app.put('/api/schedule/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const itemId = parseInt(req.params.id, 10);
+      
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "ID de item inválido" });
+      }
+      
+      // Buscar item para verificar a qual evento pertence
+      const scheduleItem = await db.select().from(schema.scheduleItems)
+        .where(eq(schema.scheduleItems.id, itemId))
+        .limit(1);
+      
+      if (!scheduleItem || scheduleItem.length === 0) {
+        return res.status(404).json({ message: "Item do cronograma não encontrado" });
+      }
+      
+      const item = scheduleItem[0];
+      
+      // Verificar se o usuário tem acesso ao evento do item
+      const hasAccess = await storage.hasUserAccessToEvent(userId, item.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a este item" });
+      }
+      
+      // Validar dados do item
+      const updateSchema = insertScheduleItemSchema.partial().omit({ id: true, eventId: true });
+      const updateData = updateSchema.parse(req.body);
+      
+      // Atualizar item
+      const updatedItem = await db.update(schema.scheduleItems)
+        .set({
+          ...updateData,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.scheduleItems.id, itemId))
+        .returning();
+      
+      // Log da atividade
+      await storage.createActivityLog({
+        eventId: item.eventId,
+        userId,
+        action: "schedule_item_updated",
+        details: { 
+          title: updateData.title || item.title,
+          startTime: updateData.startTime || item.startTime
+        }
+      });
+      
+      res.json(updatedItem[0]);
+    } catch (error) {
+      console.error("Erro ao atualizar item do cronograma:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos para o item do cronograma", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Falha ao atualizar item do cronograma" });
+    }
+  });
+  
+  // Rota para excluir um item do cronograma
+  app.delete('/api/schedule/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const itemId = parseInt(req.params.id, 10);
+      
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "ID de item inválido" });
+      }
+      
+      // Buscar item para verificar a qual evento pertence
+      const scheduleItem = await db.select().from(schema.scheduleItems)
+        .where(eq(schema.scheduleItems.id, itemId))
+        .limit(1);
+      
+      if (!scheduleItem || scheduleItem.length === 0) {
+        return res.status(404).json({ message: "Item do cronograma não encontrado" });
+      }
+      
+      const item = scheduleItem[0];
+      
+      // Verificar se o usuário tem acesso ao evento do item
+      const hasAccess = await storage.hasUserAccessToEvent(userId, item.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a este item" });
+      }
+      
+      // Excluir item
+      await db.delete(schema.scheduleItems)
+        .where(eq(schema.scheduleItems.id, itemId));
+      
+      // Log da atividade
+      await storage.createActivityLog({
+        eventId: item.eventId,
+        userId,
+        action: "schedule_item_deleted",
+        details: { 
+          title: item.title,
+          startTime: item.startTime
+        }
+      });
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Erro ao excluir item do cronograma:", error);
+      res.status(500).json({ message: "Falha ao excluir item do cronograma" });
+    }
+  });
 
   app.post('/api/events/:eventId/tasks', isAuthenticated, async (req: any, res) => {
     try {
@@ -1217,7 +1413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId
       };
       
-      const validatedTaskData = createTaskSchema.parse(taskData);
+      const validatedTaskData = insertTaskSchema.parse(taskData);
       
       // Preparar dados da tarefa com tipos corretos
       const taskDataToCreate: any = {

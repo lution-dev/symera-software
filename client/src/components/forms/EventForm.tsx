@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createEventSchema } from "@shared/schema";
+import { insertEventSchema } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,7 @@ const EventForm: React.FC<EventFormProps> = ({
   }, [savedDate]);
 
   const form = useForm({
-    resolver: zodResolver(createEventSchema),
+    resolver: zodResolver(insertEventSchema),
     defaultValues,
   });
 
