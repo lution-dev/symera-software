@@ -582,24 +582,24 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Barra de Progresso - Movida para baixo do card principal */}
-                  <div className="mt-4 p-3 bg-card/60 rounded-md border border-border/40">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-9 h-9 flex items-center justify-center text-primary">
-                        <i className="far fa-tasks text-sm"></i>
+                </div>
+                
+                {/* Barra de Progresso - Completamente fora do card principal */}
+                <div className="bg-card mt-4 p-3 rounded-md border border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-9 h-9 flex items-center justify-center text-primary">
+                      <i className="far fa-tasks text-sm"></i>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs text-muted-foreground">Progresso</p>
+                        <span className="text-xs font-medium">{progress}%</span>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-xs text-muted-foreground">Progresso</p>
-                          <span className="text-xs font-medium">{progress}%</span>
-                        </div>
-                        <div className="w-full bg-primary/10 rounded-full h-2">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
-                            style={{ width: `${progress}%` }}
-                          ></div>
-                        </div>
+                      <div className="w-full bg-primary/10 rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full" 
+                          style={{ width: `${progress}%` }}
+                        ></div>
                       </div>
                     </div>
                   </div>
