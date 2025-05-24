@@ -3,9 +3,9 @@ import {
   events,
   tasks,
   taskAssignees,
-  teamMembers: eventTeamMembers,
+  eventTeamMembers,
   vendors,
-  eventActivities: activityLogs,
+  activityLogs,
   type User,
   type Event,
   type Task,
@@ -523,8 +523,8 @@ export class DatabaseStorage implements IStorage {
   async getTeamMembersByEventId(eventId: number): Promise<(EventTeamMember & { user: User })[]> {
     const teamMembers = await db
       .select()
-      .from(teamMembers)
-      .where(eq(teamMembers.eventId, eventId));
+      .from(eventTeamMembers)
+      .where(eq(eventTeamMembers.eventId, eventId));
     
     // Get user details for each team member
     return Promise.all(
@@ -689,14 +689,14 @@ export class DatabaseStorage implements IStorage {
   async getActivityLogsByEventId(eventId: number): Promise<ActivityLog[]> {
     return db
       .select()
-      .from(activities)
-      .where(eq(activities.eventId, eventId))
-      .orderBy(desc(activities.createdAt));
+      .from(activityLogs)
+      .where(eq(activityLogs.eventId, eventId))
+      .orderBy(desc(activityLogs.createdAt));
   }
 
   async createActivityLog(activityLogData: InsertActivityLog): Promise<ActivityLog> {
     const [activityLog] = await db
-      .insert(activities)
+      .insert(activityLogs)
       .values(activityLogData)
       .returning();
     return activityLog;

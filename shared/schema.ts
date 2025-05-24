@@ -99,6 +99,36 @@ export const vendors = pgTable('vendors', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Tabela para itens de orçamento
+export const budgetItems = pgTable('budget_items', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: integer('event_id').references(() => events.id).notNull(),
+  name: text('name').notNull(),
+  amount: integer('amount').notNull(),
+  category: text('category'),
+  dueDate: timestamp('due_date'),
+  paid: boolean('paid').default(false),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Tabela para despesas
+export const expenses = pgTable('expenses', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: integer('event_id').references(() => events.id).notNull(),
+  name: text('name').notNull(),
+  amount: integer('amount').notNull(),
+  category: text('category'),
+  dueDate: timestamp('due_date'),
+  paymentDate: timestamp('payment_date'),
+  paid: boolean('paid').default(false),
+  notes: text('notes'),
+  vendorId: integer('vendor_id').references(() => vendors.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Nova tabela para itens do cronograma
 export const scheduleItems = pgTable('schedule_items', {
   id: integer('id').primaryKey({ autoIncrement: true }),
