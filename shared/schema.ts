@@ -36,16 +36,8 @@ export const events = pgTable('events', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const eventsRelations = relations(events, ({ one, many }) => ({
-  owner: one(users, {
-    fields: [events.ownerId],
-    references: [users.id],
-  }),
-  tasks: many(tasks),
-  teamMembers: many(eventTeamMembers),
-  activities: many(activityLogs),
-  scheduleItems: many(scheduleItems),
-}));
+// Declaração das relações será feita após a definição de todas as tabelas
+// para evitar referências a tabelas ainda não definidas
 
 export const tasks = pgTable('tasks', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -178,3 +170,17 @@ export type EventActivity = typeof activityLogs.$inferSelect;
 export type TeamMember = typeof eventTeamMembers.$inferSelect;
 export type Vendor = typeof vendors.$inferSelect;
 export type ScheduleItem = typeof scheduleItems.$inferSelect;
+
+// Adicionar as relações de eventos no final do arquivo após todas as definições de tabelas
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [events.ownerId],
+    references: [users.id],
+  }),
+  tasks: many(tasks),
+  teamMembers: many(eventTeamMembers),
+  activities: many(activityLogs),
+  scheduleItems: many(scheduleItems),
+  budgetItems: many(budgetItems),
+  expenses: many(expenses),
+}));

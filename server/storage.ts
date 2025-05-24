@@ -259,10 +259,10 @@ export class DatabaseStorage implements IStorage {
       // Get events where user is team member
       const teamMemberships = await db
         .select({
-          eventId: teamMembers.eventId,
+          eventId: eventTeamMembers.eventId,
         })
-        .from(teamMembers)
-        .where(eq(teamMembers.userId, userId));
+        .from(eventTeamMembers)
+        .where(eq(eventTeamMembers.userId, userId));
       
       const teamEventIds = teamMemberships.map(tm => tm.eventId);
       
@@ -595,7 +595,8 @@ export class DatabaseStorage implements IStorage {
     console.log(`Verificando se usuário ${userId} é membro da equipe do evento ${eventId}`);
     
     try {
-      const teamMembers = await db
+      // Usar explicitamente o nome correto da tabela no banco de dados: event_team_members
+      const members = await db
         .select()
         .from(eventTeamMembers)
         .where(
@@ -605,9 +606,9 @@ export class DatabaseStorage implements IStorage {
           )
         );
       
-      console.log(`Encontrados ${teamMembers.length} registros para o usuário na equipe`);
-      console.log('Registros:', JSON.stringify(teamMembers));
-      return teamMembers.length > 0;
+      console.log(`Encontrados ${members.length} registros para o usuário na equipe`);
+      console.log('Registros:', JSON.stringify(members));
+      return members.length > 0;
     } catch (error) {
       console.error(`Erro ao verificar se usuário ${userId} é membro da equipe:`, error);
       return false;
