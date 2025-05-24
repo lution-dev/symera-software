@@ -351,43 +351,43 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </button>
               <button 
                 onClick={() => setActiveSection('cronograma')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'cronograma' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'cronograma' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+                <CalendarRange className="mr-3" size={18} /> Cronograma
               </button>
               <button 
                 onClick={() => setActiveSection('financeiro')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'financeiro' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'financeiro' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-coins mr-2"></i> Financeiro
+                <DollarSign className="mr-3" size={18} /> Financeiro
               </button>
               <button 
                 onClick={() => setActiveSection('documentos')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'documentos' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'documentos' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-file-pdf mr-2"></i> Documentos
+                <FileText className="mr-3" size={18} /> Documentos
               </button>
               <button 
                 onClick={() => setActiveSection('atividades')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'atividades' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'atividades' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-history mr-2"></i> Atividades
+                <Activity className="mr-3" size={18} /> Atividades
               </button>
               <button 
                 onClick={() => setActiveSection('feedback')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'feedback' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'feedback' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-comment-alt mr-2"></i> Feedback pós-evento
+                <Sparkles className="mr-3" size={18} /> Feedback pós-evento
               </button>
             </nav>
           </div>
