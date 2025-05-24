@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
-import { events, users } from "@shared/schema";
+import { events, users, scheduleItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { devModeAuth, ensureDevAuth } from "./devMode";
@@ -1215,15 +1215,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
       
-      // Buscar diretamente no banco usando SQL
-      const query = `
-        SELECT * FROM schedule_items 
-        WHERE event_id = $1
-        ORDER BY start_time
-      `;
-      
-      const result = await db.execute(query, [eventId]);
-      const scheduleItemsList = result.rows;
+      // Buscar diretamente no banco usando Drizzle ORM
+      const scheduleItemsList = await db.select()
+        .from(scheduleItems)
+        .where(eq(scheduleItems.eventId, eventId))
+        .orderBy(scheduleItems.startTime);
       
       res.json(scheduleItemsList);
     } catch (error) {
