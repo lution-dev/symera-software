@@ -44,7 +44,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle } from "lucide-react";
+import { 
+  AlertTriangle, 
+  ScrollText, 
+  CheckSquare, 
+  Users, 
+  UserCheck, 
+  CalendarRange, 
+  DollarSign, 
+  FileText, 
+  Activity, 
+  Sparkles 
+} from "lucide-react";
 
 interface EventProps {
   id?: string;
@@ -302,41 +313,41 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       {/* Layout principal com sidebar lateral e conteúdo */}
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
         {/* Sidebar - Visível em desktop, escondida em mobile */}
-        <div className="hidden md:flex flex-col fixed left-0 top-[60px] w-64 bg-[#1e1f3b] text-white h-screen z-10 overflow-y-auto border-r border-[#2a2b52]">
+        <div className="hidden md:flex flex-col fixed left-0 top-[64px] w-64 bg-[#1a1930] text-white h-[calc(100vh-64px)] z-10 overflow-y-auto">
           <div className="py-4 px-4">
             {/* Menu lateral - apenas abas de navegação, sem título */}
             <nav className="space-y-1.5">
               <button 
                 onClick={() => setActiveSection('resumo')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'resumo' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'resumo' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-file-alt mr-2"></i> Resumo
+                <ScrollText className="mr-3" size={18} /> Resumo
               </button>
               <button 
                 onClick={() => setActiveSection('tarefas')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'tarefas' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'tarefas' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-tasks mr-2"></i> Tarefas
+                <CheckSquare className="mr-3" size={18} /> Tarefas
               </button>
               <button 
                 onClick={() => setActiveSection('equipe')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'equipe' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'equipe' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-users mr-2"></i> Equipe
+                <Users className="mr-3" size={18} /> Equipe
               </button>
               <button 
                 onClick={() => setActiveSection('participantes')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                className={`w-full flex items-center px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  activeSection === 'participantes' ? 'text-white bg-primary/20' : 'text-gray-200 hover:bg-[#232442]'
                 }`}
               >
-                <i className="fas fa-user-friends mr-2"></i> Lista de Participantes
+                <UserCheck className="mr-3" size={18} /> Lista de Participantes
               </button>
               <button 
                 onClick={() => setActiveSection('cronograma')} 
