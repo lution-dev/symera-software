@@ -259,10 +259,10 @@ export class DatabaseStorage implements IStorage {
       // Get events where user is team member
       const teamMemberships = await db
         .select({
-          eventId: eventTeamMembers.eventId,
+          eventId: teamMembers.eventId,
         })
-        .from(eventTeamMembers)
-        .where(eq(eventTeamMembers.userId, userId));
+        .from(teamMembers)
+        .where(eq(teamMembers.userId, userId));
       
       const teamEventIds = teamMemberships.map(tm => tm.eventId);
       
@@ -523,8 +523,8 @@ export class DatabaseStorage implements IStorage {
   async getTeamMembersByEventId(eventId: number): Promise<(EventTeamMember & { user: User })[]> {
     const teamMembers = await db
       .select()
-      .from(eventTeamMembers)
-      .where(eq(eventTeamMembers.eventId, eventId));
+      .from(teamMembers)
+      .where(eq(teamMembers.eventId, eventId));
     
     // Get user details for each team member
     return Promise.all(
@@ -689,14 +689,14 @@ export class DatabaseStorage implements IStorage {
   async getActivityLogsByEventId(eventId: number): Promise<ActivityLog[]> {
     return db
       .select()
-      .from(activityLogs)
-      .where(eq(activityLogs.eventId, eventId))
-      .orderBy(desc(activityLogs.createdAt));
+      .from(activities)
+      .where(eq(activities.eventId, eventId))
+      .orderBy(desc(activities.createdAt));
   }
 
   async createActivityLog(activityLogData: InsertActivityLog): Promise<ActivityLog> {
     const [activityLog] = await db
-      .insert(activityLogs)
+      .insert(activities)
       .values(activityLogData)
       .returning();
     return activityLog;
