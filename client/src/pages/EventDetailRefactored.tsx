@@ -524,34 +524,26 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">Data e Horário</p>
-                        <div className="text-sm font-medium">
+                        <p className="text-sm font-medium truncate">
                           {event.startDate ? (
-                            <div className="flex flex-wrap items-baseline">
-                              <span className="whitespace-nowrap">
-                                {formatDate(event.startDate)}
-                                {event.startTime && (
-                                  <> às {event.startTime.substring(0, 5)}</>
-                                )}
+                            event.endDate && event.endDate === event.startDate && event.startTime && event.endTime ? (
+                              <span>
+                                {formatDate(event.startDate)} {event.startTime.substring(0, 5)} - {event.endTime.substring(0, 5)}
                               </span>
-                              
-                              {event.endDate && event.endDate === event.startDate && event.endTime && (
-                                <span className="whitespace-nowrap ml-1">
-                                  até {event.endTime.substring(0, 5)}
-                                </span>
-                              )}
-                              
-                              {event.endDate && event.endDate !== event.startDate && event.endTime && (
-                                <div className="w-full mt-1">
-                                  <span className="whitespace-nowrap">
-                                    até {formatDate(event.endDate)} às {event.endTime.substring(0, 5)}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                            ) : (
+                              <span>
+                                {formatDate(event.startDate)}
+                                {event.startTime && ` ${event.startTime.substring(0, 5)}`}
+                                {event.endDate && event.endDate !== event.startDate && 
+                                  ` até ${formatDate(event.endDate)}`}
+                                {event.endTime && event.endDate !== event.startDate && 
+                                  ` ${event.endTime.substring(0, 5)}`}
+                              </span>
+                            )
                           ) : (
-                            <span>A definir</span>
+                            "A definir"
                           )}
-                        </div>
+                        </p>
                       </div>
                     </div>
 
