@@ -174,9 +174,9 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
       ) : (
         <>
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Despesas do Evento</h3>
+            <h3 className="text-lg font-semibold">Financeiro do Evento</h3>
             <Button onClick={() => handleOpenForm()} size="sm">
-              <i className="fas fa-plus mr-2"></i> Nova Despesa
+              <i className="fas fa-plus mr-2"></i> Novo Lançamento
             </Button>
           </div>
 
@@ -224,7 +224,14 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                 <TableBody>
                   {expenses.map((expense) => (
                     <TableRow key={expense.id}>
-                      <TableCell className="font-medium">{expense.name}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">{expense.name}</div>
+                        {expense.notes && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {expense.notes}
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell>{getCategoryLabel(expense.category)}</TableCell>
                       <TableCell>{expense.dueDate ? new Date(expense.dueDate).toLocaleDateString('pt-BR') : '-'}</TableCell>
                       <TableCell className="text-right">{formatCurrency(expense.amount)}</TableCell>
@@ -239,16 +246,19 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Button 
-                            variant="ghost" 
+                            variant={expense.paid ? "outline" : "default"} 
                             size="sm"
+                            className={expense.paid ? "border-green-200 text-green-700 hover:bg-green-50" : "bg-green-100 text-green-700 hover:bg-green-200 border-0"}
                             onClick={() => handleTogglePaidStatus(expense)}
                           >
-                            <i className={`fas fa-${expense.paid ? 'times' : 'check'}`}></i>
+                            <i className={`fas fa-${expense.paid ? 'times' : 'check'} mr-1`}></i>
+                            {expense.paid ? "Desmarcar" : "Marcar pago"}
                           </Button>
                           <Button 
                             variant="ghost" 
                             size="sm"
                             onClick={() => handleOpenForm(expense)}
+                            title="Editar"
                           >
                             <i className="fas fa-edit"></i>
                           </Button>
@@ -256,6 +266,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                             variant="ghost" 
                             size="sm"
                             onClick={() => handleDeleteExpense(expense.id)}
+                            title="Excluir"
                           >
                             <i className="fas fa-trash"></i>
                           </Button>

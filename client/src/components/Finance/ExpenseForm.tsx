@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,18 +26,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EXPENSE_CATEGORIES } from './ExpenseList';
+
+// Categorias para recebimentos
+export const INCOME_CATEGORIES = [
+  { value: 'client_payment', label: 'Pagamento de cliente' },
+  { value: 'sponsor', label: 'Patrocínio' },
+  { value: 'ticket_sales', label: 'Venda de ingressos' },
+  { value: 'donation', label: 'Doação' },
+  { value: 'reimbursement', label: 'Reembolso' },
+  { value: 'other', label: 'Outros' },
+];
 
 // Schema para validação do formulário
 const expenseFormSchema = z.object({
-  name: z.string().min(3, { message: 'O nome da despesa deve ter pelo menos 3 caracteres' }),
-  amount: z.string().min(1, { message: 'Informe o valor da despesa' }),
+  name: z.string().min(3, { message: 'O nome da transação deve ter pelo menos 3 caracteres' }),
+  amount: z.string().min(1, { message: 'Informe o valor da transação' }),
   category: z.string().optional(),
   dueDate: z.string().optional(),
   paymentDate: z.string().optional(),
   paid: z.boolean().default(false),
   notes: z.string().optional(),
   vendorId: z.number().optional(),
+  isIncome: z.boolean().default(false), // Novo campo para diferenciar receitas
 });
 
 type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
@@ -73,6 +85,9 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!expense;
+  const [transactionType, setTransactionType] = useState<'expense' | 'income'>(
+    expense?.isIncome ? 'income' : 'expense'
+  );
 
   // Configurar o formulário com os valores padrão
   const form = useForm<ExpenseFormValues>({
@@ -86,6 +101,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       paid: expense?.paid || false,
       notes: expense?.notes || '',
       vendorId: expense?.vendorId,
+      isIncome: expense?.isIncome || false,
     },
   });
 
@@ -193,12 +209,56 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     }
   };
 
+  // Atualizar o campo isIncome quando o tipo de transação muda
+  React.useEffect(() => {
+    form.setValue('isIncome', transactionType === 'income');
+  }, [form, transactionType]);
+
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>{isEditing ? 'Editar Despesa' : 'Nova Despesa'}</CardTitle>
+        <CardTitle>{isEditing ? 'Editar Lançamento' : 'Novo Lançamento'}</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-6">
+          <FormField
+            control={form.control}
+            name="isIncome"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Lançamento</FormLabel>
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant={!field.value ? "default" : "outline"}
+                    className={!field.value ? "bg-red-100 hover:bg-red-200 text-red-700 border-0" : "border-red-200 text-red-700"}
+                    onClick={() => {
+                      field.onChange(false);
+                      setTransactionType('expense');
+                    }}
+                  >
+                    <i className="fas fa-arrow-down mr-2"></i>
+                    Saída
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={field.value ? "default" : "outline"}
+                    className={field.value ? "bg-green-100 hover:bg-green-200 text-green-700 border-0" : "border-green-200 text-green-700"}
+                    onClick={() => {
+                      field.onChange(true);
+                      setTransactionType('income');
+                    }}
+                  >
+                    <i className="fas fa-arrow-up mr-2"></i>
+                    Entrada
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -207,9 +267,12 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome da Despesa</FormLabel>
+                    <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nome da despesa" {...field} />
+                      <Input 
+                        placeholder={transactionType === 'expense' ? "Nome da despesa" : "Nome do recebimento"} 
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -255,11 +318,18 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {EXPENSE_CATEGORIES.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
+                        {transactionType === 'expense' 
+                          ? EXPENSE_CATEGORIES.map((category) => (
+                              <SelectItem key={category.value} value={category.value}>
+                                {category.label}
+                              </SelectItem>
+                            ))
+                          : INCOME_CATEGORIES.map((category) => (
+                              <SelectItem key={category.value} value={category.value}>
+                                {category.label}
+                              </SelectItem>
+                            ))
+                        }
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -272,7 +342,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data de Vencimento</FormLabel>
+                    <FormLabel>{transactionType === 'expense' ? 'Data de Vencimento' : 'Data Prevista'}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -295,9 +365,12 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Pago</FormLabel>
+                      <FormLabel>{transactionType === 'expense' ? 'Pago' : 'Recebido'}</FormLabel>
                       <FormDescription>
-                        Marque esta opção se a despesa já foi paga
+                        {transactionType === 'expense' 
+                          ? 'Marque esta opção se a despesa já foi paga'
+                          : 'Marque esta opção se o valor já foi recebido'
+                        }
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -309,7 +382,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 name="paymentDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data de Pagamento</FormLabel>
+                    <FormLabel>{transactionType === 'expense' ? 'Data de Pagamento' : 'Data de Recebimento'}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -327,7 +400,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                   <FormLabel>Observações</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Observações sobre a despesa"
+                      placeholder={`Observações sobre ${transactionType === 'expense' ? 'a despesa' : 'o recebimento'}`}
                       className="resize-none"
                       {...field}
                     />
@@ -355,7 +428,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                     {isEditing ? 'Salvando...' : 'Adicionando...'}
                   </>
                 ) : (
-                  isEditing ? 'Salvar Alterações' : 'Adicionar Despesa'
+                  isEditing ? 'Salvar Alterações' : `Adicionar ${transactionType === 'expense' ? 'Despesa' : 'Recebimento'}`
                 )}
               </Button>
             </div>
