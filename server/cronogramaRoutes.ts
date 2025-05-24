@@ -3,10 +3,17 @@ import { isAuthenticated } from './replitAuth';
 import { db } from './db';
 import { storage } from './storage';
 
+// Middleware para debugging
+const debugMiddleware = (req: any, res: any, next: any) => {
+  console.log(`[DEBUG CRONOGRAMA] Acessando rota: ${req.method} ${req.originalUrl}`);
+  console.log(`[DEBUG CRONOGRAMA] Usuário autenticado: ${req.user ? req.user.claims.sub : 'Não autenticado'}`);
+  next();
+};
+
 const router = Router();
 
 // Rota para buscar todos os itens do cronograma de um evento
-router.get('/events/:eventId/schedule', isAuthenticated, async (req: any, res) => {
+router.get('/events/:eventId/schedule', debugMiddleware, isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const eventId = parseInt(req.params.eventId, 10);

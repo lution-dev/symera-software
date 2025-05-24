@@ -15,6 +15,7 @@ import { z } from "zod";
 import { generateEventChecklist } from "./openai";
 import scheduleRoutes from "./scheduleRoutes";
 import cronogramaRoutes from "./cronogramaRoutes";
+import { setupCronogramaRoute } from "./cronogramaDirectRoute";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -2032,6 +2033,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Usar as rotas do cronograma a partir do módulo separado
   app.use('/api', scheduleRoutes);
   app.use('/api', cronogramaRoutes);
+  
+  // Rota direta para o cronograma (solução de emergência)
+  setupCronogramaRoute(app);
 
 
 
