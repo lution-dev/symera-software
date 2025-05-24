@@ -77,7 +77,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
 
   // Form for creating new tasks
   const form = useForm({
-    resolver: zodResolver(createTaskSchema),
+    resolver: zodResolver(insertTaskSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -91,7 +91,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
 
   // Form for editing tasks
   const editForm = useForm({
-    resolver: zodResolver(createTaskSchema),
+    resolver: zodResolver(insertTaskSchema),
     defaultValues: {
       title: "",
       description: "",

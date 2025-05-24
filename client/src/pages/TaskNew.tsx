@@ -32,7 +32,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { createTaskSchema } from "@shared/schema";
+import { insertTaskSchema } from "@shared/schema";
 
 const TaskNew: React.FC = () => {
   const [location] = useLocation();
@@ -57,7 +57,7 @@ const TaskNew: React.FC = () => {
   
   // Form para criação de tarefa
   const form = useForm({
-    resolver: zodResolver(createTaskSchema),
+    resolver: zodResolver(insertTaskSchema),
     defaultValues: {
       title: "",
       description: "",

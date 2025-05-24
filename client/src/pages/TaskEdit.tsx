@@ -27,7 +27,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { createTaskSchema } from "@shared/schema";
+import { insertTaskSchema } from "@shared/schema";
 interface TaskEditProps {
   eventId?: string;
   taskId?: string;
@@ -81,7 +81,7 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
   
   // Form para edição de tarefa
   const form = useForm({
-    resolver: zodResolver(createTaskSchema),
+    resolver: zodResolver(insertTaskSchema),
     defaultValues: {
       title: "",
       description: "",
