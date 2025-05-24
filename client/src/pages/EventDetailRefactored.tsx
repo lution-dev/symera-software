@@ -524,28 +524,28 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">Data e Horário</p>
-                        <p className="text-sm font-medium">
+                        <div className="flex flex-wrap items-baseline text-sm font-medium">
                           {event.startDate ? (
-                            <>
+                            <div className="whitespace-nowrap">
                               {formatDate(event.startDate)}
                               {event.startTime && (
-                                <span className="ml-1">às {event.startTime.substring(0, 5)}</span>
+                                <span> às {event.startTime.substring(0, 5)}</span>
                               )}
-                            </>
-                          ) : "A definir"}
-                          
-                          {event.endDate && event.endDate !== event.startDate && event.endTime && (
-                            <>
-                              <br />
-                              <span>até {formatDate(event.endDate)} às {event.endTime.substring(0, 5)}</span>
-                            </>
+                              
+                              {event.endDate && event.endDate === event.startDate && event.endTime && (
+                                <span> até {event.endTime.substring(0, 5)}</span>
+                              )}
+                              
+                              {event.endDate && event.endDate !== event.startDate && event.endTime && (
+                                <span className="whitespace-nowrap ml-1">
+                                  até {formatDate(event.endDate)} às {event.endTime.substring(0, 5)}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span>A definir</span>
                           )}
-                          {event.endDate && event.endDate === event.startDate && event.endTime && (
-                            <>
-                              <span> até {event.endTime.substring(0, 5)}</span>
-                            </>
-                          )}
-                        </p>
+                        </div>
                       </div>
                     </div>
 
