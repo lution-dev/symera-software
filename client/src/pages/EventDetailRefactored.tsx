@@ -550,7 +550,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     {/* Local do evento */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="far fa-map-marker-alt text-sm"></i>
+                        <i className="far fa-map-marker text-sm"></i>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">Local</p>
@@ -563,7 +563,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     {/* Número de convidados */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="far fa-user-friends text-sm"></i>
+                        <i className="far fa-users text-sm"></i>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">Convidados</p>
@@ -574,7 +574,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     {/* Orçamento */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="far fa-money-bill-alt text-sm"></i>
+                        <i className="far fa-coins text-sm"></i>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">Orçamento</p>
@@ -588,7 +588,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 <div className="bg-card mt-4 p-3 rounded-md border border-border">
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-9 h-9 flex items-center justify-center text-primary">
-                      <i className="far fa-tasks text-sm"></i>
+                      <i className="far fa-chart-bar text-sm"></i>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
