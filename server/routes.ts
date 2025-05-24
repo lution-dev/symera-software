@@ -1215,13 +1215,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
       
-      // Importar a tabela scheduleItems do schema
-      const { scheduleItems } = await import("../shared/schema");
+      // Buscar diretamente no banco usando SQL
+      const query = `
+        SELECT * FROM schedule_items 
+        WHERE event_id = $1
+        ORDER BY start_time
+      `;
       
-      // Buscar itens do cronograma do evento
-      const scheduleItemsList = await db.select().from(scheduleItems)
-        .where(eq(scheduleItems.eventId, eventId))
-        .orderBy(scheduleItems.startTime);
+      const result = await db.execute(query, [eventId]);
+      const scheduleItemsList = result.rows;
       
       res.json(scheduleItemsList);
     } catch (error) {
