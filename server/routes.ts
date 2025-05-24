@@ -14,6 +14,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { generateEventChecklist } from "./openai";
+import scheduleRoutes from "./scheduleRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
