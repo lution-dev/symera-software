@@ -42,8 +42,8 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
     references: [users.id],
   }),
   tasks: many(tasks),
-  teamMembers: many(teamMembers),
-  activities: many(eventActivities),
+  teamMembers: many(eventTeamMembers),
+  activities: many(activityLogs),
   scheduleItems: many(scheduleItems),
 }));
 
@@ -67,7 +67,7 @@ export const taskAssignees = pgTable('task_assignees', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const eventActivities = pgTable('event_activities', {
+export const activityLogs = pgTable('activity_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   eventId: integer('event_id').references(() => events.id).notNull(),
   userId: text('user_id').references(() => users.id).notNull(),
@@ -76,7 +76,7 @@ export const eventActivities = pgTable('event_activities', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const teamMembers = pgTable('team_members', {
+export const eventTeamMembers = pgTable('event_team_members', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   eventId: integer('event_id').references(() => events.id).notNull(),
   userId: text('user_id').references(() => users.id).notNull(),
@@ -124,8 +124,8 @@ export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true
 export const insertEventSchema = createInsertSchema(events).omit({ createdAt: true, updatedAt: true });
 export const insertTaskSchema = createInsertSchema(tasks).omit({ createdAt: true, updatedAt: true });
 export const insertTaskAssigneeSchema = createInsertSchema(taskAssignees).omit({ createdAt: true });
-export const insertEventActivitySchema = createInsertSchema(eventActivities).omit({ createdAt: true });
-export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ createdAt: true });
+export const insertEventActivitySchema = createInsertSchema(activityLogs).omit({ createdAt: true });
+export const insertTeamMemberSchema = createInsertSchema(eventTeamMembers).omit({ createdAt: true });
 export const insertVendorSchema = createInsertSchema(vendors).omit({ createdAt: true, updatedAt: true });
 export const insertScheduleItemSchema = createInsertSchema(scheduleItems).omit({ createdAt: true, updatedAt: true });
 
@@ -144,7 +144,7 @@ export type User = typeof users.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 export type TaskAssignee = typeof taskAssignees.$inferSelect;
-export type EventActivity = typeof eventActivities.$inferSelect;
-export type TeamMember = typeof teamMembers.$inferSelect;
+export type EventActivity = typeof activityLogs.$inferSelect;
+export type TeamMember = typeof eventTeamMembers.$inferSelect;
 export type Vendor = typeof vendors.$inferSelect;
 export type ScheduleItem = typeof scheduleItems.$inferSelect;
