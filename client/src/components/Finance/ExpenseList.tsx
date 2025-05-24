@@ -15,6 +15,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ExpenseForm } from './ExpenseForm';
 import { apiRequest } from '@/lib/queryClient';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Define as categorias de despesas
 export const EXPENSE_CATEGORIES = [
@@ -40,6 +43,7 @@ interface Expense {
   paid: boolean;
   notes?: string;
   vendorId?: number;
+  isIncome?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,6 +58,9 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
 
   // Buscar as despesas do evento
   const { data: expenses = [], isLoading, error } = useQuery({
@@ -147,12 +154,44 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
     return category ? category.label : categoryValue;
   };
 
+  // Função para filtrar as despesas conforme os filtros aplicados
+  const filteredExpenses = expenses.filter((expense) => {
+    // Filtro por texto de busca
+    const matchesSearch = searchTerm === '' || 
+      expense.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (expense.notes && expense.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Filtro por status (pago/pendente)
+    const matchesStatus = 
+      statusFilter === 'all' || 
+      (statusFilter === 'paid' && expense.paid) || 
+      (statusFilter === 'pending' && !expense.paid);
+    
+    // Filtro por tipo (entrada/saída)
+    const matchesType = 
+      typeFilter === 'all' || 
+      (typeFilter === 'income' && expense.isIncome) || 
+      (typeFilter === 'expense' && !expense.isIncome);
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
   // Cálculo do total de despesas e despesas pagas
-  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const totalPaid = expenses
-    .filter(expense => expense.paid)
+  const totalIncome = expenses
+    .filter(expense => expense.isIncome)
     .reduce((sum, expense) => sum + expense.amount, 0);
+  
+  const totalExpenses = expenses
+    .filter(expense => !expense.isIncome)
+    .reduce((sum, expense) => sum + expense.amount, 0);
+  
+  const totalPaid = expenses
+    .filter(expense => expense.paid && !expense.isIncome)
+    .reduce((sum, expense) => sum + expense.amount, 0);
+  
   const totalPending = totalExpenses - totalPaid;
+  
+  const balance = totalIncome - totalExpenses;
 
   if (isLoading) {
     return <div className="p-4 text-center">Carregando despesas...</div>;
@@ -180,25 +219,66 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card className="bg-green-50">
               <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground">Total de Despesas</div>
-                <div className="text-2xl font-bold">{formatCurrency(totalExpenses)}</div>
+                <div className="text-sm text-muted-foreground">Total Entradas</div>
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="bg-red-50">
               <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground">Total Pago</div>
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(totalPaid)}</div>
+                <div className="text-sm text-muted-foreground">Total Saídas</div>
+                <div className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="bg-amber-50">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Pendente</div>
                 <div className="text-2xl font-bold text-amber-600">{formatCurrency(totalPending)}</div>
               </CardContent>
             </Card>
+            <Card className={balance >= 0 ? "bg-green-50" : "bg-red-50"}>
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground">Saldo</div>
+                <div className={`text-2xl font-bold ${balance >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  {formatCurrency(balance)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <Input
+                placeholder="Buscar por nome ou descrição..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as any)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="income">Entradas</SelectItem>
+                  <SelectItem value="expense">Saídas</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="paid">Pagos</SelectItem>
+                  <SelectItem value="pending">Pendentes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {expenses.length === 0 ? (
@@ -216,13 +296,14 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                     <TableHead>Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Vencimento</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead className="text-right">Valor</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenses.map((expense) => (
+                  {filteredExpenses.map((expense) => (
                     <TableRow key={expense.id}>
                       <TableCell>
                         <div className="font-medium">{expense.name}</div>
@@ -234,13 +315,27 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                       </TableCell>
                       <TableCell>{getCategoryLabel(expense.category)}</TableCell>
                       <TableCell>{expense.dueDate ? new Date(expense.dueDate).toLocaleDateString('pt-BR') : '-'}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={expense.isIncome ? "outline" : "outline"}
+                          className={expense.isIncome ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-red-100 text-red-800 hover:bg-red-200"}
+                        >
+                          {expense.isIncome ? 
+                            <><i className="fas fa-arrow-up mr-1"></i> Entrada</> : 
+                            <><i className="fas fa-arrow-down mr-1"></i> Saída</>
+                          }
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right">{formatCurrency(expense.amount)}</TableCell>
                       <TableCell>
                         <Badge 
                           variant={expense.paid ? "default" : "outline"}
                           className={expense.paid ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-amber-100 text-amber-800 hover:bg-amber-200"}
                         >
-                          {expense.paid ? "Pago" : "Pendente"}
+                          {expense.paid ? 
+                            (expense.isIncome ? "Recebido" : "Pago") : 
+                            (expense.isIncome ? "A receber" : "A pagar")
+                          }
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -252,7 +347,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                             onClick={() => handleTogglePaidStatus(expense)}
                           >
                             <i className={`fas fa-${expense.paid ? 'times' : 'check'} mr-1`}></i>
-                            {expense.paid ? "Desmarcar" : "Marcar pago"}
+                            {expense.paid ? 
+                              "Desmarcar" : 
+                              (expense.isIncome ? "Marcar recebido" : "Marcar pago")
+                            }
                           </Button>
                           <Button 
                             variant="ghost" 
