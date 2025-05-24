@@ -516,9 +516,9 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 
                 {/* Informações principais do evento em formato de grade abaixo da imagem */}
                 <div className="bg-card p-5 border-t border-border">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {/* Data e Horário - Coluna combinada */}
-                    <div className="flex items-center col-span-1 lg:col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Data e Horário */}
+                    <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
                         <i className="far fa-calendar-alt text-sm"></i>
                       </div>
@@ -550,7 +550,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     {/* Local do evento */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-map-marker-alt text-sm"></i>
+                        <i className="far fa-map-marker-alt text-sm"></i>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">Local</p>
@@ -563,7 +563,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     {/* Número de convidados */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-user-friends text-sm"></i>
+                        <i className="far fa-user-friends text-sm"></i>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">Convidados</p>
@@ -574,29 +574,31 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     {/* Orçamento */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-coins text-sm"></i>
+                        <i className="far fa-money-bill-alt text-sm"></i>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">Orçamento</p>
                         <p className="text-sm font-medium">{event.budget ? formatCurrency(event.budget) : "R$ 0,00"}</p>
                       </div>
                     </div>
-                    
-                    {/* Progresso */}
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-tasks text-sm"></i>
+                  </div>
+                  
+                  {/* Barra de Progresso - Movida para baixo do card principal */}
+                  <div className="mt-4 p-3 bg-card/60 rounded-md border border-border/40">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-9 h-9 flex items-center justify-center text-primary">
+                        <i className="far fa-tasks text-sm"></i>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Progresso</p>
-                        <div className="flex items-center gap-2">
-                          <div className="w-full max-w-[100px] bg-primary/10 rounded-full h-2">
-                            <div 
-                              className="bg-primary h-2 rounded-full" 
-                              style={{ width: `${progress}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs font-medium whitespace-nowrap">{progress}%</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs text-muted-foreground">Progresso</p>
+                          <span className="text-xs font-medium">{progress}%</span>
+                        </div>
+                        <div className="w-full bg-primary/10 rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full" 
+                            style={{ width: `${progress}%` }}
+                          ></div>
                         </div>
                       </div>
                     </div>
