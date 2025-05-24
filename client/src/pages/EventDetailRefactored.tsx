@@ -228,6 +228,17 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
   const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
   
+  // Função para calcular dias restantes até um evento
+  const getRemainingDays = (dateString: string) => {
+    const eventDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    eventDate.setHours(0, 0, 0, 0);
+    const diffTime = eventDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   // Função para obter imagem de capa padrão com base no tipo de evento
   const getDefaultCover = () => {
     if (!event) return '';
