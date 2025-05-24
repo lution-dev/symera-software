@@ -256,48 +256,53 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   return (
     <div className="container mx-auto px-0 py-0 sm:py-4">
       {/* Header bar fixo com breadcrumb - mantido visível durante rolagem */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border w-full">
-        {/* Breadcrumb Navigation - visível em desktop e tablet */}
-        <nav className="hidden sm:flex py-3 px-4 container mx-auto" aria-label="Breadcrumb">
-          <ol className="inline-flex items-center space-x-1 md:space-x-3">
-            <li className="inline-flex items-center">
-              <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
-                <i className="fas fa-home mr-2"></i>
-                Início
-              </Link>
-            </li>
-            <li>
-              <div className="flex items-center">
-                <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-                <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
-                  Eventos
+      <div className="fixed top-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border w-full">
+        <div className="container mx-auto">
+          {/* Breadcrumb Navigation - visível em desktop e tablet */}
+          <nav className="hidden sm:flex py-3 px-4" aria-label="Breadcrumb">
+            <ol className="inline-flex items-center space-x-1 md:space-x-3">
+              <li className="inline-flex items-center">
+                <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+                  <i className="fas fa-home mr-2"></i>
+                  Início
                 </Link>
-              </div>
-            </li>
-            <li aria-current="page">
-              <div className="flex items-center">
-                <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-                <span className="text-sm font-medium text-primary truncate max-w-[150px]">
-                  {event.name}
-                </span>
-              </div>
-            </li>
-          </ol>
-        </nav>
-        
-        {/* Breadcrumb para Mobile - simplificado como "Voltar" */}
-        <div className="sm:hidden flex items-center py-3 px-4">
-          <Link href="/events" className="flex items-center text-sm text-foreground font-medium">
-            <i className="fas fa-arrow-left mr-2"></i>
-            Voltar para Eventos
-          </Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
+                  <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
+                    Eventos
+                  </Link>
+                </div>
+              </li>
+              <li aria-current="page">
+                <div className="flex items-center">
+                  <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
+                  <span className="text-sm font-medium text-primary truncate max-w-[150px]">
+                    {event.name}
+                  </span>
+                </div>
+              </li>
+            </ol>
+          </nav>
+          
+          {/* Breadcrumb para Mobile - simplificado como "Voltar" */}
+          <div className="sm:hidden flex items-center py-3 px-4">
+            <Link href="/events" className="flex items-center text-sm text-foreground font-medium">
+              <i className="fas fa-arrow-left mr-2"></i>
+              Voltar para Eventos
+            </Link>
+          </div>
         </div>
       </div>
+      
+      {/* Espaçamento para compensar o header fixo */}
+      <div className="h-12 sm:h-14"></div>
       
       {/* Layout principal com sidebar lateral e conteúdo */}
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
         {/* Sidebar - Visível em desktop, escondida em mobile */}
-        <div className="hidden md:block w-64 bg-card border-r border-border h-[calc(100vh-130px)] sticky top-16 overflow-y-auto">
+        <div className="hidden md:block w-64 bg-card border-r border-border h-[calc(100vh-130px)] sticky top-14 overflow-y-auto">
           <div className="py-6 px-4">
             {/* Menu lateral - apenas abas de navegação, sem título */}
             <nav className="space-y-1.5">
