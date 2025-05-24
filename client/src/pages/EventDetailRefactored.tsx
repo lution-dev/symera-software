@@ -339,7 +339,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'equipe' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="far fa-users mr-2"></i> Equipe
+                <i className="far fa-user-circle mr-2"></i> Equipe
               </button>
               <button 
                 onClick={() => setActiveSection('participantes')} 
@@ -347,7 +347,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="far fa-user-friends mr-2"></i> <span className="whitespace-nowrap">Lista de Participantes</span>
+                <i className="far fa-address-book mr-2"></i> <span className="whitespace-nowrap">Lista de Participantes</span>
               </button>
               <button 
                 onClick={() => setActiveSection('cronograma')} 
@@ -363,7 +363,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'financeiro' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="far fa-coins mr-2"></i> Financeiro
+                <i className="far fa-money-bill-alt mr-2"></i> Financeiro
               </button>
               <button 
                 onClick={() => setActiveSection('documentos')} 
@@ -416,12 +416,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 </SelectItem>
                 <SelectItem value="equipe">
                   <div className="flex items-center">
-                    <i className="fas fa-users mr-2"></i> Equipe
+                    <i className="far fa-user-circle mr-2"></i> Equipe
                   </div>
                 </SelectItem>
                 <SelectItem value="participantes">
                   <div className="flex items-center">
-                    <i className="fas fa-user-friends mr-2"></i> Lista de Participantes
+                    <i className="far fa-address-book mr-2"></i> Lista de Participantes
                   </div>
                 </SelectItem>
                 <SelectItem value="cronograma">
@@ -431,7 +431,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 </SelectItem>
                 <SelectItem value="financeiro">
                   <div className="flex items-center">
-                    <i className="fas fa-coins mr-2"></i> Financeiro
+                    <i className="far fa-money-bill-alt mr-2"></i> Financeiro
                   </div>
                 </SelectItem>
                 <SelectItem value="documentos">
