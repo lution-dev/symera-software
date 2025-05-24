@@ -302,14 +302,6 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             {/* Menu lateral - apenas abas de navegação, sem título */}
             <nav className="space-y-1.5">
               <button 
-                onClick={handleEditClick} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'editar' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
-              >
-                <i className="fas fa-edit mr-2"></i> Editar
-              </button>
-              <button 
                 onClick={() => setActiveSection('resumo')} 
                 className={`w-full flex items-center px-3 py-2 rounded-md ${
                   activeSection === 'resumo' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
@@ -400,11 +392,6 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Navegação do Evento</SelectLabel>
-                <SelectItem value="editar">
-                  <div className="flex items-center">
-                    <i className="fas fa-edit mr-2"></i> Editar
-                  </div>
-                </SelectItem>
                 <SelectItem value="resumo">
                   <div className="flex items-center">
                     <i className="fas fa-file-alt mr-2"></i> Resumo
