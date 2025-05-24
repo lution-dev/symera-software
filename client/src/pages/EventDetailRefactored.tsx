@@ -953,47 +953,44 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               
               <div className="bg-card rounded-lg border border-border p-6">
                 <div className="border-l-2 border-primary/30 pl-4 space-y-8 relative py-4">
-                  {/* Início do cronograma com data do evento - estilo conforme imagem */}
-                  <div className="relative mb-6">
-                    <div className="absolute left-[-8px] top-4 w-4 h-4 rounded-full bg-primary"></div>
-                    <div className="ml-5 bg-primary/10 p-3 rounded-lg border border-primary/20 mb-6">
-                      <div className="flex items-start gap-2">
-                        <i className="fas fa-calendar-day text-primary mt-0.5"></i>
-                        <div>
-                          <span className="font-medium">
-                            {event.startDate ? (
-                              <>
-                                {new Date(event.startDate).getDate()} de{' '}
-                                {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(event.startDate)).replace('.', '')} de{' '}
-                                {new Date(event.startDate).getFullYear()}
-                                {event.startTime && event.endTime && (
-                                  <span className="ml-1 text-primary">
-                                    {event.startTime.substring(0, 5)} - {event.endTime.substring(0, 5)}
-                                  </span>
-                                )}
-                              </>
-                            ) : (
-                              "Data do evento"
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2 mt-2">
-                        <i className="fas fa-map-marker-alt text-primary text-sm mt-0.5"></i>
-                        <span className="text-sm">
-                          {event.name} - {event.location || "Local não definido"}
-                        </span>
-                      </div>
-                      <div className="flex items-start gap-2 mt-2">
-                        <i className="fas fa-info-circle text-primary text-sm mt-0.5"></i>
-                        <span className="text-xs text-muted-foreground">
-                          Programação completa do evento com {event.attendees || 0} convidados esperados
+                  {/* Cabeçalho do cronograma com data e informações - sem bolinha inicial */}
+                  <div className="bg-primary/10 p-3 rounded-lg border border-primary/20 mb-6">
+                    <div className="flex items-start gap-2">
+                      <i className="fas fa-calendar-day text-primary mt-0.5"></i>
+                      <div>
+                        <span className="font-medium">
+                          {event.startDate ? (
+                            <>
+                              {new Date(event.startDate).getDate()} de{' '}
+                              {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(event.startDate)).replace('.', '')} de{' '}
+                              {new Date(event.startDate).getFullYear()}
+                              {event.startTime && event.endTime && (
+                                <span className="ml-1 text-primary">
+                                  {event.startTime.substring(0, 5)} - {event.endTime.substring(0, 5)}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            "Data do evento"
+                          )}
                         </span>
                       </div>
                     </div>
+                    <div className="flex items-start gap-2 mt-2">
+                      <i className="fas fa-map-marker-alt text-primary text-sm mt-0.5"></i>
+                      <span className="text-sm">
+                        {event.name} - {event.location || "Local não definido"}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2 mt-2">
+                      <i className="fas fa-info-circle text-primary text-sm mt-0.5"></i>
+                      <span className="text-xs text-muted-foreground">
+                        Programação completa do evento com {event.attendees || 0} convidados esperados
+                      </span>
+                    </div>
                   </div>
                   
-                  {/* Atividades do cronograma - exibidas quando existirem */}
+                  {/* Atividades do cronograma - começando diretamente com as atividades com horário */}
                   <div className="space-y-8">
                     {/* Atividade 1 */}
                     <div>
