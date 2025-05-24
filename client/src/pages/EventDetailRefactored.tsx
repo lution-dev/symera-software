@@ -516,9 +516,9 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 
                 {/* Informações principais do evento em formato de grade abaixo da imagem */}
                 <div className="bg-card p-5 border-t border-border">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    {/* Data e Horário */}
-                    <div className="flex items-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {/* Data e Horário - Coluna combinada */}
+                    <div className="flex items-center col-span-1 lg:col-span-2">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
                         <i className="far fa-calendar-alt text-sm"></i>
                       </div>
