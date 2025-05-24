@@ -1,36 +1,54 @@
 import React from 'react';
+import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { insertScheduleItemSchema } from '@shared/schema';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
-// Extend o schema para adicionar validações específicas
-const scheduleFormSchema = z.object({
+// Esquema de validação para o formulário de atividade do cronograma
+const scheduleItemFormSchema = z.object({
   title: z.string().min(3, { message: 'O título deve ter pelo menos 3 caracteres' }),
   description: z.string().optional(),
-  startTime: z.string().min(1, { message: 'O horário de início é obrigatório' }),
+  startTime: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, { message: 'Formato de hora inválido. Use HH:MM' }),
   location: z.string().optional(),
   responsibles: z.string().optional(),
-  eventId: z.number().optional(),
 });
 
-export type ScheduleFormData = z.infer<typeof scheduleFormSchema>;
+// Tipo de dados do formulário
+export type ScheduleFormData = z.infer<typeof scheduleItemFormSchema>;
 
 interface ScheduleItemFormProps {
-  defaultValues?: Partial<ScheduleFormData>;
-  onSubmit: (data: ScheduleFormData) => void;
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (data: ScheduleFormData) => void;
   title: string;
+  defaultValues?: ScheduleFormData;
   isSubmitting: boolean;
 }
 
 export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  title,
   defaultValues = {
     title: '',
     description: '',
@@ -38,14 +56,10 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
     location: '',
     responsibles: '',
   },
-  onSubmit,
-  isOpen,
-  onClose,
-  title,
-  isSubmitting
+  isSubmitting,
 }) => {
   const form = useForm<ScheduleFormData>({
-    resolver: zodResolver(scheduleFormSchema),
+    resolver: zodResolver(scheduleItemFormSchema),
     defaultValues,
   });
 
@@ -53,13 +67,23 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
     onSubmit(data);
   };
 
+  // Redefine o formulário quando o modal for fechado
+  React.useEffect(() => {
+    if (!isOpen) {
+      form.reset(defaultValues);
+    }
+  }, [isOpen, form, defaultValues]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            Preencha os detalhes da atividade para o cronograma do evento.
+          </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
@@ -67,7 +91,7 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título da Atividade</FormLabel>
+                  <FormLabel>Título da Atividade*</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Recepção dos convidados" {...field} />
                   </FormControl>
@@ -75,7 +99,24 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
                 </FormItem>
               )}
             />
-            
+
+            <FormField
+              control={form.control}
+              name="startTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Horário de Início*</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: 14:30" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Use o formato 24h (HH:MM)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="description"
@@ -84,30 +125,16 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Detalhes sobre a atividade"
-                      className="min-h-[80px]"
-                      {...field} 
+                      placeholder="Detalhes sobre a atividade..."
+                      className="resize-none"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            <FormField
-              control={form.control}
-              name="startTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Horário</FormLabel>
-                  <FormControl>
-                    <Input type="time" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+
             <FormField
               control={form.control}
               name="location"
@@ -115,13 +142,13 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
                 <FormItem>
                   <FormLabel>Local</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Salão Principal" {...field} />
+                    <Input placeholder="Ex: Auditório Principal" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="responsibles"
@@ -129,18 +156,26 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
                 <FormItem>
                   <FormLabel>Responsáveis</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Equipe de Recepção" {...field} />
+                    <Input placeholder="Ex: Equipe de recepção" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (
                   <>
                     <i className="fas fa-spinner fa-spin mr-2"></i>
@@ -150,7 +185,7 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
                   'Salvar'
                 )}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>

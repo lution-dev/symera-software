@@ -22,11 +22,18 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
   // Buscar itens do cronograma
   const { data: scheduleItems = [], isLoading } = useQuery({
     queryKey: ['/api/events', eventId, 'schedule'],
-    queryFn: () => apiRequest(`/api/events/${eventId}/schedule`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${eventId}/schedule`);
+      return Array.isArray(response) ? response : [];
+    }
   });
 
   // Ordenar itens por horário
   const sortedItems = React.useMemo(() => {
+    if (!scheduleItems || !Array.isArray(scheduleItems) || scheduleItems.length === 0) {
+      return [];
+    }
+    
     return [...scheduleItems].sort((a, b) => {
       // Converte o tempo para minutos para facilitar a comparação
       const timeToMinutes = (time: string) => {
@@ -113,7 +120,8 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
   });
 
   const handleAddItem = (data: ScheduleFormData) => {
-    addMutation.mutate({ ...data, eventId });
+    // O eventId é adicionado no backend através da URL, não precisamos incluir aqui
+    addMutation.mutate(data);
   };
 
   const handleEditItem = (item: ScheduleItem) => {
