@@ -150,6 +150,8 @@ export const insertEventActivitySchema = createInsertSchema(activityLogs).omit({
 export const insertTeamMemberSchema = createInsertSchema(eventTeamMembers).omit({ createdAt: true });
 export const insertVendorSchema = createInsertSchema(vendors).omit({ createdAt: true, updatedAt: true });
 export const insertScheduleItemSchema = createInsertSchema(scheduleItems).omit({ createdAt: true, updatedAt: true });
+export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({ createdAt: true, updatedAt: true });
+export const insertExpenseSchema = createInsertSchema(expenses).omit({ createdAt: true, updatedAt: true });
 
 // Types para inserção
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -160,6 +162,8 @@ export type InsertEventActivity = z.infer<typeof insertEventActivitySchema>;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type InsertVendor = z.infer<typeof insertVendorSchema>;
 export type InsertScheduleItem = z.infer<typeof insertScheduleItemSchema>;
+export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 
 // Types para seleção
 export type User = typeof users.$inferSelect;
@@ -170,6 +174,8 @@ export type EventActivity = typeof activityLogs.$inferSelect;
 export type TeamMember = typeof eventTeamMembers.$inferSelect;
 export type Vendor = typeof vendors.$inferSelect;
 export type ScheduleItem = typeof scheduleItems.$inferSelect;
+export type BudgetItem = typeof budgetItems.$inferSelect;
+export type Expense = typeof expenses.$inferSelect;
 
 // Adicionar as relações de eventos no final do arquivo após todas as definições de tabelas
 export const eventsRelations = relations(events, ({ one, many }) => ({
