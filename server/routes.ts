@@ -12,7 +12,8 @@ import {
   createEventSchema, 
   createTaskSchema,
   insertBudgetItemSchema,
-  insertExpenseSchema
+  insertExpenseSchema,
+  insertScheduleItemSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateEventChecklist } from "./openai";
