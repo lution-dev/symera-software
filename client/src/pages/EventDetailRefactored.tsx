@@ -843,21 +843,23 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   {team.map((member: any) => (
                     <div key={member.id} className="bg-card border border-border rounded-lg p-4 flex items-start">
                       <Avatar className="h-10 w-10 mr-3">
-                        {member.profileImageUrl ? (
-                          <AvatarImage src={member.profileImageUrl} alt={member.fullName || 'Membro da equipe'} />
+                        {member.user?.profileImageUrl ? (
+                          <AvatarImage src={member.user.profileImageUrl} alt={`${member.user.firstName} ${member.user.lastName}` || 'Membro da equipe'} />
                         ) : (
-                          <AvatarFallback>{getInitials(member.fullName)}</AvatarFallback>
+                          <AvatarFallback>{getInitials(`${member.user?.firstName} ${member.user?.lastName}`)}</AvatarFallback>
                         )}
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-medium truncate">{member.fullName}</h3>
+                          <h3 className="font-medium truncate">{member.user?.firstName} {member.user?.lastName}</h3>
                           <Badge variant="outline" className="ml-2 text-xs whitespace-nowrap">
-                            {member.role || 'Membro'}
+                            {member.role === 'organizer' ? 'Organizador' : 
+                             member.role === 'vendor' ? 'Fornecedor' : 
+                             member.role === 'team_member' ? 'Membro da Equipe' : member.role}
                           </Badge>
                         </div>
-                        {member.email && (
-                          <p className="text-sm text-muted-foreground truncate">{member.email}</p>
+                        {member.user?.email && (
+                          <p className="text-sm text-muted-foreground truncate">{member.user.email}</p>
                         )}
                         {member.phone && (
                           <p className="text-sm text-muted-foreground truncate">{member.phone}</p>
