@@ -1215,12 +1215,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
       
+      // Importar a tabela scheduleItems do schema
+      const { scheduleItems } = await import("../shared/schema");
+      
       // Buscar itens do cronograma do evento
-      const scheduleItems = await db.select().from(scheduleItems)
+      const scheduleItemsList = await db.select().from(scheduleItems)
         .where(eq(scheduleItems.eventId, eventId))
         .orderBy(scheduleItems.startTime);
       
-      res.json(scheduleItems);
+      res.json(scheduleItemsList);
     } catch (error) {
       console.error("Erro ao buscar itens do cronograma:", error);
       res.status(500).json({ message: "Falha ao buscar itens do cronograma" });
