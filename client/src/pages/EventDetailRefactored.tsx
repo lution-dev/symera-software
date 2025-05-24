@@ -302,8 +302,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       {/* Layout principal com sidebar lateral e conteúdo */}
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
         {/* Sidebar - Visível em desktop, escondida em mobile */}
-        <div className="hidden md:block w-64 bg-card rounded-lg shadow-md border border-border h-[calc(100vh-130px)] sticky top-16 overflow-y-auto z-10">
-          <div className="py-6 px-4">
+        <div className="hidden md:flex flex-col fixed left-0 top-[60px] w-64 bg-[#1e1f3b] text-white h-screen z-10 overflow-y-auto border-r border-[#2a2b52]">
+          <div className="py-4 px-4">
             {/* Menu lateral - apenas abas de navegação, sem título */}
             <nav className="space-y-1.5">
               <button 
@@ -444,7 +444,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
         </div>
         
         {/* Conteúdo principal */}
-        <div className="flex-1 px-4 md:px-6 overflow-x-hidden md:ml-64">
+        <div className="flex-1 px-4 md:px-6 md:pl-72 overflow-x-hidden">
           {/* Conteúdo baseado na seção ativa */}
           {activeSection === "resumo" && (
             <div className="space-y-6">
