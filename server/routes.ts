@@ -7,12 +7,8 @@ import { eq } from "drizzle-orm";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { devModeAuth, ensureDevAuth } from "./devMode";
 import { 
-  CreateEventData, 
-  CreateTaskData, 
-  createEventSchema, 
-  createTaskSchema,
-  insertBudgetItemSchema,
-  insertExpenseSchema,
+  insertEventSchema,
+  insertTaskSchema,
   insertScheduleItemSchema,
   scheduleItems
 } from "@shared/schema";
