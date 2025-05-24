@@ -255,49 +255,52 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
   return (
     <div className="container mx-auto px-0 py-0 sm:py-4">
-      {/* Breadcrumb Navigation - fixo no topo, visível durante rolagem */}
-      <nav className="hidden sm:flex sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-3 px-4 mb-4 border-b border-border" aria-label="Breadcrumb">
-        <ol className="inline-flex items-center space-x-1 md:space-x-3">
-          <li className="inline-flex items-center">
-            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
-              <i className="fas fa-home mr-2"></i>
-              Início
-            </Link>
-          </li>
-          <li>
-            <div className="flex items-center">
-              <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-              <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
-                Eventos
+      {/* Header bar fixo com breadcrumb - mantido visível durante rolagem */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border w-full">
+        {/* Breadcrumb Navigation - visível em desktop e tablet */}
+        <nav className="hidden sm:flex py-3 px-4 container mx-auto" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <li className="inline-flex items-center">
+              <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+                <i className="fas fa-home mr-2"></i>
+                Início
               </Link>
-            </div>
-          </li>
-          <li aria-current="page">
-            <div className="flex items-center">
-              <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-              <span className="text-sm font-medium text-primary truncate max-w-[150px]">
-                {event.name}
-              </span>
-            </div>
-          </li>
-        </ol>
-      </nav>
-      
-      {/* Breadcrumb para Mobile - simplificado como "Voltar" */}
-      <div className="sm:hidden flex items-center py-3 px-4 sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-        <Link href="/events" className="flex items-center text-sm text-foreground font-medium">
-          <i className="fas fa-arrow-left mr-2"></i>
-          Voltar para Eventos
-        </Link>
+            </li>
+            <li>
+              <div className="flex items-center">
+                <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
+                <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
+                  Eventos
+                </Link>
+              </div>
+            </li>
+            <li aria-current="page">
+              <div className="flex items-center">
+                <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
+                <span className="text-sm font-medium text-primary truncate max-w-[150px]">
+                  {event.name}
+                </span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+        
+        {/* Breadcrumb para Mobile - simplificado como "Voltar" */}
+        <div className="sm:hidden flex items-center py-3 px-4">
+          <Link href="/events" className="flex items-center text-sm text-foreground font-medium">
+            <i className="fas fa-arrow-left mr-2"></i>
+            Voltar para Eventos
+          </Link>
+        </div>
       </div>
       
       {/* Layout principal com sidebar lateral e conteúdo */}
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
         {/* Sidebar - Visível em desktop, escondida em mobile */}
-        <div className="hidden md:block w-64 bg-card border-r border-border h-[calc(100vh-130px)] sticky top-20 overflow-y-auto">
+        <div className="hidden md:block w-64 bg-card border-r border-border h-[calc(100vh-130px)] sticky top-16 overflow-y-auto">
           <div className="py-6 px-4">
-            {/* Menu lateral - apenas abas de navegação */}
-            <nav className="space-y-1">
+            {/* Menu lateral - apenas abas de navegação, sem título */}
+            <nav className="space-y-1.5">
               <button 
                 onClick={handleEditClick} 
                 className={`w-full flex items-center px-3 py-2 rounded-md ${
@@ -469,11 +472,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
                   
                   {/* Botão de editar no canto superior direito */}
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 z-10">
                     <Button 
                       onClick={handleEditClick}
                       variant="secondary"
-                      className="bg-background/80 backdrop-blur-sm hover:bg-background/90"
+                      className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-sm"
+                      size="sm"
                     >
                       <i className="fas fa-edit mr-2"></i> Editar Evento
                     </Button>
