@@ -959,22 +959,22 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div className="bg-card rounded-lg border border-border p-4">
                   <p className="text-sm text-muted-foreground mb-1">Orçamento Total</p>
-                  <p className="text-2xl font-bold mb-0">R$ {formatCurrency(event.budget || 0)}</p>
+                  <p className="text-2xl font-bold mb-0">{formatCurrency(event.budget || 0)}</p>
                 </div>
                 <div className="bg-card rounded-lg border border-border p-4">
                   <p className="text-sm text-muted-foreground mb-1">Gastos Atuais</p>
-                  <p className="text-2xl font-bold mb-0">R$ {formatCurrency(event.expenses || 0)}</p>
+                  <p className="text-2xl font-bold mb-0">{formatCurrency(event.expenses || 0)}</p>
                 </div>
                 <div className="bg-card rounded-lg border border-border p-4">
                   <p className="text-sm text-muted-foreground mb-1">Saldo</p>
                   <p className="text-2xl font-bold mb-0 text-green-500">
-                    R$ {formatCurrency((event.budget || 0) - (event.expenses || 0))}
+                    {formatCurrency((event.budget || 0) - (event.expenses || 0))}
                   </p>
                 </div>
                 <div className="bg-card rounded-lg border border-border p-4">
                   <p className="text-sm text-muted-foreground mb-1">Custo por Convidado</p>
                   <p className="text-2xl font-bold mb-0">
-                    R$ {event.attendees ? formatCurrency((event.budget || 0) / event.attendees) : '0,00'}
+                    {event.attendees ? formatCurrency((event.budget || 0) / event.attendees) : 'R$ 0,00'}
                   </p>
                 </div>
               </div>
