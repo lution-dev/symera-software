@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EXPENSE_CATEGORIES } from './ExpenseList';
 
 // Categorias para recebimentos
@@ -67,6 +66,7 @@ interface Expense {
   vendorId?: number;
   createdAt: string;
   updatedAt: string;
+  isIncome?: boolean;
 }
 
 interface ExpenseFormProps {
@@ -220,47 +220,47 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         <CardTitle>{isEditing ? 'Editar Lançamento' : 'Novo Lançamento'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-6">
-          <FormField
-            control={form.control}
-            name="isIncome"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Lançamento</FormLabel>
-                <div className="flex space-x-2">
-                  <Button
-                    type="button"
-                    variant={!field.value ? "default" : "outline"}
-                    className={!field.value ? "bg-red-100 hover:bg-red-200 text-red-700 border-0" : "border-red-200 text-red-700"}
-                    onClick={() => {
-                      field.onChange(false);
-                      setTransactionType('expense');
-                    }}
-                  >
-                    <i className="fas fa-arrow-down mr-2"></i>
-                    Saída
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={field.value ? "default" : "outline"}
-                    className={field.value ? "bg-green-100 hover:bg-green-200 text-green-700 border-0" : "border-green-200 text-green-700"}
-                    onClick={() => {
-                      field.onChange(true);
-                      setTransactionType('income');
-                    }}
-                  >
-                    <i className="fas fa-arrow-up mr-2"></i>
-                    Entrada
-                  </Button>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="mb-6">
+              <FormField
+                control={form.control}
+                name="isIncome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Lançamento</FormLabel>
+                    <div className="flex space-x-2">
+                      <Button
+                        type="button"
+                        variant={!field.value ? "default" : "outline"}
+                        className={!field.value ? "bg-red-100 hover:bg-red-200 text-red-700 border-0" : "border-red-200 text-red-700"}
+                        onClick={() => {
+                          field.onChange(false);
+                          setTransactionType('expense');
+                        }}
+                      >
+                        <i className="fas fa-arrow-down mr-2"></i>
+                        Saída
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={field.value ? "default" : "outline"}
+                        className={field.value ? "bg-green-100 hover:bg-green-200 text-green-700 border-0" : "border-green-200 text-green-700"}
+                        onClick={() => {
+                          field.onChange(true);
+                          setTransactionType('income');
+                        }}
+                      >
+                        <i className="fas fa-arrow-up mr-2"></i>
+                        Entrada
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
