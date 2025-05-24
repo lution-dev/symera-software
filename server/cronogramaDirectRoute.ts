@@ -12,12 +12,17 @@ export function setupCronogramaRoute(app: Express) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
       
-      // Consulta SQL direta
-      const result = await db.execute(`
-        SELECT * FROM schedule_items 
-        WHERE event_id = $1 
+      // Consulta SQL direta com validação dos dados
+      console.log('Executando consulta para o evento ID:', eventId);
+      const query = `
+        SELECT id, event_id, title, description, start_time, location, responsibles, 
+               created_at, updated_at
+        FROM schedule_items 
+        WHERE event_id = ${eventId} 
         ORDER BY start_time
-      `, [eventId]);
+      `;
+      console.log('Query:', query);
+      const result = await db.execute(query);
       
       console.log(`Itens encontrados no cronograma: ${result.rows.length}`);
       

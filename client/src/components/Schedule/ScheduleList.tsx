@@ -21,11 +21,11 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
 
   // Buscar itens do cronograma
   const { data: scheduleItems = [], isLoading } = useQuery({
-    queryKey: ['/api/events', eventId, 'schedule'],
+    queryKey: ['/api/events', eventId, 'cronograma'],
     queryFn: async () => {
       try {
         console.log("[DEBUG] Iniciando requisição para buscar cronograma do evento", eventId);
-        const response = await apiRequest(`/api/events/${eventId}/schedule`);
+        const response = await apiRequest(`/api/events/${eventId}/cronograma`);
         console.log("[DEBUG] Resposta recebida do cronograma:", response);
         return Array.isArray(response) ? response : [];
       } catch (error) {
