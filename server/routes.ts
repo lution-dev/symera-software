@@ -2031,6 +2031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Usar as rotas do cronograma a partir do módulo separado
   app.use('/api', scheduleRoutes);
+  app.use('/api', cronogramaRoutes);
 
 
 
