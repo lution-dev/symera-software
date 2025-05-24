@@ -323,7 +323,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'resumo' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="fas fa-file-alt mr-2"></i> Resumo
+                <i className="far fa-file mr-2"></i> Resumo
               </button>
               <button 
                 onClick={() => setActiveSection('tarefas')} 
@@ -339,7 +339,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'equipe' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="fas fa-users mr-2"></i> Equipe
+                <i className="far fa-users mr-2"></i> Equipe
               </button>
               <button 
                 onClick={() => setActiveSection('participantes')} 
@@ -347,7 +347,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="fas fa-user-friends mr-2"></i> <span className="whitespace-nowrap">Lista de Participantes</span>
+                <i className="far fa-user-friends mr-2"></i> <span className="whitespace-nowrap">Lista de Participantes</span>
               </button>
               <button 
                 onClick={() => setActiveSection('cronograma')} 
@@ -355,7 +355,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'cronograma' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="fas fa-calendar-alt mr-2"></i> Cronograma
+                <i className="far fa-calendar-alt mr-2"></i> Cronograma
               </button>
               <button 
                 onClick={() => setActiveSection('financeiro')} 
@@ -363,7 +363,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'financeiro' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="fas fa-coins mr-2"></i> Financeiro
+                <i className="far fa-coins mr-2"></i> Financeiro
               </button>
               <button 
                 onClick={() => setActiveSection('documentos')} 
@@ -371,7 +371,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'documentos' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="fas fa-file-pdf mr-2"></i> Documentos
+                <i className="far fa-file-pdf mr-2"></i> Documentos
               </button>
               <button 
                 onClick={() => setActiveSection('atividades')} 
@@ -387,7 +387,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'feedback' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="fas fa-comment-alt mr-2"></i> Feedback pós-evento
+                <i className="far fa-comment-alt mr-2"></i> Feedback pós-evento
               </button>
             </nav>
           </div>
