@@ -1,0 +1,98 @@
+Refatoração da tela de Detalhe do Evento (Symera)
+Olá! Precisamos refatorar a estrutura e layout da tela de detalhe do evento na Symera, seguindo os padrões visuais e funcionais da plataforma. Seguem as instruções detalhadas:
+
+🧭 1. ESTRUTURA DO MENU LATERAL (SIDEBAR)
+❌ Corrigir:
+Remover o nome do evento e o botão de “Editar” da sidebar — eles não fazem parte da navegação.
+
+Sidebar deve conter somente as abas do evento.
+
+✅ Substituir por este menu lateral fixo (desktop):
+css
+Copiar
+Editar
+Resumo  
+Tarefas  
+Equipe  
+Lista de Participantes  
+Cronograma  
+Financeiro  
+Documentos  
+Atividades  
+Feedback pós-evento
+Essas abas devem estar visíveis e navegáveis, mesmo que ainda estejam vazias. O conteúdo de cada aba pode ser carregado dinamicamente, mantendo performance.
+
+🎨 2. DESIGN VISUAL E PADRONIZAÇÃO
+Todos os cards e botões devem manter os cantos arredondados, seguindo o padrão visual da Symera.
+
+Alinhar visualmente o cabeçalho do evento (imagem de capa, nome, status).
+
+Posicionar o botão “Editar Evento” no canto superior direito da área principal, dentro do card de cabeçalho.
+
+📌 3. CABEÇALHO DO EVENTO
+Deve conter:
+
+Imagem de capa
+
+Nome do evento
+
+Tipo e status (Planejamento, Em andamento, Concluído)
+
+Informações principais:
+
+Data e Hora
+
+Local
+
+Participantes
+
+Orçamento
+
+Progresso do evento
+
+Essas informações devem ficar agrupadas de forma clara, com ícones e cores padronizadas.
+
+📊 4. ABA “RESUMO” — CONTEÚDO COMPLETO
+A aba Resumo deve conter uma visão estratégica do evento com os seguintes dados:
+
+Cards de indicadores:
+Total de tarefas e quantas concluídas
+
+Progresso geral (em %)
+
+Orçamento total e quanto já foi gasto
+
+Número de participantes confirmados vs. total
+
+Fornecedores confirmados
+
+Duração do evento (em horas)
+
+Última atualização do evento
+
+Extra (se possível):
+Insights da IA em destaque, como:
+
+💡 “Faltam 7 dias e você ainda tem 5 tarefas pendentes com prioridade alta.”
+
+🧱 5. BREADCRUMB FIXO
+Problema atual:
+O breadcrumb (“Início > Eventos > Nome do Evento”) rola junto com a página, o que confunde o usuário em eventos longos.
+
+Correção:
+Deixar o breadcrumb fixo no topo da área de conteúdo (painel da direita), visível durante a rolagem.
+
+Deve manter o padrão de design (bordas arredondadas, tipografia Symera).
+
+No mobile, pode ser colapsado em uma linha ou botão “← Voltar”.
+
+📱 6. RESPONSIVIDADE
+O layout deve funcionar perfeitamente em desktop, tablet e mobile.
+
+Sidebar visível no desktop, colapsável no mobile.
+
+Breadcrumb, header e conteúdo devem se adaptar de forma fluida.
+
+🎯 OBJETIVO
+Criar uma navegação clara, funcional e visualmente padronizada dentro da experiência do evento, facilitando o uso em diferentes contextos, mantendo foco estratégico e entregando valor real para o organizador.
+

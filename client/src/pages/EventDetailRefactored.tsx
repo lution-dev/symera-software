@@ -131,7 +131,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     mutationFn: async (newStatus: string) => {
       return apiRequest(`/api/events/${eventId}`, { 
         method: "PATCH",
-        body: { status: newStatus }
+        body: JSON.stringify({ status: newStatus })
       });
     },
     onSuccess: () => {
@@ -228,147 +228,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
   const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
   
-  // Função para ordenar tarefas por prioridade
-  const orderByPriority = (tasks: any[], descending: boolean = true) => {
-    const priorityOrder: { [key: string]: number } = { high: 3, medium: 2, low: 1 };
-    
-    // Fazemos uma cópia profunda para evitar modificar o array original
-    const sortedTasks = [...tasks].sort((a, b) => {
-      const priorityA = priorityOrder[a.priority] || 0;
-      const priorityB = priorityOrder[b.priority] || 0;
-      
-      if (descending) {
-        return priorityB - priorityA;
-      } else {
-        return priorityA - priorityB;
-      }
-    });
-    
-    return sortedTasks;
-  };
-
-  // Função para ordenar tarefas por data
-  const orderByDate = (tasks: any[], ascending: boolean = true) => {
-    return [...tasks].sort((a, b) => {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return ascending ? 1 : -1;
-      if (!b.dueDate) return ascending ? -1 : 1;
-      
-      const dateA = new Date(a.dueDate).getTime();
-      const dateB = new Date(b.dueDate).getTime();
-      return ascending ? dateA - dateB : dateB - dateA;
-    });
-  };
-
-  // Função para ordenar tarefas por status
-  const orderByStatus = (tasks: any[], ascending: boolean = true) => {
-    const statusOrder: { [key: string]: number } = { todo: 1, in_progress: 2, completed: 3 };
-    
-    return [...tasks].sort((a, b) => {
-      const statusA = statusOrder[a.status] || 0;
-      const statusB = statusOrder[b.status] || 0;
-      return ascending ? statusA - statusB : statusB - statusA;
-    });
-  };
-    
-  // Function to filter and sort tasks
-  const getFilteredAndSortedTasks = () => {
-    if (!tasks || !Array.isArray(tasks)) return [];
-    
-    // Deep clone tasks array to avoid reference issues
-    let filteredTasks = JSON.parse(JSON.stringify(tasks));
-    
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filteredTasks = filteredTasks.filter((task: any) => task.status === statusFilter);
-    }
-    
-    // Apply priority filter
-    if (priorityFilter !== "all") {
-      filteredTasks = filteredTasks.filter((task: any) => task.priority === priorityFilter);
-    }
-    
-    // Apply assignee filter
-    if (assigneeFilter === "mine") {
-      filteredTasks = filteredTasks.filter((task: any) => 
-        task.assigneeId === "8650891" || 
-        task.assignees?.some((a: any) => a.userId === "8650891")
-      );
-    }
-    
-    // Apply date filter
-    if (dateFilter === "today") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      filteredTasks = filteredTasks.filter((task: any) => {
-        if (!task.dueDate) return false;
-        const taskDate = new Date(task.dueDate);
-        taskDate.setHours(0, 0, 0, 0);
-        return taskDate.getTime() === today.getTime();
-      });
-    } else if (dateFilter === "week") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const nextWeek = new Date(today);
-      nextWeek.setDate(today.getDate() + 7);
-      
-      filteredTasks = filteredTasks.filter((task: any) => {
-        if (!task.dueDate) return false;
-        const taskDate = new Date(task.dueDate);
-        taskDate.setHours(0, 0, 0, 0);
-        return taskDate >= today && taskDate <= nextWeek;
-      });
-    } else if (dateFilter === "overdue") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      filteredTasks = filteredTasks.filter((task: any) => {
-        if (!task.dueDate) return false;
-        const taskDate = new Date(task.dueDate);
-        taskDate.setHours(0, 0, 0, 0);
-        return taskDate < today && task.status !== "completed";
-      });
-    }
-    
-    // Apply search filter
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase().trim();
-      filteredTasks = filteredTasks.filter((task: any) => 
-        task.title.toLowerCase().includes(query) || 
-        (task.description && task.description.toLowerCase().includes(query))
-      );
-    }
-    
-    // Aplicar ordenação conforme seleção
-    if (sortBy === "priority") {
-      return orderByPriority(filteredTasks, sortOrder === "desc");
-    } else if (sortBy === "dueDate") {
-      return orderByDate(filteredTasks, sortOrder === "asc");
-    } else if (sortBy === "status") {
-      return orderByStatus(filteredTasks, sortOrder === "asc");
-    }
-    
-    return filteredTasks;
-  };
-    
-  // Get filtered and sorted tasks
-  const filteredAndSortedTasks = getFilteredAndSortedTasks();
-  
-  // Reset all filters
-  const resetFilters = () => {
-    setStatusFilter("all");
-    setPriorityFilter("all");
-    setAssigneeFilter("all");
-    setDateFilter("all");
-    setSortBy("dueDate");
-    setSortOrder("asc");
-    setSearchQuery("");
-  };
-
   // Função para obter imagem de capa padrão com base no tipo de evento
   const getDefaultCover = () => {
+    if (!event) return '';
+    
     switch (event.type) {
       case 'wedding':
         return 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
@@ -385,8 +248,13 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     }
   };
 
+  // Handle para quando o botão editar é clicado
+  const handleEditClick = () => {
+    navigate(`/events/${eventId}/edit`);
+  };
+
   return (
-    <div className="container mx-auto px-0 sm:px-4 py-4 sm:py-6 mobile-spacing">
+    <div className="container mx-auto px-0 py-0 sm:py-4">
       {/* Breadcrumb Navigation - fixo no topo, visível durante rolagem */}
       <nav className="hidden sm:flex sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-3 px-4 mb-4 border-b border-border" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
@@ -416,7 +284,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       </nav>
       
       {/* Breadcrumb para Mobile - simplificado como "Voltar" */}
-      <div className="sm:hidden flex items-center mb-4 px-4 sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-3 border-b border-border">
+      <div className="sm:hidden flex items-center py-3 px-4 sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
         <Link href="/events" className="flex items-center text-sm text-foreground font-medium">
           <i className="fas fa-arrow-left mr-2"></i>
           Voltar para Eventos
@@ -431,7 +299,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             {/* Menu lateral - apenas abas de navegação */}
             <nav className="space-y-1">
               <button 
-                onClick={() => navigate(`/events/${eventId}/edit`)} 
+                onClick={handleEditClick} 
                 className={`w-full flex items-center px-3 py-2 rounded-md ${
                   activeSection === 'editar' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
@@ -516,7 +384,13 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
         
         {/* Menu dropdown para mobile */}
         <div className="md:hidden px-4 mb-4">
-          <Select value={activeSection} onValueChange={setActiveSection}>
+          <Select value={activeSection} onValueChange={(value) => {
+            if (value === 'editar') {
+              navigate(`/events/${eventId}/edit`);
+            } else {
+              setActiveSection(value);
+            }
+          }}>
             <SelectTrigger className="w-full" aria-label="Selecionar seção">
               <SelectValue placeholder="Selecionar seção" />
             </SelectTrigger>
@@ -597,7 +471,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   {/* Botão de editar no canto superior direito */}
                   <div className="absolute top-4 right-4">
                     <Button 
-                      onClick={() => navigate(`/events/${eventId}/edit`)}
+                      onClick={handleEditClick}
                       variant="secondary"
                       className="bg-background/80 backdrop-blur-sm hover:bg-background/90"
                     >
@@ -648,9 +522,9 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <div>
                         <p className="text-xs text-muted-foreground">Data</p>
                         <p className="text-sm font-medium">
-                          {event.startDate && formatDate(event.startDate, { dateStyle: "long" })}
+                          {event.startDate ? formatDate(event.startDate) : "A definir"}
                           {event.endDate && event.startDate !== event.endDate && (
-                            <><br />{formatDate(event.endDate, { dateStyle: "long" })}</>
+                            <><br />{formatDate(event.endDate)}</>
                           )}
                         </p>
                       </div>
@@ -664,15 +538,11 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <div>
                         <p className="text-xs text-muted-foreground">Horário</p>
                         <p className="text-sm font-medium">
-                          {event.startTime && formatDate(
-                            new Date(`2025-01-01T${event.startTime}`), 
-                            { timeStyle: "short" }
+                          {event.startTime && (
+                            formatDate(new Date(`2025-01-01T${event.startTime}`))
                           )}
                           {event.endTime && event.startTime && (
-                            <><br />{formatDate(
-                              new Date(`2025-01-01T${event.endTime}`), 
-                              { timeStyle: "short" }
-                            )}</>
+                            <><br />{formatDate(new Date(`2025-01-01T${event.endTime}`))}</>
                           )}
                         </p>
                       </div>
@@ -790,7 +660,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Gasto atual:</span>
                       <span className="font-semibold">
-                        {event.budget && event.expenses 
+                        {event.budget && event.expenses && event.budget > 0
                           ? `${Math.round((event.expenses / event.budget) * 100)}%` 
                           : "0%"
                         }
@@ -833,7 +703,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Data do evento:</span>
                       <span className="font-semibold">
-                        {event.startDate ? formatDate(event.startDate, { dateStyle: "short" }) : "A definir"}
+                        {event.startDate ? formatDate(event.startDate) : "A definir"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -843,8 +713,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           (() => {
                             const start = new Date(`2025-01-01T${event.startTime}`);
                             const end = new Date(`2025-01-01T${event.endTime}`);
-                            const diffHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-                            return `${diffHours} horas`;
+                            const diffMs = end.getTime() - start.getTime();
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                            return `${diffHours}h${diffMinutes > 0 ? ` ${diffMinutes}m` : ''}`;
                           })()
                         ) : "A definir"}
                       </span>
@@ -852,7 +724,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Última atualização:</span>
                       <span className="font-semibold">
-                        {formatDate(new Date(), { dateStyle: "short" })}
+                        {formatDate(new Date())}
                       </span>
                     </div>
                     {event.startDate && (
@@ -862,6 +734,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           {(() => {
                             const eventDate = new Date(event.startDate);
                             const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            eventDate.setHours(0, 0, 0, 0);
                             const diffTime = eventDate.getTime() - today.getTime();
                             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                             return diffDays > 0 ? `${diffDays} dias` : "Hoje";
@@ -889,6 +763,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                             (() => {
                               const eventDate = new Date(event.startDate);
                               const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              eventDate.setHours(0, 0, 0, 0);
                               const diffTime = eventDate.getTime() - today.getTime();
                               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                               return diffDays > 0 
@@ -904,6 +780,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                             (() => {
                               const eventDate = new Date(event.startDate);
                               const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              eventDate.setHours(0, 0, 0, 0);
                               const diffTime = eventDate.getTime() - today.getTime();
                               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                               return diffDays > 0 
@@ -930,11 +808,18 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   </Button>
                 </div>
               </div>
-              <TaskList 
-                tasks={filteredAndSortedTasks}
-                loading={tasksLoading}
-                eventId={eventId}
-              />
+              
+              {tasksLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <TaskList 
+                  tasks={tasks || []}
+                  loading={false}
+                  eventId={eventId}
+                />
+              )}
             </div>
           )}
           
@@ -997,7 +882,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           
           {activeSection === "atividades" && (
             <ActivityFeed
-              activities={activities}
+              activities={activities || []}
               loading={activitiesLoading}
               limit={10}
             />
