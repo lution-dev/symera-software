@@ -955,18 +955,97 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 <div className="border-l-2 border-primary/30 pl-4 space-y-8 relative py-4">
                   <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-primary"></div>
                   
-                  <div className="text-center py-12">
-                    <i className="fas fa-calendar-day text-3xl text-muted-foreground/50 mb-3"></i>
-                    <h3 className="font-medium text-lg mb-2">Cronograma vazio</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Adicione atividades com horários para criar o cronograma do seu evento
-                    </p>
-                    <Button variant="default">
-                      <i className="fas fa-plus mr-2"></i> Adicionar Primeira Atividade
-                    </Button>
+                  {/* Atividades do cronograma - exibidas quando existirem */}
+                  <div className="space-y-8">
+                    {/* Atividade 1 */}
+                    <div>
+                      <div className="flex items-center">
+                        <div className="absolute left-[-8px] w-4 h-4 rounded-full bg-primary"></div>
+                        <span className="text-sm font-medium text-primary">09:00</span>
+                      </div>
+                      <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
+                        <h4 className="font-medium">Recepção dos convidados</h4>
+                        <p className="text-sm text-muted-foreground">Credenciamento e entrega de materiais promocionais</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Saguão Principal</Badge>
+                          <Badge variant="outline" className="text-xs">Equipe de Recepção</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Atividade 2 */}
+                    <div>
+                      <div className="flex items-center">
+                        <div className="absolute left-[-8px] w-4 h-4 rounded-full bg-primary"></div>
+                        <span className="text-sm font-medium text-primary">10:30</span>
+                      </div>
+                      <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
+                        <h4 className="font-medium">Apresentação da coleção</h4>
+                        <p className="text-sm text-muted-foreground">Discurso de abertura e apresentação das principais peças da coleção</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Auditório</Badge>
+                          <Badge variant="outline" className="text-xs">Diretor Criativo</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Atividade 3 */}
+                    <div>
+                      <div className="flex items-center">
+                        <div className="absolute left-[-8px] w-4 h-4 rounded-full bg-primary"></div>
+                        <span className="text-sm font-medium text-primary">12:30</span>
+                      </div>
+                      <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
+                        <h4 className="font-medium">Almoço de networking</h4>
+                        <p className="text-sm text-muted-foreground">Buffet completo e networking entre convidados</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Salão de Festas</Badge>
+                          <Badge variant="outline" className="text-xs">Todos os convidados</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Atividade 4 */}
+                    <div>
+                      <div className="flex items-center">
+                        <div className="absolute left-[-8px] w-4 h-4 rounded-full bg-primary"></div>
+                        <span className="text-sm font-medium text-primary">14:30</span>
+                      </div>
+                      <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
+                        <h4 className="font-medium">Desfile com modelos</h4>
+                        <p className="text-sm text-muted-foreground">Apresentação das peças em passarela com modelos profissionais</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Área de Exposição</Badge>
+                          <Badge variant="outline" className="text-xs">Equipe de Produção</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Atividade 5 */}
+                    <div>
+                      <div className="flex items-center">
+                        <div className="absolute left-[-8px] w-4 h-4 rounded-full bg-primary"></div>
+                        <span className="text-sm font-medium text-primary">16:30</span>
+                      </div>
+                      <div className="ml-5 bg-muted/30 p-3 rounded-lg border border-border mt-2">
+                        <h4 className="font-medium">Coquetel de encerramento</h4>
+                        <p className="text-sm text-muted-foreground">Drinks, canapés e networking para finalizar o evento</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">Terraço</Badge>
+                          <Badge variant="outline" className="text-xs">Todos os convidados</Badge>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="absolute left-[-8px] bottom-0 w-4 h-4 rounded-full bg-primary/30"></div>
+                </div>
+                
+                {/* Botão para adicionar novas atividades ao cronograma */}
+                <div className="flex justify-center mt-6">
+                  <Button variant="default">
+                    <i className="fas fa-plus mr-2"></i> Adicionar Nova Atividade
+                  </Button>
                 </div>
               </div>
             </div>
