@@ -1216,9 +1216,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar itens do cronograma do evento
-      const scheduleItems = await db.select().from(schema.scheduleItems)
-        .where(eq(schema.scheduleItems.eventId, eventId))
-        .orderBy(schema.scheduleItems.startTime);
+      const scheduleItems = await db.select().from(scheduleItems)
+        .where(eq(scheduleItems.eventId, eventId))
+        .orderBy(scheduleItems.startTime);
       
       res.json(scheduleItems);
     } catch (error) {
