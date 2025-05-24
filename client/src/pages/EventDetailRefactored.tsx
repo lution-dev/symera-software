@@ -517,35 +517,33 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 {/* Informações principais do evento em formato de grade abaixo da imagem */}
                 <div className="bg-card p-5 border-t border-border">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    {/* Data */}
+                    {/* Data e Horário */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-calendar-alt text-sm"></i>
+                        <i className="far fa-calendar-alt text-sm"></i>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Data</p>
+                        <p className="text-xs text-muted-foreground mb-1">Data e Horário</p>
                         <p className="text-sm font-medium">
-                          {event.startDate ? formatDate(event.startDate) : "A definir"}
-                          {event.endDate && event.startDate !== event.endDate && (
-                            <><br />{formatDate(event.endDate)}</>
+                          {event.startDate ? (
+                            <>
+                              {formatDate(event.startDate)}
+                              {event.startTime && (
+                                <span className="ml-1">às {event.startTime.substring(0, 5)}</span>
+                              )}
+                            </>
+                          ) : "A definir"}
+                          
+                          {event.endDate && event.endDate !== event.startDate && event.endTime && (
+                            <>
+                              <br />
+                              <span>até {formatDate(event.endDate)} às {event.endTime.substring(0, 5)}</span>
+                            </>
                           )}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Horário do evento */}
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-clock text-sm"></i>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Horário</p>
-                        <p className="text-sm font-medium">
-                          {event.startTime && (
-                            formatDate(new Date(`2025-01-01T${event.startTime}`))
-                          )}
-                          {event.endTime && event.startTime && (
-                            <><br />{formatDate(new Date(`2025-01-01T${event.endTime}`))}</>
+                          {event.endDate && event.endDate === event.startDate && event.endTime && (
+                            <>
+                              <span> até {event.endTime.substring(0, 5)}</span>
+                            </>
                           )}
                         </p>
                       </div>
