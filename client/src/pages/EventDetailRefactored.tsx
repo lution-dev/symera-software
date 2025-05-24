@@ -347,7 +347,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
                 }`}
               >
-                <i className="fas fa-user-friends mr-2"></i> Lista de Participantes
+                <i className="fas fa-user-friends mr-2"></i> <span className="whitespace-nowrap">Lista de Participantes</span>
               </button>
               <button 
                 onClick={() => setActiveSection('cronograma')} 
