@@ -302,7 +302,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       {/* Layout principal com sidebar lateral e conteúdo */}
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
         {/* Sidebar - Visível em desktop, escondida em mobile */}
-        <div className="hidden md:block w-64 bg-card rounded-lg shadow-md border border-border h-[calc(100vh-130px)] fixed left-4 top-16 overflow-y-auto z-10">
+        <div className="hidden md:block w-64 bg-card rounded-lg shadow-md border border-border h-[calc(100vh-130px)] sticky top-16 overflow-y-auto z-10">
           <div className="py-6 px-4">
             {/* Menu lateral - apenas abas de navegação, sem título */}
             <nav className="space-y-1.5">
