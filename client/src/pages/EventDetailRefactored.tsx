@@ -505,14 +505,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 
                 {/* Informações principais do evento em formato de grade abaixo da imagem */}
                 <div className="bg-card p-5 border-t border-border">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                     {/* Data */}
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
                         <i className="fas fa-calendar-alt text-sm"></i>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Data</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Data</p>
                         <p className="text-sm font-medium">
                           {event.startDate ? formatDate(event.startDate) : "A definir"}
                           {event.endDate && event.startDate !== event.endDate && (
@@ -524,11 +524,11 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     
                     {/* Horário do evento */}
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
                         <i className="fas fa-clock text-sm"></i>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Horário</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Horário</p>
                         <p className="text-sm font-medium">
                           {event.startTime && (
                             formatDate(new Date(`2025-01-01T${event.startTime}`))
@@ -542,12 +542,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
                     {/* Local do evento */}
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
                         <i className="fas fa-map-marker-alt text-sm"></i>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Local</p>
-                        <p className="text-sm font-medium truncate max-w-[180px]">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Local</p>
+                        <p className="text-sm font-medium truncate">
                           {event.location || "A definir"}
                         </p>
                       </div>
@@ -555,41 +555,41 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     
                     {/* Número de convidados */}
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
                         <i className="fas fa-user-friends text-sm"></i>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Convidados</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Convidados</p>
                         <p className="text-sm font-medium">{event.attendees || 0}</p>
                       </div>
                     </div>
                     
                     {/* Orçamento */}
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
                         <i className="fas fa-coins text-sm"></i>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Orçamento</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Orçamento</p>
                         <p className="text-sm font-medium">{event.budget ? formatCurrency(event.budget) : "R$ 0,00"}</p>
                       </div>
                     </div>
                     
                     {/* Progresso */}
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-8 h-8 flex items-center justify-center text-primary mr-3">
+                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
                         <i className="fas fa-tasks text-sm"></i>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Progresso</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Progresso</p>
                         <div className="flex items-center gap-2">
-                          <div className="w-16 bg-primary/10 rounded-full h-2">
+                          <div className="w-full max-w-[100px] bg-primary/10 rounded-full h-2">
                             <div 
                               className="bg-primary h-2 rounded-full" 
                               style={{ width: `${progress}%` }}
                             ></div>
                           </div>
-                          <span className="text-xs font-medium">{progress}%</span>
+                          <span className="text-xs font-medium whitespace-nowrap">{progress}%</span>
                         </div>
                       </div>
                     </div>
@@ -598,13 +598,13 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </div>
               
               {/* Indicadores estratégicos do evento */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {/* Total de tarefas e progresso */}
-                <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
-                  <h3 className="text-sm font-medium mb-3 flex items-center">
+                <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
+                  <h3 className="text-sm font-medium mb-4 flex items-center">
                     <i className="fas fa-tasks text-primary mr-2"></i> Tarefas
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Total:</span>
                       <span className="font-semibold">{totalTasks || 0}</span>
@@ -625,11 +625,11 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 </div>
                 
                 {/* Orçamento e gastos */}
-                <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
-                  <h3 className="text-sm font-medium mb-3 flex items-center">
+                <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
+                  <h3 className="text-sm font-medium mb-4 flex items-center">
                     <i className="fas fa-coins text-primary mr-2"></i> Financeiro
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Orçamento total:</span>
                       <span className="font-semibold">{event.budget ? formatCurrency(event.budget) : "R$ 0,00"}</span>
@@ -662,11 +662,11 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 </div>
                 
                 {/* Participantes */}
-                <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
-                  <h3 className="text-sm font-medium mb-3 flex items-center">
+                <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
+                  <h3 className="text-sm font-medium mb-4 flex items-center">
                     <i className="fas fa-users text-primary mr-2"></i> Participantes
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Total convidados:</span>
                       <span className="font-semibold">{event.attendees || 0}</span>
@@ -687,11 +687,11 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 </div>
                 
                 {/* Duração e datas */}
-                <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
-                  <h3 className="text-sm font-medium mb-3 flex items-center">
+                <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
+                  <h3 className="text-sm font-medium mb-4 flex items-center">
                     <i className="fas fa-clock text-primary mr-2"></i> Duração e prazos
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Data do evento:</span>
                       <span className="font-semibold">
@@ -740,13 +740,13 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </div>
               
               {/* Insight da IA */}
-              <div className="bg-card rounded-xl shadow-sm p-4 border border-border mb-6">
+              <div className="bg-card rounded-xl shadow-sm p-5 border border-border mb-6">
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <i className="fas fa-lightbulb text-primary"></i>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium mb-1">Insights do evento</h3>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium mb-2">Insights do evento</h3>
                     <p className="text-sm text-muted-foreground">
                       {todoTasks > 0 ? (
                         <span>
