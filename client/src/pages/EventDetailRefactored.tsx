@@ -953,7 +953,35 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               
               <div className="bg-card rounded-lg border border-border p-6">
                 <div className="border-l-2 border-primary/30 pl-4 space-y-8 relative py-4">
-                  <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-primary"></div>
+                  {/* Início do cronograma com data do evento */}
+                  <div className="relative mb-2">
+                    <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-primary"></div>
+                    <div className="ml-5 bg-primary/10 p-3 rounded-lg border border-primary/20 mb-6">
+                      <div className="flex items-center gap-2">
+                        <i className="fas fa-calendar-day text-primary"></i>
+                        <span className="font-medium">
+                          {event.startDate ? formatDate(event.startDate) : "Data do evento"}
+                          {event.startTime && event.endTime && (
+                            <span className="ml-1 text-primary/80">
+                              {event.startTime.substring(0, 5)} - {event.endTime.substring(0, 5)}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <i className="fas fa-map-marker-alt text-primary text-sm"></i>
+                        <span className="text-sm">
+                          {event.name} - {event.location || "Local não definido"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <i className="fas fa-info-circle text-primary text-sm"></i>
+                        <span className="text-xs text-muted-foreground">
+                          Programação completa do evento com {event.attendees || 0} convidados esperados
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                   
                   {/* Atividades do cronograma - exibidas quando existirem */}
                   <div className="space-y-8">
