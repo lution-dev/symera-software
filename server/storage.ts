@@ -9,6 +9,7 @@ import {
   budgetItems,
   expenses,
   scheduleItems,
+  documents,
   type User,
   type Event,
   type Task,
@@ -17,6 +18,7 @@ import {
   type ActivityLog,
   type BudgetItem,
   type Expense,
+  type Document,
   type UpsertUser,
   type InsertEvent,
   type InsertTask,
@@ -27,6 +29,7 @@ import {
   type InsertActivityLog,
   type InsertBudgetItem,
   type InsertExpense,
+  type InsertDocument,
   type TaskReminder,
   type InsertTaskReminder,
 } from "@shared/schema";
@@ -76,6 +79,7 @@ class MemoryCache {
 const userCache = new MemoryCache(300000); // 5 minutos
 const eventCache = new MemoryCache(180000); // 3 minutos
 const taskCache = new MemoryCache(120000); // 2 minutos
+const documentCache = new MemoryCache(120000); // 2 minutos
 
 // Interface for storage operations
 export interface IStorage {
@@ -142,6 +146,14 @@ export interface IStorage {
   // Activity log operations
   getActivityLogsByEventId(eventId: number): Promise<ActivityLog[]>;
   createActivityLog(activityLog: InsertActivityLog): Promise<ActivityLog>;
+  
+  // Document operations
+  getDocumentsByEventId(eventId: number): Promise<Document[]>;
+  getDocumentById(id: number): Promise<Document | undefined>;
+  getDocumentsByCategory(eventId: number, category: string): Promise<Document[]>;
+  createDocument(document: InsertDocument): Promise<Document>;
+  updateDocument(id: number, document: Partial<InsertDocument>): Promise<Document>;
+  deleteDocument(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -987,6 +999,120 @@ export class DatabaseStorage implements IStorage {
   async deleteTaskReminder(id: number): Promise<void> {
     return executeWithRetry(async () => {
       // NOTA: Esta funcionalidade será implementada posteriormente
+    });
+  }
+
+  // Document operations
+  async getDocumentsByEventId(eventId: number): Promise<Document[]> {
+    // Verificar cache
+    const cacheKey = `documents:event:${eventId}`;
+    const cachedDocuments = documentCache.get<Document[]>(cacheKey);
+    if (cachedDocuments) return cachedDocuments;
+    
+    return executeWithRetry(async () => {
+      const result = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.eventId, eventId))
+        .orderBy(desc(documents.uploadedAt));
+      
+      // Armazenar em cache
+      documentCache.set(cacheKey, result);
+      return result;
+    });
+  }
+
+  async getDocumentById(id: number): Promise<Document | undefined> {
+    // Verificar cache
+    const cacheKey = `document:${id}`;
+    const cachedDocument = documentCache.get<Document>(cacheKey);
+    if (cachedDocument) return cachedDocument;
+    
+    return executeWithRetry(async () => {
+      const [document] = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.id, id));
+      
+      // Armazenar em cache
+      if (document) {
+        documentCache.set(cacheKey, document);
+      }
+      
+      return document;
+    });
+  }
+
+  async getDocumentsByCategory(eventId: number, category: string): Promise<Document[]> {
+    // Verificar cache
+    const cacheKey = `documents:event:${eventId}:category:${category}`;
+    const cachedDocuments = documentCache.get<Document[]>(cacheKey);
+    if (cachedDocuments) return cachedDocuments;
+    
+    return executeWithRetry(async () => {
+      const result = await db
+        .select()
+        .from(documents)
+        .where(and(
+          eq(documents.eventId, eventId),
+          eq(documents.category, category)
+        ))
+        .orderBy(desc(documents.uploadedAt));
+      
+      // Armazenar em cache
+      documentCache.set(cacheKey, result);
+      return result;
+    });
+  }
+
+  async createDocument(documentData: InsertDocument): Promise<Document> {
+    return executeWithRetry(async () => {
+      const [document] = await db
+        .insert(documents)
+        .values(documentData)
+        .returning();
+      
+      // Invalidar e atualizar cache
+      documentCache.invalidate(`documents:event:${documentData.eventId}`);
+      documentCache.invalidate(`documents:event:${documentData.eventId}:category:${documentData.category}`);
+      documentCache.set(`document:${document.id}`, document);
+      
+      return document;
+    });
+  }
+
+  async updateDocument(id: number, documentData: Partial<InsertDocument>): Promise<Document> {
+    return executeWithRetry(async () => {
+      const [document] = await db
+        .update(documents)
+        .set({
+          ...documentData,
+          updatedAt: new Date(),
+        })
+        .where(eq(documents.id, id))
+        .returning();
+      
+      // Invalidar e atualizar cache
+      documentCache.invalidate(`documents:event:${document.eventId}`);
+      documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
+      documentCache.set(`document:${document.id}`, document);
+      
+      return document;
+    });
+  }
+
+  async deleteDocument(id: number): Promise<void> {
+    return executeWithRetry(async () => {
+      const document = await this.getDocumentById(id);
+      
+      if (document) {
+        await db.delete(documents).where(eq(documents.id, id));
+        
+        // Invalidar cache
+        documentCache.invalidate(`documents:event:${document.eventId}`);
+        documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
+        documentCache.invalidate(`document:${id}`);
+      }
     });
   }
 }
