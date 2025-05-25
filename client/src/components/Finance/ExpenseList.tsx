@@ -220,29 +220,29 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="bg-green-50">
+            <Card className="bg-blue-50/40">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Entradas</div>
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</div>
+                <div className="text-2xl font-bold text-green-600">R$ {formatCurrency(totalIncome)}</div>
               </CardContent>
             </Card>
-            <Card className="bg-red-50">
+            <Card className="bg-blue-50/40">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Saídas</div>
-                <div className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
+                <div className="text-2xl font-bold text-red-600">R$ {formatCurrency(totalExpenses)}</div>
               </CardContent>
             </Card>
-            <Card className="bg-amber-50">
+            <Card className="bg-blue-50/40">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Pendente</div>
-                <div className="text-2xl font-bold text-amber-600">{formatCurrency(totalPending)}</div>
+                <div className="text-2xl font-bold text-amber-600">R$ {formatCurrency(totalPending)}</div>
               </CardContent>
             </Card>
-            <Card className={balance >= 0 ? "bg-green-50" : "bg-red-50"}>
+            <Card className="bg-blue-50/40">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Saldo</div>
                 <div className={`text-2xl font-bold ${balance >= 0 ? "text-green-600" : "text-red-600"}`}>
-                  {formatCurrency(balance)}
+                  R$ {formatCurrency(balance)}
                 </div>
               </CardContent>
             </Card>
@@ -317,8 +317,8 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                       <TableCell>{expense.dueDate ? new Date(expense.dueDate).toLocaleDateString('pt-BR') : '-'}</TableCell>
                       <TableCell>
                         <Badge 
-                          variant={expense.isIncome ? "outline" : "outline"}
-                          className={expense.isIncome ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-red-100 text-red-800 hover:bg-red-200"}
+                          variant="outline"
+                          className={expense.isIncome ? "border-green-200 text-green-700" : "border-red-200 text-red-700"}
                         >
                           {expense.isIncome ? 
                             <><i className="fas fa-arrow-up mr-1"></i> Entrada</> : 
@@ -329,8 +329,8 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                       <TableCell className="text-right">{formatCurrency(expense.amount)}</TableCell>
                       <TableCell>
                         <Badge 
-                          variant={expense.paid ? "default" : "outline"}
-                          className={expense.paid ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-amber-100 text-amber-800 hover:bg-amber-200"}
+                          variant="outline"
+                          className={expense.paid ? "border-green-200 text-green-700" : "border-amber-200 text-amber-700"}
                         >
                           {expense.paid ? 
                             (expense.isIncome ? "Recebido" : "Pago") : 
