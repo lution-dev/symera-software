@@ -1,0 +1,67 @@
+implementação da listagem e gerenciamento de documentos
+Objetivo: Melhorar a aba Documentos no detalhe do evento, permitindo que usuários visualizem, gerenciem e classifiquem documentos com clareza, mantendo o padrão visual da Symera.
+
+📄 Estrutura de cada documento na lista (card)
+Para cada documento, exibir os seguintes campos:
+
+Nome do Documento
+
+Categoria (ex: Contrato, Orçamento, Licença, Roteiro, Outros)
+
+Descrição (campo opcional, com texto curto explicando o conteúdo)
+
+Data de Upload
+
+Quem Enviou (exibir avatar ou nome do responsável)
+
+Ações:
+
+[👁] Visualizar documento (abrir em nova aba)
+
+[⬇] Baixar documento
+
+[📝] Editar informações
+
+[🗑] Excluir documento
+
+➕ Comportamento ao clicar em “Fazer Upload”
+Ao clicar no botão Fazer Upload, abrir modal com os seguintes campos:
+
+Upload do arquivo (.pdf, .docx, .jpg, etc.)
+
+Nome do Documento (editável)
+
+Categoria (dropdown com categorias pré-definidas e opção de "Outros")
+
+Descrição (campo opcional)
+
+Botão: [📤 Salvar Documento]
+
+🧭 Organização da aba (Desktop)
+Exibir cards por categoria com contagem no topo, como já está feito (Contratos, Orçamentos, Outros)
+
+Ao clicar em uma categoria, exibir a lista de documentos relacionados com os campos acima
+
+Usar cards com cantos arredondados e ícones coerentes com o restante do app
+
+Exibir botão flutuante ou fixo no topo direito: [Fazer Upload]
+
+📱 Organização da aba (Mobile)
+Usar accordion por categoria, onde ao clicar no nome (ex: “Contratos”), expande os documentos daquele grupo
+
+Cada item de documento em formato de card vertical, com:
+
+Nome + Categoria em destaque
+
+Subtexto com “Enviado por X em [data]”
+
+Ícones de ações alinhados na parte inferior (Ver, Baixar, Editar, Excluir)
+
+O botão “Fazer Upload” deve estar fixo no final da aba, com destaque
+
+📌 Extras (para considerar em versões futuras):
+Campo “Validade do Documento” (para licenças ou documentos com vencimento)
+
+Campo “Vinculado a uma tarefa ou fornecedor”
+
+Campo “Status de assinatura digital” (se integrar com Autentique, etc.)
