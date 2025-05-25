@@ -98,10 +98,21 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   const updatePaidStatusMutation = useMutation({
     mutationFn: async ({ id, paid }: { id: number; paid: boolean }) => {
       console.log(`Alterando status: ID=${id}, paid=${paid}`);
-      return await apiRequest(`/api/expenses/${id}`, {
+      // Fazer uma requisição direta sem usar apiRequest para evitar problemas de formatação
+      const response = await fetch(`/api/expenses/${id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ paid }),
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        throw new Error(`Erro na resposta: ${response.status}`);
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({

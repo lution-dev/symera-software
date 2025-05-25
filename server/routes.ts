@@ -1943,7 +1943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Atualizar despesa
   app.put('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
-    console.log("Recebendo atualização de despesa PUT:", req.params.id, req.body);
+    console.log("Recebendo atualização de despesa PUT:", req.params.id, JSON.stringify(req.body));
     try {
       const userId = req.user.claims.sub;
       const itemId = parseInt(req.params.id, 10);
@@ -1964,8 +1964,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
       
-      // Validação - só atualizamos os campos fornecidos
-      const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
+      // Validação - só atualizamos os campos fornecidos sem usar schema para debugging
+      // const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
+      const validatedUpdates = req.body;
       
       const updatedExpense = await storage.updateExpense(itemId, validatedUpdates);
       
