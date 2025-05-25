@@ -515,17 +515,17 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   
                   <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
                     <div className="flex items-center gap-1.5 mb-2">
-                      <Badge className="px-2 py-1 text-xs" variant="outline">
+                      <Badge className="px-2 py-1 text-xs font-medium" variant="secondary">
                         {getEventTypeLabel(event.type)}
                       </Badge>
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]' : 
-                        event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/10 text-[hsl(var(--event-confirmed))]' : 
-                        event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-                        event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/10 text-[hsl(var(--event-in-progress))]' : 
-                        event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/10 text-[hsl(var(--event-completed))]' : 
-                        event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/10 text-[hsl(var(--event-cancelled))]' : 
-                        'bg-[hsl(var(--event-planning))]/10 text-[hsl(var(--event-planning))]'
+                        event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/25 text-[hsl(var(--event-planning))] border border-[hsl(var(--event-planning))]/30' : 
+                        event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/25 text-[hsl(var(--event-confirmed))] border border-[hsl(var(--event-confirmed))]/30' : 
+                        event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/25 text-[hsl(var(--event-in-progress))] border border-[hsl(var(--event-in-progress))]/30' : 
+                        event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/25 text-[hsl(var(--event-in-progress))] border border-[hsl(var(--event-in-progress))]/30' : 
+                        event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/25 text-[hsl(var(--event-completed))] border border-[hsl(var(--event-completed))]/30' : 
+                        event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/25 text-[hsl(var(--event-cancelled))] border border-[hsl(var(--event-cancelled))]/30' : 
+                        'bg-[hsl(var(--event-planning))]/25 text-[hsl(var(--event-planning))] border border-[hsl(var(--event-planning))]/30'
                       }`}>
                         {event.status === 'planning' ? 'Planejamento' : 
                         event.status === 'confirmed' ? 'Confirmado' : 
