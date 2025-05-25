@@ -316,6 +316,35 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
         {/* Sidebar - Visível em desktop, escondida em mobile */}
         <div className="hidden md:block w-64 bg-card rounded-lg shadow-md border border-border sticky top-14 overflow-y-auto h-fit">
+          {/* Cabeçalho do evento na sidebar */}
+          <div className="overflow-hidden">
+            {/* Imagem de capa */}
+            <div className="relative h-[100px]">
+              <img 
+                src={event.coverImageUrl || getDefaultCover()}
+                alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
+                className="w-full h-full object-cover rounded-t-lg"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
+            </div>
+            {/* Informações do evento */}
+            <div className="p-3">
+              <h3 className="font-medium text-base line-clamp-1">{event.name}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5 flex items-center">
+                <span>{getEventTypeLabel(event.type)}</span>
+                {event.location && (
+                  <>
+                    <span className="mx-1">•</span>
+                    <span className="truncate">{event.location}</span>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+          
+          {/* Separador sutil */}
+          <div className="h-px bg-border mx-4"></div>
+          
           <div className="py-4 px-4">
             {/* Menu lateral - apenas abas de navegação, sem título */}
             <nav className="space-y-2">
