@@ -1942,7 +1942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Atualizar despesa
-  app.put('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const itemId = parseInt(req.params.id, 10);
