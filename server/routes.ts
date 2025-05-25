@@ -9,7 +9,8 @@ import { devModeAuth, ensureDevAuth } from "./devMode";
 import { 
   insertEventSchema,
   insertTaskSchema,
-  insertScheduleItemSchema
+  insertScheduleItemSchema,
+  insertExpenseSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateEventChecklist } from "./openai";
