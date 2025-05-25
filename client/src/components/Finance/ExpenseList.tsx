@@ -160,15 +160,16 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
       const newPaidStatus = !expense.paid;
       console.log(`Alterando status para: ${newPaidStatus ? 'pago' : 'não pago'}, ID: ${expense.id}`);
       
-      // Usar axios ou fetch de forma mais simples
+      // Usar método PUT em vez de PATCH para garantir compatibilidade
       const response = await fetch(`/api/expenses/${expense.id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
           paid: newPaidStatus
-        })
+        }),
+        credentials: 'include'
       });
       
       // Verificar resposta HTTP
@@ -178,7 +179,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
         throw new Error(`Erro na resposta: ${response.status}`);
       }
       
-      // Atualizar a interface
+      const data = await response.json();
+      console.log("Resposta do servidor:", data);
+      
+      // Forçar atualização dos dados
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       

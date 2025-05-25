@@ -1941,7 +1941,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Atualizar despesa
+  // Atualizar despesa (suporta tanto PUT quanto PATCH)
+  app.put('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const itemId = parseInt(req.params.id, 10);
+      
+      if (isNaN(itemId)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      const expense = await storage.getExpenseById(itemId);
+      
+      if (!expense) {
+        return res.status(404).json({ message: "Despesa não encontrada" });
+      }
+      
+      const hasAccess = await storage.hasUserAccessToEvent(userId, expense.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para executar esta ação" });
+      }
+      
+      // Validação - só atualizamos os campos fornecidos
+      const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
+      
+      const updatedExpense = await storage.updateExpense(itemId, validatedUpdates);
+      
+      // Registrar atividade
+      await storage.createActivityLog({
+        eventId: expense.eventId,
+        userId,
+        action: "expense_updated",
+        details: {
+          itemName: updatedExpense.name,
+          amount: updatedExpense.amount,
+          paid: updatedExpense.paid
+        }
+      });
+      
+      res.json(updatedExpense);
+    } catch (error) {
+      console.error("Erro ao atualizar despesa:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+  
+  // Atualizar despesa (mesma lógica, mas para o método PATCH)
   app.patch('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
