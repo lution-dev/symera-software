@@ -220,28 +220,28 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="bg-blue-50/40">
+            <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Entradas</div>
-                <div className="text-2xl font-bold text-green-600">R$ {formatCurrency(totalIncome)}</div>
+                <div className="text-2xl font-bold text-green-500">R$ {formatCurrency(totalIncome)}</div>
               </CardContent>
             </Card>
-            <Card className="bg-blue-50/40">
+            <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Saídas</div>
-                <div className="text-2xl font-bold text-red-600">R$ {formatCurrency(totalExpenses)}</div>
+                <div className="text-2xl font-bold text-red-500">R$ {formatCurrency(totalExpenses)}</div>
               </CardContent>
             </Card>
-            <Card className="bg-blue-50/40">
+            <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Pendente</div>
-                <div className="text-2xl font-bold text-amber-600">R$ {formatCurrency(totalPending)}</div>
+                <div className="text-2xl font-bold text-amber-500">R$ {formatCurrency(totalPending)}</div>
               </CardContent>
             </Card>
-            <Card className="bg-blue-50/40">
+            <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Saldo</div>
-                <div className={`text-2xl font-bold ${balance >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <div className={`text-2xl font-bold ${balance >= 0 ? "text-green-500" : "text-red-500"}`}>
                   R$ {formatCurrency(balance)}
                 </div>
               </CardContent>
@@ -317,8 +317,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                       <TableCell>{expense.dueDate ? new Date(expense.dueDate).toLocaleDateString('pt-BR') : '-'}</TableCell>
                       <TableCell>
                         <Badge 
-                          variant="outline"
-                          className={expense.isIncome ? "border-green-200 text-green-700" : "border-red-200 text-red-700"}
+                          className={expense.isIncome ? "bg-transparent text-green-500 border border-green-500 rounded-full" : "bg-transparent text-red-500 border border-red-500 rounded-full"}
                         >
                           {expense.isIncome ? 
                             <><i className="fas fa-arrow-up mr-1"></i> Entrada</> : 
@@ -329,8 +328,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                       <TableCell className="text-right">{formatCurrency(expense.amount)}</TableCell>
                       <TableCell>
                         <Badge 
-                          variant="outline"
-                          className={expense.paid ? "border-green-200 text-green-700" : "border-amber-200 text-amber-700"}
+                          className={expense.paid ? "bg-green-500 text-white rounded-full" : "bg-transparent text-amber-500 border border-amber-500 rounded-full"}
                         >
                           {expense.paid ? 
                             (expense.isIncome ? "Recebido" : "Pago") : 
@@ -343,7 +341,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                           <Button 
                             variant={expense.paid ? "outline" : "default"} 
                             size="sm"
-                            className={expense.paid ? "border-green-200 text-green-700 hover:bg-green-50" : "bg-green-100 text-green-700 hover:bg-green-200 border-0"}
+                            className={expense.paid ? "border border-red-500 text-red-500 hover:bg-red-50" : "bg-green-500 text-white hover:bg-green-600 border-0"}
                             onClick={() => handleTogglePaidStatus(expense)}
                           >
                             <i className={`fas fa-${expense.paid ? 'times' : 'check'} mr-1`}></i>
