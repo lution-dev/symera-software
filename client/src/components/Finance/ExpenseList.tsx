@@ -99,6 +99,9 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
     mutationFn: async ({ id, paid }: { id: number; paid: boolean }) => {
       return await apiRequest(`/api/expenses/${id}`, {
         method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ paid }),
       });
     },
