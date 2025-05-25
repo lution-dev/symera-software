@@ -347,7 +347,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                           <Button 
                             variant={expense.paid ? "outline" : "default"} 
                             size="sm"
-                            className={expense.paid ? "border border-red-500 text-red-500 hover:bg-red-50" : "bg-green-500 text-white hover:bg-green-600 border-0"}
+                            className={expense.paid ? "border border-red-500 text-red-500 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600 border-0"}
                             onClick={() => handleTogglePaidStatus(expense)}
                           >
                             <i className={`fas fa-${expense.paid ? 'times' : 'check'} mr-1`}></i>
