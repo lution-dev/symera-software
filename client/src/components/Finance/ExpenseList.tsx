@@ -226,26 +226,26 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
             <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Entradas</div>
-                <div className="text-2xl font-bold text-green-500">R$ {formatCurrency(totalIncome)}</div>
+                <div className="text-2xl font-bold text-green-500">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               </CardContent>
             </Card>
             <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Saídas</div>
-                <div className="text-2xl font-bold text-red-500">R$ {formatCurrency(totalExpenses)}</div>
+                <div className="text-2xl font-bold text-red-500">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               </CardContent>
             </Card>
             <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Total Pendente</div>
-                <div className="text-2xl font-bold text-amber-500">R$ {formatCurrency(totalPending)}</div>
+                <div className="text-2xl font-bold text-amber-500">R$ {totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               </CardContent>
             </Card>
             <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Saldo</div>
                 <div className={`text-2xl font-bold ${balance >= 0 ? "text-green-500" : "text-red-500"}`}>
-                  R$ {formatCurrency(balance)}
+                  R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </CardContent>
             </Card>
