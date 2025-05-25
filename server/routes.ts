@@ -1964,9 +1964,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
       
-      // Validação - só atualizamos os campos fornecidos sem usar schema para debugging
-      // const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
-      const validatedUpdates = req.body;
+      // Validação removida para funcionar diretamente com o req.body
+      const validatedUpdates = {
+        paid: req.body.paid
+      };
       
       const updatedExpense = await storage.updateExpense(itemId, validatedUpdates);
       
