@@ -134,10 +134,36 @@ export const scheduleItems = pgTable('schedule_items', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Tabela para documentos
+export const documents = pgTable('documents', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: integer('event_id').references(() => events.id).notNull(),
+  name: text('name').notNull(),
+  category: text('category').notNull(), // Contrato, Orçamento, Licença, Roteiro, Outros
+  description: text('description'),
+  fileUrl: text('file_url').notNull(),
+  fileType: text('file_type').notNull(),
+  uploadedById: text('uploaded_by_id').references(() => users.id).notNull(),
+  uploadedAt: timestamp('uploaded_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const scheduleItemsRelations = relations(scheduleItems, ({ one }) => ({
   event: one(events, {
     fields: [scheduleItems.eventId],
     references: [events.id],
+  }),
+}));
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  event: one(events, {
+    fields: [documents.eventId],
+    references: [events.id],
+  }),
+  uploadedBy: one(users, {
+    fields: [documents.uploadedById],
+    references: [users.id],
   }),
 }));
 
@@ -152,6 +178,7 @@ export const insertVendorSchema = createInsertSchema(vendors).omit({ createdAt: 
 export const insertScheduleItemSchema = createInsertSchema(scheduleItems).omit({ createdAt: true, updatedAt: true });
 export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({ createdAt: true, updatedAt: true });
 export const insertExpenseSchema = createInsertSchema(expenses).omit({ createdAt: true, updatedAt: true });
+export const insertDocumentSchema = createInsertSchema(documents).omit({ createdAt: true, updatedAt: true, uploadedAt: true });
 
 // Types para inserção
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -164,6 +191,7 @@ export type InsertVendor = z.infer<typeof insertVendorSchema>;
 export type InsertScheduleItem = z.infer<typeof insertScheduleItemSchema>;
 export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 
 // Types para seleção
 export type User = typeof users.$inferSelect;
@@ -176,6 +204,7 @@ export type Vendor = typeof vendors.$inferSelect;
 export type ScheduleItem = typeof scheduleItems.$inferSelect;
 export type BudgetItem = typeof budgetItems.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;
+export type Document = typeof documents.$inferSelect;
 
 // Adicionar as relações de eventos no final do arquivo após todas as definições de tabelas
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -189,4 +218,5 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
   scheduleItems: many(scheduleItems),
   budgetItems: many(budgetItems),
   expenses: many(expenses),
+  documents: many(documents),
 }));
