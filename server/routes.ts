@@ -2085,7 +2085,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota direta para o cronograma (solução de emergência)
   setupCronogramaRoute(app);
 
-
+  // ==== Rotas para Documentos ====
+  
+  // Obter documentos de um evento
+  app.get('/api/events/:eventId/documents', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+      
+      const documents = await storage.getDocumentsByEventId(eventId);
+      console.log(`Retornando ${documents.length} documentos para o evento ${eventId}`);
+      
+      res.json(documents);
+    } catch (error) {
+      console.error("Erro ao obter documentos:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+  
+  // Obter documentos por categoria
+  app.get('/api/events/:eventId/documents/category/:category', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      const category = req.params.category;
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+      
+      const documents = await storage.getDocumentsByCategory(eventId, category);
+      console.log(`Retornando ${documents.length} documentos da categoria ${category} para o evento ${eventId}`);
+      
+      res.json(documents);
+    } catch (error) {
+      console.error("Erro ao obter documentos por categoria:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+  
+  // Adicionar um documento
+  app.post('/api/events/:eventId/documents', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+      
+      // Dados do documento com data de upload atual
+      const documentData = insertDocumentSchema.parse({
+        ...req.body,
+        eventId,
+        uploadedAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      const document = await storage.createDocument(documentData);
+      
+      // Registrar atividade
+      await storage.createActivityLog({
+        eventId,
+        userId,
+        action: 'create',
+        entityType: 'document',
+        entityId: document.id.toString(),
+        description: `Documento "${document.filename}" adicionado`
+      });
+      
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Erro ao criar documento:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+  
+  // Atualizar um documento
+  app.put('/api/events/:eventId/documents/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      const documentId = parseInt(req.params.id, 10);
+      
+      if (isNaN(eventId) || isNaN(documentId)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Verificar se o documento existe
+      const document = await storage.getDocumentById(documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+      
+      const hasAccess = await storage.hasUserAccessToEvent(userId, document.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para executar esta ação" });
+      }
+      
+      // Validação - só atualizamos os campos fornecidos
+      const validatedUpdates = insertDocumentSchema.partial().parse(req.body);
+      
+      const updatedDocument = await storage.updateDocument(documentId, validatedUpdates);
+      
+      // Registrar atividade
+      await storage.createActivityLog({
+        eventId,
+        userId,
+        action: 'update',
+        entityType: 'document',
+        entityId: documentId.toString(),
+        description: `Documento "${updatedDocument.filename}" atualizado`
+      });
+      
+      res.json(updatedDocument);
+    } catch (error) {
+      console.error("Erro ao atualizar documento:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+  
+  // Excluir um documento
+  app.delete('/api/events/:eventId/documents/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const eventId = parseInt(req.params.eventId, 10);
+      const documentId = parseInt(req.params.id, 10);
+      
+      if (isNaN(eventId) || isNaN(documentId)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Verificar se o documento existe
+      const document = await storage.getDocumentById(documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+      
+      const hasAccess = await storage.hasUserAccessToEvent(userId, document.eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para executar esta ação" });
+      }
+      
+      // Guardar informações do documento antes de excluir
+      const documentInfo = { ...document };
+      
+      await storage.deleteDocument(documentId);
+      
+      // Registrar atividade
+      await storage.createActivityLog({
+        eventId,
+        userId,
+        action: 'delete',
+        entityType: 'document',
+        entityId: documentId.toString(),
+        description: `Documento "${documentInfo.filename}" removido`
+      });
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao excluir documento:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
