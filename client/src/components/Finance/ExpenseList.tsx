@@ -317,7 +317,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                       <TableCell>{expense.dueDate ? new Date(expense.dueDate).toLocaleDateString('pt-BR') : '-'}</TableCell>
                       <TableCell>
                         <Badge 
-                          className={expense.isIncome ? "bg-transparent text-green-500 border border-green-500 rounded-full" : "bg-transparent text-red-500 border border-red-500 rounded-full"}
+                          className={expense.isIncome ? 
+                            "bg-transparent text-green-500 border border-green-500 rounded-full hover:bg-green-500 hover:text-white" : 
+                            "bg-transparent text-red-500 border border-red-500 rounded-full hover:bg-red-500 hover:text-white"
+                          }
                         >
                           {expense.isIncome ? 
                             <><i className="fas fa-arrow-up mr-1"></i> Entrada</> : 
@@ -328,7 +331,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                       <TableCell className="text-right">{formatCurrency(expense.amount)}</TableCell>
                       <TableCell>
                         <Badge 
-                          className={expense.paid ? "bg-green-500 text-white rounded-full" : "bg-transparent text-amber-500 border border-amber-500 rounded-full"}
+                          className={expense.paid ? 
+                            "bg-green-500 text-white rounded-full hover:bg-green-600" : 
+                            "bg-transparent text-amber-500 border border-amber-500 rounded-full hover:bg-amber-500 hover:text-white"
+                          }
                         >
                           {expense.paid ? 
                             (expense.isIncome ? "Recebido" : "Pago") : 
