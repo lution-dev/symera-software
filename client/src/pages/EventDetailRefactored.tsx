@@ -9,6 +9,7 @@ import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { ScheduleList } from "@/components/Schedule/ScheduleList";
 import { ExpenseList } from "@/components/Finance/ExpenseList";
+import DocumentList from "@/components/Documents/DocumentList";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -1020,38 +1021,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
                 <h2 className="text-xl font-semibold">Documentos</h2>
-                <Button variant="default" className="w-full sm:w-auto">
-                  <i className="fas fa-upload mr-2"></i> Fazer Upload
-                </Button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-card rounded-lg border border-border p-4">
-                  <p className="font-medium mb-1">Contratos</p>
-                  <p className="text-sm text-muted-foreground">0 documentos</p>
-                </div>
-                <div className="bg-card rounded-lg border border-border p-4">
-                  <p className="font-medium mb-1">Orçamentos</p>
-                  <p className="text-sm text-muted-foreground">0 documentos</p>
-                </div>
-                <div className="bg-card rounded-lg border border-border p-4">
-                  <p className="font-medium mb-1">Outros</p>
-                  <p className="text-sm text-muted-foreground">0 documentos</p>
-                </div>
-              </div>
-              
-              <div className="bg-card rounded-lg border border-border p-6">
-                <div className="text-center py-12">
-                  <i className="fas fa-file-alt text-3xl text-muted-foreground/50 mb-3"></i>
-                  <h3 className="font-medium text-lg mb-2">Nenhum documento disponível</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Faça upload de contratos, orçamentos e outros documentos relacionados ao evento
-                  </p>
-                  <Button variant="default">
-                    <i className="fas fa-upload mr-2"></i> Fazer Upload do Primeiro Documento
-                  </Button>
-                </div>
-              </div>
+              {/* Componente de gerenciamento de documentos */}
+              <DocumentList eventId={Number(eventId)} />
             </div>
           )}
           
