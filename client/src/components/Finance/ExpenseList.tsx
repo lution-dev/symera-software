@@ -156,7 +156,43 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   };
 
   const handleTogglePaidStatus = (expense: Expense) => {
-    updatePaidStatusMutation.mutate({ id: expense.id, paid: !expense.paid });
+    // Adicionando console.log para debugar
+    console.log("Alterando status para:", !expense.paid, "ID:", expense.id);
+    
+    // Chamada direta à API usando fetch
+    fetch(`/api/expenses/${expense.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ paid: !expense.paid }),
+      credentials: 'include'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Erro: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Resposta da API:", data);
+      // Atualizar dados após sucesso
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+      
+      toast({
+        title: "Status atualizado",
+        description: "O status de pagamento foi atualizado com sucesso."
+      });
+    })
+    .catch(error => {
+      console.error("Erro ao atualizar status:", error);
+      toast({
+        title: "Erro ao atualizar status",
+        description: "Ocorreu um erro ao atualizar o status de pagamento.",
+        variant: "destructive"
+      });
+    });
   };
 
   const getCategoryLabel = (categoryValue: string | undefined): string => {
