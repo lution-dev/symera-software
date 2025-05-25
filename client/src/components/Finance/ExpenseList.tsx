@@ -155,44 +155,48 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
     }
   };
 
-  const handleTogglePaidStatus = (expense: Expense) => {
-    // Adicionando console.log para debugar
-    console.log("Alterando status para:", !expense.paid, "ID:", expense.id);
-    
-    // Chamada direta à API usando fetch
-    fetch(`/api/expenses/${expense.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ paid: !expense.paid }),
-      credentials: 'include'
-    })
-    .then(response => {
+  const handleTogglePaidStatus = async (expense: Expense) => {
+    try {
+      const newPaidStatus = !expense.paid;
+      console.log(`Alterando status para: ${newPaidStatus ? 'pago' : 'não pago'}, ID: ${expense.id}`);
+      
+      // Usar axios ou fetch de forma mais simples
+      const response = await fetch(`/api/expenses/${expense.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          paid: newPaidStatus
+        })
+      });
+      
+      // Verificar resposta HTTP
       if (!response.ok) {
-        throw new Error(`Erro: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Erro na resposta: ${response.status}`, errorText);
+        throw new Error(`Erro na resposta: ${response.status}`);
       }
-      return response.json();
-    })
-    .then(data => {
-      console.log("Resposta da API:", data);
-      // Atualizar dados após sucesso
+      
+      // Atualizar a interface
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       
+      // Notificar o usuário
       toast({
         title: "Status atualizado",
-        description: "O status de pagamento foi atualizado com sucesso."
+        description: newPaidStatus 
+          ? "Item marcado como pago com sucesso." 
+          : "Status de pagamento removido com sucesso."
       });
-    })
-    .catch(error => {
-      console.error("Erro ao atualizar status:", error);
+    } catch (error) {
+      console.error("Falha ao atualizar status:", error);
       toast({
         title: "Erro ao atualizar status",
-        description: "Ocorreu um erro ao atualizar o status de pagamento.",
+        description: "Não foi possível alterar o status de pagamento. Tente novamente.",
         variant: "destructive"
       });
-    });
+    }
   };
 
   const getCategoryLabel = (categoryValue: string | undefined): string => {
