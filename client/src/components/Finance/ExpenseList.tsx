@@ -155,48 +155,35 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
     }
   };
 
-  const handleTogglePaidStatus = async (expense: Expense) => {
-    try {
-      const newPaidStatus = !expense.paid;
-      console.log(`Alterando status para: ${newPaidStatus ? 'pago' : 'não pago'}, ID: ${expense.id}`);
-      
-      // Usar axios ou fetch de forma mais simples
-      const response = await fetch(`/api/expenses/${expense.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          paid: newPaidStatus
-        })
+  const updatePaidStatusMutation = useMutation({
+    mutationFn: async ({ id, paid }: { id: number; paid: boolean }) => {
+      return await apiRequest(`/api/expenses/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ paid }),
       });
-      
-      // Verificar resposta HTTP
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Erro na resposta: ${response.status}`, errorText);
-        throw new Error(`Erro na resposta: ${response.status}`);
-      }
-      
-      // Atualizar a interface
+    },
+    onSuccess: () => {
+      // Importante: invalidar as consultas para atualizar a UI
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       
-      // Notificar o usuário
       toast({
         title: "Status atualizado",
-        description: newPaidStatus 
-          ? "Item marcado como pago com sucesso." 
-          : "Status de pagamento removido com sucesso."
+        description: "O status de pagamento foi atualizado com sucesso."
       });
-    } catch (error) {
-      console.error("Falha ao atualizar status:", error);
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar status:", error);
       toast({
         title: "Erro ao atualizar status",
-        description: "Não foi possível alterar o status de pagamento. Tente novamente.",
+        description: "Ocorreu um erro ao atualizar o status de pagamento.",
         variant: "destructive"
       });
-    }
+    },
+  });
+
+  const handleTogglePaidStatus = (expense: Expense) => {
+    updatePaidStatusMutation.mutate({ id: expense.id, paid: !expense.paid });
   };
 
   const getCategoryLabel = (categoryValue: string | undefined): string => {

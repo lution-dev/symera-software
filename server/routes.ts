@@ -1943,6 +1943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Atualizar despesa
   app.put('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
+    console.log("Recebendo atualização de despesa PUT:", req.params.id, req.body);
     try {
       const userId = req.user.claims.sub;
       const itemId = parseInt(req.params.id, 10);
