@@ -97,13 +97,21 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   // Mutação para marcar despesa como paga/não paga
   const updatePaidStatusMutation = useMutation({
     mutationFn: async ({ id, paid }: { id: number; paid: boolean }) => {
-      return await apiRequest(`/api/expenses/${id}`, {
+      // Solução: Não enviar diretamente o objeto, mas sim enviar o corpo como string JSON
+      const response = await fetch(`/api/expenses/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ paid }),
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        throw new Error(`Erro ao atualizar status: ${response.status}`);
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({
