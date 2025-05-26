@@ -178,7 +178,7 @@ export const insertVendorSchema = createInsertSchema(vendors).omit({ createdAt: 
 export const insertScheduleItemSchema = createInsertSchema(scheduleItems).omit({ createdAt: true, updatedAt: true });
 export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({ createdAt: true, updatedAt: true });
 export const insertExpenseSchema = createInsertSchema(expenses).omit({ createdAt: true, updatedAt: true });
-export const insertDocumentSchema = createInsertSchema(documents).omit({ createdAt: true, updatedAt: true, uploadedAt: true });
+export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true, createdAt: true, updatedAt: true, uploadedAt: true });
 
 // Types para inserção
 export type InsertUser = z.infer<typeof insertUserSchema>;
