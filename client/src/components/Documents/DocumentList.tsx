@@ -332,6 +332,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   
   // Get document icon based on filename extension
   const getDocumentIcon = (filename: string) => {
+    if (!filename) return <i className="fas fa-file text-gray-500"></i>;
     const extension = filename.split('.').pop()?.toLowerCase();
     
     switch (extension) {
