@@ -84,11 +84,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   // Query to fetch all documents
   const { data: documentsResponse, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/events', eventId, 'documents'],
-    queryFn: () => apiRequest(`/api/events/${eventId}/documents`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${eventId}/documents`);
+      return response.json();
+    },
   });
   
   // Ensure documents is always an array
   const documents = Array.isArray(documentsResponse) ? documentsResponse : [];
+  
+  console.log("Documents received:", documents);
   
   // Organize documents by category
   const documentsByCategory = {
