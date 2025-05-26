@@ -11,16 +11,29 @@ export async function apiRequest(
   endpoint: string,
   options?: RequestInit & { body?: any },
 ): Promise<Response> {
-  // Evitando body não ser compatível com BodyInit
-  const jsonBody = options?.body ? JSON.stringify(options.body) : undefined;
+  // Check if body is already a string (JSON) or needs to be stringified
+  let processedBody: BodyInit | undefined;
+  let contentType: string | undefined;
+  
+  if (options?.body) {
+    if (typeof options.body === 'string') {
+      // Body is already a JSON string
+      processedBody = options.body;
+      contentType = "application/json";
+    } else {
+      // Body is an object, stringify it
+      processedBody = JSON.stringify(options.body);
+      contentType = "application/json";
+    }
+  }
   
   const res = await fetch(endpoint, {
     ...options,
     headers: {
-      ...(jsonBody ? { "Content-Type": "application/json" } : {}),
+      ...(contentType ? { "Content-Type": contentType } : {}),
       ...options?.headers,
     },
-    body: jsonBody,
+    body: processedBody,
     credentials: "include",
   });
 
