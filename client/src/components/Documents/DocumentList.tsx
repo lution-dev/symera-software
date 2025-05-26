@@ -755,8 +755,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
           </DialogDescription>
         </DialogHeader>
         
-        <div className="bg-slate-800/10 rounded-lg p-4 mt-4 border border-slate-200/20">
-        <form onSubmit={handleUpload} className="space-y-4">
+        <form onSubmit={handleUpload} className="space-y-4 mt-4">
           <div className="w-full">
             <Label htmlFor="file" className="text-sm font-medium">Arquivo</Label>
             <div className="mt-2">
@@ -875,7 +874,6 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
             </Button>
           </DialogFooter>
         </form>
-        </div>
       </DialogContent>
     </Dialog>
   );
@@ -891,8 +889,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
           </DialogDescription>
         </DialogHeader>
         
-        <div className="bg-slate-800/10 rounded-lg p-4 mt-4 border border-slate-200/20">
-        <form onSubmit={handleEdit} className="space-y-4">
+        <form onSubmit={handleEdit} className="space-y-4 mt-4">
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="edit-filename">Nome do Documento</Label>
             <Input 
@@ -961,7 +958,6 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
             </Button>
           </DialogFooter>
         </form>
-        </div>
       </DialogContent>
     </Dialog>
   );
