@@ -2146,6 +2146,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
       
+      console.log("Dados recebidos para upload de documento:", req.body);
+      
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
@@ -2170,15 +2172,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createActivityLog({
         eventId,
         userId,
-        action: 'create',
-        entityType: 'document',
-        entityId: document.id.toString(),
-        description: `Documento "${document.filename}" adicionado`
+        action: 'document_added',
+        details: { 
+          filename: document.filename,
+          category: document.category
+        }
       });
       
       res.status(201).json(document);
     } catch (error) {
       console.error("Erro ao criar documento:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos para o documento", 
+          errors: error.errors 
+        });
+      }
       res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
