@@ -354,21 +354,143 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
         return <i className="fas fa-file text-gray-500"></i>;
     }
   };
+
+  // Render all documents (without category filter)
+  const renderAllDocuments = () => {
+    if (documents.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <i className="fas fa-file text-3xl text-muted-foreground/50 mb-3"></i>
+          <h3 className="font-medium text-lg mb-2">Nenhum documento disponível</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Adicione documentos para organizar melhor seu evento
+          </p>
+          <Button variant="default" onClick={() => setUploadDialogOpen(true)}>
+            <i className="fas fa-upload mr-2"></i> Fazer Upload
+          </Button>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="grid grid-cols-1 gap-4">
+        {documents.map((doc: Document) => (
+          <Card key={doc.id} className="overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  {getDocumentIcon(doc.name)}
+                  <div>
+                    <h4 className="font-medium">{doc.name}</h4>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      <Badge variant="outline" className={getCategoryBadgeColor(doc.category)}>
+                        {doc.category}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {doc.fileType}
+                      </span>
+                    </div>
+                    {doc.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
+                    )}
+                    <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                      <Avatar className="h-5 w-5 mr-1">
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                      <span>
+                        Enviado em {formatDate(doc.uploadedAt)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                  <Button size="sm" variant="outline" onClick={() => window.open(doc.fileUrl, '_blank')}>
+                    <i className="fas fa-eye"></i>
+                    <span className="ml-1 md:hidden lg:inline">Ver</span>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => window.open(doc.fileUrl, '_blank')}>
+                    <i className="fas fa-download"></i>
+                    <span className="ml-1 md:hidden lg:inline">Baixar</span>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setupEditForm(doc)}>
+                    <i className="fas fa-pencil-alt"></i>
+                    <span className="ml-1 md:hidden lg:inline">Editar</span>
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50">
+                        <i className="fas fa-trash-alt"></i>
+                        <span className="ml-1 md:hidden lg:inline">Excluir</span>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir documento</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir o documento "{doc.name}"? 
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          className="bg-red-500 hover:bg-red-600" 
+                          onClick={() => deleteMutation.mutate(doc.id)}
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
   
   // Render desktop view with tabs
   const renderDesktopView = () => (
-    <Tabs defaultValue="contratos" className="w-full">
-      <TabsList className="mb-4">
+    <Tabs defaultValue="todos" className="w-full">
+      <TabsList className="mb-4 grid grid-cols-5 lg:grid-cols-10">
+        <TabsTrigger value="todos" onClick={() => setActiveCategory(null)}>
+          Todos ({documents.length})
+        </TabsTrigger>
         <TabsTrigger value="contratos" onClick={() => setActiveCategory('contratos')}>
           Contratos ({documentCounts.contratos})
         </TabsTrigger>
         <TabsTrigger value="orcamentos" onClick={() => setActiveCategory('orcamentos')}>
           Orçamentos ({documentCounts.orcamentos})
         </TabsTrigger>
+        <TabsTrigger value="imagens" onClick={() => setActiveCategory('imagens')}>
+          Imagens ({documentCounts.imagens})
+        </TabsTrigger>
+        <TabsTrigger value="videos" onClick={() => setActiveCategory('videos')}>
+          Vídeos ({documentCounts.videos})
+        </TabsTrigger>
+        <TabsTrigger value="apresentacoes" onClick={() => setActiveCategory('apresentacoes')}>
+          Apresentações ({documentCounts.apresentacoes})
+        </TabsTrigger>
+        <TabsTrigger value="licencas" onClick={() => setActiveCategory('licencas')}>
+          Licenças ({documentCounts.licencas})
+        </TabsTrigger>
+        <TabsTrigger value="roteiros" onClick={() => setActiveCategory('roteiros')}>
+          Roteiros ({documentCounts.roteiros})
+        </TabsTrigger>
+        <TabsTrigger value="checklists" onClick={() => setActiveCategory('checklists')}>
+          Checklists ({documentCounts.checklists})
+        </TabsTrigger>
         <TabsTrigger value="outros" onClick={() => setActiveCategory('outros')}>
           Outros ({documentCounts.outros})
         </TabsTrigger>
       </TabsList>
+      
+      <TabsContent value="todos">
+        {renderAllDocuments()}
+      </TabsContent>
       
       <TabsContent value="contratos">
         {renderDocumentList('contratos')}
@@ -376,6 +498,30 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
       
       <TabsContent value="orcamentos">
         {renderDocumentList('orcamentos')}
+      </TabsContent>
+      
+      <TabsContent value="imagens">
+        {renderDocumentList('imagens')}
+      </TabsContent>
+      
+      <TabsContent value="videos">
+        {renderDocumentList('videos')}
+      </TabsContent>
+      
+      <TabsContent value="apresentacoes">
+        {renderDocumentList('apresentacoes')}
+      </TabsContent>
+      
+      <TabsContent value="licencas">
+        {renderDocumentList('licencas')}
+      </TabsContent>
+      
+      <TabsContent value="roteiros">
+        {renderDocumentList('roteiros')}
+      </TabsContent>
+      
+      <TabsContent value="checklists">
+        {renderDocumentList('checklists')}
       </TabsContent>
       
       <TabsContent value="outros">
@@ -386,7 +532,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   
   // Render mobile view with accordion
   const renderMobileView = () => (
-    <Accordion type="single" collapsible className="w-full">
+    <Accordion type="single" collapsible className="w-full" defaultValue="todos">
+      <AccordionItem value="todos">
+        <AccordionTrigger>
+          Todos os Documentos ({documents.length})
+        </AccordionTrigger>
+        <AccordionContent>
+          {renderAllDocuments()}
+        </AccordionContent>
+      </AccordionItem>
+      
       <AccordionItem value="contratos">
         <AccordionTrigger>
           Contratos ({documentCounts.contratos})
@@ -405,6 +560,60 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
         </AccordionContent>
       </AccordionItem>
       
+      <AccordionItem value="imagens">
+        <AccordionTrigger>
+          Imagens ({documentCounts.imagens})
+        </AccordionTrigger>
+        <AccordionContent>
+          {renderDocumentList('imagens')}
+        </AccordionContent>
+      </AccordionItem>
+      
+      <AccordionItem value="videos">
+        <AccordionTrigger>
+          Vídeos ({documentCounts.videos})
+        </AccordionTrigger>
+        <AccordionContent>
+          {renderDocumentList('videos')}
+        </AccordionContent>
+      </AccordionItem>
+      
+      <AccordionItem value="apresentacoes">
+        <AccordionTrigger>
+          Apresentações ({documentCounts.apresentacoes})
+        </AccordionTrigger>
+        <AccordionContent>
+          {renderDocumentList('apresentacoes')}
+        </AccordionContent>
+      </AccordionItem>
+      
+      <AccordionItem value="licencas">
+        <AccordionTrigger>
+          Licenças ({documentCounts.licencas})
+        </AccordionTrigger>
+        <AccordionContent>
+          {renderDocumentList('licencas')}
+        </AccordionContent>
+      </AccordionItem>
+      
+      <AccordionItem value="roteiros">
+        <AccordionTrigger>
+          Roteiros ({documentCounts.roteiros})
+        </AccordionTrigger>
+        <AccordionContent>
+          {renderDocumentList('roteiros')}
+        </AccordionContent>
+      </AccordionItem>
+      
+      <AccordionItem value="checklists">
+        <AccordionTrigger>
+          Checklists ({documentCounts.checklists})
+        </AccordionTrigger>
+        <AccordionContent>
+          {renderDocumentList('checklists')}
+        </AccordionContent>
+      </AccordionItem>
+      
       <AccordionItem value="outros">
         <AccordionTrigger>
           Outros ({documentCounts.outros})
@@ -415,7 +624,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
       </AccordionItem>
     </Accordion>
   );
-  
+
   // Render document list for a specific category
   const renderDocumentList = (category: string) => {
     const docs = documentsByCategory[category as keyof typeof documentsByCategory];
