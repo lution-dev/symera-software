@@ -948,6 +948,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
               value={description} 
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Breve descrição sobre este documento"
+              style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
             />
           </div>
           
