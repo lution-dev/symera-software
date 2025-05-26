@@ -293,7 +293,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   // Set up edit form with selected document data
   const setupEditForm = (document: Document) => {
     setSelectedDocument(document);
-    setFilename(document.filename);
+    setFilename(document.name); // Usar 'name' ao invés de 'filename'
     
     // Check if the category is one of the predefined ones
     const predefinedCategories = ['contratos', 'orcamentos', 'imagens', 'videos', 'apresentacoes', 'licencas', 'roteiros', 'checklists'];
