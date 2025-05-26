@@ -2158,12 +2158,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
       
-      // Dados do documento com data de upload atual
+      // Dados do documento com campos obrigatórios preenchidos
       const documentData = insertDocumentSchema.parse({
-        ...req.body,
-        eventId,
-        uploadedAt: new Date(),
-        updatedAt: new Date()
+        name: req.body.filename, // Usar filename como name
+        category: req.body.category,
+        description: req.body.description,
+        fileUrl: req.body.fileUrl,
+        fileType: req.body.filename ? req.body.filename.split('.').pop() || 'unknown' : 'unknown',
+        uploadedById: userId,
+        eventId: eventId
       });
       
       const document = await storage.createDocument(documentData);
@@ -2174,7 +2177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         action: 'document_added',
         details: { 
-          filename: document.filename,
+          filename: document.name,
           category: document.category
         }
       });
