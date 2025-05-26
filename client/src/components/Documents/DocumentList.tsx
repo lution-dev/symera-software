@@ -105,21 +105,19 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   
   // Upload document mutation
   const uploadMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const finalCategory = category === 'outros' && customCategory ? customCategory : category;
-      
-      const documentData = {
-        filename: filename || file?.name || 'Documento sem nome',
+    mutationFn: async (documentData: { filename: string; category: string; description: string | null }) => {
+      const finalDocumentData = {
+        filename: documentData.filename,
         fileUrl: 'https://example.com/placeholder.pdf', // Placeholder - In a real implementation this would be the result of an upload
         filesize: file?.size || 0,
-        category: finalCategory,
-        description: description || null,
+        category: documentData.category,
+        description: documentData.description,
         eventId: eventId
       };
       
       return apiRequest(`/api/events/${eventId}/documents`, {
         method: 'POST',
-        body: JSON.stringify(documentData),
+        body: JSON.stringify(finalDocumentData),
       });
     },
     onSuccess: () => {
@@ -227,15 +225,23 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
       return;
     }
     
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('filename', filename || file.name);
-    formData.append('category', category);
-    if (description) {
-      formData.append('description', description);
+    if (category === 'outros' && !customCategory) {
+      toast({
+        title: 'Nome da categoria necessário',
+        description: 'Por favor, digite o nome da categoria personalizada.',
+        variant: 'destructive',
+      });
+      return;
     }
     
-    uploadMutation.mutate(formData);
+    // Create document data object instead of FormData
+    const documentData = {
+      filename: filename || file.name,
+      category: category === 'outros' ? customCategory : category,
+      description: description || null
+    };
+    
+    uploadMutation.mutate(documentData);
   };
   
   // Handle document edit
