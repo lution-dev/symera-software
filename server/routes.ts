@@ -2158,13 +2158,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
       
-      // Criar dados do documento sem usar o schema de validação por enquanto
+      // Processar upload de arquivo real
+      let fileUrl = 'https://example.com/placeholder.pdf'; // Fallback
+      let fileSize = 0;
+      
+      if (req.file) {
+        // Aqui você implementaria o upload real para um serviço como AWS S3, Google Cloud Storage, etc.
+        // Por enquanto, vamos simular um upload bem-sucedido
+        fileUrl = `/uploads/${Date.now()}-${req.file.originalname}`;
+        fileSize = req.file.size;
+        
+        // TODO: Implementar upload real para cloud storage
+        // fileUrl = await uploadToCloudStorage(req.file);
+      }
+      
       const documentData = {
-        name: req.body.filename || 'Documento sem nome',
+        name: req.body.filename || req.file?.originalname || 'Documento sem nome',
         category: req.body.category || 'outros',
         description: req.body.description || null,
-        fileUrl: req.body.fileUrl || 'https://example.com/placeholder.pdf',
-        fileType: req.body.filename ? req.body.filename.split('.').pop() || 'unknown' : 'unknown',
+        fileUrl: fileUrl,
+        fileType: req.file?.originalname ? req.file.originalname.split('.').pop() || 'unknown' : 'unknown',
         uploadedById: userId,
         eventId: eventId
       };

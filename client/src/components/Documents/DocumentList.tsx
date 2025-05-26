@@ -73,6 +73,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>('todos');
   
   // Form states for upload
   const [file, setFile] = useState<File | null>(null);
@@ -95,7 +97,18 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   
   console.log("Documents received:", documents);
   
-  // Organize documents by category
+  // Filter documents based on search term and category
+  const filteredDocuments = documents.filter((doc: Document) => {
+    const matchesSearch = searchTerm === '' || 
+      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (doc.description && doc.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCategory = filterCategory === 'todos' || doc.category === filterCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  // Organize documents by category for counts
   const documentsByCategory = {
     'contratos': documents.filter((doc: Document) => doc.category === 'contratos'),
     'orcamentos': documents.filter((doc: Document) => doc.category === 'orcamentos'),
@@ -111,18 +124,22 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   // Upload document mutation
   const uploadMutation = useMutation({
     mutationFn: async (documentData: { filename: string; category: string; description: string | null }) => {
-      const finalDocumentData = {
-        filename: documentData.filename,
-        fileUrl: 'https://example.com/placeholder.pdf', // Placeholder - In a real implementation this would be the result of an upload
-        filesize: file?.size || 0,
-        category: documentData.category,
-        description: documentData.description,
-        eventId: eventId
-      };
+      if (!file) {
+        throw new Error("Nenhum arquivo selecionado");
+      }
+
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('filename', documentData.filename);
+      formData.append('category', documentData.category);
+      formData.append('description', documentData.description || '');
+      formData.append('eventId', eventId.toString());
       
       return apiRequest(`/api/events/${eventId}/documents`, {
         method: 'POST',
-        body: JSON.stringify(finalDocumentData),
+        body: formData,
+        // Don't set Content-Type header - let browser set it with boundary for FormData
       });
     },
     onSuccess: () => {
@@ -453,82 +470,70 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     );
   };
   
-  // Render desktop view with tabs
-  const renderDesktopView = () => (
-    <Tabs defaultValue="todos" className="w-full">
-      <TabsList className="mb-4 grid grid-cols-5 lg:grid-cols-10">
-        <TabsTrigger value="todos" onClick={() => setActiveCategory(null)}>
-          Todos ({documents.length})
-        </TabsTrigger>
-        <TabsTrigger value="contratos" onClick={() => setActiveCategory('contratos')}>
-          Contratos ({documentCounts.contratos})
-        </TabsTrigger>
-        <TabsTrigger value="orcamentos" onClick={() => setActiveCategory('orcamentos')}>
-          Orçamentos ({documentCounts.orcamentos})
-        </TabsTrigger>
-        <TabsTrigger value="imagens" onClick={() => setActiveCategory('imagens')}>
-          Imagens ({documentCounts.imagens})
-        </TabsTrigger>
-        <TabsTrigger value="videos" onClick={() => setActiveCategory('videos')}>
-          Vídeos ({documentCounts.videos})
-        </TabsTrigger>
-        <TabsTrigger value="apresentacoes" onClick={() => setActiveCategory('apresentacoes')}>
-          Apresentações ({documentCounts.apresentacoes})
-        </TabsTrigger>
-        <TabsTrigger value="licencas" onClick={() => setActiveCategory('licencas')}>
-          Licenças ({documentCounts.licencas})
-        </TabsTrigger>
-        <TabsTrigger value="roteiros" onClick={() => setActiveCategory('roteiros')}>
-          Roteiros ({documentCounts.roteiros})
-        </TabsTrigger>
-        <TabsTrigger value="checklists" onClick={() => setActiveCategory('checklists')}>
-          Checklists ({documentCounts.checklists})
-        </TabsTrigger>
-        <TabsTrigger value="outros" onClick={() => setActiveCategory('outros')}>
-          Outros ({documentCounts.outros})
-        </TabsTrigger>
-      </TabsList>
+  // Render search and filter controls
+  const renderSearchAndFilters = () => (
+    <div className="mb-6 space-y-4">
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Campo de pesquisa */}
+        <div className="flex-1">
+          <Label htmlFor="search">Pesquisar documentos</Label>
+          <div className="relative">
+            <Input
+              id="search"
+              type="text"
+              placeholder="Digite o nome do documento ou descrição..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+            <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+        </div>
+        
+        {/* Campo de filtro por categoria */}
+        <div className="w-full md:w-64">
+          <Label htmlFor="category-filter">Filtrar por categoria</Label>
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger id="category-filter">
+              <SelectValue placeholder="Todas as categorias" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas as categorias ({documents.length})</SelectItem>
+              <SelectItem value="contratos">Contratos ({documentsByCategory.contratos.length})</SelectItem>
+              <SelectItem value="orcamentos">Orçamentos ({documentsByCategory.orcamentos.length})</SelectItem>
+              <SelectItem value="imagens">Imagens ({documentsByCategory.imagens.length})</SelectItem>
+              <SelectItem value="videos">Vídeos ({documentsByCategory.videos.length})</SelectItem>
+              <SelectItem value="apresentacoes">Apresentações ({documentsByCategory.apresentacoes.length})</SelectItem>
+              <SelectItem value="licencas">Licenças ({documentsByCategory.licencas.length})</SelectItem>
+              <SelectItem value="roteiros">Roteiros ({documentsByCategory.roteiros.length})</SelectItem>
+              <SelectItem value="checklists">Checklists ({documentsByCategory.checklists.length})</SelectItem>
+              <SelectItem value="outros">Outros ({documentsByCategory.outros.length})</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Botão de adicionar documento */}
+        <div className="flex items-end">
+          <Button onClick={() => setUploadDialogOpen(true)} className="w-full md:w-auto">
+            <i className="fas fa-plus mr-2"></i>
+            Adicionar Documento
+          </Button>
+        </div>
+      </div>
       
-      <TabsContent value="todos">
-        {renderAllDocuments()}
-      </TabsContent>
-      
-      <TabsContent value="contratos">
-        {renderDocumentList('contratos')}
-      </TabsContent>
-      
-      <TabsContent value="orcamentos">
-        {renderDocumentList('orcamentos')}
-      </TabsContent>
-      
-      <TabsContent value="imagens">
-        {renderDocumentList('imagens')}
-      </TabsContent>
-      
-      <TabsContent value="videos">
-        {renderDocumentList('videos')}
-      </TabsContent>
-      
-      <TabsContent value="apresentacoes">
-        {renderDocumentList('apresentacoes')}
-      </TabsContent>
-      
-      <TabsContent value="licencas">
-        {renderDocumentList('licencas')}
-      </TabsContent>
-      
-      <TabsContent value="roteiros">
-        {renderDocumentList('roteiros')}
-      </TabsContent>
-      
-      <TabsContent value="checklists">
-        {renderDocumentList('checklists')}
-      </TabsContent>
-      
-      <TabsContent value="outros">
-        {renderDocumentList('outros')}
-      </TabsContent>
-    </Tabs>
+      {/* Indicador de resultados */}
+      <div className="text-sm text-muted-foreground">
+        {searchTerm || filterCategory !== 'todos' ? (
+          <span>
+            Mostrando {filteredDocuments.length} de {documents.length} documentos
+            {searchTerm && ` para "${searchTerm}"`}
+            {filterCategory !== 'todos' && ` na categoria ${filterCategory}`}
+          </span>
+        ) : (
+          <span>Mostrando todos os {documents.length} documentos</span>
+        )}
+      </div>
+    </div>
   );
   
   // Render mobile view with accordion
@@ -940,16 +945,120 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     );
   }
   
+  // Render filtered documents list
+  const renderFilteredDocuments = () => {
+    if (filteredDocuments.length === 0) {
+      if (searchTerm || filterCategory !== 'todos') {
+        return (
+          <div className="text-center py-8">
+            <i className="fas fa-search text-3xl text-muted-foreground/50 mb-3"></i>
+            <h3 className="font-medium text-lg mb-2">Nenhum documento encontrado</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Tente ajustar os filtros de pesquisa ou categoria
+            </p>
+            <Button variant="outline" onClick={() => { setSearchTerm(''); setFilterCategory('todos'); }}>
+              <i className="fas fa-times mr-2"></i> Limpar Filtros
+            </Button>
+          </div>
+        );
+      } else {
+        return renderEmptyState();
+      }
+    }
+    
+    return (
+      <div className="grid grid-cols-1 gap-4">
+        {filteredDocuments.map((doc: Document) => (
+          <Card key={doc.id} className="overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  {getDocumentIcon(doc.name)}
+                  <div>
+                    <h4 className="font-medium">{doc.name}</h4>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      <Badge variant="outline" className={getCategoryBadgeColor(doc.category)}>
+                        {doc.category}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {doc.fileType}
+                      </span>
+                    </div>
+                    {doc.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
+                    )}
+                    <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                      <Avatar className="h-5 w-5 mr-1">
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                      <span>
+                        Enviado em {formatDate(doc.uploadedAt)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                  <Button size="sm" variant="outline" onClick={() => window.open(doc.fileUrl, '_blank')}>
+                    <i className="fas fa-eye"></i>
+                    <span className="ml-1 md:hidden lg:inline">Ver</span>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => window.open(doc.fileUrl, '_blank')}>
+                    <i className="fas fa-download"></i>
+                    <span className="ml-1 md:hidden lg:inline">Baixar</span>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setupEditForm(doc)}>
+                    <i className="fas fa-pencil-alt"></i>
+                    <span className="ml-1 md:hidden lg:inline">Editar</span>
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50">
+                        <i className="fas fa-trash-alt"></i>
+                        <span className="ml-1 md:hidden lg:inline">Excluir</span>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir documento</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir o documento "{doc.name}"? 
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          className="bg-red-500 hover:bg-red-600" 
+                          onClick={() => deleteMutation.mutate(doc.id)}
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="document-list">
+      {/* Search and Filter Controls */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          {renderSearchAndFilters()}
+        </CardContent>
+      </Card>
+      
       {/* Document list */}
       <Card>
         <CardContent className="p-6">
-          {documents.length === 0 ? (
-            renderEmptyState()
-          ) : (
-            isMobile ? renderMobileView() : renderDesktopView()
-          )}
+          {renderFilteredDocuments()}
         </CardContent>
       </Card>
       
