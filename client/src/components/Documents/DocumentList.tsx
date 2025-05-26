@@ -756,18 +756,54 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
         </DialogHeader>
         
         <form onSubmit={handleUpload} className="space-y-4 mt-4">
-          <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="file">Arquivo</Label>
-            <Input 
-              id="file" 
-              type="file" 
-              onChange={handleFileChange}
-              className="cursor-pointer"
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Suporta arquivos PDF, Word, Excel, e imagens
-            </p>
+          <div className="w-full">
+            <Label htmlFor="file" className="text-sm font-medium">Arquivo</Label>
+            <div className="mt-2">
+              <label 
+                htmlFor="file" 
+                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-all duration-200"
+              >
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {file ? (
+                    <>
+                      <i className="fas fa-file-check text-3xl text-green-500 mb-2"></i>
+                      <p className="text-sm text-gray-600 font-medium">{file.name}</p>
+                      <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Clique para fazer upload</span> ou arraste e solte
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PDF, DOC, XLS, PNG, JPG (máx. 10MB)
+                      </p>
+                    </>
+                  )}
+                </div>
+                <input 
+                  id="file" 
+                  type="file" 
+                  className="hidden" 
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif"
+                  required
+                />
+              </label>
+              {file && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={() => setFile(null)}
+                >
+                  <i className="fas fa-times mr-2"></i>
+                  Remover arquivo
+                </Button>
+              )}
+            </div>
           </div>
           
           <div className="grid w-full max-w-sm items-center gap-1.5">
