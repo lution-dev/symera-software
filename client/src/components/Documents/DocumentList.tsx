@@ -78,6 +78,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   const [file, setFile] = useState<File | null>(null);
   const [filename, setFilename] = useState('');
   const [category, setCategory] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
   const [description, setDescription] = useState('');
   
   // Query to fetch all documents
@@ -93,17 +94,25 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   const documentsByCategory = {
     'contratos': documents.filter((doc: Document) => doc.category === 'contratos'),
     'orcamentos': documents.filter((doc: Document) => doc.category === 'orcamentos'),
-    'outros': documents.filter((doc: Document) => doc.category === 'outros'),
+    'imagens': documents.filter((doc: Document) => doc.category === 'imagens'),
+    'videos': documents.filter((doc: Document) => doc.category === 'videos'),
+    'apresentacoes': documents.filter((doc: Document) => doc.category === 'apresentacoes'),
+    'licencas': documents.filter((doc: Document) => doc.category === 'licencas'),
+    'roteiros': documents.filter((doc: Document) => doc.category === 'roteiros'),
+    'checklists': documents.filter((doc: Document) => doc.category === 'checklists'),
+    'outros': documents.filter((doc: Document) => !['contratos', 'orcamentos', 'imagens', 'videos', 'apresentacoes', 'licencas', 'roteiros', 'checklists'].includes(doc.category)),
   };
   
   // Upload document mutation
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
+      const finalCategory = category === 'outros' && customCategory ? customCategory : category;
+      
       const documentData = {
         filename: filename || file?.name || 'Documento sem nome',
         fileUrl: 'https://example.com/placeholder.pdf', // Placeholder - In a real implementation this would be the result of an upload
         filesize: file?.size || 0,
-        category: category,
+        category: finalCategory,
         description: description || null,
         eventId: eventId
       };
@@ -136,9 +145,12 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     mutationFn: async (documentData: Partial<Document>) => {
       if (!selectedDocument) return null;
       
+      const finalCategory = category === 'outros' && customCategory ? customCategory : category;
+      const updatedData = { ...documentData, category: finalCategory };
+      
       return apiRequest(`/api/events/${eventId}/documents/${selectedDocument.id}`, {
         method: 'PUT',
-        body: JSON.stringify(documentData),
+        body: JSON.stringify(updatedData),
       });
     },
     onSuccess: () => {
@@ -246,6 +258,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     setFile(null);
     setFilename('');
     setCategory('');
+    setCustomCategory('');
     setDescription('');
   };
   
@@ -253,7 +266,17 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   const setupEditForm = (document: Document) => {
     setSelectedDocument(document);
     setFilename(document.filename);
-    setCategory(document.category);
+    
+    // Check if the category is one of the predefined ones
+    const predefinedCategories = ['contratos', 'orcamentos', 'imagens', 'videos', 'apresentacoes', 'licencas', 'roteiros', 'checklists'];
+    if (predefinedCategories.includes(document.category)) {
+      setCategory(document.category);
+      setCustomCategory('');
+    } else {
+      setCategory('outros');
+      setCustomCategory(document.category);
+    }
+    
     setDescription(document.description || '');
     setEditDialogOpen(true);
   };
@@ -262,6 +285,12 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   const documentCounts = {
     contratos: documentsByCategory.contratos.length,
     orcamentos: documentsByCategory.orcamentos.length,
+    imagens: documentsByCategory.imagens.length,
+    videos: documentsByCategory.videos.length,
+    apresentacoes: documentsByCategory.apresentacoes.length,
+    licencas: documentsByCategory.licencas.length,
+    roteiros: documentsByCategory.roteiros.length,
+    checklists: documentsByCategory.checklists.length,
     outros: documentsByCategory.outros.length,
     total: documents.length,
   };
@@ -273,6 +302,18 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'orcamentos':
         return 'bg-green-100 text-green-800 border-green-200';
+      case 'imagens':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'videos':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'apresentacoes':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'licencas':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'roteiros':
+        return 'bg-pink-100 text-pink-800 border-pink-200';
+      case 'checklists':
+        return 'bg-teal-100 text-teal-800 border-teal-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -523,10 +564,30 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
               <SelectContent>
                 <SelectItem value="contratos">Contratos</SelectItem>
                 <SelectItem value="orcamentos">Orçamentos</SelectItem>
+                <SelectItem value="imagens">Imagens (Ex: artes do evento, fotos de locação, logos)</SelectItem>
+                <SelectItem value="videos">Vídeos (Ex: teaser, making of, cobertura anterior)</SelectItem>
+                <SelectItem value="apresentacoes">Apresentações (PPT, PDF de pitch, cronogramas visuais)</SelectItem>
+                <SelectItem value="licencas">Licenças e Autorizações</SelectItem>
+                <SelectItem value="roteiros">Roteiros (para eventos com palco, falas, etc.)</SelectItem>
+                <SelectItem value="checklists">Checklist impresso</SelectItem>
                 <SelectItem value="outros">Outros</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Campo customizado quando "Outros" for selecionado */}
+          {category === 'outros' && (
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="custom-category">Nome da Categoria Personalizada</Label>
+              <Input 
+                id="custom-category" 
+                value={customCategory} 
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="Ex: Decoração, Música, etc."
+                required
+              />
+            </div>
+          )}
           
           <div className="grid w-full gap-1.5">
             <Label htmlFor="description">Descrição (opcional)</Label>
