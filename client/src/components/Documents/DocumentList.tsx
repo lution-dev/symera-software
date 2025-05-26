@@ -755,13 +755,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleUpload} className="space-y-4 mt-4">
+        <div className="bg-slate-50 rounded-lg p-4 mt-4">
+        <form onSubmit={handleUpload} className="space-y-4">
           <div className="w-full">
             <Label htmlFor="file" className="text-sm font-medium">Arquivo</Label>
             <div className="mt-2">
               <label 
                 htmlFor="file" 
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-all duration-200"
+                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer bg-purple-50 hover:bg-purple-100 hover:border-purple-400 transition-all duration-200"
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   {file ? (
@@ -772,11 +773,11 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                     </>
                   ) : (
                     <>
-                      <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
-                      <p className="mb-2 text-sm text-gray-500">
+                      <i className="fas fa-cloud-upload-alt text-3xl text-purple-400 mb-2"></i>
+                      <p className="mb-2 text-sm text-purple-600">
                         <span className="font-semibold">Clique para fazer upload</span> ou arraste e solte
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-purple-500">
                         PDF, DOC, XLS, PNG, JPG (máx. 10MB)
                       </p>
                     </>
@@ -874,6 +875,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
             </Button>
           </DialogFooter>
         </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -889,7 +891,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleEdit} className="space-y-4 mt-4">
+        <div className="bg-slate-50 rounded-lg p-4 mt-4">
+        <form onSubmit={handleEdit} className="space-y-4">
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="edit-filename">Nome do Documento</Label>
             <Input 
@@ -958,6 +961,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
             </Button>
           </DialogFooter>
         </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
