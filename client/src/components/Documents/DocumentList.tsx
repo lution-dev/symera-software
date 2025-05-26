@@ -648,10 +648,30 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
               <SelectContent>
                 <SelectItem value="contratos">Contratos</SelectItem>
                 <SelectItem value="orcamentos">Orçamentos</SelectItem>
+                <SelectItem value="imagens">Imagens (Ex: artes do evento, fotos de locação, logos)</SelectItem>
+                <SelectItem value="videos">Vídeos (Ex: teaser, making of, cobertura anterior)</SelectItem>
+                <SelectItem value="apresentacoes">Apresentações (PPT, PDF de pitch, cronogramas visuais)</SelectItem>
+                <SelectItem value="licencas">Licenças e Autorizações</SelectItem>
+                <SelectItem value="roteiros">Roteiros (para eventos com palco, falas, etc.)</SelectItem>
+                <SelectItem value="checklists">Checklist impresso</SelectItem>
                 <SelectItem value="outros">Outros</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Campo customizado quando "Outros" for selecionado */}
+          {category === 'outros' && (
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="edit-custom-category">Nome da Categoria Personalizada</Label>
+              <Input 
+                id="edit-custom-category" 
+                value={customCategory} 
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="Ex: Decoração, Música, etc."
+                required
+              />
+            </div>
+          )}
           
           <div className="grid w-full gap-1.5">
             <Label htmlFor="edit-description">Descrição (opcional)</Label>
