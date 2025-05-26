@@ -755,13 +755,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleUpload} className="space-y-4 mt-4">
+        <form onSubmit={handleUpload} className="space-y-4 mt-4 p-4 rounded-lg" style={{ backgroundColor: '#1A0A29' }}>
           <div className="w-full">
             <Label htmlFor="file" className="text-sm font-medium">Arquivo</Label>
             <div className="mt-2">
               <label 
                 htmlFor="file" 
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-all duration-200"
+                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:border-gray-300 transition-all duration-200"
+                style={{ backgroundColor: '#1A0A29' }}
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   {file ? (
@@ -814,13 +815,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
               onChange={(e) => setFilename(e.target.value)}
               placeholder="Ex: Contrato Principal"
               required
+              style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
             />
           </div>
           
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="category">Categoria</Label>
             <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger id="category">
+              <SelectTrigger id="category" style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}>
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -847,6 +849,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                 onChange={(e) => setCustomCategory(e.target.value)}
                 placeholder="Ex: Decoração, Música, etc."
                 required
+                style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
               />
             </div>
           )}
@@ -858,6 +861,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
               value={description} 
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Breve descrição sobre este documento"
+              style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
             />
           </div>
           
@@ -889,7 +893,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleEdit} className="space-y-4 mt-4">
+        <form onSubmit={handleEdit} className="space-y-4 mt-4 p-4 rounded-lg" style={{ backgroundColor: '#1A0A29' }}>
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="edit-filename">Nome do Documento</Label>
             <Input 
@@ -898,13 +902,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
               onChange={(e) => setFilename(e.target.value)}
               placeholder="Ex: Contrato Principal"
               required
+              style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
             />
           </div>
           
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="edit-category">Categoria</Label>
             <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger id="edit-category">
+              <SelectTrigger id="edit-category" style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}>
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -931,6 +936,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                 onChange={(e) => setCustomCategory(e.target.value)}
                 placeholder="Ex: Decoração, Música, etc."
                 required
+                style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
               />
             </div>
           )}
