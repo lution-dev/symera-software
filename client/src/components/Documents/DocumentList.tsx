@@ -1048,17 +1048,13 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
 
   return (
     <div className="document-list">
-      {/* Search and Filter Controls */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          {renderSearchAndFilters()}
-        </CardContent>
-      </Card>
-      
-      {/* Document list */}
+      {/* Integrated Document List with Controls */}
       <Card>
         <CardContent className="p-6">
-          {renderFilteredDocuments()}
+          {renderSearchAndFilters()}
+          <div className="border-t pt-6">
+            {renderFilteredDocuments()}
+          </div>
         </CardContent>
       </Card>
       
