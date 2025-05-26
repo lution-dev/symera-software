@@ -437,7 +437,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50">
+                      <Button size="sm" variant="outline" className="text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200">
                         <i className="fas fa-trash-alt"></i>
                         <span className="ml-1 md:hidden lg:inline">Excluir</span>
                       </Button>
@@ -697,7 +697,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50">
+                      <Button size="sm" variant="outline" className="text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200">
                         <i className="fas fa-trash-alt"></i>
                         <span className="ml-1 md:hidden lg:inline">Excluir</span>
                       </Button>
@@ -1013,7 +1013,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-50">
+                      <Button size="sm" variant="outline" className="text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200">
                         <i className="fas fa-trash-alt"></i>
                         <span className="ml-1 md:hidden lg:inline">Excluir</span>
                       </Button>
