@@ -81,10 +81,13 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   const [description, setDescription] = useState('');
   
   // Query to fetch all documents
-  const { data: documents = [], isLoading, error, refetch } = useQuery({
+  const { data: documentsResponse, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/events', eventId, 'documents'],
     queryFn: () => apiRequest(`/api/events/${eventId}/documents`),
   });
+  
+  // Ensure documents is always an array
+  const documents = Array.isArray(documentsResponse) ? documentsResponse : [];
   
   // Organize documents by category
   const documentsByCategory = {
