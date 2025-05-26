@@ -761,7 +761,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
             <div className="mt-2">
               <label 
                 htmlFor="file" 
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer bg-purple-50 hover:bg-purple-100 hover:border-purple-400 transition-all duration-200"
+                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-all duration-200"
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   {file ? (
@@ -772,11 +772,11 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                     </>
                   ) : (
                     <>
-                      <i className="fas fa-cloud-upload-alt text-3xl text-purple-400 mb-2"></i>
-                      <p className="mb-2 text-sm text-purple-600">
+                      <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                      <p className="mb-2 text-sm text-gray-600">
                         <span className="font-semibold">Clique para fazer upload</span> ou arraste e solte
                       </p>
-                      <p className="text-xs text-purple-500">
+                      <p className="text-xs text-gray-500">
                         PDF, DOC, XLS, PNG, JPG (máx. 10MB)
                       </p>
                     </>
