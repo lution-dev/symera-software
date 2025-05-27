@@ -42,13 +42,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 
 interface Document {
   id: number;
-  filename: string;
+  name: string;
   fileUrl: string;
-  filesize: number;
+  fileType: string;
   category: string;
   description: string | null;
   uploadedAt: string;
   eventId: number;
+  uploadedById: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface DocumentListProps {
