@@ -2190,6 +2190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Dados recebidos para upload de documento:", req.body);
       console.log("Arquivo recebido:", req.file);
+      console.log("Todos os campos do form:", req.body);
       
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
@@ -2209,10 +2210,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileExtension = path.extname(req.file.originalname).toLowerCase().substring(1);
       const fileUrl = `/uploads/${req.file.filename}`;
       
+      // Use the filename from form data if provided, otherwise use original filename
+      const fileName = req.body.filename && req.body.filename.trim() !== '' 
+        ? req.body.filename 
+        : req.file.originalname;
+      
       const documentData = {
-        name: req.body.filename || req.file.originalname,
+        name: fileName,
         category: req.body.category || 'outros',
-        description: req.body.description || null,
+        description: req.body.description && req.body.description.trim() !== '' ? req.body.description : null,
         fileUrl: fileUrl,
         fileType: fileExtension || 'unknown',
         uploadedById: userId,
