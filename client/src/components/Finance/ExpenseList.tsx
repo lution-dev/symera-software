@@ -62,23 +62,31 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
 
-  // Buscar as despesas do evento com tratamento de erro
+  // Buscar as despesas do evento
   const { data: expensesResponse = [], isLoading, error } = useQuery({
-    queryKey: [`/api/events/${eventId}/expenses`],
+    queryKey: ['/api/events', eventId, 'expenses'],
     queryFn: async () => {
+      console.log(`[ExpenseList] Buscando despesas para evento ${eventId}`);
       try {
-        return await apiRequest(`/api/events/${eventId}/expenses`);
+        const response = await apiRequest(`/api/events/${eventId}/expenses`);
+        console.log(`[ExpenseList] Despesas recebidas:`, response);
+        return response;
       } catch (err) {
-        console.log('Erro ao buscar despesas:', err);
-        return []; // Return empty array on error
+        console.error('[ExpenseList] Erro ao buscar despesas:', err);
+        throw err;
       }
     },
     enabled: !!eventId,
-    retry: false,
+    retry: 1,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   // Ensure expenses is always an array
   const expenses = Array.isArray(expensesResponse) ? expensesResponse : [];
+  
+  // Debug log para verificar os dados
+  console.log(`[ExpenseList] Dados finais - Loading: ${isLoading}, Error: ${error}, Expenses:`, expenses);
 
   // Mutação para excluir uma despesa
   const deleteExpenseMutation = useMutation({
@@ -222,10 +230,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   };
 
   // Função para filtrar as despesas conforme os filtros aplicados
-  const filteredExpenses = expenses.filter((expense) => {
+  const filteredExpenses = expenses.filter((expense: any) => {
     // Filtro por texto de busca
     const matchesSearch = searchTerm === '' || 
-      expense.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expense.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (expense.notes && expense.notes.toLowerCase().includes(searchTerm.toLowerCase()));
     
     // Filtro por status (pago/pendente)

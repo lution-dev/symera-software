@@ -1954,9 +1954,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const expenses = await dbStorage.getExpensesByEventId(eventId);
-      console.log(`Retornando ${expenses.length} despesas para o evento ${eventId}`);
+      console.log(`Retornando ${expenses ? expenses.length : 0} despesas para o evento ${eventId}`);
       
-      res.json(expenses);
+      // Garantir que sempre retornamos um array válido
+      const validExpenses = Array.isArray(expenses) ? expenses : [];
+      res.json(validExpenses);
     } catch (error) {
       console.error("Erro ao obter despesas:", error);
       res.status(500).json({ message: "Erro ao processar solicitação" });
