@@ -134,11 +134,12 @@ export default function DocumentList({ eventId }: DocumentListProps) {
       console.log('- description:', documentData.description);
       
       try {
-        const result = await apiRequest(`/api/events/${eventId}/documents`, {
+        const response = await apiRequest(`/api/events/${eventId}/documents`, {
           method: 'POST',
           body: formData,
           // Don't set Content-Type header - let browser set it with boundary for FormData
         });
+        const result = await response.json();
         console.log('Upload bem-sucedido:', result);
         return result;
       } catch (error) {

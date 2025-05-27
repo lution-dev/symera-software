@@ -217,7 +217,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   
   if (!user.claims || !user.claims.sub) {
     console.log("Claims do usuário não encontradas");
-    // Tente recuperar o usuário novamente em vez de retornar erro
+    // Para requisições de API, retornar erro JSON ao invés de redirect
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ message: "Session expired, please refresh the page" });
+    }
     return res.redirect("/api/login");
   }
 
@@ -239,6 +242,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const refreshToken = user.refresh_token;
     if (!refreshToken) {
       console.log("Refresh token não encontrado");
+      // Para requisições de API, retornar erro JSON ao invés de redirect
+      if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ message: "Session expired, please refresh the page" });
+      }
       return res.redirect("/api/login");
     }
 
@@ -249,6 +256,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       console.log("Token atualizado com sucesso");
     } catch (error) {
       console.error("Erro ao atualizar token:", error);
+      // Para requisições de API, retornar erro JSON ao invés de redirect
+      if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ message: "Session expired, please refresh the page" });
+      }
       return res.redirect("/api/login");
     }
   }

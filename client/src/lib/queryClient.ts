@@ -16,7 +16,11 @@ export async function apiRequest(
   let contentType: string | undefined;
   
   if (options?.body) {
-    if (typeof options.body === 'string') {
+    if (options.body instanceof FormData) {
+      // For FormData (file uploads), don't set Content-Type - let browser handle it
+      processedBody = options.body;
+      // Don't set contentType for FormData
+    } else if (typeof options.body === 'string') {
       // Body is already a JSON string
       processedBody = options.body;
       contentType = "application/json";
