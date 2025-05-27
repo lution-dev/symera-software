@@ -1916,9 +1916,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==== Rotas para Despesas ====
   
   // Obter despesas de um evento
-  app.get('/api/events/:eventId/expenses', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events/:eventId/expenses', ensureDevAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para acessar despesas do evento:", req.params.eventId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        console.log("Erro na autenticação do usuário ao acessar despesas do evento:", req.params.eventId);
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
       const eventId = parseInt(req.params.eventId, 10);
       
       if (isNaN(eventId)) {
@@ -2130,9 +2144,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==== Rotas para Documentos ====
   
   // Obter documentos de um evento
-  app.get('/api/events/:eventId/documents', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events/:eventId/documents', ensureDevAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para acessar documentos do evento:", req.params.eventId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        console.log("Erro na autenticação do usuário ao acessar documentos do evento:", req.params.eventId);
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
       const eventId = parseInt(req.params.eventId, 10);
       
       if (isNaN(eventId)) {
