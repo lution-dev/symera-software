@@ -79,12 +79,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
   // Fetch documents
   const { data: documentsResponse, isLoading, refetch } = useQuery({
     queryKey: [`documents-${eventId}`],
-    queryFn: () => fetch(`/api/events/${eventId}/documents`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).then(res => res.json()),
+    queryFn: () => apiRequest(`/api/events/${eventId}/documents`),
     staleTime: 0,
     gcTime: 0,
   });
