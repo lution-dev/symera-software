@@ -2,7 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import path from "path";
-import { storage } from "./storage";
+import multer from "multer";
+import fs from "fs";
+import { storage as dbStorage } from "./storage";
 import { db } from "./db";
 import { events, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -21,9 +23,44 @@ import scheduleRoutes from "./scheduleRoutes";
 import cronogramaRoutes from "./cronogramaRoutes";
 import { setupCronogramaRoute } from "./cronogramaDirectRoute";
 
+// Configure multer for file uploads
+const uploadDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const originalName = file.originalname;
+    const extension = path.extname(originalName);
+    const nameWithoutExt = path.basename(originalName, extension);
+    cb(null, `${timestamp}-${nameWithoutExt}${extension}`);
+  }
+});
+
+const upload = multer({ 
+  storage: multerStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|ppt|pptx/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não permitido'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files statically
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  app.use('/uploads', express.static(uploadDir));
   
   // Auth middleware
   await setupAuth(app);
@@ -41,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Criar ou buscar usuário pelo e-mail
-      const user = await storage.findOrCreateUserByEmail(email);
+      const user = await dbStorage.findOrCreateUserByEmail(email);
       
       // Armazenar na sessão
       req.session.devUserId = user.id;
@@ -78,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("- Usuário autenticado via Replit Auth");
         const userId = req.user.claims.sub;
         console.log("- ID do usuário:", userId);
-        const user = await storage.getUser(userId);
+        const user = await dbStorage.getUser(userId);
         
         if (user) {
           console.log("- Usuário encontrado no banco de dados");
@@ -115,11 +152,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
-      const events = await storage.getEventsByUser(userId);
+      const events = await dbStorage.getEventsByUser(userId);
       
       // Para cada evento, buscar os fornecedores e adicionar a contagem
       for (const event of events) {
-        const eventVendors = await storage.getVendorsByEventId(event.id);
+        const eventVendors = await dbStorage.getVendorsByEventId(event.id);
         // Adicionar contagem de fornecedores ao evento
         (event as any).vendorCount = eventVendors.length;
       }
@@ -166,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json(eventFromDb[0]);
         } else {
           // Fallback para o método de storage
-          const event = await storage.getEventById(eventId);
+          const event = await dbStorage.getEventById(eventId);
           
           if (!event) {
             console.log(`Evento ${eventId} não encontrado`);
@@ -190,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`O usuário é o proprietário do evento? ${isOwner}`);
       
       // Verificar se o usuário é membro da equipe
-      const isTeamMember = await storage.isUserTeamMember(userId, eventId);
+      const isTeamMember = await dbStorage.isUserTeamMember(userId, eventId);
       console.log(`O usuário é membro da equipe do evento? ${isTeamMember}`);
       
       if (!isOwner && !isTeamMember) {
@@ -200,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verificação automática de status baseado nas tarefas e datas
       // Verificamos os logs de atividade para determinar se o status atual foi definido manualmente
-      const activities = await storage.getActivityLogsByEventId(eventId);
+      const activities = await dbStorage.getActivityLogsByEventId(eventId);
       
       // Encontramos o último log de atividade relacionado ao status
       const lastStatusActivity = activities
@@ -219,14 +256,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventDate.setHours(0, 0, 0, 0);
         
         // Buscar todas as tarefas do evento
-        const tasks = await storage.getTasksByEventId(eventId);
+        const tasks = await dbStorage.getTasksByEventId(eventId);
         
         // Só aplicamos automação se o status NÃO foi definido manualmente
         if (!statusWasSetManually) {
           // Verificar se o evento está acontecendo hoje: status = em andamento
           if (eventDate.getTime() === today.getTime() && event.status !== "in_progress" && event.status !== "completed") {
-            await storage.updateEvent(eventId, { status: "in_progress" });
-            await storage.createActivityLog({
+            await dbStorage.updateEvent(eventId, { status: "in_progress" });
+            await dbStorage.createActivityLog({
               eventId,
               userId,
               action: "status_auto_updated",
@@ -244,8 +281,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const allTasksCompleted = tasks.length > 0 && tasks.every(task => task.status === "completed");
           
           if (eventPassed && allTasksCompleted && event.status !== "completed") {
-            await storage.updateEvent(eventId, { status: "completed" });
-            await storage.createActivityLog({
+            await dbStorage.updateEvent(eventId, { status: "completed" });
+            await dbStorage.createActivityLog({
               eventId,
               userId,
               action: "status_auto_updated",
@@ -330,10 +367,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create event
-      const event = await storage.createEvent(createData);
+      const event = await dbStorage.createEvent(createData);
       
       // Adicionar o criador como membro da equipe (organizador)
-      await storage.addTeamMember({
+      await dbStorage.addTeamMember({
         eventId: event.id,
         userId: userId,
         role: "organizer",
@@ -347,7 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Create tasks from checklist
           for (const item of checklistItems) {
-            await storage.createTask({
+            await dbStorage.createTask({
               title: item.title,
               description: item.description,
               dueDate: item.dueDate,
@@ -363,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: event.id,
         userId,
         action: "created_event",
@@ -396,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventData = insertEventSchema.parse(req.body);
       
       // Check if user is the owner
-      const event = await storage.getEventById(eventId);
+      const event = await dbStorage.getEventById(eventId);
       
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
@@ -455,10 +492,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[Debug API] Dados finais para atualização:", JSON.stringify(updateData, null, 2));
       
       // Update event
-      const updatedEvent = await storage.updateEvent(eventId, updateData);
+      const updatedEvent = await dbStorage.updateEvent(eventId, updateData);
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "updated_event",
@@ -489,14 +526,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user can access this event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
       // Get current event
-      const event = await storage.getEventById(eventId);
+      const event = await dbStorage.getEventById(eventId);
       
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
@@ -517,12 +554,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Update event with new status
-      const updatedEvent = await storage.updateEvent(eventId, { 
+      const updatedEvent = await dbStorage.updateEvent(eventId, { 
         status: req.body.status 
       });
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "status_updated",
@@ -562,7 +599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user is the owner
-      const event = await storage.getEventById(eventId);
+      const event = await dbStorage.getEventById(eventId);
       
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
@@ -573,7 +610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Delete event
-      await storage.deleteEvent(eventId);
+      await dbStorage.deleteEvent(eventId);
       
       res.status(204).send();
     } catch (error) {
@@ -594,21 +631,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar a tarefa para verificar acesso
-      const task = await storage.getTaskById(taskId);
+      const task = await dbStorage.getTaskById(taskId);
       
       if (!task) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
       }
       
       // Verificar se o usuário tem acesso ao evento da tarefa
-      const hasAccess = await storage.hasUserAccessToEvent(userId, task.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
       }
       
       // Buscar os responsáveis da tarefa
-      const assignees = await storage.getTaskAssignees(taskId);
+      const assignees = await dbStorage.getTaskAssignees(taskId);
       
       res.json(assignees);
     } catch (error) {
@@ -628,14 +665,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar a tarefa
-      const task = await storage.getTaskById(taskId);
+      const task = await dbStorage.getTaskById(taskId);
       
       if (!task) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
       }
       
       // Verificar se o usuário tem acesso ao evento da tarefa
-      const hasAccess = await storage.hasUserAccessToEvent(userId, task.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
@@ -659,14 +696,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar a tarefa
-      const task = await storage.getTaskById(taskId);
+      const task = await dbStorage.getTaskById(taskId);
       
       if (!task) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
       }
       
       // Verificar se o usuário tem acesso ao evento da tarefa
-      const hasAccess = await storage.hasUserAccessToEvent(userId, task.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
@@ -683,10 +720,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // Atualizar a tarefa e seus responsáveis
-      const updatedTask = await storage.updateTask(taskId, taskData, assigneeIds);
+      const updatedTask = await dbStorage.updateTask(taskId, taskData, assigneeIds);
       
       // Registrar atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: task.eventId,
         userId,
         action: "updated_task",
@@ -720,18 +757,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar todos os eventos que o usuário tem acesso
-      const events = await storage.getEventsByUser(userId);
+      const events = await dbStorage.getEventsByUser(userId);
       
       // Para cada evento, buscar as tarefas
       let allTasks = [];
       for (const event of events) {
-        const eventTasks = await storage.getTasksByEventId(event.id);
+        const eventTasks = await dbStorage.getTasksByEventId(event.id);
         
         // Para cada tarefa, buscar os responsáveis
         const enhancedTasks = await Promise.all(eventTasks.map(async task => {
           try {
             // Buscar os responsáveis da tarefa
-            const taskAssignees = await storage.getTaskAssignees(task.id);
+            const taskAssignees = await dbStorage.getTaskAssignees(task.id);
             
             // Transformar para o formato esperado pelo frontend
             const assignees = taskAssignees.map(assignee => ({
@@ -801,19 +838,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
-      const tasks = await storage.getTasksByEventId(eventId);
+      const tasks = await dbStorage.getTasksByEventId(eventId);
       
       // Para cada tarefa, buscar os responsáveis
       const enhancedTasks = await Promise.all(tasks.map(async task => {
         try {
           // Buscar os responsáveis da tarefa
-          const taskAssignees = await storage.getTaskAssignees(task.id);
+          const taskAssignees = await dbStorage.getTaskAssignees(task.id);
           
           // Transformar para o formato esperado pelo frontend
           const assignees = taskAssignees.map(assignee => ({
@@ -857,13 +894,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
-      const vendors = await storage.getVendorsByEventId(eventId);
+      const vendors = await dbStorage.getVendorsByEventId(eventId);
       console.log(`Retornando ${vendors.length} fornecedores para o evento ${eventId}`);
       console.log("Fornecedores:", JSON.stringify(vendors).substring(0, 200) + "...");
       
@@ -891,7 +928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
@@ -910,10 +947,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // Create vendor
-      const vendor = await storage.createVendor(vendorData);
+      const vendor = await dbStorage.createVendor(vendorData);
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "vendor_added",
@@ -938,14 +975,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar fornecedor para verificar a qual evento pertence
-      const vendor = await storage.getVendorById(vendorId);
+      const vendor = await dbStorage.getVendorById(vendorId);
       
       if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
       }
       
       // Verificar se o usuário tem acesso ao evento do fornecedor
-      const hasAccess = await storage.hasUserAccessToEvent(userId, vendor.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, vendor.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this vendor" });
@@ -958,10 +995,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // Atualizar fornecedor
-      const updatedVendor = await storage.updateVendor(vendorId, vendorData);
+      const updatedVendor = await dbStorage.updateVendor(vendorId, vendorData);
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: vendor.eventId,
         userId,
         action: "vendor_updated",
@@ -986,24 +1023,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar fornecedor para verificar a qual evento pertence
-      const vendor = await storage.getVendorById(vendorId);
+      const vendor = await dbStorage.getVendorById(vendorId);
       
       if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
       }
       
       // Verificar se o usuário tem acesso ao evento do fornecedor
-      const hasAccess = await storage.hasUserAccessToEvent(userId, vendor.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, vendor.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this vendor" });
       }
       
       // Excluir fornecedor
-      await storage.deleteVendor(vendorId);
+      await dbStorage.deleteVendor(vendorId);
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: vendor.eventId,
         userId,
         action: "vendor_deleted",
@@ -1028,13 +1065,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
       
-      const budgetItems = await storage.getBudgetItemsByEventId(eventId);
+      const budgetItems = await dbStorage.getBudgetItemsByEventId(eventId);
       console.log(`Retornando ${budgetItems.length} itens de orçamento para o evento ${eventId}`);
       
       res.json(budgetItems);
@@ -1055,7 +1092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
@@ -1071,10 +1108,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Criar item de orçamento
-      const budgetItem = await storage.createBudgetItem(validatedData);
+      const budgetItem = await dbStorage.createBudgetItem(validatedData);
       
       // Log da atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "budget_item_added",
@@ -1109,14 +1146,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar item para verificar a qual evento pertence
-      const budgetItem = await storage.getBudgetItemById(itemId);
+      const budgetItem = await dbStorage.getBudgetItemById(itemId);
       
       if (!budgetItem) {
         return res.status(404).json({ message: "Item de orçamento não encontrado" });
       }
       
       // Verificar se o usuário tem acesso ao evento do item
-      const hasAccess = await storage.hasUserAccessToEvent(userId, budgetItem.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, budgetItem.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
@@ -1131,10 +1168,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Atualizar item
-      const updatedItem = await storage.updateBudgetItem(itemId, updateData);
+      const updatedItem = await dbStorage.updateBudgetItem(itemId, updateData);
       
       // Log da atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: budgetItem.eventId,
         userId,
         action: "budget_item_updated",
@@ -1169,24 +1206,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar item para verificar a qual evento pertence
-      const budgetItem = await storage.getBudgetItemById(itemId);
+      const budgetItem = await dbStorage.getBudgetItemById(itemId);
       
       if (!budgetItem) {
         return res.status(404).json({ message: "Item de orçamento não encontrado" });
       }
       
       // Verificar se o usuário tem acesso ao evento do item
-      const hasAccess = await storage.hasUserAccessToEvent(userId, budgetItem.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, budgetItem.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
       }
       
       // Excluir item
-      await storage.deleteBudgetItem(itemId);
+      await dbStorage.deleteBudgetItem(itemId);
       
       // Log da atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: budgetItem.eventId,
         userId,
         action: "budget_item_deleted",
@@ -1217,7 +1254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
@@ -1252,7 +1289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
@@ -1268,7 +1305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).returning();
       
       // Log da atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "schedule_item_created",
@@ -1313,7 +1350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const item = scheduleItem[0];
       
       // Verificar se o usuário tem acesso ao evento do item
-      const hasAccess = await storage.hasUserAccessToEvent(userId, item.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, item.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
@@ -1333,7 +1370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
       
       // Log da atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: item.eventId,
         userId,
         action: "schedule_item_updated",
@@ -1378,7 +1415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const item = scheduleItem[0];
       
       // Verificar se o usuário tem acesso ao evento do item
-      const hasAccess = await storage.hasUserAccessToEvent(userId, item.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, item.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
@@ -1389,7 +1426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(schema.scheduleItems.id, itemId));
       
       // Log da atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: item.eventId,
         userId,
         action: "schedule_item_deleted",
@@ -1416,7 +1453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
@@ -1441,10 +1478,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create task
-      const task = await storage.createTask(taskDataToCreate);
+      const task = await dbStorage.createTask(taskDataToCreate);
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "created_task",
@@ -1474,24 +1511,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get task
-      const task = await storage.getTaskById(taskId);
+      const task = await dbStorage.getTaskById(taskId);
       
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
       
       // Check if user has access to the event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, task.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this task" });
       }
       
       // Update task
-      const updatedTask = await storage.updateTask(taskId, req.body);
+      const updatedTask = await dbStorage.updateTask(taskId, req.body);
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: task.eventId,
         userId,
         action: "updated_task",
@@ -1518,21 +1555,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get task
-      const task = await storage.getTaskById(taskId);
+      const task = await dbStorage.getTaskById(taskId);
       
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
       
       // Check if user has access to the event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, task.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this task" });
       }
       
       // Delete task
-      await storage.deleteTask(taskId);
+      await dbStorage.deleteTask(taskId);
       
       res.status(204).send();
     } catch (error) {
@@ -1566,13 +1603,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
-      const teamMembers = await storage.getTeamMembersByEventId(eventId);
+      const teamMembers = await dbStorage.getTeamMembersByEventId(eventId);
       console.log(`Membros da equipe para o evento ${eventId}:`, teamMembers.length);
       res.json(teamMembers);
     } catch (error) {
@@ -1591,7 +1628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user is the owner
-      const event = await storage.getEventById(eventId);
+      const event = await dbStorage.getEventById(eventId);
       
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
@@ -1607,10 +1644,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Find or create user by email
-      const member = await storage.findOrCreateUserByEmail(req.body.email);
+      const member = await dbStorage.findOrCreateUserByEmail(req.body.email);
       
       // Add team member
-      const teamMember = await storage.addTeamMember({
+      const teamMember = await dbStorage.addTeamMember({
         eventId,
         userId: member.id,
         role: req.body.role,
@@ -1618,7 +1655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "added_team_member",
@@ -1643,14 +1680,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get current user data
-      const currentUser = await storage.getUser(userId);
+      const currentUser = await dbStorage.getUser(userId);
       
       if (!currentUser) {
         return res.status(404).json({ message: "User not found" });
       }
       
       // Update user
-      const updatedUser = await storage.upsertUser({
+      const updatedUser = await dbStorage.upsertUser({
         ...currentUser,
         firstName: req.body.firstName !== undefined ? req.body.firstName : currentUser.firstName,
         lastName: req.body.lastName !== undefined ? req.body.lastName : currentUser.lastName,
@@ -1699,7 +1736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get all events for the user
-      const events = await storage.getEventsByUser(userId);
+      const events = await dbStorage.getEventsByUser(userId);
       console.log(`Total de eventos encontrados: ${events.length}`);
       
       // Get active events (planning, confirmed, in_progress or active status)
@@ -1714,8 +1751,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Carregar informações detalhadas para eventos ativos (equipe e tarefas)
       const activeEventsWithDetails = await Promise.all(
         activeEvents.map(async (event) => {
-          const tasks = await storage.getTasksByEventId(event.id);
-          const team = await storage.getTeamMembersByEventId(event.id);
+          const tasks = await dbStorage.getTasksByEventId(event.id);
+          const team = await dbStorage.getTeamMembersByEventId(event.id);
           console.log(`Evento ${event.id} - ${event.name}: ${tasks.length} tarefas, ${team.length} membros na equipe`);
           return {
             ...event,
@@ -1738,7 +1775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get pending tasks
       let pendingTasks = [];
       for (const event of events) {
-        const tasks = await storage.getTasksByEventId(event.id);
+        const tasks = await dbStorage.getTasksByEventId(event.id);
         pendingTasks = pendingTasks.concat(
           tasks.filter(task => task.status !== "completed")
         );
@@ -1747,7 +1784,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get recent activities
       let recentActivities = [];
       for (const event of events) {
-        const activities = await storage.getActivityLogsByEventId(event.id);
+        const activities = await dbStorage.getActivityLogsByEventId(event.id);
         recentActivities = recentActivities.concat(activities);
       }
       
@@ -1796,13 +1833,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
-      const activities = await storage.getActivityLogsByEventId(eventId);
+      const activities = await dbStorage.getActivityLogsByEventId(eventId);
       res.json(activities);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -1821,14 +1858,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this event
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
       // Get event
-      const event = await storage.getEventById(eventId);
+      const event = await dbStorage.getEventById(eventId);
       
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
@@ -1850,7 +1887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = [];
       for (const item of checklistItems) {
         // Criar tarefa com o proprietário como único responsável
-        const task = await storage.createTask({
+        const task = await dbStorage.createTask({
           title: item.title,
           description: item.description,
           dueDate: item.dueDate,
@@ -1862,7 +1899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Log activity
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "generated_ai_checklist",
@@ -1888,13 +1925,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
       
-      const expenses = await storage.getExpensesByEventId(eventId);
+      const expenses = await dbStorage.getExpensesByEventId(eventId);
       console.log(`Retornando ${expenses.length} despesas para o evento ${eventId}`);
       
       res.json(expenses);
@@ -1914,7 +1951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
@@ -1926,10 +1963,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
       });
       
-      const expense = await storage.createExpense(validatedData);
+      const expense = await dbStorage.createExpense(validatedData);
       
       // Registrar atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "expense_added",
@@ -1958,13 +1995,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID inválido" });
       }
       
-      const expense = await storage.getExpenseById(itemId);
+      const expense = await dbStorage.getExpenseById(itemId);
       
       if (!expense) {
         return res.status(404).json({ message: "Despesa não encontrada" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, expense.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, expense.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
@@ -1973,10 +2010,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validação - só atualizamos os campos fornecidos
       const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
       
-      const updatedExpense = await storage.updateExpense(itemId, validatedUpdates);
+      const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
       
       // Registrar atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: expense.eventId,
         userId,
         action: "expense_updated",
@@ -2004,13 +2041,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID inválido" });
       }
       
-      const expense = await storage.getExpenseById(itemId);
+      const expense = await dbStorage.getExpenseById(itemId);
       
       if (!expense) {
         return res.status(404).json({ message: "Despesa não encontrada" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, expense.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, expense.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
@@ -2019,10 +2056,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validação - só atualizamos os campos fornecidos
       const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
       
-      const updatedExpense = await storage.updateExpense(itemId, validatedUpdates);
+      const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
       
       // Registrar atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: expense.eventId,
         userId,
         action: "expense_updated",
@@ -2050,22 +2087,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID inválido" });
       }
       
-      const expense = await storage.getExpenseById(itemId);
+      const expense = await dbStorage.getExpenseById(itemId);
       
       if (!expense) {
         return res.status(404).json({ message: "Despesa não encontrada" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, expense.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, expense.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
       
-      await storage.deleteExpense(itemId);
+      await dbStorage.deleteExpense(itemId);
       
       // Registrar atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId: expense.eventId,
         userId,
         action: "expense_deleted",
@@ -2102,13 +2139,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
       
-      const documents = await storage.getDocumentsByEventId(eventId);
+      const documents = await dbStorage.getDocumentsByEventId(eventId);
       console.log(`Retornando ${documents.length} documentos para o evento ${eventId}`);
       
       res.json(documents);
@@ -2129,13 +2166,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
       
-      const documents = await storage.getDocumentsByCategory(eventId, category);
+      const documents = await dbStorage.getDocumentsByCategory(eventId, category);
       console.log(`Retornando ${documents.length} documentos da categoria ${category} para o evento ${eventId}`);
       
       res.json(documents);
@@ -2146,7 +2183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Adicionar um documento
-  app.post('/api/events/:eventId/documents', isAuthenticated, async (req: any, res) => {
+  app.post('/api/events/:eventId/documents', isAuthenticated, upload.single('file'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
@@ -2157,7 +2194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
@@ -2180,10 +2217,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Dados processados para inserção:", documentData);
       
-      const document = await storage.createDocument(documentData);
+      const document = await dbStorage.createDocument(documentData);
       
       // Registrar atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: 'document_added',
@@ -2218,13 +2255,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar se o documento existe
-      const document = await storage.getDocumentById(documentId);
+      const document = await dbStorage.getDocumentById(documentId);
       
       if (!document) {
         return res.status(404).json({ message: "Documento não encontrado" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, document.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, document.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
@@ -2233,10 +2270,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validação - só atualizamos os campos fornecidos
       const validatedUpdates = insertDocumentSchema.partial().parse(req.body);
       
-      const updatedDocument = await storage.updateDocument(documentId, validatedUpdates);
+      const updatedDocument = await dbStorage.updateDocument(documentId, validatedUpdates);
       
       // Registrar atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: 'update',
@@ -2264,13 +2301,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar se o documento existe
-      const document = await storage.getDocumentById(documentId);
+      const document = await dbStorage.getDocumentById(documentId);
       
       if (!document) {
         return res.status(404).json({ message: "Documento não encontrado" });
       }
       
-      const hasAccess = await storage.hasUserAccessToEvent(userId, document.eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, document.eventId);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
@@ -2279,10 +2316,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Guardar informações do documento antes de excluir
       const documentInfo = { ...document };
       
-      await storage.deleteDocument(documentId);
+      await dbStorage.deleteDocument(documentId);
       
       // Registrar atividade
-      await storage.createActivityLog({
+      await dbStorage.createActivityLog({
         eventId,
         userId,
         action: 'delete',
