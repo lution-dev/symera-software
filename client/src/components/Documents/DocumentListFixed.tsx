@@ -481,45 +481,55 @@ export default function DocumentList({ eventId }: DocumentListProps) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header with search and filter */}
+      {/* Header with title, search, upload button and filter - all in one line */}
       <div className="p-4 border-b" style={{ backgroundColor: '#1A0A29', borderColor: '#374151' }}>
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-4">
-          <div>
-            <h2 className="text-xl font-semibold">Documentos</h2>
-            <p className="text-sm text-muted-foreground">
-              Gerencie contratos, orçamentos e outros documentos do evento
-            </p>
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start lg:items-center">
+          {/* Title */}
+          <div className="flex-shrink-0">
+            <h2 className="text-xl font-semibold text-white">Documentos</h2>
           </div>
-          <Button onClick={() => setUploadDialogOpen(true)}>
-            <i className="fas fa-upload mr-2"></i> Fazer Upload
-          </Button>
-        </div>
-        
-        {/* Search and filter */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Input
-            placeholder="Buscar documentos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1"
-            style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
-          />
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-[200px]" style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}>
-              <SelectValue placeholder="Todas as categorias" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
-              <SelectItem value="contratos">Contratos</SelectItem>
-              <SelectItem value="orcamentos">Orçamentos</SelectItem>
-              <SelectItem value="imagens">Imagens</SelectItem>
-              <SelectItem value="videos">Vídeos</SelectItem>
-              <SelectItem value="apresentacoes">Apresentações</SelectItem>
-              <SelectItem value="licencas">Licenças</SelectItem>
-              <SelectItem value="roteiros">Roteiros</SelectItem>
-              <SelectItem value="checklists">Checklists</SelectItem>
-            </SelectContent>
-          </Select>
+          
+          {/* Search field - takes up available space */}
+          <div className="flex-1 min-w-0">
+            <Input
+              placeholder="Buscar documentos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+              style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
+            />
+          </div>
+          
+          {/* Upload button */}
+          <div className="flex-shrink-0">
+            <Button 
+              onClick={() => setUploadDialogOpen(true)}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Fazer Upload
+            </Button>
+          </div>
+          
+          {/* Filter */}
+          <div className="flex-shrink-0">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[180px]" style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}>
+                <SelectValue placeholder="Todas as categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as categorias</SelectItem>
+                <SelectItem value="contratos">Contratos</SelectItem>
+                <SelectItem value="orcamentos">Orçamentos</SelectItem>
+                <SelectItem value="imagens">Imagens</SelectItem>
+                <SelectItem value="videos">Vídeos</SelectItem>
+                <SelectItem value="apresentacoes">Apresentações</SelectItem>
+                <SelectItem value="licencas">Licenças</SelectItem>
+                <SelectItem value="roteiros">Roteiros</SelectItem>
+                <SelectItem value="checklists">Checklists</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
