@@ -76,15 +76,24 @@ export default function DocumentList({ eventId }: DocumentListProps) {
   const [description, setDescription] = useState('');
 
   // Fetch documents
-  const { data: documents = [], isLoading, refetch } = useQuery({
-    queryKey: [`/api/events/${eventId}/documents`],
-    queryFn: () => apiRequest(`/api/events/${eventId}/documents`),
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache (v5 uses gcTime instead of cacheTime)
+  const { data: documentsResponse, isLoading, refetch } = useQuery({
+    queryKey: [`documents-${eventId}`],
+    queryFn: () => fetch(`/api/events/${eventId}/documents`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(res => res.json()),
+    staleTime: 0,
+    gcTime: 0,
   });
 
-  console.log('Documents received:', documents);
-  console.log('Documents length:', Array.isArray(documents) ? documents.length : 'Not an array');
+  // Ensure documents is always an array
+  const documents = Array.isArray(documentsResponse) ? documentsResponse : [];
+  
+  console.log('Documents response:', documentsResponse);
+  console.log('Documents array:', documents);
+  console.log('Documents length:', documents.length);
   console.log('Is loading:', isLoading);
 
   // Upload document mutation
@@ -111,8 +120,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
     onSuccess: (response) => {
       console.log('Document upload success:', response);
       // Force refresh the documents list
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
-      queryClient.refetchQueries({ queryKey: [`/api/events/${eventId}/documents`] });
+      queryClient.invalidateQueries({ queryKey: [`documents-${eventId}`] });
       refetch(); // Also call refetch directly
       toast({
         title: 'Documento enviado com sucesso',
@@ -144,7 +152,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
+      queryClient.invalidateQueries({ queryKey: [`documents-${eventId}`] });
       refetch();
       toast({
         title: 'Documento atualizado',
@@ -169,7 +177,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
+      queryClient.invalidateQueries({ queryKey: [`documents-${eventId}`] });
       refetch();
       toast({
         title: 'Documento excluído',
