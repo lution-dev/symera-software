@@ -104,8 +104,11 @@ export default function DocumentList({ eventId }: DocumentListProps) {
         // Don't set Content-Type header - let browser set it with boundary for FormData
       });
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
+      console.log('Document upload success:', response);
+      // Force refresh the documents list
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'documents'] });
+      queryClient.refetchQueries({ queryKey: ['/api/events', eventId, 'documents'] });
       toast({
         title: 'Documento enviado com sucesso',
         description: 'O documento foi adicionado ao evento.',
@@ -187,44 +190,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
     }
   };
   
-  // Handle document upload
-  const handleUpload = (data: any) => {
-    if (!file) {
-      toast({
-        title: 'Arquivo necessário',
-        description: 'Por favor, selecione um arquivo para upload.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    if (!data.category) {
-      toast({
-        title: 'Categoria necessária',
-        description: 'Por favor, selecione uma categoria para o documento.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    if (data.category === 'outros' && !data.customCategory) {
-      toast({
-        title: 'Nome da categoria necessário',
-        description: 'Por favor, digite o nome da categoria personalizada.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    // Create document data object instead of FormData
-    const documentData = {
-      filename: data.filename || file.name,
-      category: data.category === 'outros' ? data.customCategory : data.category,
-      description: data.description || null
-    };
-    
-    uploadMutation.mutate(documentData);
-  };
+
   
   // Handle document edit
   const handleEdit = (e: React.FormEvent) => {
@@ -293,12 +259,43 @@ export default function DocumentList({ eventId }: DocumentListProps) {
         
         <form onSubmit={(e) => {
           e.preventDefault();
-          const data = {
-            filename: filename || file?.name || '',
+          
+          // Validation
+          if (!file) {
+            toast({
+              title: 'Arquivo necessário',
+              description: 'Por favor, selecione um arquivo para upload.',
+              variant: 'destructive',
+            });
+            return;
+          }
+          
+          if (!category) {
+            toast({
+              title: 'Categoria necessária',
+              description: 'Por favor, selecione uma categoria para o documento.',
+              variant: 'destructive',
+            });
+            return;
+          }
+          
+          if (category === 'outros' && !customCategory) {
+            toast({
+              title: 'Nome da categoria necessário',
+              description: 'Por favor, digite o nome da categoria personalizada.',
+              variant: 'destructive',
+            });
+            return;
+          }
+
+          // Create document data object
+          const documentData = {
+            filename: filename || file.name,
             category: category === 'outros' ? customCategory : category,
             description: description || null
           };
-          handleUpload(data);
+          
+          uploadMutation.mutate(documentData);
         }} className="space-y-4 mt-4 p-4 rounded-lg" style={{ backgroundColor: '#1A0A29' }}>
           <div className="w-full">
             <Label htmlFor="file" className="text-sm font-medium">Arquivo</Label>
