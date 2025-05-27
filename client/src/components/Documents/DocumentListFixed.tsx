@@ -515,12 +515,34 @@ export default function DocumentList({ eventId }: DocumentListProps) {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
-                          <i className="fas fa-download mr-2"></i> Download
-                        </a>
+                    <div className="flex gap-2 flex-wrap">
+                      {/* View button for viewable files (PDFs, images) */}
+                      {(doc.fileType === 'pdf' || ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(doc.fileType.toLowerCase())) && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                            <i className="fas fa-eye mr-2"></i> Visualizar
+                          </a>
+                        </Button>
+                      )}
+                      
+                      {/* Download button */}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Create a download link
+                          const link = document.createElement('a');
+                          link.href = doc.fileUrl;
+                          link.download = doc.name;
+                          link.target = '_blank';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                      >
+                        <i className="fas fa-download mr-2"></i> Download
                       </Button>
+                      
                       <Button 
                         variant="outline" 
                         size="sm"
