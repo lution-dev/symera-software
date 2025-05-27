@@ -572,6 +572,91 @@ export default function DocumentList({ eventId }: DocumentListProps) {
       {/* Dialogs */}
       {renderUploadDialog()}
       
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Documento</DialogTitle>
+            <DialogDescription>
+              Altere as informações do documento selecionado.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleEdit} className="space-y-4 mt-4 p-4 rounded-lg" style={{ backgroundColor: '#1A0A29' }}>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="edit-filename">Nome do Documento</Label>
+              <Input 
+                id="edit-filename" 
+                value={filename} 
+                onChange={(e) => setFilename(e.target.value)}
+                placeholder="Ex: Contrato Principal"
+                required
+                style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
+              />
+            </div>
+            
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="edit-category">Categoria</Label>
+              <Select value={category} onValueChange={setCategory} required>
+                <SelectTrigger id="edit-category" style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="contratos">Contratos</SelectItem>
+                  <SelectItem value="orcamentos">Orçamentos</SelectItem>
+                  <SelectItem value="imagens">Imagens</SelectItem>
+                  <SelectItem value="videos">Vídeos</SelectItem>
+                  <SelectItem value="apresentacoes">Apresentações</SelectItem>
+                  <SelectItem value="licencas">Licenças e Autorizações</SelectItem>
+                  <SelectItem value="roteiros">Roteiros</SelectItem>
+                  <SelectItem value="checklists">Checklist</SelectItem>
+                  <SelectItem value="outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Campo customizado quando "Outros" for selecionado */}
+            {category === 'outros' && (
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="edit-custom-category">Nome da Categoria Personalizada</Label>
+                <Input 
+                  id="edit-custom-category" 
+                  value={customCategory} 
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="Ex: Decoração, Música, etc."
+                  required
+                  style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
+                />
+              </div>
+            )}
+            
+            <div className="grid w-full gap-1.5">
+              <Label htmlFor="edit-description">Descrição (opcional)</Label>
+              <Textarea 
+                id="edit-description" 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Breve descrição sobre este documento"
+                style={{ backgroundColor: '#1A0A29', border: '1px solid #374151', color: 'white' }}
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setEditDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={editMutation.isPending}>
+                {editMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

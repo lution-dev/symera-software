@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
+import path from "path";
 import { storage } from "./storage";
 import { db } from "./db";
 import { events, users } from "@shared/schema";
@@ -20,6 +22,9 @@ import cronogramaRoutes from "./cronogramaRoutes";
 import { setupCronogramaRoute } from "./cronogramaDirectRoute";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  
   // Auth middleware
   await setupAuth(app);
   
