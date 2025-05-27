@@ -1954,14 +1954,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const expenses = await dbStorage.getExpensesByEventId(eventId);
+      console.log(`Despesas brutas do banco para evento ${eventId}:`, expenses);
       console.log(`Retornando ${expenses ? expenses.length : 0} despesas para o evento ${eventId}`);
       
       // Garantir que sempre retornamos um array válido
       const validExpenses = Array.isArray(expenses) ? expenses : [];
-      res.json(validExpenses);
+      console.log(`Despesas válidas sendo enviadas:`, validExpenses);
+      
+      // Forçar resposta JSON correta
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).json(validExpenses);
     } catch (error) {
       console.error("Erro ao obter despesas:", error);
-      res.status(500).json({ message: "Erro ao processar solicitação" });
+      return res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
   
