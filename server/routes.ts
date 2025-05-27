@@ -23,8 +23,8 @@ import scheduleRoutes from "./scheduleRoutes";
 import cronogramaRoutes from "./cronogramaRoutes";
 import { setupCronogramaRoute } from "./cronogramaDirectRoute";
 
-// Configure multer for file uploads
-const uploadDir = path.join(process.cwd(), 'uploads');
+// Configure multer for file uploads - storing in public/uploads for external access
+const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -38,15 +38,16 @@ const multerStorage = multer.diskStorage({
     const originalName = file.originalname;
     const extension = path.extname(originalName);
     const nameWithoutExt = path.basename(originalName, extension);
-    cb(null, `${timestamp}-${nameWithoutExt}${extension}`);
+    // Create unique filename with timestamp
+    cb(null, `doc-${timestamp}-${nameWithoutExt.replace(/[^a-zA-Z0-9]/g, '_')}${extension}`);
   }
 });
 
 const upload = multer({ 
   storage: multerStorage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for documents
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|ppt|pptx/;
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|mp4|mov|avi|mp3|wav/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
     
