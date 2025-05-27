@@ -76,12 +76,16 @@ export default function DocumentList({ eventId }: DocumentListProps) {
   const [description, setDescription] = useState('');
 
   // Fetch documents
-  const { data: documents = [], isLoading } = useQuery({
-    queryKey: ['/api/events', eventId, 'documents'],
+  const { data: documents = [], isLoading, refetch } = useQuery({
+    queryKey: [`/api/events/${eventId}/documents`],
     queryFn: () => apiRequest(`/api/events/${eventId}/documents`),
+    staleTime: 0, // Always refetch
+    gcTime: 0, // Don't cache (v5 uses gcTime instead of cacheTime)
   });
 
   console.log('Documents received:', documents);
+  console.log('Documents length:', Array.isArray(documents) ? documents.length : 'Not an array');
+  console.log('Is loading:', isLoading);
 
   // Upload document mutation
   const uploadMutation = useMutation({
@@ -107,8 +111,9 @@ export default function DocumentList({ eventId }: DocumentListProps) {
     onSuccess: (response) => {
       console.log('Document upload success:', response);
       // Force refresh the documents list
-      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'documents'] });
-      queryClient.refetchQueries({ queryKey: ['/api/events', eventId, 'documents'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
+      queryClient.refetchQueries({ queryKey: [`/api/events/${eventId}/documents`] });
+      refetch(); // Also call refetch directly
       toast({
         title: 'Documento enviado com sucesso',
         description: 'O documento foi adicionado ao evento.',
@@ -139,7 +144,8 @@ export default function DocumentList({ eventId }: DocumentListProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'documents'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
+      refetch();
       toast({
         title: 'Documento atualizado',
         description: 'As informações do documento foram atualizadas com sucesso.',
@@ -163,7 +169,8 @@ export default function DocumentList({ eventId }: DocumentListProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'documents'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
+      refetch();
       toast({
         title: 'Documento excluído',
         description: 'O documento foi removido com sucesso.',
