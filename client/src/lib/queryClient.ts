@@ -59,6 +59,16 @@ export const getQueryFn: <T>(options: {
         }
       });
       
+      // Handle redirects (auth issues)
+      if (res.status === 302) {
+        console.log(`[Debug] Redirecionamento detectado em ${url} - problema de autenticação`);
+        if (unauthorizedBehavior === "returnNull") {
+          return null;
+        } else {
+          throw new Error("Sessão expirada. Por favor, atualize a página.");
+        }
+      }
+      
       console.log(`[Debug] Resposta da requisição ${url}: status=${res.status}`);
 
       if (res.status === 401) {

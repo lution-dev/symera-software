@@ -76,20 +76,14 @@ export default function DocumentList({ eventId }: DocumentListProps) {
   const [customCategory, setCustomCategory] = useState('');
   const [description, setDescription] = useState('');
 
-  // Fetch documents
+  // Fetch documents with better error handling
   const { data: documentsResponse, isLoading, refetch } = useQuery({
     queryKey: [`documents-${eventId}`],
     queryFn: () => apiRequest(`/api/events/${eventId}/documents`),
     staleTime: 0,
     gcTime: 0,
-    retry: (failureCount, error) => {
-      // Don't retry if it's an auth error (302 redirect)
-      if (error instanceof Error && error.message.includes('302')) {
-        return false;
-      }
-      return failureCount < 3;
-    },
-    retryDelay: 1000,
+    retry: false, // Don't retry on auth errors
+    enabled: true, // Keep enabled but handle errors gracefully
   });
 
   // Ensure documents is always an array
@@ -123,10 +117,11 @@ export default function DocumentList({ eventId }: DocumentListProps) {
       formData.append('description', documentData.description || '');
       formData.append('eventId', eventId.toString());
       
-      console.log('FormData criado com os seguintes campos:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`- ${key}:`, value);
-      }
+      console.log('FormData criado:');
+      console.log('- file:', file.name);
+      console.log('- filename:', documentData.filename);
+      console.log('- category:', documentData.category);
+      console.log('- description:', documentData.description);
       
       try {
         const result = await apiRequest(`/api/events/${eventId}/documents`, {
