@@ -2211,7 +2211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Middleware específico para uploads de documento que não falha com token expirado
-  const documentUploadAuth: RequestHandler = async (req, res, next) => {
+  const documentUploadAuth = async (req: any, res: any, next: any) => {
     console.log("=== MIDDLEWARE DE UPLOAD DE DOCUMENTO ===");
     console.log("- URL:", req.url);
     console.log("- Method:", req.method);

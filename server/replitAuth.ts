@@ -264,15 +264,14 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     } catch (error) {
       console.error("Erro ao atualizar token:", error);
       
-      // Para uploads de documentos, permita mesmo se o refresh falhou mas temos claims válidos
-      if (req.url.includes('/documents') && req.method === 'POST' && user.claims?.sub) {
-        console.log("Permitindo upload de documento mesmo com falha no refresh token");
-        return next();
-      }
+      // Destruir sessão em vez de redirect
+      req.session.destroy((err) => {
+        if (err) console.error("Erro ao destruir sessão:", err);
+      });
       
-      // Para requisições de API, retornar erro JSON ao invés de redirect
-      if (req.path.startsWith('/api/')) {
-        return res.status(401).json({ message: "Session expired, please refresh the page" });
+      // Sempre retornar 401 JSON para APIs
+      if (req.url.startsWith('/api/')) {
+        return res.status(401).json({ message: "Session expired, please login again" });
       }
       return res.redirect("/api/login");
     }
