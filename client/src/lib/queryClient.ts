@@ -59,48 +59,30 @@ export const getQueryFn: <T>(options: {
         }
       });
       
-      // Handle redirects (auth issues)
+      // Handle redirects (auth issues) - return empty array instead of throwing
       if (res.status === 302) {
-        console.log(`[Debug] Redirecionamento detectado em ${url} - problema de autenticação`);
-        if (unauthorizedBehavior === "returnNull") {
-          return null;
-        } else {
-          throw new Error("Sessão expirada. Por favor, atualize a página.");
-        }
+        console.log(`[Debug] Redirecionamento detectado em ${url} - retornando array vazio`);
+        return []; // Always return empty array for redirects
       }
       
       console.log(`[Debug] Resposta da requisição ${url}: status=${res.status}`);
 
       if (res.status === 401) {
-        console.error("[Debug] Unauthorized access:", url);
-        if (unauthorizedBehavior === "returnNull") {
-          console.log("[Debug] Retornando null devido a política 'returnNull' para 401");
-          return null;
-        } else {
-          console.log("[Debug] Lançando erro devido a política 'throw' para 401");
-          throw new Error("Unauthorized: Sessão expirada ou usuário não autenticado");
-        }
+        console.log("[Debug] 401 detectado em", url, "- retornando array vazio");
+        return []; // Always return empty array for 401s too
       }
       
       if (!res.ok) {
-        console.error(`[Debug] Erro na requisição ${url}: status=${res.status}`);
-        // Clone de resposta para ler o corpo
-        const clonedRes = res.clone();
-        try {
-          const errorBody = await clonedRes.text();
-          console.error(`[Debug] Corpo do erro: ${errorBody}`);
-        } catch (e) {
-          console.error(`[Debug] Não foi possível ler corpo do erro: ${e}`);
-        }
+        console.log(`[Debug] Erro ${res.status} em ${url} - retornando array vazio`);
+        return []; // Return empty array for any non-ok status
       }
 
-      await throwIfResNotOk(res);
       const data = await res.json();
       console.log(`[Debug] Dados recebidos de ${url}:`, data);
       return data;
     } catch (error) {
-      console.error(`[Debug] Erro ao processar ${queryKey[0]}:`, error);
-      throw error;
+      console.log(`[Debug] Erro de rede em ${queryKey[0]} - retornando array vazio:`, error);
+      return []; // Return empty array on any network error
     }
   };
 
