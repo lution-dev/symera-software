@@ -2189,9 +2189,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId, 10);
       
       console.log("Dados recebidos para upload de documento:", req.body);
+      console.log("Arquivo recebido:", req.file);
       
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
       }
       
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -2200,13 +2205,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
       
-      // Gerar URL única para o arquivo
-      const fileName = req.body.filename || `documento-${Date.now()}`;
-      const fileExtension = req.file?.originalname ? req.file.originalname.split('.').pop()?.toLowerCase() : 'unknown';
-      const fileUrl = `/uploads/${Date.now()}-${fileName}.${fileExtension}`;
+      // Get file info from multer
+      const fileExtension = path.extname(req.file.originalname).toLowerCase().substring(1);
+      const fileUrl = `/uploads/${req.file.filename}`;
       
       const documentData = {
-        name: fileName,
+        name: req.body.filename || req.file.originalname,
         category: req.body.category || 'outros',
         description: req.body.description || null,
         fileUrl: fileUrl,
