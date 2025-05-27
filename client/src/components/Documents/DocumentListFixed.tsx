@@ -144,6 +144,10 @@ export default function DocumentList({ eventId }: DocumentListProps) {
         return result;
       } catch (error) {
         console.error('Erro durante upload:', error);
+        if (error.message?.includes('Authentication')) {
+          // Não refazer query, apenas mostrar erro
+          throw new Error('Sessão expirada. Recarregue a página.');
+        }
         throw error;
       }
     },

@@ -264,14 +264,18 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     } catch (error) {
       console.error("Erro ao atualizar token:", error);
       
-      // Destruir sessão em vez de redirect
+      // Limpar completamente o usuário e sessão
+      req.logout((logoutErr) => {
+        if (logoutErr) console.error("Erro no logout:", logoutErr);
+      });
+      
       req.session.destroy((err) => {
         if (err) console.error("Erro ao destruir sessão:", err);
       });
       
       // Sempre retornar 401 JSON para APIs
       if (req.url.startsWith('/api/')) {
-        return res.status(401).json({ message: "Session expired, please login again" });
+        return res.status(401).json({ message: "Authentication failed", expired: true });
       }
       return res.redirect("/api/login");
     }

@@ -17,6 +17,15 @@ export async function apiRequest(
   endpoint: string,
   options?: RequestInit & { body?: any },
 ): Promise<Response> {
+  // Para uploads, verificar auth primeiro
+  if (options?.method === 'POST' && options.body instanceof FormData) {
+    const authCheck = await fetch('/api/auth/check', { credentials: 'include' });
+    if (!authCheck.ok) {
+      window.location.href = '/login';
+      throw new Error("Authentication required");
+    }
+  }
+  
   // Check if body is already a string (JSON) or needs to be stringified
   let processedBody: BodyInit | undefined;
   let contentType: string | undefined;
