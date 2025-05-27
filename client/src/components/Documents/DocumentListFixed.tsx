@@ -270,7 +270,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
   };
 
   // Filter documents based on search term and selected category
-  const filteredDocuments = documents.filter((doc: Document) => {
+  const filteredDocuments = Array.isArray(documents) ? documents.filter((doc: Document) => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (doc.description && doc.description.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -278,7 +278,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
     const matchesCategory = selectedCategory === '' || doc.category === selectedCategory;
     
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   // Upload Document Dialog
   const renderUploadDialog = () => (
