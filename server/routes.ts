@@ -2285,7 +2285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get file info from multer
-      const fileExtension = path.extname(req.file.originalname).toLowerCase().substring(1);
+      const fileExtension = req.file.mimetype;
       const fileUrl = `/uploads/${req.file.filename}`;
       
       // Use the filename from form data if provided, otherwise use original filename

@@ -10,7 +10,7 @@ import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { ScheduleList } from "@/components/Schedule/ScheduleList";
 import { ExpenseList } from "@/components/Finance/ExpenseList";
 import { ExpenseListFixed } from "@/components/Finance/ExpenseListFixed";
-import DocumentList from "@/components/Documents/DocumentListFixed";
+import { DocumentManager } from "@/components/Documents/DocumentManager";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
