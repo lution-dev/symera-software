@@ -2158,26 +2158,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
       
-      // Processar upload de arquivo real
-      let fileUrl = 'https://example.com/placeholder.pdf'; // Fallback
-      let fileSize = 0;
-      
-      if (req.file) {
-        // Aqui você implementaria o upload real para um serviço como AWS S3, Google Cloud Storage, etc.
-        // Por enquanto, vamos simular um upload bem-sucedido
-        fileUrl = `/uploads/${Date.now()}-${req.file.originalname}`;
-        fileSize = req.file.size;
-        
-        // TODO: Implementar upload real para cloud storage
-        // fileUrl = await uploadToCloudStorage(req.file);
-      }
+      // Gerar URL única para o arquivo
+      const fileName = req.body.filename || `documento-${Date.now()}`;
+      const fileExtension = req.file?.originalname ? req.file.originalname.split('.').pop() : 'pdf';
+      const fileUrl = `/uploads/${Date.now()}-${fileName}.${fileExtension}`;
       
       const documentData = {
-        name: req.body.filename || req.file?.originalname || 'Documento sem nome',
+        name: fileName,
         category: req.body.category || 'outros',
         description: req.body.description || null,
         fileUrl: fileUrl,
-        fileType: req.file?.originalname ? req.file.originalname.split('.').pop() || 'unknown' : 'unknown',
+        fileType: fileExtension || 'unknown',
         uploadedById: userId,
         eventId: eventId
       };

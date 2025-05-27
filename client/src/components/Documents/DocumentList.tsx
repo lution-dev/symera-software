@@ -700,15 +700,15 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
             <CardContent className="p-4">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  {getDocumentIcon(doc.filename)}
+                  {getDocumentIcon(doc.name)}
                   <div>
-                    <h4 className="font-medium">{doc.filename}</h4>
+                    <h4 className="font-medium">{doc.name}</h4>
                     <div className="flex flex-wrap gap-2 mt-1">
                       <Badge variant="outline" className={getCategoryBadgeColor(doc.category)}>
                         {doc.category}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        {formatFileSize(doc.filesize)}
+                        {doc.fileType}
                       </span>
                     </div>
                     {doc.description && (
@@ -749,7 +749,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Excluir documento</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Tem certeza que deseja excluir o documento "{doc.filename}"? 
+                          Tem certeza que deseja excluir o documento "{doc.name}"? 
                           Esta ação não pode ser desfeita.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
