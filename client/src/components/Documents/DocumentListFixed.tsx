@@ -82,6 +82,14 @@ export default function DocumentList({ eventId }: DocumentListProps) {
     queryFn: () => apiRequest(`/api/events/${eventId}/documents`),
     staleTime: 0,
     gcTime: 0,
+    retry: (failureCount, error) => {
+      // Don't retry if it's an auth error (302 redirect)
+      if (error instanceof Error && error.message.includes('302')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+    retryDelay: 1000,
   });
 
   // Ensure documents is always an array
@@ -99,6 +107,14 @@ export default function DocumentList({ eventId }: DocumentListProps) {
         throw new Error("Nenhum arquivo selecionado");
       }
 
+      console.log('=== INICIANDO UPLOAD NO FRONTEND ===');
+      console.log('Dados do documento:', documentData);
+      console.log('Arquivo selecionado:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
       // Create FormData for file upload
       const formData = new FormData();
       formData.append('file', file);
@@ -107,11 +123,23 @@ export default function DocumentList({ eventId }: DocumentListProps) {
       formData.append('description', documentData.description || '');
       formData.append('eventId', eventId.toString());
       
-      return apiRequest(`/api/events/${eventId}/documents`, {
-        method: 'POST',
-        body: formData,
-        // Don't set Content-Type header - let browser set it with boundary for FormData
-      });
+      console.log('FormData criado com os seguintes campos:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`- ${key}:`, value);
+      }
+      
+      try {
+        const result = await apiRequest(`/api/events/${eventId}/documents`, {
+          method: 'POST',
+          body: formData,
+          // Don't set Content-Type header - let browser set it with boundary for FormData
+        });
+        console.log('Upload bem-sucedido:', result);
+        return result;
+      } catch (error) {
+        console.error('Erro durante upload:', error);
+        throw error;
+      }
     },
     onSuccess: (response) => {
       console.log('Document upload success:', response);

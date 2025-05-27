@@ -2188,13 +2188,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
       
+      console.log("=== INÍCIO DO UPLOAD DE DOCUMENTO ===");
       console.log("Dados recebidos para upload de documento:");
-      console.log("- req.body:", req.body);
-      console.log("- req.file:", req.file);
-      console.log("- req.file.originalname:", req.file?.originalname);
-      console.log("- filename enviado:", req.body.filename);
-      console.log("- category enviada:", req.body.category);
-      console.log("- description enviada:", req.body.description);
+      console.log("- req.body completo:", JSON.stringify(req.body, null, 2));
+      console.log("- req.file completo:", req.file ? {
+        fieldname: req.file.fieldname,
+        originalname: req.file.originalname,
+        filename: req.file.filename,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      } : 'null');
+      console.log("- Campos específicos do form:");
+      console.log("  - filename enviado:", req.body.filename, typeof req.body.filename);
+      console.log("  - category enviada:", req.body.category, typeof req.body.category);
+      console.log("  - description enviada:", req.body.description, typeof req.body.description);
       
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
