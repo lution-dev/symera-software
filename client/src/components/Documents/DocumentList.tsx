@@ -1120,24 +1120,44 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <Button size="sm" variant="outline" onClick={() => window.open(doc.fileUrl, '_blank')}>
-                    <i className="fas fa-eye"></i>
-                    <span className="ml-1 md:hidden lg:inline">Ver</span>
+                {/* Action Buttons */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => window.open(doc.fileUrl, '_blank')}
+                    className="h-8 px-2"
+                    title="Visualizar documento"
+                  >
+                    <i className="fas fa-eye text-sm"></i>
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => window.open(doc.fileUrl, '_blank')}>
-                    <i className="fas fa-download"></i>
-                    <span className="ml-1 md:hidden lg:inline">Baixar</span>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => window.open(doc.fileUrl, '_blank')}
+                    className="h-8 px-2"
+                    title="Baixar documento"
+                  >
+                    <i className="fas fa-download text-sm"></i>
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setupEditForm(doc)}>
-                    <i className="fas fa-pencil-alt"></i>
-                    <span className="ml-1 md:hidden lg:inline">Editar</span>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setupEditForm(doc)}
+                    className="h-8 px-2"
+                    title="Editar documento"
+                  >
+                    <i className="fas fa-pencil-alt text-sm"></i>
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200">
-                        <i className="fas fa-trash-alt"></i>
-                        <span className="ml-1 md:hidden lg:inline">Excluir</span>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 px-2 text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200"
+                        title="Excluir documento"
+                      >
+                        <i className="fas fa-trash-alt text-sm"></i>
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
