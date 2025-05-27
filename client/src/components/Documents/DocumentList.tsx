@@ -347,30 +347,70 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     }
   };
   
+  // Helper function to get category icon
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'contratos':
+        return <i className="fas fa-file-contract text-blue-500 text-2xl"></i>;
+      case 'orcamentos':
+        return <i className="fas fa-calculator text-green-500 text-2xl"></i>;
+      case 'imagens':
+        return <i className="fas fa-images text-purple-500 text-2xl"></i>;
+      case 'videos':
+        return <i className="fas fa-video text-red-500 text-2xl"></i>;
+      case 'apresentacoes':
+        return <i className="fas fa-presentation text-orange-500 text-2xl"></i>;
+      case 'licencas':
+        return <i className="fas fa-certificate text-yellow-500 text-2xl"></i>;
+      case 'roteiros':
+        return <i className="fas fa-script text-indigo-500 text-2xl"></i>;
+      case 'checklists':
+        return <i className="fas fa-check-square text-teal-500 text-2xl"></i>;
+      case 'outros':
+        return <i className="fas fa-folder text-gray-500 text-2xl"></i>;
+      default:
+        return <i className="fas fa-file text-gray-500 text-2xl"></i>;
+    }
+  };
+
   // Get document icon based on filename extension
   const getDocumentIcon = (filename: string) => {
-    if (!filename) return <i className="fas fa-file text-gray-500"></i>;
+    if (!filename) return <i className="fas fa-file text-gray-500 text-lg"></i>;
     const extension = filename.split('.').pop()?.toLowerCase();
     
     switch (extension) {
       case 'pdf':
-        return <i className="fas fa-file-pdf text-red-500"></i>;
+        return <i className="fas fa-file-pdf text-red-500 text-lg"></i>;
       case 'doc':
       case 'docx':
-        return <i className="fas fa-file-word text-blue-500"></i>;
+        return <i className="fas fa-file-word text-blue-500 text-lg"></i>;
       case 'xls':
       case 'xlsx':
-        return <i className="fas fa-file-excel text-green-500"></i>;
+        return <i className="fas fa-file-excel text-green-500 text-lg"></i>;
       case 'ppt':
       case 'pptx':
-        return <i className="fas fa-file-powerpoint text-orange-500"></i>;
+        return <i className="fas fa-file-powerpoint text-orange-500 text-lg"></i>;
       case 'jpg':
       case 'jpeg':
       case 'png':
-        return <i className="fas fa-file-image text-purple-500"></i>;
+      case 'gif':
+      case 'webp':
+        return <i className="fas fa-file-image text-purple-500 text-lg"></i>;
       default:
-        return <i className="fas fa-file text-gray-500"></i>;
+        return <i className="fas fa-file text-gray-500 text-lg"></i>;
     }
+  };
+
+  // Helper function to check if file is an image
+  const isImageFile = (filename: string) => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    return ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension || '');
+  };
+
+  // Helper function to get file size display
+  const getFileTypeDisplay = (filename: string, fileType: string) => {
+    const extension = filename.split('.').pop()?.toUpperCase();
+    return extension ? `${extension} • ${fileType}` : fileType;
   };
 
   // Render all documents (without category filter)
@@ -1012,31 +1052,70 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     return (
       <div className="grid grid-cols-1 gap-4">
         {filteredDocuments.map((doc: Document) => (
-          <Card key={doc.id} className="overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  {getDocumentIcon(doc.name)}
-                  <div>
-                    <h4 className="font-medium">{doc.name}</h4>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      <Badge variant="outline" className={getCategoryBadgeColor(doc.category)}>
-                        {doc.category}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {doc.fileType}
-                      </span>
+          <Card key={doc.id} className="overflow-hidden hover:shadow-md transition-shadow">
+            <CardContent className="p-0">
+              <div className="flex items-center gap-4 p-4">
+                {/* Document Preview/Icon Section */}
+                <div className="flex-shrink-0">
+                  {isImageFile(doc.name) ? (
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                        <img 
+                          src={doc.fileUrl} 
+                          alt={doc.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to icon if image fails to load
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <div className="hidden absolute inset-0 flex items-center justify-center bg-gray-100">
+                          {getCategoryIcon(doc.category)}
+                        </div>
+                      </div>
+                      <div className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-sm border">
+                        {getDocumentIcon(doc.name)}
+                      </div>
                     </div>
-                    {doc.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
-                    )}
-                    <div className="flex items-center mt-2 text-xs text-muted-foreground">
-                      <Avatar className="h-5 w-5 mr-1">
-                        <AvatarFallback>U</AvatarFallback>
-                      </Avatar>
-                      <span>
-                        Enviado em {formatDate(doc.uploadedAt)}
-                      </span>
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-gray-50 border-2 border-gray-200 flex items-center justify-center">
+                      {getCategoryIcon(doc.category)}
+                    </div>
+                  )}
+                </div>
+
+                {/* Document Info Section */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-lg truncate">{doc.name}</h4>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <Badge variant="outline" className={getCategoryBadgeColor(doc.category)}>
+                          <span className="mr-1">{getCategoryIcon(doc.category).props.className.includes('fa-file-contract') ? '📄' : 
+                                                    getCategoryIcon(doc.category).props.className.includes('fa-calculator') ? '💰' :
+                                                    getCategoryIcon(doc.category).props.className.includes('fa-images') ? '🖼️' :
+                                                    getCategoryIcon(doc.category).props.className.includes('fa-video') ? '🎥' :
+                                                    getCategoryIcon(doc.category).props.className.includes('fa-presentation') ? '📊' :
+                                                    getCategoryIcon(doc.category).props.className.includes('fa-certificate') ? '📜' :
+                                                    getCategoryIcon(doc.category).props.className.includes('fa-script') ? '📝' :
+                                                    getCategoryIcon(doc.category).props.className.includes('fa-check-square') ? '✅' : '📁'}</span>
+                          {doc.category}
+                        </Badge>
+                        <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md text-xs font-medium text-gray-700">
+                          {getDocumentIcon(doc.name)}
+                          <span className="ml-1">{getFileTypeDisplay(doc.name, doc.fileType || 'Arquivo')}</span>
+                        </div>
+                      </div>
+                      {doc.description && (
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{doc.description}</p>
+                      )}
+                      <div className="flex items-center mt-3 text-xs text-muted-foreground">
+                        <Avatar className="h-4 w-4 mr-2">
+                          <AvatarFallback className="text-xs">U</AvatarFallback>
+                        </Avatar>
+                        <span>Enviado em {formatDate(doc.uploadedAt)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
