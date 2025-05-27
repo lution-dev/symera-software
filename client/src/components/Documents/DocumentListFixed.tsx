@@ -275,7 +275,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
                          doc.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (doc.description && doc.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesCategory = selectedCategory === '' || doc.category === selectedCategory;
+    const matchesCategory = selectedCategory === '' || selectedCategory === 'all' || doc.category === selectedCategory;
     
     return matchesSearch && matchesCategory;
   }) : [];
@@ -448,7 +448,7 @@ export default function DocumentList({ eventId }: DocumentListProps) {
               <SelectValue placeholder="Todas as categorias" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as categorias</SelectItem>
+              <SelectItem value="all">Todas as categorias</SelectItem>
               <SelectItem value="contratos">Contratos</SelectItem>
               <SelectItem value="orcamentos">Orçamentos</SelectItem>
               <SelectItem value="imagens">Imagens</SelectItem>
