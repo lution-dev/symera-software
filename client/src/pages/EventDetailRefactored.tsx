@@ -9,7 +9,7 @@ import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { ScheduleList } from "@/components/Schedule/ScheduleList";
 import { ExpenseList } from "@/components/Finance/ExpenseList";
-import DocumentList from "@/components/Documents/DocumentList";
+import DocumentList from "@/components/Documents/DocumentListFixed";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
