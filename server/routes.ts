@@ -2210,8 +2210,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Middleware específico para uploads de documento que não falha com token expirado
+  const documentUploadAuth: RequestHandler = async (req, res, next) => {
+    console.log("=== MIDDLEWARE DE UPLOAD DE DOCUMENTO ===");
+    console.log("- URL:", req.url);
+    console.log("- Method:", req.method);
+    console.log("- isAuthenticated:", req.isAuthenticated());
+    
+    const user = req.user as any;
+    
+    if (!req.isAuthenticated() || !user) {
+      console.log("Usuário não autenticado para upload");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (!user.claims || !user.claims.sub) {
+      console.log("Claims não encontrados para upload");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    console.log("Usuário autorizado para upload:", user.claims.sub);
+    return next();
+  };
+
   // Adicionar um documento
-  app.post('/api/events/:eventId/documents', isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post('/api/events/:eventId/documents', documentUploadAuth, upload.single('file'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
