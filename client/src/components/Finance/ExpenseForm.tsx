@@ -313,7 +313,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="placeholder:text-muted-foreground">
                           <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
                       </FormControl>
