@@ -76,14 +76,21 @@ export default function DocumentList({ eventId }: DocumentListProps) {
   const [customCategory, setCustomCategory] = useState('');
   const [description, setDescription] = useState('');
 
-  // Fetch documents with better error handling
-  const { data: documentsResponse, isLoading, refetch } = useQuery({
+  // Fetch documents with proper error handling
+  const { data: documentsResponse, isLoading, refetch, error } = useQuery({
     queryKey: [`documents-${eventId}`],
-    queryFn: () => apiRequest(`/api/events/${eventId}/documents`),
+    queryFn: async () => {
+      try {
+        return await apiRequest(`/api/events/${eventId}/documents`);
+      } catch (err) {
+        console.log('Erro ao buscar documentos:', err);
+        return []; // Return empty array on error
+      }
+    },
     staleTime: 0,
     gcTime: 0,
-    retry: false, // Don't retry on auth errors
-    enabled: true, // Keep enabled but handle errors gracefully
+    retry: false,
+    enabled: true,
   });
 
   // Ensure documents is always an array

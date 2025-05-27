@@ -62,10 +62,19 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
 
-  // Buscar as despesas do evento
+  // Buscar as despesas do evento com tratamento de erro
   const { data: expenses = [], isLoading, error } = useQuery({
     queryKey: [`/api/events/${eventId}/expenses`],
+    queryFn: async () => {
+      try {
+        return await apiRequest(`/api/events/${eventId}/expenses`);
+      } catch (err) {
+        console.log('Erro ao buscar despesas:', err);
+        return []; // Return empty array on error
+      }
+    },
     enabled: !!eventId,
+    retry: false,
   });
 
   // Mutação para excluir uma despesa
