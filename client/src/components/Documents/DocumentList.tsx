@@ -1052,14 +1052,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     return (
       <div className="grid grid-cols-1 gap-4">
         {filteredDocuments.map((doc: Document) => (
-          <Card key={doc.id} className="group hover:shadow-lg hover:shadow-purple-100/50 transition-all duration-300 border-0 bg-gradient-to-r from-white to-purple-50/30">
+          <Card key={doc.id} className="group hover:shadow-lg transition-all duration-300 border border-gray-800/20 bg-[#1A0A29]/80 backdrop-blur-sm">
             <CardContent className="p-0">
               <div className="flex items-center gap-4 p-6">
                 {/* Document Preview/Icon Section */}
                 <div className="flex-shrink-0">
                   {isImageFile(doc.name) ? (
                     <div className="relative">
-                      <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-purple-200 shadow-lg">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#1A0A29] border border-purple-500/30 shadow-lg">
                         <img 
                           src={doc.fileUrl} 
                           alt={doc.name}
@@ -1070,16 +1070,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                             e.currentTarget.nextElementSibling?.classList.remove('hidden');
                           }}
                         />
-                        <div className="hidden absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-200">
+                        <div className="hidden absolute inset-0 flex items-center justify-center bg-[#1A0A29]">
                           {getCategoryIcon(doc.category)}
                         </div>
                       </div>
-                      <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-2 shadow-lg border-2 border-purple-100">
+                      <div className="absolute -bottom-1 -right-1 bg-[#1A0A29] rounded-full p-1.5 shadow-lg border border-purple-500/50">
                         {getDocumentIcon(doc.name)}
                       </div>
                     </div>
                   ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 shadow-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <div className="w-16 h-16 rounded-xl bg-[#1A0A29] border border-purple-500/30 shadow-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                       {getCategoryIcon(doc.category)}
                     </div>
                   )}
@@ -1090,30 +1090,30 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-bold text-xl text-gray-900 truncate">{doc.name}</h4>
-                        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+                        <h4 className="font-bold text-lg text-white truncate">{doc.name}</h4>
+                        <span className="text-xs font-semibold px-2 py-1 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30">
                           {doc.category}
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                      <div className="flex items-center gap-4 text-sm text-gray-300 mb-2">
                         <div className="flex items-center gap-2">
                           {getDocumentIcon(doc.name)}
-                          <span className="font-medium">{getFileTypeDisplay(doc.name, doc.fileType || 'Arquivo')}</span>
+                          <span>{getFileTypeDisplay(doc.name, doc.fileType || 'Arquivo')}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <i className="fas fa-calendar text-purple-500"></i>
+                          <i className="fas fa-calendar text-purple-400"></i>
                           <span>{formatDate(doc.uploadedAt)}</span>
                         </div>
                       </div>
                       
                       {doc.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-3">{doc.description}</p>
+                        <p className="text-sm text-gray-400 line-clamp-2 mb-3">{doc.description}</p>
                       )}
                       
                       <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Avatar className="h-5 w-5">
-                          <AvatarFallback className="text-xs bg-purple-100 text-purple-600">U</AvatarFallback>
+                        <Avatar className="h-4 w-4">
+                          <AvatarFallback className="text-xs bg-purple-500/20 text-purple-300">U</AvatarFallback>
                         </Avatar>
                         <span>Enviado por você</span>
                       </div>
@@ -1122,43 +1122,43 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Button 
                     size="sm" 
                     variant="ghost" 
                     onClick={() => window.open(doc.fileUrl, '_blank')}
-                    className="h-10 w-10 rounded-xl hover:bg-purple-100 hover:text-purple-600 transition-colors"
+                    className="h-8 w-8 rounded-lg hover:bg-purple-500/20 hover:text-purple-300 text-gray-400 transition-colors"
                     title="Visualizar documento"
                   >
-                    <i className="fas fa-eye text-lg"></i>
+                    <i className="fas fa-eye"></i>
                   </Button>
                   <Button 
                     size="sm" 
                     variant="ghost" 
                     onClick={() => window.open(doc.fileUrl, '_blank')}
-                    className="h-10 w-10 rounded-xl hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                    className="h-8 w-8 rounded-lg hover:bg-blue-500/20 hover:text-blue-300 text-gray-400 transition-colors"
                     title="Baixar documento"
                   >
-                    <i className="fas fa-download text-lg"></i>
+                    <i className="fas fa-download"></i>
                   </Button>
                   <Button 
                     size="sm" 
                     variant="ghost" 
                     onClick={() => setupEditForm(doc)}
-                    className="h-10 w-10 rounded-xl hover:bg-green-100 hover:text-green-600 transition-colors"
+                    className="h-8 w-8 rounded-lg hover:bg-green-500/20 hover:text-green-300 text-gray-400 transition-colors"
                     title="Editar documento"
                   >
-                    <i className="fas fa-pencil-alt text-lg"></i>
+                    <i className="fas fa-pencil-alt"></i>
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button 
                         size="sm" 
                         variant="ghost" 
-                        className="h-10 w-10 rounded-xl hover:bg-red-100 hover:text-red-600 transition-colors"
+                        className="h-8 w-8 rounded-lg hover:bg-red-500/20 hover:text-red-300 text-gray-400 transition-colors"
                         title="Excluir documento"
                       >
-                        <i className="fas fa-trash-alt text-lg"></i>
+                        <i className="fas fa-trash-alt"></i>
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
