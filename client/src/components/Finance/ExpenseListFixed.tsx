@@ -55,11 +55,25 @@ export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuc
       try {
         setIsLoading(true);
         console.log(`[ExpenseListFixed] Buscando despesas para evento ${eventId}`);
-        const response = await apiRequest(`/api/events/${eventId}/expenses`);
-        console.log(`[ExpenseListFixed] Despesas recebidas:`, response);
+        
+        // Usar fetch diretamente para garantir que a resposta seja correta
+        const response = await fetch(`/api/events/${eventId}/expenses`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(`[ExpenseListFixed] Despesas recebidas:`, data);
         
         // Garantir que sempre temos um array
-        const validExpenses = Array.isArray(response) ? response : [];
+        const validExpenses = Array.isArray(data) ? data : [];
         setExpenses(validExpenses);
         console.log(`[ExpenseListFixed] Total de despesas: ${validExpenses.length}`);
       } catch (err) {
