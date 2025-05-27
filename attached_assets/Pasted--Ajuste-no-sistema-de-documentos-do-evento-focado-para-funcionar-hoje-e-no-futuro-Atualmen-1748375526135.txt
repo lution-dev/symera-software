@@ -1,0 +1,60 @@
+## 🚀 Ajuste no sistema de documentos do evento (focado para funcionar hoje e no futuro)
+
+Atualmente usamos o banco de dados interno do Replit, mas em breve vamos migrar para o banco **Neon (PostgreSQL)**.
+
+Por isso, precisamos que o sistema de documentos seja ajustado **para ser independente do banco atual**, funcionando agora e futuramente **sem reprogramar nada**.
+
+---
+
+### ✅ O que precisa ser feito:
+
+#### 1. **Salvar arquivos fora do banco**
+- Armazenar os arquivos na pasta pública do Replit por enquanto (ex: `/uploads/doc123.pdf`)
+- Gerar uma `file_url` acessível e segura (ex: `https://symera.app/uploads/doc123.pdf`)
+- No futuro, essa `file_url` apontará para um bucket externo (Supabase, AWS S3, Firebase...)
+
+#### 2. **Salvar os metadados no banco (`documents`) com os seguintes campos:**
+
+| Campo | Tipo | Exemplo |
+|-------|------|---------|
+| `id` | UUID | 991a... |
+| `event_id` | UUID | fk para evento |
+| `name` | string | `Contrato principal` |
+| `description` | string (opcional) | `Contrato assinado pelo fornecedor` |
+| `category` | string | `Contrato`, `Imagem`, `PDF`, `Vídeo`, `Orçamento`, `Outros` |
+| `file_url` | string | `https://...` |
+| `file_type` | string | `application/pdf` |
+| `uploaded_by` | string | Nome ou ID do usuário |
+| `created_at` | datetime | `2025-05-23T20:00:00` |
+
+---
+
+#### 3. **Interface do Upload de Documento**
+- Campos:
+  - Nome do documento
+  - Categoria (adicionar: Imagem, Vídeo, Apresentação, Planilha, etc)
+  - Arquivo (aceitar `.pdf`, `.docx`, `.pptx`, `.xlsx`, `.jpg`, `.png`, `.mp4`)
+  - (opcional) descrição
+- Ao salvar:
+  - Armazenar arquivo fora do banco (Replit agora, bucket depois)
+  - Salvar os dados na tabela `documents`
+
+---
+
+#### 4. **Interface de listagem dos documentos**
+- Agrupar por categoria
+- Mostrar:
+  - Nome do documento
+  - Descrição
+  - Botões: `Visualizar`, `Download`, `Excluir`
+- Ícone ou preview do tipo de documento
+
+---
+
+#### 5. **Mobile responsivo**
+- Mostrar os documentos em cards por categoria
+- Cada card com nome, ícone, botão de ação
+
+---
+
+> ⚙️ Lembre-se: ao trocar o banco para o Neon, os arquivos continuarão existindo na pasta pública ou em um bucket — a tabela `documents` permanece igual.
