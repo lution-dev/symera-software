@@ -1020,10 +1020,6 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           {/* Documentos */}
           {activeSection === "documentos" && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-                <h2 className="text-xl font-semibold">Documentos</h2>
-              </div>
-              
               {/* Componente de gerenciamento de documentos */}
               <DocumentList eventId={Number(eventId)} />
             </div>
