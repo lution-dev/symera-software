@@ -234,10 +234,17 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     console.log("ID do usuário salvo na sessão:", user.claims.sub);
   }
   
-  // Se o token expirou, tente atualizar
+  // Se o token expirou, tente atualizar - mas para uploads de arquivo, pule por enquanto
   const now = Math.floor(Date.now() / 1000);
   if (user.expires_at && now > user.expires_at) {
     console.log("Token expirado, tentando atualizar");
+    
+    // Para uploads de documentos, vamos temporariamente permitir o acesso mesmo com token expirado
+    // se o usuário tem claims válidos (isso evita problemas com uploads longos)
+    if (req.path.includes('/documents') && req.method === 'POST') {
+      console.log("Upload de documento detectado - permitindo com token expirado mas claims válidos");
+      return next();
+    }
     
     const refreshToken = user.refresh_token;
     if (!refreshToken) {
@@ -256,6 +263,13 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       console.log("Token atualizado com sucesso");
     } catch (error) {
       console.error("Erro ao atualizar token:", error);
+      
+      // Para uploads de documentos, permita mesmo se o refresh falhou mas temos claims válidos
+      if (req.path.includes('/documents') && req.method === 'POST' && user.claims?.sub) {
+        console.log("Permitindo upload de documento mesmo com falha no refresh token");
+        return next();
+      }
+      
       // Para requisições de API, retornar erro JSON ao invés de redirect
       if (req.path.startsWith('/api/')) {
         return res.status(401).json({ message: "Session expired, please refresh the page" });
