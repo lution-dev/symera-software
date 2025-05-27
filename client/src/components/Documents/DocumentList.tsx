@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import { useToast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -229,9 +230,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
   };
   
   // Handle document upload
-  const handleUpload = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleUpload = (data: any) => {
     if (!file) {
       toast({
         title: 'Arquivo necessário',
@@ -241,7 +240,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
       return;
     }
     
-    if (!category) {
+    if (!data.category) {
       toast({
         title: 'Categoria necessária',
         description: 'Por favor, selecione uma categoria para o documento.',
@@ -250,7 +249,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
       return;
     }
     
-    if (category === 'outros' && !customCategory) {
+    if (data.category === 'outros' && !data.customCategory) {
       toast({
         title: 'Nome da categoria necessário',
         description: 'Por favor, digite o nome da categoria personalizada.',
@@ -261,9 +260,9 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     
     // Create document data object instead of FormData
     const documentData = {
-      filename: filename || file.name,
-      category: category === 'outros' ? customCategory : category,
-      description: description || null
+      filename: data.filename || file.name,
+      category: data.category === 'outros' ? data.customCategory : data.category,
+      description: data.description || null
     };
     
     uploadMutation.mutate(documentData);
@@ -798,7 +797,15 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleUpload} className="space-y-4 mt-4 p-4 rounded-lg" style={{ backgroundColor: '#1A0A29' }}>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          const data = {
+            filename: filename || file?.name || '',
+            category: category === 'outros' ? customCategory : category,
+            description: description || null
+          };
+          handleUpload(data);
+        }} className="space-y-4 mt-4 p-4 rounded-lg" style={{ backgroundColor: '#1A0A29' }}>
           <div className="w-full">
             <Label htmlFor="file" className="text-sm font-medium">Arquivo</Label>
             <div className="mt-2">
