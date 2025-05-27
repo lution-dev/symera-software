@@ -36,6 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, Download, Edit2, Trash2, Search, Plus, FileText, Upload, X } from 'lucide-react';
 
 interface Document {
   id: number;
@@ -315,38 +316,50 @@ export default function DocumentList({ eventId }: DocumentListProps) {
           <div className="w-full">
             <Label htmlFor="file" className="text-sm font-medium">Arquivo</Label>
             <div className="mt-2">
-              <label 
-                htmlFor="file-upload" 
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-700 rounded-lg cursor-pointer hover:bg-gray-800/20 transition-colors"
-                style={{ borderColor: '#374151' }}
-              >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <i className="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
-                  <p className="mb-2 text-sm text-gray-400">
-                    <span className="font-semibold">Clique para fazer upload</span> ou arraste o arquivo
-                  </p>
-                  <p className="text-xs text-gray-500">PDF, DOC, XLS, PNG, JPG (máx. 10MB)</p>
-                </div>
-                <input 
-                  id="file-upload" 
-                  type="file" 
-                  className="hidden" 
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif"
-                  required
-                />
-              </label>
-              {file && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-2"
-                  onClick={() => setFile(null)}
+              {!file ? (
+                <label 
+                  htmlFor="file-upload" 
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-700 rounded-lg cursor-pointer hover:bg-gray-800/20 transition-colors"
+                  style={{ borderColor: '#374151' }}
                 >
-                  <i className="fas fa-times mr-2"></i>
-                  Remover arquivo
-                </Button>
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                    <p className="mb-2 text-sm text-gray-400">
+                      <span className="font-semibold">Clique para fazer upload</span> ou arraste o arquivo
+                    </p>
+                    <p className="text-xs text-gray-500">PDF, DOC, XLS, PNG, JPG (máx. 10MB)</p>
+                  </div>
+                  <input 
+                    id="file-upload" 
+                    type="file" 
+                    className="hidden" 
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif"
+                    required
+                  />
+                </label>
+              ) : (
+                <div className="flex items-center justify-between w-full p-4 border-2 border-green-500 bg-green-500/10 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-6 h-6 text-green-500" />
+                    <div>
+                      <p className="text-sm font-medium text-green-400">{file.name}</p>
+                      <p className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                    onClick={() => {
+                      setFile(null);
+                      setFilename('');
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               )}
             </div>
           </div>
