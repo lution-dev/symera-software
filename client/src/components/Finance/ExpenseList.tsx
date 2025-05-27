@@ -63,7 +63,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
 
   // Buscar as despesas do evento com tratamento de erro
-  const { data: expenses = [], isLoading, error } = useQuery({
+  const { data: expensesResponse = [], isLoading, error } = useQuery({
     queryKey: [`/api/events/${eventId}/expenses`],
     queryFn: async () => {
       try {
@@ -76,6 +76,9 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
     enabled: !!eventId,
     retry: false,
   });
+
+  // Ensure expenses is always an array
+  const expenses = Array.isArray(expensesResponse) ? expensesResponse : [];
 
   // Mutação para excluir uma despesa
   const deleteExpenseMutation = useMutation({

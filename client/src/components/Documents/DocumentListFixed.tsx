@@ -96,6 +96,9 @@ export default function DocumentList({ eventId }: DocumentListProps) {
   // Ensure documents is always an array
   const documents = Array.isArray(documentsResponse) ? documentsResponse : [];
   
+  // Handle null/undefined response
+  const hasError = documentsResponse === null || documentsResponse === undefined;
+  
   console.log('Documents response:', documentsResponse);
   console.log('Documents array:', documents);
   console.log('Documents length:', documents.length);
