@@ -1052,14 +1052,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
     return (
       <div className="grid grid-cols-1 gap-4">
         {filteredDocuments.map((doc: Document) => (
-          <Card key={doc.id} className="overflow-hidden hover:shadow-md transition-shadow">
+          <Card key={doc.id} className="group hover:shadow-lg hover:shadow-purple-100/50 transition-all duration-300 border-0 bg-gradient-to-r from-white to-purple-50/30">
             <CardContent className="p-0">
-              <div className="flex items-center gap-4 p-4">
+              <div className="flex items-center gap-4 p-6">
                 {/* Document Preview/Icon Section */}
                 <div className="flex-shrink-0">
                   {isImageFile(doc.name) ? (
                     <div className="relative">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-purple-200 shadow-lg">
                         <img 
                           src={doc.fileUrl} 
                           alt={doc.name}
@@ -1070,16 +1070,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                             e.currentTarget.nextElementSibling?.classList.remove('hidden');
                           }}
                         />
-                        <div className="hidden absolute inset-0 flex items-center justify-center bg-gray-100">
+                        <div className="hidden absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-200">
                           {getCategoryIcon(doc.category)}
                         </div>
                       </div>
-                      <div className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-sm border">
+                      <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-2 shadow-lg border-2 border-purple-100">
                         {getDocumentIcon(doc.name)}
                       </div>
                     </div>
                   ) : (
-                    <div className="w-16 h-16 rounded-lg bg-gray-50 border-2 border-gray-200 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 shadow-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                       {getCategoryIcon(doc.category)}
                     </div>
                   )}
@@ -1089,75 +1089,76 @@ export const DocumentList: React.FC<DocumentListProps> = ({ eventId }) => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-lg truncate">{doc.name}</h4>
-                      <div className="flex flex-wrap items-center gap-2 mt-1">
-                        <Badge variant="outline" className={getCategoryBadgeColor(doc.category)}>
-                          <span className="mr-1">{getCategoryIcon(doc.category).props.className.includes('fa-file-contract') ? '📄' : 
-                                                    getCategoryIcon(doc.category).props.className.includes('fa-calculator') ? '💰' :
-                                                    getCategoryIcon(doc.category).props.className.includes('fa-images') ? '🖼️' :
-                                                    getCategoryIcon(doc.category).props.className.includes('fa-video') ? '🎥' :
-                                                    getCategoryIcon(doc.category).props.className.includes('fa-presentation') ? '📊' :
-                                                    getCategoryIcon(doc.category).props.className.includes('fa-certificate') ? '📜' :
-                                                    getCategoryIcon(doc.category).props.className.includes('fa-script') ? '📝' :
-                                                    getCategoryIcon(doc.category).props.className.includes('fa-check-square') ? '✅' : '📁'}</span>
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="font-bold text-xl text-gray-900 truncate">{doc.name}</h4>
+                        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
                           {doc.category}
-                        </Badge>
-                        <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md text-xs font-medium text-gray-700">
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                        <div className="flex items-center gap-2">
                           {getDocumentIcon(doc.name)}
-                          <span className="ml-1">{getFileTypeDisplay(doc.name, doc.fileType || 'Arquivo')}</span>
+                          <span className="font-medium">{getFileTypeDisplay(doc.name, doc.fileType || 'Arquivo')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <i className="fas fa-calendar text-purple-500"></i>
+                          <span>{formatDate(doc.uploadedAt)}</span>
                         </div>
                       </div>
+                      
                       {doc.description && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{doc.description}</p>
+                        <p className="text-sm text-gray-600 line-clamp-2 mb-3">{doc.description}</p>
                       )}
-                      <div className="flex items-center mt-3 text-xs text-muted-foreground">
-                        <Avatar className="h-4 w-4 mr-2">
-                          <AvatarFallback className="text-xs">U</AvatarFallback>
+                      
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Avatar className="h-5 w-5">
+                          <AvatarFallback className="text-xs bg-purple-100 text-purple-600">U</AvatarFallback>
                         </Avatar>
-                        <span>Enviado em {formatDate(doc.uploadedAt)}</span>
+                        <span>Enviado por você</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <Button 
                     size="sm" 
-                    variant="outline" 
+                    variant="ghost" 
                     onClick={() => window.open(doc.fileUrl, '_blank')}
-                    className="h-8 px-2"
+                    className="h-10 w-10 rounded-xl hover:bg-purple-100 hover:text-purple-600 transition-colors"
                     title="Visualizar documento"
                   >
-                    <i className="fas fa-eye text-sm"></i>
+                    <i className="fas fa-eye text-lg"></i>
                   </Button>
                   <Button 
                     size="sm" 
-                    variant="outline" 
+                    variant="ghost" 
                     onClick={() => window.open(doc.fileUrl, '_blank')}
-                    className="h-8 px-2"
+                    className="h-10 w-10 rounded-xl hover:bg-blue-100 hover:text-blue-600 transition-colors"
                     title="Baixar documento"
                   >
-                    <i className="fas fa-download text-sm"></i>
+                    <i className="fas fa-download text-lg"></i>
                   </Button>
                   <Button 
                     size="sm" 
-                    variant="outline" 
+                    variant="ghost" 
                     onClick={() => setupEditForm(doc)}
-                    className="h-8 px-2"
+                    className="h-10 w-10 rounded-xl hover:bg-green-100 hover:text-green-600 transition-colors"
                     title="Editar documento"
                   >
-                    <i className="fas fa-pencil-alt text-sm"></i>
+                    <i className="fas fa-pencil-alt text-lg"></i>
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button 
                         size="sm" 
-                        variant="outline" 
-                        className="h-8 px-2 text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200"
+                        variant="ghost" 
+                        className="h-10 w-10 rounded-xl hover:bg-red-100 hover:text-red-600 transition-colors"
                         title="Excluir documento"
                       >
-                        <i className="fas fa-trash-alt text-sm"></i>
+                        <i className="fas fa-trash-alt text-lg"></i>
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
