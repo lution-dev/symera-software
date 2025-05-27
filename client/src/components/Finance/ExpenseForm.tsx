@@ -310,7 +310,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                     <FormLabel>Categoria</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger className="placeholder:text-muted-foreground">
