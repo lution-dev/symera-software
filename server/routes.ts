@@ -1717,6 +1717,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Verificar autenticação
+  app.get('/api/auth/check', async (req: any, res) => {
+    if (!req.isAuthenticated() || !req.user?.claims?.sub) {
+      return res.status(401).json({ authenticated: false });
+    }
+    return res.json({ authenticated: true, userId: req.user.claims.sub });
+  });
+
   // Dashboard data route
   app.get('/api/dashboard', ensureDevAuth, async (req: any, res) => {
     try {

@@ -81,7 +81,10 @@ export default function DocumentList({ eventId }: DocumentListProps) {
     queryKey: [`documents-${eventId}`],
     queryFn: async () => {
       try {
-        return await apiRequest(`/api/events/${eventId}/documents`);
+        const response = await apiRequest(`/api/events/${eventId}/documents`);
+        const data = await response.json();
+        console.log('Documents fetched from API:', data);
+        return data;
       } catch (err) {
         console.log('Erro ao buscar documentos:', err);
         return []; // Return empty array on error
@@ -142,9 +145,9 @@ export default function DocumentList({ eventId }: DocumentListProps) {
         const result = await response.json();
         console.log('Upload bem-sucedido:', result);
         return result;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro durante upload:', error);
-        if (error.message?.includes('Authentication')) {
+        if (error?.message?.includes('Authentication')) {
           // Não refazer query, apenas mostrar erro
           throw new Error('Sessão expirada. Recarregue a página.');
         }

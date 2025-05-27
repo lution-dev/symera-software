@@ -273,8 +273,8 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
         if (err) console.error("Erro ao destruir sessão:", err);
       });
       
-      // Sempre retornar 401 JSON para APIs
-      if (req.url.startsWith('/api/')) {
+      // Sempre retornar 401 JSON para APIs, exceto /api/login
+      if (req.url.startsWith('/api/') && req.url !== '/api/login') {
         return res.status(401).json({ message: "Authentication failed", expired: true });
       }
       return res.redirect("/api/login");
