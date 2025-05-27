@@ -1021,7 +1021,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           {activeSection === "documentos" && (
             <div className="space-y-4">
               {/* Componente de gerenciamento de documentos */}
-              <DocumentList eventId={Number(eventId)} />
+              <DocumentManager eventId={Number(eventId)} />
             </div>
           )}
           
