@@ -2165,7 +2165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Gerar URL única para o arquivo
       const fileName = req.body.filename || `documento-${Date.now()}`;
-      const fileExtension = req.file?.originalname ? req.file.originalname.split('.').pop() : 'pdf';
+      const fileExtension = req.file?.originalname ? req.file.originalname.split('.').pop()?.toLowerCase() : 'unknown';
       const fileUrl = `/uploads/${Date.now()}-${fileName}.${fileExtension}`;
       
       const documentData = {
