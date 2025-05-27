@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,6 @@ import { ExpenseForm } from './ExpenseForm';
 import { apiRequest } from '@/lib/queryClient';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Define as categorias de despesas
 export const EXPENSE_CATEGORIES = [
@@ -32,127 +31,49 @@ export const EXPENSE_CATEGORIES = [
   { value: 'other', label: 'Outros' },
 ];
 
-interface Expense {
-  id: number;
-  eventId: number;
-  name: string;
-  amount: number;
-  category?: string;
-  dueDate?: string;
-  paymentDate?: string;
-  paid: boolean;
-  notes?: string;
-  vendorId?: number;
-  isIncome?: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface ExpenseListProps {
   eventId: number;
   onAddSuccess?: () => void;
 }
 
-export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess }) => {
+export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [editingExpense, setEditingExpense] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Buscar as despesas do evento
-  const { data: expensesResponse = [], isLoading, error } = useQuery({
-    queryKey: ['/api/events', eventId, 'expenses'],
-    queryFn: async () => {
-      console.log(`[ExpenseList] Buscando despesas para evento ${eventId}`);
+  // Buscar as despesas do evento diretamente
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      if (!eventId) return;
+      
       try {
+        setIsLoading(true);
+        console.log(`[ExpenseListFixed] Buscando despesas para evento ${eventId}`);
         const response = await apiRequest(`/api/events/${eventId}/expenses`);
-        console.log(`[ExpenseList] Despesas recebidas:`, response);
-        return response;
+        console.log(`[ExpenseListFixed] Despesas recebidas:`, response);
+        
+        // Garantir que sempre temos um array
+        const validExpenses = Array.isArray(response) ? response : [];
+        setExpenses(validExpenses);
+        console.log(`[ExpenseListFixed] Total de despesas: ${validExpenses.length}`);
       } catch (err) {
-        console.error('[ExpenseList] Erro ao buscar despesas:', err);
-        throw err;
+        console.error('[ExpenseListFixed] Erro ao buscar despesas:', err);
+        setExpenses([]);
+      } finally {
+        setIsLoading(false);
       }
-    },
-    enabled: !!eventId,
-    retry: 1,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-  });
+    };
 
-  // Ensure expenses is always an array
-  const expenses = Array.isArray(expensesResponse) ? expensesResponse : [];
-  
-  // Debug log para verificar os dados
-  console.log(`[ExpenseList] Dados finais - Loading: ${isLoading}, Error: ${error}, Expenses:`, expenses);
+    fetchExpenses();
+  }, [eventId]);
 
-  // Mutação para excluir uma despesa
-  const deleteExpenseMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return await apiRequest(`/api/expenses/${id}`, {
-        method: 'DELETE',
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Despesa excluída",
-        description: "A despesa foi excluída com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
-      // Também invalidar o evento para atualizar o valor total de despesas
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro ao excluir despesa",
-        description: "Ocorreu um erro ao excluir a despesa.",
-        variant: "destructive",
-      });
-      console.error("Erro ao excluir despesa:", error);
-    },
-  });
-
-  // Mutação para marcar despesa como paga/não paga
-  const updatePaidStatusMutation = useMutation({
-    mutationFn: async ({ id, paid }: { id: number; paid: boolean }) => {
-      // Solução: Não enviar diretamente o objeto, mas sim enviar o corpo como string JSON
-      const response = await fetch(`/api/expenses/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ paid }),
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Erro ao atualizar status: ${response.status}`);
-      }
-      
-      return await response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Status atualizado",
-        description: "O status de pagamento foi atualizado com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
-      // Também invalidar o evento para atualizar o valor total de despesas
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro ao atualizar status",
-        description: "Ocorreu um erro ao atualizar o status de pagamento.",
-        variant: "destructive",
-      });
-      console.error("Erro ao atualizar status:", error);
-    },
-  });
-
-  const handleOpenForm = (expense?: Expense) => {
+  const handleOpenForm = (expense?: any) => {
     setEditingExpense(expense || null);
     setIsFormOpen(true);
   };
@@ -164,62 +85,20 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
 
   const handleAddSuccess = () => {
     handleCloseForm();
+    // Recarregar despesas
+    const fetchExpenses = async () => {
+      try {
+        const response = await apiRequest(`/api/events/${eventId}/expenses`);
+        const validExpenses = Array.isArray(response) ? response : [];
+        setExpenses(validExpenses);
+      } catch (err) {
+        console.error('Erro ao recarregar despesas:', err);
+      }
+    };
+    fetchExpenses();
+    
     if (onAddSuccess) {
       onAddSuccess();
-    }
-  };
-
-  const handleDeleteExpense = (id: number) => {
-    if (confirm("Tem certeza que deseja excluir esta despesa?")) {
-      deleteExpenseMutation.mutate(id);
-    }
-  };
-
-  const handleTogglePaidStatus = async (expense: Expense) => {
-    try {
-      const newPaidStatus = !expense.paid;
-      console.log(`Alterando status para: ${newPaidStatus ? 'pago' : 'não pago'}, ID: ${expense.id}`);
-      
-      // Usar método PUT em vez de PATCH para garantir compatibilidade
-      const response = await fetch(`/api/expenses/${expense.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          paid: newPaidStatus
-        }),
-        credentials: 'include'
-      });
-      
-      // Verificar resposta HTTP
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Erro na resposta: ${response.status}`, errorText);
-        throw new Error(`Erro na resposta: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log("Resposta do servidor:", data);
-      
-      // Forçar atualização dos dados
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
-      
-      // Notificar o usuário
-      toast({
-        title: "Status atualizado",
-        description: newPaidStatus 
-          ? "Item marcado como pago com sucesso." 
-          : "Status de pagamento removido com sucesso."
-      });
-    } catch (error) {
-      console.error("Falha ao atualizar status:", error);
-      toast({
-        title: "Erro ao atualizar status",
-        description: "Não foi possível alterar o status de pagamento. Tente novamente.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -265,15 +144,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
     .reduce((sum: number, expense: any) => sum + expense.amount, 0);
   
   const totalPending = totalExpenses - totalPaid;
-  
   const balance = totalIncome - totalExpenses;
 
   if (isLoading) {
     return <div className="p-4 text-center">Carregando despesas...</div>;
-  }
-
-  if (error) {
-    return <div className="p-4 text-center text-red-500">Erro ao carregar despesas.</div>;
   }
 
   return (
@@ -378,7 +252,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredExpenses.map((expense) => (
+                  {filteredExpenses.map((expense: any) => (
                     <TableRow key={expense.id}>
                       <TableCell>
                         <div className="font-medium">{expense.name}</div>
@@ -418,34 +292,14 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button 
-                            variant={expense.paid ? "outline" : "default"} 
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
                             size="sm"
-                            className={expense.paid ? "border border-red-500 text-red-500 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600 border-0"}
-                            onClick={() => handleTogglePaidStatus(expense)}
-                          >
-                            <i className={`fas fa-${expense.paid ? 'times' : 'check'} mr-1`}></i>
-                            {expense.paid ? 
-                              "Desmarcar" : 
-                              (expense.isIncome ? "Marcar recebido" : "Marcar pago")
-                            }
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
+                            variant="outline"
                             onClick={() => handleOpenForm(expense)}
-                            title="Editar"
+                            className="h-8 px-2"
                           >
-                            <i className="fas fa-edit"></i>
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDeleteExpense(expense.id)}
-                            title="Excluir"
-                          >
-                            <i className="fas fa-trash"></i>
+                            <i className="fas fa-edit mr-1"></i> Editar
                           </Button>
                         </div>
                       </TableCell>
@@ -460,3 +314,5 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
     </div>
   );
 };
+
+export default ExpenseListFixed;

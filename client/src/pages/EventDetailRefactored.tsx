@@ -9,6 +9,7 @@ import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { ScheduleList } from "@/components/Schedule/ScheduleList";
 import { ExpenseList } from "@/components/Finance/ExpenseList";
+import { ExpenseListFixed } from "@/components/Finance/ExpenseListFixed";
 import DocumentList from "@/components/Documents/DocumentListFixed";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -1011,7 +1012,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               
               {/* Lista de despesas */}
               <div className="bg-card rounded-lg border border-border p-6">
-                <ExpenseList eventId={Number(eventId)} />
+                <ExpenseListFixed eventId={Number(eventId)} />
               </div>
             </div>
           )}
