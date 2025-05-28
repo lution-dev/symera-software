@@ -2676,6 +2676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Arquivo recebido:", req.file?.originalname);
     console.log("EventId:", req.params.eventId);
     console.log("User:", req.user?.id);
+    console.log("Session:", req.session?.userId);
     
     // Forçar resposta JSON
     res.setHeader('Content-Type', 'application/json');
@@ -2683,7 +2684,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const eventId = parseInt(req.params.eventId);
-      const userId = req.user!.id;
+      // Buscar userId da sessão se req.user não estiver disponível
+      const userId = req.user?.id || (req.session as any)?.userId;
+      
+      console.log("🔍 Debug userId:", userId);
+      console.log("🔍 req.user:", req.user);
+      console.log("🔍 req.session.userId:", (req.session as any)?.userId);
+
+      if (!userId) {
+        console.log("❌ Usuário não autenticado");
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
 
       if (!req.file) {
         console.log("❌ Nenhum arquivo enviado");
