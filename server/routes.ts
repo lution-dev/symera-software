@@ -2671,46 +2671,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/events/:eventId/participants/upload - Upload and validate file
-  app.post("/api/events/:eventId/participants/upload", isAuthenticated, async (req, res) => {
+  app.post("/api/events/:eventId/participants/upload", isAuthenticated, participantUpload.single('file'), async (req, res) => {
     console.log("=== ENDPOINT DE UPLOAD ATINGIDO ===");
-    console.log("Headers:", req.headers);
-    console.log("Body existe:", !!req.body);
-    console.log("Files existe:", !!req.files);
+    console.log("Arquivo recebido:", req.file?.originalname);
     
     try {
       const eventId = parseInt(req.params.eventId);
       const userId = req.user!.id;
       
       console.log("EventId:", eventId, "UserId:", userId);
-      
-      // Simple validation
-      if (!eventId || isNaN(eventId)) {
-        console.log("Event ID inválido");
-        return res.status(400).json({ message: "ID do evento inválido" });
+
+      if (!req.file) {
+        console.log("Nenhum arquivo enviado");
+        return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
       }
 
-      // Check access first
+      // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       if (!hasAccess) {
-        console.log("Usuário sem acesso ao evento");
+        fs.unlinkSync(req.file.path);
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
 
-      // Return a simple success for now to test the endpoint
-      console.log("Endpoint funcionando corretamente");
+      // Process file
+      const result = await processParticipantFile(req.file.path, eventId);
+
+      // Delete temporary file
+      fs.unlinkSync(req.file.path);
+
+      // Check limit
+      if (result.validParticipants.length > 500) {
+        return res.status(400).json({ 
+          message: "Limite de 500 participantes por importação excedido",
+          stats: result.stats
+        });
+      }
+
       res.json({
         message: "Arquivo processado com sucesso",
-        preview: {
-          validParticipants: [],
-          invalidRecords: [],
-          stats: { total: 0, valid: 0, invalid: 0 }
-        },
-        canImport: false
+        preview: result,
+        canImport: result.validParticipants.length > 0
       });
 
     } catch (error) {
-      console.error("Erro no endpoint:", error);
-      res.status(500).json({ message: `Erro interno: ${error.message}` });
+      console.error("Erro ao processar arquivo:", error);
+      
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({ message: `Erro ao processar arquivo: ${error.message}` });
     }
   });
 
