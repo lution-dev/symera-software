@@ -23,6 +23,7 @@ import {
   File,
   FileX,
   Calendar,
+  Edit,
   User
 } from 'lucide-react';
 import type { Document } from '@shared/schema';
@@ -71,11 +72,18 @@ const getFileTypeColor = (fileType: string, category: string) => {
 
 export function DocumentManager({ eventId }: DocumentManagerProps) {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [uploadForm, setUploadForm] = useState({
     name: '',
     description: '',
     category: '',
     file: null as File | null
+  });
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    category: ''
   });
   const [isUploading, setIsUploading] = useState(false);
   
@@ -154,6 +162,34 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
     }
   });
 
+  // Editar documento
+  const editMutation = useMutation({
+    mutationFn: async ({ documentId, updateData }: { documentId: number, updateData: any }) => {
+      const response = await apiRequest(`/api/events/${eventId}/documents/${documentId}`, {
+        method: 'PATCH',
+        body: updateData
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
+      setIsEditOpen(false);
+      setEditingDocument(null);
+      setEditForm({ name: '', description: '', category: '' });
+      toast({
+        title: "Sucesso!",
+        description: "Documento atualizado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar documento.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleUpload = () => {
     if (!uploadForm.file || !uploadForm.name || !uploadForm.category) {
       toast({
@@ -188,6 +224,36 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
     link.click();
   };
 
+  const handleEditDocument = (document: Document) => {
+    setEditingDocument(document);
+    setEditForm({
+      name: document.name,
+      description: document.description || '',
+      category: document.category
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleEditSubmit = () => {
+    if (!editingDocument || !editForm.name || !editForm.category) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Nome e categoria são obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    editMutation.mutate({
+      documentId: editingDocument.id,
+      updateData: {
+        name: editForm.name,
+        description: editForm.description || null,
+        category: editForm.category
+      }
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -214,7 +280,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-[#fff]">Documentos do Evento</h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#858090]">
             Organize e gerencie todos os documentos relacionados ao evento
           </p>
         </div>
@@ -360,7 +426,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
                             </Badge>
                           </div>
                           
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+                          <div className="flex items-center gap-1 text-xs mt-2 text-[#858090]">
                             <Calendar className="h-3 w-3" />
                             {new Date(document.uploadedAt).toLocaleDateString('pt-BR')}
                           </div>
@@ -389,6 +455,14 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => handleEditDocument(document)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => deleteMutation.mutate(document.id)}
                           disabled={deleteMutation.isPending}
                           className="text-red-600 hover:text-red-700"
@@ -404,6 +478,74 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
           ))}
         </div>
       )}
+
+      {/* Dialog de edição de documento */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Documento</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do documento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Nome do documento *</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name}
+                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Digite o nome do documento"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-description">Descrição</Label>
+              <Textarea
+                id="edit-description"
+                value={editForm.description}
+                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Descrição opcional do documento"
+                rows={3}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-category">Categoria *</Label>
+              <Select 
+                value={editForm.category} 
+                onValueChange={(value) => setEditForm(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Contratos">Contratos</SelectItem>
+                  <SelectItem value="Fornecedores">Fornecedores</SelectItem>
+                  <SelectItem value="Orçamento">Orçamento</SelectItem>
+                  <SelectItem value="Cronograma">Cronograma</SelectItem>
+                  <SelectItem value="Convites">Convites</SelectItem>
+                  <SelectItem value="Documentos Legais">Documentos Legais</SelectItem>
+                  <SelectItem value="Outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditOpen(false)}
+              disabled={editMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleEditSubmit}
+              disabled={editMutation.isPending}
+            >
+              {editMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
