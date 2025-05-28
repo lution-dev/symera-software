@@ -131,18 +131,52 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (formData: FormData) => {
-      return fetch(`/api/events/${eventId}/participants/upload`, {
+    mutationFn: async (formData: FormData) => {
+      console.log('Iniciando upload para eventId:', eventId);
+      
+      // Primeiro, vamos testar o endpoint simples
+      try {
+        const testResponse = await fetch(`/api/events/${eventId}/participants/test-upload`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ test: true }),
+          credentials: 'include',
+        });
+        
+        console.log('Teste endpoint response:', testResponse.status);
+        if (testResponse.ok) {
+          const testData = await testResponse.json();
+          console.log('Teste endpoint funcionou:', testData);
+        }
+      } catch (err) {
+        console.log('Teste endpoint falhou:', err);
+      }
+      
+      // Agora tentar o upload real
+      const response = await fetch(`/api/events/${eventId}/participants/upload`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
-      }).then(async (res) => {
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: 'Erro desconhecido' }));
-          throw new Error(errorData.message || 'Erro ao processar arquivo');
-        }
-        return res.json();
       });
+      
+      console.log('Upload response status:', response.status);
+      console.log('Upload response headers:', [...response.headers.entries()]);
+      
+      const responseText = await response.text();
+      console.log('Upload response text:', responseText);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${responseText}`);
+      }
+      
+      try {
+        return JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError);
+        throw new Error(`Resposta inválida do servidor: ${responseText.substring(0, 200)}`);
+      }
     },
     onSuccess: (data) => {
       console.log('Upload bem-sucedido:', data);
