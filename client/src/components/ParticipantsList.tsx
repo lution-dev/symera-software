@@ -154,8 +154,8 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
         console.log('Teste endpoint falhou:', err);
       }
       
-      // Agora tentar o upload real - FORA do /api/ para evitar interceptação
-      const response = await fetch(`/upload-participants/${eventId}`, {
+      // Agora tentar o upload real - ENDPOINT CORRIGIDO
+      const response = await fetch(`/upload-participants-fixed/${eventId}`, {
         method: 'POST',
         body: formData,
         credentials: 'include',

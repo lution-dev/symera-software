@@ -2670,8 +2670,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST /upload-participants/:eventId - FORA DO /api/ para evitar interceptação do Vite
-  app.post("/upload-participants/:eventId", participantUpload.single('file'), async (req, res) => {
+  // POST /upload-participants-fixed/:eventId - ENDPOINT CORRIGIDO DEFINITIVO
+  app.post("/upload-participants-fixed/:eventId", participantUpload.single('file'), async (req, res) => {
     console.log("🔥 UPLOAD FUNCIONANDO AGORA!");
     console.log("Arquivo recebido:", req.file?.originalname);
     console.log("EventId:", req.params.eventId);
