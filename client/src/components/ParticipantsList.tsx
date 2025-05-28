@@ -159,29 +159,78 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
       const mockResult = {
         message: "Arquivo processado com sucesso",
         stats: {
-          total: 3,
-          valid: 3,
+          total: 10,
+          valid: 10,
           invalid: 0
         },
         validParticipants: [
           {
-            name: "João Silva",
-            email: "joao@exemplo.com",
-            phone: "11999999999",
+            name: "Lucas Gabriel Teixeira",
+            email: "isabella48@azevedo.org",
+            phone: "0900 870 3811",
             status: 'pending',
             origin: 'imported'
           },
           {
-            name: "Maria Santos",
-            email: "maria@exemplo.com", 
-            phone: "11888888888",
+            name: "Sr. Leonardo Fogaça",
+            email: "psantos@aragao.com", 
+            phone: "51 4781 4976",
             status: 'pending',
             origin: 'imported'
           },
           {
-            name: "Carlos Oliveira",
-            email: "carlos@exemplo.com",
-            phone: "11777777777", 
+            name: "João Pedro Carvalho",
+            email: "fernandesvitor-gabriel@uol.com.br",
+            phone: "0800 482 3192", 
+            status: 'pending',
+            origin: 'imported'
+          },
+          {
+            name: "Raquel da Cruz",
+            email: "milena97@costa.net",
+            phone: "0500 063 7608", 
+            status: 'pending',
+            origin: 'imported'
+          },
+          {
+            name: "Lavínia da Conceição",
+            email: "olima@gmail.com",
+            phone: "+55 31 6511-4066", 
+            status: 'pending',
+            origin: 'imported'
+          },
+          {
+            name: "Amanda Castro",
+            email: "eduardodas-neves@rezende.br",
+            phone: "(051) 3319 2832", 
+            status: 'pending',
+            origin: 'imported'
+          },
+          {
+            name: "Alícia Costa",
+            email: "ana-vitoria02@fernandes.com",
+            phone: "+55 81 1856 8179", 
+            status: 'pending',
+            origin: 'imported'
+          },
+          {
+            name: "Ana Lívia Cardoso",
+            email: "luiz-otavio96@da.com",
+            phone: "+55 81 8839-4705", 
+            status: 'pending',
+            origin: 'imported'
+          },
+          {
+            name: "Davi Lucca Monteiro",
+            email: "eribeiro@gmail.com",
+            phone: "+55 (051) 0812-0464", 
+            status: 'pending',
+            origin: 'imported'
+          },
+          {
+            name: "Dra. Emanuella Cunha",
+            email: "diego26@freitas.com",
+            phone: "(061) 8161-1471", 
             status: 'pending',
             origin: 'imported'
           }
