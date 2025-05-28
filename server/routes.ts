@@ -2670,15 +2670,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST /api/participants/upload/:eventId - Nova rota que o Vite não vai interceptar
-  app.post("/api/participants/upload/:eventId", isAuthenticated, participantUpload.single('file'), async (req, res) => {
-    console.log("🚀 NOVO ENDPOINT DE UPLOAD EXECUTADO!");
+  // POST /api/upload-participants/:eventId - Rota completamente diferente
+  app.post("/api/upload-participants/:eventId", isAuthenticated, participantUpload.single('file'), async (req, res) => {
+    console.log("🚀 ENDPOINT FINAL DE UPLOAD EXECUTADO!");
     console.log("Arquivo recebido:", req.file?.originalname);
     console.log("EventId:", req.params.eventId);
     console.log("User:", req.user?.id);
     
-    // Forçar headers JSON
+    // Forçar resposta JSON
     res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-cache');
     
     try {
       const eventId = parseInt(req.params.eventId);
@@ -2689,13 +2690,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
       }
 
-      console.log("✅ Arquivo processado:", req.file.filename);
+      console.log("✅ Arquivo recebido:", req.file.filename, "Tamanho:", req.file.size);
 
       // Verificar acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       if (!hasAccess) {
         console.log("❌ Sem acesso ao evento");
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
 
@@ -2706,17 +2709,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("✅ Arquivo processado, participantes válidos:", result.validParticipants.length);
 
       // Limpar arquivo temporário
-      fs.unlinkSync(req.file.path);
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
 
       // Verificar limite
       if (result.validParticipants.length > 500) {
+        console.log("❌ Limite excedido:", result.validParticipants.length);
         return res.status(400).json({ 
           message: "Limite de 500 participantes por importação excedido",
           stats: result.stats
         });
       }
 
-      console.log("✅ Retornando sucesso");
+      console.log("✅ Retornando sucesso com", result.validParticipants.length, "participantes");
       return res.json({
         message: "Arquivo processado com sucesso",
         preview: result,
