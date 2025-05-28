@@ -84,14 +84,11 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
 
   // Buscar documentos
   const { data: documents = [], isLoading, error } = useQuery<Document[]>({
-    queryKey: ['/api/events', eventId, 'documents'],
+    queryKey: [`/api/events/${eventId}/documents`],
     enabled: !!eventId
   });
 
-  // Debug: verificar dados retornados
-  console.log('DocumentManager - dados retornados:', documents);
-  console.log('DocumentManager - é array?', Array.isArray(documents));
-  console.log('DocumentManager - primeiro item:', documents[0]);
+
 
   // Agrupar documentos por categoria
   const documentsByCategory = (documents || []).reduce((acc: Record<string, Document[]>, doc: Document) => {
@@ -117,7 +114,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'documents'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
       setIsUploadOpen(false);
       setUploadForm({ name: '', description: '', category: '', file: null });
       toast({
@@ -142,7 +139,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'documents'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/documents`] });
       toast({
         title: "Documento removido",
         description: "Documento excluído com sucesso.",
