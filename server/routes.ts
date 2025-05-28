@@ -2925,8 +2925,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST /api/events/:eventId/participants/upload - ENDPOINT SIMPLES QUE FUNCIONA
-  app.post("/api/events/:eventId/participants/upload", participantUpload.single('file'), async (req, res) => {
+  // POST /raw-upload/:eventId - ENDPOINT QUE NÃO SERÁ INTERCEPTADO PELO VITE
+  app.post("/raw-upload/:eventId", participantUpload.single('file'), async (req, res) => {
     console.log("🎯 UPLOAD FINAL FUNCIONANDO!");
     
     // Force JSON response
