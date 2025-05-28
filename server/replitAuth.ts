@@ -27,23 +27,21 @@ const getOidcConfig = memoize(
 export function getSession() {
   const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 dias
   
-  // Usar PostgreSQL para armazenar sessões persistentes
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
-    ttl: sessionTtl,
-    tableName: "sessions",
+  // Usar MemoryStore temporariamente para garantir que a autenticação funcione
+  const MemoryStore = memorystore(session);
+  const sessionStore = new MemoryStore({
+    checkPeriod: 86400000, // prune expired entries every 24h
   });
   
   return session({
-    secret: process.env.SESSION_SECRET || 'replit-session-secret',
+    secret: process.env.SESSION_SECRET || 'replit-session-secret-dev',
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Reset expiration on activity
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Permitir em desenvolvimento
       sameSite: 'lax',
       maxAge: sessionTtl,
     },
@@ -201,28 +199,24 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  console.log("Verificando autenticação:");
-  console.log("- isAuthenticated:", req.isAuthenticated());
-  console.log("- session ID:", req.sessionID);
+  console.log("Verificando autenticação do usuário:");
+  console.log("- Session ID:", req.sessionID);
+  console.log("- Is Authenticated:", req.isAuthenticated());
   
   const user = req.user as any;
-  console.log("- user object:", user ? "Presente" : "Ausente");
-
-  if (!req.isAuthenticated() || !user) {
-    console.log("Não autenticado ou usuário não encontrado");
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  console.log("- user claims:", user.claims ? "Presente" : "Ausente");
   
-  if (!user.claims || !user.claims.sub) {
-    console.log("Claims do usuário não encontradas");
-    // Para requisições de API, retornar erro JSON ao invés de redirect
-    if (req.url.startsWith('/api/')) {
-      return res.status(401).json({ message: "Session expired, please refresh the page" });
-    }
-    return res.redirect("/api/login");
+  if (!req.isAuthenticated() || !user) {
+    console.log("- Usuário não autenticado");
+    return res.status(401).json({ message: "Unauthorized - Login Required" });
   }
+
+  // Verificar se o usuário tem claims válidos
+  if (!user.claims || !user.claims.sub) {
+    console.log("- Claims do usuário inválidos ou ausentes");
+    return res.status(401).json({ message: "Unauthorized - Invalid Session" });
+  }
+
+  console.log("- Usuário autenticado:", user.claims.sub);
 
   // Garantir que o ID do usuário seja salvo na sessão
   if (user.claims.sub) {
