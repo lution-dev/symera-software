@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -69,6 +69,7 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadPreview, setUploadPreview] = useState<any>(null);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -201,6 +202,9 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Fechar o modal de importação
+    setShowImportModal(false);
+
     const formData = new FormData();
     formData.append('file', file);
 
@@ -329,11 +333,10 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
           
           <Button
             variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadMutation.isPending}
+            onClick={() => setShowImportModal(true)}
           >
             <Upload className="w-4 h-4 mr-2" />
-            Importar CSV/Excel
+            Importar Lista
           </Button>
 
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -714,6 +717,92 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Importação */}
+      <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Importar Lista de Participantes</DialogTitle>
+            <DialogDescription>
+              Importe até 500 participantes através de arquivo CSV ou Excel
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Formatos aceitos */}
+            <div className="space-y-3">
+              <h4 className="font-medium">Formatos Aceitos</h4>
+              <div className="flex gap-2">
+                <Badge variant="outline">.xlsx</Badge>
+                <Badge variant="outline">.csv</Badge>
+              </div>
+            </div>
+
+            {/* Campos obrigatórios */}
+            <div className="space-y-3">
+              <h4 className="font-medium">Campos Obrigatórios</h4>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span className="text-sm">Nome</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm">E-mail</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm">Telefone</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Exemplo de cabeçalho */}
+            <div className="space-y-3">
+              <h4 className="font-medium">Exemplo de Cabeçalho</h4>
+              <div className="bg-muted p-3 rounded-md">
+                <code className="text-sm">nome,email,telefone</code>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Certifique-se que a primeira linha do arquivo contenha exatamente estes cabeçalhos
+              </p>
+            </div>
+
+            {/* Limite */}
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Limite máximo de 500 participantes por importação
+              </AlertDescription>
+            </Alert>
+
+            {/* Upload area */}
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+              <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h4 className="font-medium mb-2">Selecione seu arquivo</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Arraste e solte ou clique para selecionar
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadMutation.isPending}
+              >
+                {uploadMutation.isPending ? 'Processando...' : 'Escolher Arquivo'}
+              </Button>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowImportModal(false)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
