@@ -1,0 +1,97 @@
+Implementar a Aba “Lista de Participantes”
+Vamos implementar a aba "Lista de Participantes" dentro da tela de detalhe do evento, com as funcionalidades descritas abaixo. Essa funcionalidade deve permitir o cadastro manual e em massa de participantes, com visão responsiva e preparada para integrações futuras.
+
+📊 Funcionalidades Principais
+1. Modal de Importação
+Botão “Importar Lista” que abre um modal.
+
+No modal, deve informar os formatos aceitos: .xlsx e .csv.
+
+Mostrar os campos obrigatórios: Nome, Telefone, E-mail.
+
+Apresentar um exemplo de cabeçalho esperado, como:
+
+Copiar
+Editar
+nome,email,telefone
+Limite de até 500 participantes por vez.
+
+2. Validação do Arquivo
+Validar se o arquivo contém os campos obrigatórios.
+
+Validar formato correto dos dados (e-mail válido, telefone numérico etc).
+
+Exibir pré-visualização dos dados com:
+
+Total de registros válidos
+
+Destaque de registros com erro
+
+Opção de importar somente os válidos
+
+3. CRUD Completo
+Create: Importar registros validados para a tabela participants, vinculando ao eventoId
+
+Read: Exibir lista de participantes com:
+
+Colunas: Nome, E-mail, Telefone, Origem (manual/importado), Status (confirmado/pendente)
+
+Filtros e campo de busca
+
+Update: Permitir editar participantes manualmente
+
+Delete: Botão para excluir participantes individualmente
+
+4. Feedback ao Usuário
+Exibir mensagens de sucesso ou erro após a importação
+
+Indicar visualmente os campos faltantes ou inválidos antes da confirmação
+
+🧱 Banco de Dados – Tabela participants
+id: identificador (UUID)
+
+event_id: referência ao evento
+
+name: nome do participante
+
+email: e-mail (opcional)
+
+phone: telefone (opcional)
+
+status: pendente/confirmado
+
+origin: origem do cadastro (manual, csv, integração futura)
+
+🧠 Preparação para Integração Futuras
+Adicionar campo origin como string para permitir futuras integrações com Sympla.
+
+Exemplo: manual, csv, sympla, etc.
+
+🎨 Frontend – Interface
+Botão “Adicionar Participante” → abre formulário manual
+
+Botão “Importar Lista” → abre modal de importação
+
+Tabela com busca, filtros e ações de edição/exclusão
+
+Responsivo para celular:
+
+Cards verticais com informações essenciais
+
+Botões no topo (Adicionar, Importar)
+
+Modal e preview adaptado para mobile
+
+⚙️ Backend – Requisitos Técnicos
+Endpoint para upload e validação do arquivo
+
+Utilizar csv-parser e xlsx para tratar os arquivos
+
+Função de validação de colunas obrigatórias
+
+Salvar dados validados no banco (tabela participants)
+
+⚠️ Instrução Importante
+⚠️ Esta funcionalidade deve ser implementada sem alterar, quebrar ou afetar qualquer parte existente do sistema.
+
+Toda a implementação deve ser isolada e segura, garantindo que autenticação, painel principal, eventos, tarefas, equipe, documentos e demais funcionalidades continuem funcionando normalmente.
