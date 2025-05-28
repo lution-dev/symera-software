@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -378,7 +379,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
       {(documents || []).length === 0 ? (
         <div className="text-center py-12">
           <FileX className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum documento encontrado</h3>
+          <h3 className="text-lg font-medium mb-2 text-[#fff]">Nenhum documento encontrado</h3>
           <p className="text-gray-500 mb-4">Comece adicionando o primeiro documento do evento</p>
         </div>
       ) : (
@@ -412,7 +413,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
                           </h4>
                           
                           {document.description && (
-                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            <p className="text-sm mt-1 line-clamp-2 text-[#858090]">
                               {document.description}
                             </p>
                           )}
@@ -460,15 +461,37 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteMutation.mutate(document.id)}
-                          disabled={deleteMutation.isPending}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={deleteMutation.isPending}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir o documento "{document.name}"?
+                                <br />
+                                <span className="font-medium text-red-600">Esta ação não pode ser desfeita.</span>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteMutation.mutate(document.id)}
+                                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                              >
+                                {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   ))}
@@ -478,7 +501,6 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
           ))}
         </div>
       )}
-
       {/* Dialog de edição de documento */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-[425px]">
