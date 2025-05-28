@@ -2683,9 +2683,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.eventId);
       
-      // Buscar userId diretamente da sessão
-      const sessionUserId = (req.session as any)?.userId;
-      console.log("🔍 Session User ID:", sessionUserId);
+      // Debug completo da sessão
+      console.log("🔍 Toda a sessão:", JSON.stringify(req.session, null, 2));
+      console.log("🔍 req.session?.userId:", (req.session as any)?.userId);
+      console.log("🔍 req.session?.passport:", (req.session as any)?.passport);
+      
+      // Buscar userId de múltiplas formas possíveis
+      let sessionUserId = (req.session as any)?.userId;
+      if (!sessionUserId && (req.session as any)?.passport?.user) {
+        sessionUserId = (req.session as any).passport.user;
+        console.log("🔍 UserId encontrado no passport:", sessionUserId);
+      }
+      
+      console.log("🔍 Session User ID final:", sessionUserId);
       
       if (!sessionUserId) {
         console.log("❌ Usuário não autenticado - sem sessão");
