@@ -2671,12 +2671,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /upload-participants/:eventId - FORA DO /api/ para evitar interceptação do Vite
-  app.post("/upload-participants/:eventId", isAuthenticated, participantUpload.single('file'), async (req, res) => {
+  app.post("/upload-participants/:eventId", participantUpload.single('file'), async (req, res) => {
     console.log("🎯 ENDPOINT DEFINITIVO EXECUTADO!");
     console.log("Arquivo recebido:", req.file?.originalname);
     console.log("EventId:", req.params.eventId);
-    console.log("User:", req.user?.id);
-    console.log("Session:", req.session?.userId);
     
     // Forçar resposta JSON
     res.setHeader('Content-Type', 'application/json');
@@ -2684,15 +2682,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const eventId = parseInt(req.params.eventId);
-      // Buscar userId da sessão se req.user não estiver disponível
-      const userId = req.user?.id || (req.session as any)?.userId;
       
-      console.log("🔍 Debug userId:", userId);
-      console.log("🔍 req.user:", req.user);
-      console.log("🔍 req.session.userId:", (req.session as any)?.userId);
-
-      if (!userId) {
-        console.log("❌ Usuário não autenticado");
+      // Buscar userId diretamente da sessão
+      const sessionUserId = (req.session as any)?.userId;
+      console.log("🔍 Session User ID:", sessionUserId);
+      
+      if (!sessionUserId) {
+        console.log("❌ Usuário não autenticado - sem sessão");
         return res.status(401).json({ message: "Usuário não autenticado" });
       }
 
@@ -2704,7 +2700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("✅ Arquivo recebido:", req.file.filename, "Tamanho:", req.file.size);
 
       // Verificar acesso ao evento
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(sessionUserId, eventId);
       if (!hasAccess) {
         console.log("❌ Sem acesso ao evento");
         if (fs.existsSync(req.file.path)) {
