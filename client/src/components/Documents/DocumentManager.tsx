@@ -41,25 +41,29 @@ const DOCUMENT_CATEGORIES = [
 ];
 
 const getFileIcon = (fileType: string, category: string) => {
-  if (category === 'Imagem' || fileType.startsWith('image/')) {
+  const safeFileType = fileType || '';
+  
+  if (category === 'Imagem' || safeFileType.startsWith('image/')) {
     return <Image className="h-5 w-5" />;
   }
-  if (category === 'Vídeo' || fileType.startsWith('video/')) {
+  if (category === 'Vídeo' || safeFileType.startsWith('video/')) {
     return <Video className="h-5 w-5" />;
   }
-  if (fileType.startsWith('audio/')) {
+  if (safeFileType.startsWith('audio/')) {
     return <Music className="h-5 w-5" />;
   }
-  if (fileType === 'application/pdf' || category === 'PDF') {
+  if (safeFileType === 'application/pdf' || category === 'PDF') {
     return <FileText className="h-5 w-5 text-red-500" />;
   }
   return <File className="h-5 w-5" />;
 };
 
 const getFileTypeColor = (fileType: string, category: string) => {
-  if (category === 'Imagem' || fileType.startsWith('image/')) return 'bg-green-100 text-green-800';
-  if (category === 'Vídeo' || fileType.startsWith('video/')) return 'bg-purple-100 text-purple-800';
-  if (fileType === 'application/pdf' || category === 'PDF') return 'bg-red-100 text-red-800';
+  const safeFileType = fileType || '';
+  
+  if (category === 'Imagem' || safeFileType.startsWith('image/')) return 'bg-green-100 text-green-800';
+  if (category === 'Vídeo' || safeFileType.startsWith('video/')) return 'bg-purple-100 text-purple-800';
+  if (safeFileType === 'application/pdf' || category === 'PDF') return 'bg-red-100 text-red-800';
   if (category === 'Contrato') return 'bg-blue-100 text-blue-800';
   if (category === 'Orçamento') return 'bg-yellow-100 text-yellow-800';
   return 'bg-gray-100 text-gray-800';
