@@ -101,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - Versão melhorada com suporte a persistência de sessão
-  app.get('/api/auth/user', async (req: any, res) => {
+  app.get('/api/auth/user', devModeAuth, async (req: any, res) => {
     try {
       console.log("Verificando autenticação do usuário:");
       console.log("- Session ID:", req.sessionID);
@@ -1727,7 +1727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard data route
-  app.get('/api/dashboard', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/dashboard', devModeAuth, ensureDevAuth, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
