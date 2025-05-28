@@ -355,7 +355,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
                               variant="secondary" 
                               className={`text-xs ${getFileTypeColor(document.fileType, document.category)}`}
                             >
-                              {document.fileType.split('/').pop()?.toUpperCase()}
+                              {document.fileType ? document.fileType.split('/').pop()?.toUpperCase() : 'FILE'}
                             </Badge>
                           </div>
                           
