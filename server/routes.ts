@@ -2672,9 +2672,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // POST /upload-participants/:eventId - FORA DO /api/ para evitar interceptação do Vite
   app.post("/upload-participants/:eventId", participantUpload.single('file'), async (req, res) => {
-    console.log("🎯 ENDPOINT DEFINITIVO EXECUTADO!");
+    console.log("🔥 UPLOAD FUNCIONANDO AGORA!");
     console.log("Arquivo recebido:", req.file?.originalname);
     console.log("EventId:", req.params.eventId);
+    console.log("User: 8650891");
     
     // Forçar resposta JSON
     res.setHeader('Content-Type', 'application/json');
