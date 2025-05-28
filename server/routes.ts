@@ -2670,40 +2670,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Teste simples para verificar se a rota funciona
-  app.post("/api/events/:eventId/participants/test-upload", isAuthenticated, async (req, res) => {
-    console.log("🚀 TESTE ENDPOINT FUNCIONOU!");
-    console.log("EventId:", req.params.eventId);
-    console.log("User:", req.user?.id);
-    
-    res.json({
-      message: "Teste funcionou!",
-      eventId: req.params.eventId,
-      userId: req.user?.id,
-      success: true
-    });
-  });
-
-  // POST /api/events/:eventId/participants/upload - Upload and validate file
-  app.post("/api/events/:eventId/participants/upload", isAuthenticated, (req, res, next) => {
-    console.log("🔥 MIDDLEWARE INTERCEPTOU A REQUISIÇÃO");
-    console.log("Headers:", Object.keys(req.headers));
-    console.log("Content-Type:", req.headers['content-type']);
-    console.log("Method:", req.method);
-    console.log("URL:", req.url);
-    
-    // Verificar se é multipart/form-data
-    if (!req.headers['content-type']?.includes('multipart/form-data')) {
-      console.log("❌ Content-Type não é multipart/form-data");
-      return res.status(400).json({ message: "Tipo de conteúdo inválido. Use multipart/form-data." });
-    }
-    
-    next();
-  }, participantUpload.single('file'), async (req, res) => {
-    console.log("=== UPLOAD ENDPOINT EXECUTADO ===");
+  // POST /api/participants/upload/:eventId - Nova rota que o Vite não vai interceptar
+  app.post("/api/participants/upload/:eventId", isAuthenticated, participantUpload.single('file'), async (req, res) => {
+    console.log("🚀 NOVO ENDPOINT DE UPLOAD EXECUTADO!");
     console.log("Arquivo recebido:", req.file?.originalname);
     console.log("EventId:", req.params.eventId);
     console.log("User:", req.user?.id);
+    
+    // Forçar headers JSON
+    res.setHeader('Content-Type', 'application/json');
     
     try {
       const eventId = parseInt(req.params.eventId);
