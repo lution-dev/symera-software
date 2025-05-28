@@ -518,13 +518,11 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Contratos">Contratos</SelectItem>
-                  <SelectItem value="Fornecedores">Fornecedores</SelectItem>
-                  <SelectItem value="Orçamento">Orçamento</SelectItem>
-                  <SelectItem value="Cronograma">Cronograma</SelectItem>
-                  <SelectItem value="Convites">Convites</SelectItem>
-                  <SelectItem value="Documentos Legais">Documentos Legais</SelectItem>
-                  <SelectItem value="Outros">Outros</SelectItem>
+                  {DOCUMENT_CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
