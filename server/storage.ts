@@ -10,6 +10,7 @@ import {
   expenses,
   scheduleItems,
   documents,
+  participants,
   type User,
   type Event,
   type Task,
@@ -19,6 +20,7 @@ import {
   type BudgetItem,
   type Expense,
   type Document,
+  type Participant,
   type UpsertUser,
   type InsertEvent,
   type InsertTask,
@@ -30,6 +32,7 @@ import {
   type InsertBudgetItem,
   type InsertExpense,
   type InsertDocument,
+  type InsertParticipant,
   type TaskReminder,
   type InsertTaskReminder,
 } from "@shared/schema";
@@ -80,6 +83,7 @@ const userCache = new MemoryCache(300000); // 5 minutos
 const eventCache = new MemoryCache(180000); // 3 minutos
 const taskCache = new MemoryCache(120000); // 2 minutos
 const documentCache = new MemoryCache(120000); // 2 minutos
+const participantCache = new MemoryCache(120000); // 2 minutos
 
 // Interface for storage operations
 export interface IStorage {
@@ -154,6 +158,15 @@ export interface IStorage {
   createDocument(document: InsertDocument): Promise<Document>;
   updateDocument(id: number, document: Partial<InsertDocument>): Promise<Document>;
   deleteDocument(id: number): Promise<void>;
+  
+  // Participant operations
+  getParticipantsByEventId(eventId: number): Promise<Participant[]>;
+  getParticipantById(id: number): Promise<Participant | undefined>;
+  createParticipant(participant: InsertParticipant): Promise<Participant>;
+  createParticipants(participants: InsertParticipant[]): Promise<Participant[]>;
+  updateParticipant(id: number, participant: Partial<InsertParticipant>): Promise<Participant>;
+  deleteParticipant(id: number): Promise<void>;
+  getParticipantStats(eventId: number): Promise<{ total: number; confirmed: number; pending: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1113,6 +1126,120 @@ export class DatabaseStorage implements IStorage {
         documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
         documentCache.invalidate(`document:${id}`);
       }
+    });
+  }
+
+  // Participant operations
+  async getParticipantsByEventId(eventId: number): Promise<Participant[]> {
+    // Verificar cache
+    const cacheKey = `participants:event:${eventId}`;
+    const cachedParticipants = participantCache.get<Participant[]>(cacheKey);
+    if (cachedParticipants) return cachedParticipants;
+    
+    return executeWithRetry(async () => {
+      const result = await db
+        .select()
+        .from(participants)
+        .where(eq(participants.eventId, eventId))
+        .orderBy(participants.name);
+      
+      // Armazenar em cache
+      participantCache.set(cacheKey, result);
+      return result;
+    });
+  }
+
+  async getParticipantById(id: number): Promise<Participant | undefined> {
+    // Verificar cache
+    const cacheKey = `participant:${id}`;
+    const cachedParticipant = participantCache.get<Participant>(cacheKey);
+    if (cachedParticipant) return cachedParticipant;
+    
+    return executeWithRetry(async () => {
+      const [participant] = await db.select().from(participants).where(eq(participants.id, id));
+      
+      // Armazenar em cache
+      if (participant) {
+        participantCache.set(cacheKey, participant);
+      }
+      
+      return participant;
+    });
+  }
+
+  async createParticipant(participantData: InsertParticipant): Promise<Participant> {
+    return executeWithRetry(async () => {
+      const [participant] = await db.insert(participants).values(participantData).returning();
+      
+      // Invalidar e atualizar cache
+      participantCache.invalidate(`participants:event:${participantData.eventId}`);
+      participantCache.set(`participant:${participant.id}`, participant);
+      
+      return participant;
+    });
+  }
+
+  async createParticipants(participantsData: InsertParticipant[]): Promise<Participant[]> {
+    return executeWithRetry(async () => {
+      const createdParticipants = await db.insert(participants).values(participantsData).returning();
+      
+      // Invalidar cache para todos os eventos afetados
+      const eventIds = [...new Set(participantsData.map(p => p.eventId))];
+      eventIds.forEach(eventId => {
+        participantCache.invalidate(`participants:event:${eventId}`);
+      });
+      
+      // Armazenar em cache individual
+      createdParticipants.forEach(participant => {
+        participantCache.set(`participant:${participant.id}`, participant);
+      });
+      
+      return createdParticipants;
+    });
+  }
+
+  async updateParticipant(id: number, participantData: Partial<InsertParticipant>): Promise<Participant> {
+    return executeWithRetry(async () => {
+      const [participant] = await db
+        .update(participants)
+        .set({
+          ...participantData,
+          updatedAt: new Date(),
+        })
+        .where(eq(participants.id, id))
+        .returning();
+      
+      // Invalidar e atualizar cache
+      participantCache.invalidate(`participants:event:${participant.eventId}`);
+      participantCache.set(`participant:${participant.id}`, participant);
+      
+      return participant;
+    });
+  }
+
+  async deleteParticipant(id: number): Promise<void> {
+    return executeWithRetry(async () => {
+      const participant = await this.getParticipantById(id);
+      
+      if (participant) {
+        await db.delete(participants).where(eq(participants.id, id));
+        
+        // Invalidar cache
+        participantCache.invalidate(`participants:event:${participant.eventId}`);
+        participantCache.invalidate(`participant:${id}`);
+      }
+    });
+  }
+
+  async getParticipantStats(eventId: number): Promise<{ total: number; confirmed: number; pending: number }> {
+    return executeWithRetry(async () => {
+      const eventParticipants = await this.getParticipantsByEventId(eventId);
+      
+      const total = eventParticipants.length;
+      const confirmed = eventParticipants.filter(p => p.status === 'confirmed').length;
+      const pending = eventParticipants.filter(p => p.status === 'pending').length;
+      
+      return { total, confirmed, pending };
     });
   }
 }

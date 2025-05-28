@@ -15,8 +15,11 @@ import {
   insertTaskSchema,
   insertScheduleItemSchema,
   insertExpenseSchema,
-  insertDocumentSchema
+  insertDocumentSchema,
+  insertParticipantSchema
 } from "@shared/schema";
+import csvParser from 'csv-parser';
+import * as XLSX from 'xlsx';
 import { z } from "zod";
 import { generateEventChecklist } from "./openai";
 import scheduleRoutes from "./scheduleRoutes";
