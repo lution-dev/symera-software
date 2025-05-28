@@ -88,6 +88,11 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
     enabled: !!eventId
   });
 
+  // Debug: verificar dados retornados
+  console.log('DocumentManager - dados retornados:', documents);
+  console.log('DocumentManager - é array?', Array.isArray(documents));
+  console.log('DocumentManager - primeiro item:', documents[0]);
+
   // Agrupar documentos por categoria
   const documentsByCategory = (documents || []).reduce((acc: Record<string, Document[]>, doc: Document) => {
     const category = doc.category || 'Outros';
@@ -211,7 +216,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
       {/* Header com botão de upload */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Documentos do Evento</h2>
+          <h2 className="text-xl font-semibold text-[#fff]">Documentos do Evento</h2>
           <p className="text-sm text-gray-600">
             Organize e gerencie todos os documentos relacionados ao evento
           </p>
@@ -306,7 +311,6 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Lista de documentos por categoria */}
       {(documents || []).length === 0 ? (
         <div className="text-center py-12">
@@ -340,7 +344,7 @@ export function DocumentManager({ eventId }: DocumentManagerProps) {
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">
+                          <h4 className="font-medium truncate text-[#fff]">
                             {document.name}
                           </h4>
                           
