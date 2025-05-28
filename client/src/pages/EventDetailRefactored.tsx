@@ -384,14 +384,6 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 <i className="far fa-address-book mr-2"></i> Lista de Participantes
               </button>
               <button 
-                onClick={() => setActiveSection('participantes')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
-              >
-                <i className="far fa-address-book mr-2"></i> <span className="whitespace-nowrap">Lista de Participantes</span>
-              </button>
-              <button 
                 onClick={() => setActiveSection('cronograma')} 
                 className={`w-full flex items-center px-3 py-2 rounded-md ${
                   activeSection === 'cronograma' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
