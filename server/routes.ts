@@ -26,6 +26,19 @@ import scheduleRoutes from "./scheduleRoutes";
 import cronogramaRoutes from "./cronogramaRoutes";
 import { setupCronogramaRoute } from "./cronogramaDirectRoute";
 
+// Helper functions for validation
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const isValidPhone = (phone: string): boolean => {
+  // Remove all non-numeric characters
+  const cleanPhone = phone.replace(/\D/g, '');
+  // Check if it has at least 10 digits (basic validation)
+  return cleanPhone.length >= 10 && cleanPhone.length <= 15;
+};
+
 // Configure multer for file uploads - storing in public/uploads for external access
 const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) {

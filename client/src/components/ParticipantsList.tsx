@@ -136,15 +136,27 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
         method: 'POST',
         body: formData,
         credentials: 'include',
-      }).then(res => res.json());
+      }).then(async (res) => {
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: 'Erro desconhecido' }));
+          throw new Error(errorData.message || 'Erro ao processar arquivo');
+        }
+        return res.json();
+      });
     },
     onSuccess: (data) => {
+      console.log('Upload bem-sucedido:', data);
       setUploadPreview(data.preview);
       setShowUploadDialog(true);
       toast({ title: 'Arquivo processado com sucesso!' });
     },
-    onError: () => {
-      toast({ title: 'Erro ao processar arquivo', variant: 'destructive' });
+    onError: (error: any) => {
+      console.error('Erro no upload:', error);
+      toast({ 
+        title: 'Erro ao processar arquivo', 
+        description: error.message || 'Verifique o formato do arquivo',
+        variant: 'destructive' 
+      });
     },
   });
 
