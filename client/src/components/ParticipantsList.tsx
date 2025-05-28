@@ -154,8 +154,8 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
         console.log('Teste endpoint falhou:', err);
       }
       
-      // Upload usando endpoint bypass que evita interceptação do Vite
-      const response = await fetch(`/upload-bypass/${eventId}`, {
+      // Upload usando servidor separado na porta 3001 que funciona independentemente
+      const response = await fetch(`http://localhost:3001/upload/${eventId}`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
