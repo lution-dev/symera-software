@@ -935,52 +935,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           
           {/* Lista de Participantes */}
           {activeSection === "participantes" && (
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-                <h2 className="text-xl font-semibold">Lista de Participantes</h2>
-                <div className="flex space-x-2 w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="flex-1 sm:flex-auto">
-                    <i className="fas fa-file-import mr-2"></i> Importar
-                  </Button>
-                  <Button variant="default" size="sm" className="flex-1 sm:flex-auto">
-                    <i className="fas fa-plus mr-2"></i> Adicionar
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="bg-card rounded-lg border border-border p-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                  <div className="w-full sm:w-72">
-                    <Input
-                      placeholder="Buscar participantes..."
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Select defaultValue="todos">
-                      <SelectTrigger className="w-full sm:w-[140px] h-9">
-                        <SelectValue placeholder="Filtrar por..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos</SelectItem>
-                        <SelectItem value="confirmados">Confirmados</SelectItem>
-                        <SelectItem value="pendentes">Pendentes</SelectItem>
-                        <SelectItem value="cancelados">Cancelados</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="text-center py-12 border border-dashed border-border rounded-lg mt-4">
-                  <i className="fas fa-user-friends text-3xl text-muted-foreground/50 mb-3"></i>
-                  <h3 className="font-medium text-lg mb-2">Nenhum participante cadastrado</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Adicione participantes para gerenciar presenças no seu evento</p>
-                  <Button variant="default">
-                    <i className="fas fa-plus mr-2"></i> Adicionar Primeiro Participante
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <ParticipantsList eventId={Number(eventId)} />
           )}
 
           {/* Cronograma */}
