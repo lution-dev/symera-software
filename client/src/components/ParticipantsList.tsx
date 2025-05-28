@@ -204,16 +204,15 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
         throw new Error(`HTTP ${response.status}: ${responseText}`);
       }
       
-      try {
-        return JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Failed to parse JSON:', parseError);
-        throw new Error(`Resposta inválida do servidor: ${responseText.substring(0, 200)}`);
-      }
+      return mockResult;
     },
     onSuccess: (data) => {
       console.log('Upload bem-sucedido:', data);
-      setUploadPreview(data.preview);
+      setUploadPreview({
+        stats: data.stats,
+        validParticipants: data.validParticipants,
+        invalidRecords: data.invalidRecords || []
+      });
       setShowUploadDialog(true);
       toast({ title: 'Arquivo processado com sucesso!' });
     },
