@@ -11,6 +11,7 @@ import { ScheduleList } from "@/components/Schedule/ScheduleList";
 import { ExpenseList } from "@/components/Finance/ExpenseList";
 import { ExpenseListFixed } from "@/components/Finance/ExpenseListFixed";
 import { DocumentManager } from "@/components/Documents/DocumentManager";
+import { ParticipantsList } from "@/components/ParticipantsList";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -373,6 +374,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 }`}
               >
                 <i className="far fa-user-circle mr-2"></i> Equipe
+              </button>
+              <button 
+                onClick={() => setActiveSection('participantes')} 
+                className={`w-full flex items-center px-3 py-2 rounded-md ${
+                  activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                }`}
+              >
+                <i className="far fa-address-book mr-2"></i> Lista de Participantes
               </button>
               <button 
                 onClick={() => setActiveSection('participantes')} 

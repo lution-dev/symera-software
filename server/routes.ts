@@ -2426,6 +2426,447 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === PARTICIPANTS ROUTES (Lista de Participantes) ===
+
+  // Helper function to validate email
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Helper function to validate phone
+  const isValidPhone = (phone: string): boolean => {
+    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
+  };
+
+  // Helper function to process CSV/XLSX data
+  const processParticipantFile = async (filePath: string, eventId: number): Promise<{
+    validParticipants: any[];
+    invalidRecords: any[];
+    stats: { total: number; valid: number; invalid: number };
+  }> => {
+    const extension = path.extname(filePath).toLowerCase();
+    const validParticipants: any[] = [];
+    const invalidRecords: any[] = [];
+
+    if (extension === '.csv') {
+      // Process CSV file
+      return new Promise((resolve, reject) => {
+        const results: any[] = [];
+        
+        fs.createReadStream(filePath)
+          .pipe(csvParser())
+          .on('data', (data) => results.push(data))
+          .on('end', () => {
+            results.forEach((row, index) => {
+              const errors: string[] = [];
+              
+              // Validate required fields
+              if (!row.nome && !row.name) {
+                errors.push('Nome é obrigatório');
+              }
+              
+              // Validate email if provided
+              const email = row.email || row['e-mail'] || '';
+              if (email && !isValidEmail(email)) {
+                errors.push('E-mail inválido');
+              }
+              
+              // Validate phone if provided
+              const phone = row.telefone || row.phone || '';
+              if (phone && !isValidPhone(phone)) {
+                errors.push('Telefone inválido');
+              }
+              
+              if (errors.length > 0) {
+                invalidRecords.push({
+                  line: index + 2, // +2 because CSV starts at line 1 and we skip header
+                  data: row,
+                  errors
+                });
+              } else {
+                validParticipants.push({
+                  eventId,
+                  name: row.nome || row.name,
+                  email: email || null,
+                  phone: phone || null,
+                  status: 'pending',
+                  origin: 'csv'
+                });
+              }
+            });
+            
+            resolve({
+              validParticipants,
+              invalidRecords,
+              stats: {
+                total: results.length,
+                valid: validParticipants.length,
+                invalid: invalidRecords.length
+              }
+            });
+          })
+          .on('error', reject);
+      });
+    } else if (extension === '.xlsx') {
+      // Process XLSX file
+      const workbook = XLSX.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+
+      data.forEach((row: any, index) => {
+        const errors: string[] = [];
+        
+        // Validate required fields
+        if (!row.nome && !row.name) {
+          errors.push('Nome é obrigatório');
+        }
+        
+        // Validate email if provided
+        const email = row.email || row['e-mail'] || '';
+        if (email && !isValidEmail(email)) {
+          errors.push('E-mail inválido');
+        }
+        
+        // Validate phone if provided
+        const phone = row.telefone || row.phone || '';
+        if (phone && !isValidPhone(phone)) {
+          errors.push('Telefone inválido');
+        }
+        
+        if (errors.length > 0) {
+          invalidRecords.push({
+            line: index + 2, // +2 because Excel starts at line 1 and we skip header
+            data: row,
+            errors
+          });
+        } else {
+          validParticipants.push({
+            eventId,
+            name: row.nome || row.name,
+            email: email || null,
+            phone: phone || null,
+            status: 'pending',
+            origin: 'csv'
+          });
+        }
+      });
+
+      return {
+        validParticipants,
+        invalidRecords,
+        stats: {
+          total: data.length,
+          valid: validParticipants.length,
+          invalid: invalidRecords.length
+        }
+      };
+    }
+
+    throw new Error('Formato de arquivo não suportado');
+  };
+
+  // Setup multer specifically for participant files
+  const participantUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, uploadDir);
+      },
+      filename: (req, file, cb) => {
+        const timestamp = Date.now();
+        const extension = path.extname(file.originalname);
+        cb(null, `participants-${timestamp}${extension}`);
+      }
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /csv|xlsx/;
+      const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimetype = file.mimetype === 'text/csv' || 
+                      file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                      file.mimetype === 'application/vnd.ms-excel';
+      
+      if (mimetype && extname) {
+        return cb(null, true);
+      } else {
+        cb(new Error('Apenas arquivos CSV e XLSX são permitidos'));
+      }
+    }
+  });
+
+  // GET /api/events/:eventId/participants - List participants
+  app.get("/api/events/:eventId/participants", isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user!.id;
+
+      // Check access
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+
+      const participants = await dbStorage.getParticipantsByEventId(eventId);
+      const stats = await dbStorage.getParticipantStats(eventId);
+
+      res.json({ participants, stats });
+    } catch (error) {
+      console.error("Erro ao buscar participantes:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
+  // POST /api/events/:eventId/participants - Create single participant
+  app.post("/api/events/:eventId/participants", isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user!.id;
+
+      // Check access
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+
+      // Validate data
+      const participantData = insertParticipantSchema.parse({
+        ...req.body,
+        eventId,
+        origin: 'manual'
+      });
+
+      const participant = await dbStorage.createParticipant(participantData);
+
+      // Log activity
+      await dbStorage.createActivityLog({
+        eventId,
+        userId,
+        action: 'create_participant',
+        details: { participantName: participant.name }
+      });
+
+      res.status(201).json(participant);
+    } catch (error) {
+      console.error("Erro ao criar participante:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
+  // POST /api/events/:eventId/participants/upload - Upload and validate file
+  app.post("/api/events/:eventId/participants/upload", 
+    isAuthenticated, 
+    participantUpload.single('file'), 
+    async (req, res) => {
+      try {
+        const eventId = parseInt(req.params.eventId);
+        const userId = req.user!.id;
+
+        if (!req.file) {
+          return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
+        }
+
+        // Check access
+        const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+        if (!hasAccess) {
+          // Delete uploaded file
+          fs.unlinkSync(req.file.path);
+          return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+        }
+
+        // Process file
+        const result = await processParticipantFile(req.file.path, eventId);
+
+        // Delete temporary file
+        fs.unlinkSync(req.file.path);
+
+        // Check if there are too many participants
+        if (result.validParticipants.length > 500) {
+          return res.status(400).json({ 
+            message: "Limite de 500 participantes por importação excedido",
+            stats: result.stats
+          });
+        }
+
+        res.json({
+          message: "Arquivo processado com sucesso",
+          preview: result,
+          canImport: result.validParticipants.length > 0
+        });
+
+      } catch (error) {
+        console.error("Erro ao processar arquivo:", error);
+        
+        // Clean up file if it exists
+        if (req.file && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        
+        res.status(500).json({ message: "Erro ao processar arquivo" });
+      }
+    }
+  );
+
+  // POST /api/events/:eventId/participants/import - Import validated participants
+  app.post("/api/events/:eventId/participants/import", isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user!.id;
+      const { participants: participantsData } = req.body;
+
+      // Check access
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+
+      // Validate participants data
+      if (!Array.isArray(participantsData) || participantsData.length === 0) {
+        return res.status(400).json({ message: "Dados de participantes inválidos" });
+      }
+
+      // Check limit
+      if (participantsData.length > 500) {
+        return res.status(400).json({ message: "Limite de 500 participantes por importação excedido" });
+      }
+
+      // Validate each participant
+      const validatedParticipants = participantsData.map(p => 
+        insertParticipantSchema.parse({
+          ...p,
+          eventId,
+          origin: p.origin || 'csv'
+        })
+      );
+
+      // Create participants in batch
+      const createdParticipants = await dbStorage.createParticipants(validatedParticipants);
+
+      // Log activity
+      await dbStorage.createActivityLog({
+        eventId,
+        userId,
+        action: 'import_participants',
+        details: { count: createdParticipants.length, origin: 'csv' }
+      });
+
+      res.status(201).json({
+        message: `${createdParticipants.length} participantes importados com sucesso`,
+        participants: createdParticipants,
+        count: createdParticipants.length
+      });
+
+    } catch (error) {
+      console.error("Erro ao importar participantes:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
+  // PUT /api/events/:eventId/participants/:participantId - Update participant
+  app.put("/api/events/:eventId/participants/:participantId", isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const participantId = parseInt(req.params.participantId);
+      const userId = req.user!.id;
+
+      // Check access
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+
+      // Check if participant exists and belongs to event
+      const existingParticipant = await dbStorage.getParticipantById(participantId);
+      if (!existingParticipant || existingParticipant.eventId !== eventId) {
+        return res.status(404).json({ message: "Participante não encontrado" });
+      }
+
+      // Validate update data
+      const updateData = insertParticipantSchema.partial().parse(req.body);
+      
+      const updatedParticipant = await dbStorage.updateParticipant(participantId, updateData);
+
+      // Log activity
+      await dbStorage.createActivityLog({
+        eventId,
+        userId,
+        action: 'update_participant',
+        details: { participantName: updatedParticipant.name }
+      });
+
+      res.json(updatedParticipant);
+    } catch (error) {
+      console.error("Erro ao atualizar participante:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
+  // DELETE /api/events/:eventId/participants/:participantId - Delete participant
+  app.delete("/api/events/:eventId/participants/:participantId", isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const participantId = parseInt(req.params.participantId);
+      const userId = req.user!.id;
+
+      // Check access
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+
+      // Check if participant exists and belongs to event
+      const existingParticipant = await dbStorage.getParticipantById(participantId);
+      if (!existingParticipant || existingParticipant.eventId !== eventId) {
+        return res.status(404).json({ message: "Participante não encontrado" });
+      }
+
+      await dbStorage.deleteParticipant(participantId);
+
+      // Log activity
+      await dbStorage.createActivityLog({
+        eventId,
+        userId,
+        action: 'delete_participant',
+        details: { participantName: existingParticipant.name }
+      });
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao excluir participante:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
+  // GET /api/events/:eventId/participants/stats - Get participant statistics
+  app.get("/api/events/:eventId/participants/stats", isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user!.id;
+
+      // Check access
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+
+      const stats = await dbStorage.getParticipantStats(eventId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
