@@ -2673,7 +2673,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/events/:eventId/participants/upload - Upload and validate file
   app.post("/api/events/:eventId/participants/upload", 
     isAuthenticated, 
-    participantUpload.single('file'), 
+    (req, res, next) => {
+      console.log("=== Iniciando middleware de upload ===");
+      participantUpload.single('file')(req, res, (err) => {
+        if (err) {
+          console.error("Erro no multer:", err);
+          return res.status(400).json({ message: err.message });
+        }
+        console.log("Multer executado com sucesso");
+        next();
+      });
+    },
     async (req, res) => {
       try {
         console.log("=== Upload de participantes iniciado ===");
