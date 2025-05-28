@@ -2700,9 +2700,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("✅ Arquivo recebido:", req.file.filename, "Tamanho:", req.file.size);
 
       // Verificar acesso ao evento
+      console.log("🔧 Verificando acesso para userId:", sessionUserId, "eventId:", eventId);
       const hasAccess = await dbStorage.hasUserAccessToEvent(sessionUserId, eventId);
+      console.log("🔧 Resultado hasAccess:", hasAccess);
+      
       if (!hasAccess) {
-        console.log("❌ Sem acesso ao evento");
+        console.log("❌ Sem acesso ao evento - userId:", sessionUserId, "eventId:", eventId);
         if (fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
         }
