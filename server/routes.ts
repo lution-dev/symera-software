@@ -2925,13 +2925,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST /raw-upload/:eventId - ENDPOINT QUE NÃO SERÁ INTERCEPTADO PELO VITE
-  app.post("/raw-upload/:eventId", participantUpload.single('file'), async (req, res) => {
-    console.log("🎯 UPLOAD FINAL FUNCIONANDO!");
-    
-    // Force JSON response
+  // BYPASS VITE COMPLETAMENTE - USAR MIDDLEWARE ANTES DE QUALQUER COISA
+  app.use("/upload-bypass", (req, res, next) => {
+    console.log("🔥 BYPASS VITE ATIVADO!");
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+  });
+
+  app.post("/upload-bypass/:eventId", participantUpload.single('file'), async (req, res) => {
+    console.log("🎯 UPLOAD BYPASS FUNCIONANDO!");
+    console.log("Headers:", req.headers);
+    console.log("Method:", req.method);
+    console.log("URL:", req.url);
     
     try {
       const eventId = parseInt(req.params.eventId);

@@ -154,8 +154,8 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
         console.log('Teste endpoint falhou:', err);
       }
       
-      // Upload usando endpoint fora do /api/ que não será interceptado
-      const response = await fetch(`/raw-upload/${eventId}`, {
+      // Upload usando endpoint bypass que evita interceptação do Vite
+      const response = await fetch(`/upload-bypass/${eventId}`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
