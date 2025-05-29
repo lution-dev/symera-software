@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const [sortBy, setSortBy] = useState<string>("dueDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  
+  // Team member selection modal state
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
   
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
@@ -1118,6 +1123,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             <div className="mb-4">
               <Input 
                 placeholder="Buscar usuários por nome ou email..."
+                value={memberSearchQuery}
+                onChange={(e) => setMemberSearchQuery(e.target.value)}
                 className="w-full"
               />
             </div>
@@ -1126,38 +1133,54 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             <div className="space-y-2 max-h-60 overflow-y-auto">
               <div className="text-sm text-muted-foreground mb-2">Usuários disponíveis:</div>
               
-              {/* Exemplo de usuários - esto será substituído pela busca real */}
-              {[
-                { id: "user1", name: "João Silva", email: "joao@exemplo.com" },
-                { id: "user2", name: "Maria Santos", email: "maria@exemplo.com" },
-                { id: "user3", name: "Carlos Oliveira", email: "carlos@exemplo.com" }
-              ].map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                  <div className="flex items-center space-x-3">
+              {usersLoading ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : filteredUsers && filteredUsers.length > 0 ? (
+                filteredUsers.map((user: any) => (
+                  <div
+                    key={user.id}
+                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedMembers.includes(user.id) 
+                        ? 'bg-primary/10 border border-primary/20' 
+                        : 'bg-muted/50 hover:bg-muted'
+                    }`}
+                    onClick={() => {
+                      setSelectedMembers(prev => 
+                        prev.includes(user.id)
+                          ? prev.filter(id => id !== user.id)
+                          : [...prev, user.id]
+                      );
+                    }}
+                  >
+                    <Checkbox
+                      checked={selectedMembers.includes(user.id)}
+                      className="pointer-events-none"
+                    />
+                    
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                      <AvatarImage src={user.profileImageUrl} />
+                      <AvatarFallback>
+                        {getInitials(user.firstName, user.lastName)}
+                      </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium text-sm">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">
+                        {user.firstName} {user.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      addTeamMemberMutation.mutate({
-                        userId: user.id,
-                        role: "team_member"
-                      });
-                    }}
-                    disabled={addTeamMemberMutation.isPending}
-                  >
-                    <i className="fas fa-plus mr-1"></i>
-                    {addTeamMemberMutation.isPending ? "Adicionando..." : "Adicionar"}
-                  </Button>
+                ))
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  <p className="text-sm">Nenhum usuário disponível para adicionar</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
           
