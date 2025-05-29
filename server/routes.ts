@@ -3377,5 +3377,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Middleware de proteção para rotas frontend - aplicado antes do Vite
+  app.use((req, res, next) => {
+    const url = req.originalUrl;
+    
+    // Permitir todas as rotas da API
+    if (url.startsWith('/api/')) {
+      return next();
+    }
+    
+    // Permitir rota pública de feedback
+    if (url.startsWith('/feedback/')) {
+      return next();
+    }
+    
+    // Permitir rota de login
+    if (url === '/login' || url.startsWith('/auth')) {
+      return next();
+    }
+    
+    // Permitir assets estáticos
+    if (url.startsWith('/uploads/') || url.startsWith('/assets/') || url.includes('.')) {
+      return next();
+    }
+    
+    // Para todas as outras rotas, verificar autenticação
+    if (!req.isAuthenticated()) {
+      console.log(`Usuário não autenticado tentando acessar: ${url} - redirecionando para /login`);
+      return res.redirect('/login');
+    }
+    
+    // Se autenticado, continuar
+    next();
+  });
+
   return app;
 }
