@@ -125,6 +125,26 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     queryKey: [`/api/events/${eventId}/activities`],
     enabled: !!eventId && !!event,
   });
+
+  // Fetch all users available for adding to team
+  const { data: allUsers, isLoading: usersLoading } = useQuery({
+    queryKey: ["/api/users"],
+    enabled: isAddMemberModalOpen,
+    retry: 1,
+    staleTime: 0,
+  });
+
+  // Filter users that are not already team members
+  const availableUsers = allUsers?.filter((user: any) => 
+    !team?.some((member: any) => member.userId === user.id)
+  ) || [];
+
+  // Filter users based on search query
+  const filteredUsers = availableUsers.filter((user: any) =>
+    user.firstName?.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+    user.lastName?.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+    user.email?.toLowerCase().includes(memberSearchQuery.toLowerCase())
+  );
   
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
@@ -148,12 +168,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     },
   });
 
-  // Mutation para adicionar membro à equipe
-  const addTeamMemberMutation = useMutation({
-    mutationFn: async (userData: { userId: string; role: string }) => {
+  // Mutation para adicionar múltiplos membros à equipe
+  const addTeamMembersMutation = useMutation({
+    mutationFn: async (userIds: string[]) => {
       return apiRequest(`/api/events/${eventId}/team`, {
         method: "POST",
-        body: JSON.stringify({ userIds: [userData.userId] }),
+        body: JSON.stringify({ userIds }),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -161,11 +181,13 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     },
     onSuccess: (data, variables) => {
       toast({
-        title: "Membro adicionado",
-        description: `Usuário foi adicionado à equipe do evento.`,
+        title: "Membros adicionados",
+        description: `${variables.length} membro(s) adicionado(s) à equipe do evento.`,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
       setIsAddMemberModalOpen(false);
+      setSelectedMembers([]);
+      setMemberSearchQuery("");
     },
     onError: () => {
       toast({
@@ -1185,8 +1207,37 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddMemberModalOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAddMemberModalOpen(false);
+                setSelectedMembers([]);
+                setMemberSearchQuery("");
+              }}
+            >
               Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedMembers.length === 0) {
+                  toast({
+                    title: "Nenhum membro selecionado",
+                    description: "Selecione pelo menos um membro para adicionar.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                addTeamMembersMutation.mutate(selectedMembers);
+              }}
+              disabled={selectedMembers.length === 0 || addTeamMembersMutation.isPending}
+            >
+              {addTeamMembersMutation.isPending 
+                ? "Adicionando..." 
+                : selectedMembers.length > 0 
+                  ? `Adicionar Membros (${selectedMembers.length})` 
+                  : "Adicionar Membros"
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
