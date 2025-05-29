@@ -11,11 +11,14 @@ export function useAuth() {
     window.location.href = "/api/logout";
   };
 
+  // Se há erro (como 401), o usuário não está autenticado
+  const isAuthenticated = !!user && !error;
+
   return {
     user,
     isLoading,
     error,
-    isAuthenticated: !!user,
+    isAuthenticated,
     refetch,
     logout
   };
