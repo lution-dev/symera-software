@@ -5,7 +5,7 @@ import path from "path";
 import multer from "multer";
 import fs from "fs";
 import { storage as dbStorage } from "./storage";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { events, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -3339,8 +3339,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
       
-      // Buscar feedbacks do evento
-      const feedbacks = await db.execute(`
+      // Buscar feedbacks do evento usando o pool diretamente
+      const feedbackResult = await pool.query(`
         SELECT id, name, rating, comment, anonymous, created_at 
         FROM event_feedbacks 
         WHERE event_id = $1 
@@ -3348,7 +3348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [eventId]);
       
       // Calcular estatísticas
-      const stats = await db.execute(`
+      const statsResult = await pool.query(`
         SELECT 
           COUNT(*) as total_feedbacks,
           AVG(rating::numeric) as average_rating,
@@ -3359,8 +3359,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [eventId]);
       
       res.json({
-        feedbacks: feedbacks.rows,
-        stats: stats.rows[0]
+        feedbacks: feedbackResult.rows,
+        stats: statsResult.rows[0]
       });
       
     } catch (error) {
