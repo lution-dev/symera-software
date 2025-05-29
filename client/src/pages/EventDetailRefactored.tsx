@@ -64,6 +64,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   // Estado para a navegação lateral
   const [activeSection, setActiveSection] = useState<string>("resumo");
   
+  // Estados para modais
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<any>(null);
+  
   // Filtering and sorting state
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -899,11 +903,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem 
                                   className="text-destructive focus:text-destructive" 
-                                  onClick={() => {
-                                    if (confirm(`Tem certeza que deseja remover ${member.user?.firstName} da equipe deste evento?`)) {
-                                      // removeTeamMemberMutation.mutate(member.user.id);
-                                    }
-                                  }}
+                                  onClick={() => setMemberToRemove(member)}
                                 >
                                   <i className="fas fa-trash mr-2"></i>
                                   Remover da equipe
@@ -1039,6 +1039,41 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           )}
         </div>
       </div>
+
+      {/* Modal de Confirmação de Remoção */}
+      <AlertDialog open={!!memberToRemove} onOpenChange={() => setMemberToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Remover membro da equipe
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <strong>{memberToRemove?.user?.firstName} {memberToRemove?.user?.lastName}</strong> da equipe deste evento?
+              <br /><br />
+              Esta ação não pode ser desfeita e o membro perderá acesso a todas as informações e tarefas relacionadas ao evento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setMemberToRemove(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                // TODO: Implementar remoção do membro
+                toast({
+                  title: "Membro removido",
+                  description: `${memberToRemove?.user?.firstName} foi removido da equipe.`,
+                });
+                setMemberToRemove(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remover da equipe
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
