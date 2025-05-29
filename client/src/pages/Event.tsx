@@ -1414,16 +1414,16 @@ const getFilteredAndSortedTasks = () => {
                       <div className="flex justify-center py-4">
                         <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
                       </div>
-                    ) : (
-                      allUsers
-                        ?.filter((user: any) => {
-                          const isAlreadyMember = team?.some((member: any) => member.userId === user.id);
-                          const matchesSearch = memberSearchQuery === "" || 
-                            `${user.firstName} ${user.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
-                            user.email.toLowerCase().includes(memberSearchQuery.toLowerCase());
-                          return !isAlreadyMember && matchesSearch;
-                        })
-                        ?.map((user: any) => (
+                    ) : allUsers && Array.isArray(allUsers) ? (
+                        allUsers
+                          .filter((user: any) => {
+                            const isAlreadyMember = team && Array.isArray(team) ? team.some((member: any) => member.userId === user.id) : false;
+                            const matchesSearch = memberSearchQuery === "" || 
+                              `${user.firstName} ${user.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+                              user.email.toLowerCase().includes(memberSearchQuery.toLowerCase());
+                            return !isAlreadyMember && matchesSearch;
+                          })
+                          .map((user: any) => (
                           <div
                             key={user.id}
                             className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
@@ -1441,7 +1441,6 @@ const getFilteredAndSortedTasks = () => {
                           >
                             <Checkbox
                               checked={selectedMembers.includes(user.id)}
-                              readOnly
                               className="pointer-events-none"
                             />
                             
@@ -1462,21 +1461,11 @@ const getFilteredAndSortedTasks = () => {
                             </div>
                           </div>
                         ))
-                    )}
-                    
-                    {/* Estado vazio */}
-                    {!usersLoading && allUsers?.filter((user: any) => {
-                      const isAlreadyMember = team?.some((member: any) => member.userId === user.id);
-                      const matchesSearch = memberSearchQuery === "" || 
-                        `${user.firstName} ${user.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
-                        user.email.toLowerCase().includes(memberSearchQuery.toLowerCase());
-                      return !isAlreadyMember && matchesSearch;
-                    }).length === 0 && (
-                      <div className="text-center py-4 text-muted-foreground">
-                        <p className="text-sm">
-                          {memberSearchQuery ? "Nenhum membro encontrado" : "Todos os membros já estão na equipe"}
-                        </p>
-                      </div>
+                      ) : (
+                        <div className="text-center py-4 text-muted-foreground">
+                          <p className="text-sm">Nenhum usuário disponível</p>
+                        </div>
+                      )
                     )}
                   </div>
 
