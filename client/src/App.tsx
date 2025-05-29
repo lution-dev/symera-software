@@ -107,14 +107,23 @@ function App() {
     window.location.href = '/login';
     return null;
   }
+
+  // Verificar se é uma rota pública (feedback)
+  const isPublicRoute = window.location.pathname.startsWith('/feedback/');
   
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Layout>
+        {isPublicRoute ? (
+          // Rotas públicas sem layout (sidebar/menu)
           <Router />
-        </Layout>
+        ) : (
+          // Rotas autenticadas com layout completo
+          <Layout>
+            <Router />
+          </Layout>
+        )}
       </TooltipProvider>
     </QueryClientProvider>
   );
