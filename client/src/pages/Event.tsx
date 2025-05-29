@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,6 +84,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
   
+  // Hook para navegação
+  const [, navigate] = useLocation();
+  
   console.log("[Debug] ID do evento recebido como prop:", id);
   console.log("[Debug] ID do evento extraído da URL:", eventId);
   
@@ -133,6 +137,15 @@ const Event: React.FC<EventProps> = ({ id }) => {
     queryKey: ["/api/users"],
     enabled: !!eventId && isAddMemberModalOpen,
   });
+
+  // Filtrar usuários disponíveis (que não estão na equipe já)
+  const filteredUsers = allUsers?.filter((user: any) => {
+    const isNotInTeam = !team?.some((member: any) => member.user.id === user.id);
+    const matchesSearch = memberSearchQuery === "" || 
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(memberSearchQuery.toLowerCase());
+    return isNotInTeam && matchesSearch;
+  }) || [];
   
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
