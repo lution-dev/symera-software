@@ -183,6 +183,58 @@ const Event: React.FC<EventProps> = ({ id }) => {
     },
   });
   
+  // Mutations para gerenciamento da equipe
+  const addTeamMembersMutation = useMutation({
+    mutationFn: async (membersToAdd: any[]) => {
+      const promises = membersToAdd.map(member => 
+        apiRequest(`/api/events/${eventId}/team`, {
+          method: "POST",
+          body: JSON.stringify(member)
+        })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Membros adicionados",
+        description: `${selectedMembers.length} membro(s) adicionado(s) à equipe com sucesso.`,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+      setIsAddMemberModalOpen(false);
+      setSelectedMembers([]);
+      setMemberSearchQuery("");
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar os membros à equipe.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeTeamMemberMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return apiRequest(`/api/events/${eventId}/team/${userId}`, {
+        method: "DELETE"
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Membro removido",
+        description: "Membro removido da equipe com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o membro da equipe.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteEventMutation = useMutation({
     mutationFn: async () => {
       return apiRequest(`/api/events/${eventId}`, {
