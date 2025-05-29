@@ -67,7 +67,7 @@ function Router() {
       <Route path="/demo-profile" component={DemoProfile} />
       <Route path="/demo" component={DemoApp} />
       <Route path="/auth" component={Auth} />
-      <Route path="/feedback/:eventId" component={(params: any) => <PublicFeedback eventId={params.eventId} />} />
+      <Route path="/feedback/:eventId" component={PublicFeedback} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
       <Route path="/events/new" component={() => <ProtectedRoute component={CreateEvent} />} />
