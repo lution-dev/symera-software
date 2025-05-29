@@ -1090,7 +1090,17 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      toast({
+                        title: "Membro adicionado",
+                        description: `${user.name} foi adicionado à equipe do evento.`,
+                      });
+                      setIsAddMemberModalOpen(false);
+                    }}
+                  >
                     <i className="fas fa-plus mr-1"></i>
                     Adicionar
                   </Button>
