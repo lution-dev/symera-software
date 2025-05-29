@@ -625,14 +625,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async removeTeamMember(eventId: number, userId: string): Promise<void> {
-    await db
-      .delete(eventTeamMembers)
-      .where(
-        and(
-          eq(eventTeamMembers.eventId, eventId),
-          eq(eventTeamMembers.userId, userId)
-        )
-      );
+    return executeWithRetry(async () => {
+      const result = await db
+        .delete(eventTeamMembers)
+        .where(
+          and(
+            eq(eventTeamMembers.eventId, eventId),
+            eq(eventTeamMembers.userId, userId)
+          )
+        );
+      
+      console.log(`Removendo membro da equipe - EventId: ${eventId}, UserId: ${userId}, Linhas afetadas:`, result);
+      
+      // Invalidar cache da equipe
+      teamCache.invalidate(`team:event:${eventId}`);
+    });
   }
 
   async isUserTeamMember(userId: string, eventId: number): Promise<boolean> {
