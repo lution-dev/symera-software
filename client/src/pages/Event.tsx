@@ -285,58 +285,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
     }
   };
 
-  // Mutation para adicionar múltiplos membros à equipe
-  const addTeamMembersMutation = useMutation({
-    mutationFn: async (members: { userId: string; role: string }[]) => {
-      const promises = members.map(member => 
-        apiRequest(`/api/events/${eventId}/team`, {
-          method: "POST",
-          body: JSON.stringify(member)
-        })
-      );
-      return Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
-      setIsAddMemberModalOpen(false);
-      setSelectedMembers([]);
-      setMemberSearchQuery("");
-      toast({
-        title: "Membros adicionados",
-        description: "Os membros foram adicionados à equipe com sucesso.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível adicionar os membros à equipe.",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Mutation para remover membro da equipe
-  const removeTeamMemberMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      return apiRequest(`/api/events/${eventId}/team/${userId}`, {
-        method: "DELETE"
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
-      toast({
-        title: "Membro removido",
-        description: "O membro foi removido da equipe com sucesso.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o membro da equipe.",
-        variant: "destructive",
-      });
-    },
-  });
   
   if (isLoading) {
     return (
@@ -1398,16 +1347,16 @@ const getFilteredAndSortedTasks = () => {
               </Button>
             </div>
             
-            {/* Modal para adicionar membros */}
+            {/* Modal para selecionar membros da equipe */}
             <Dialog open={isAddMemberModalOpen} onOpenChange={setIsAddMemberModalOpen}>
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    Adicionar Membros à Equipe
+                    Selecionar membros da equipe
                   </DialogTitle>
                   <DialogDescription>
-                    Selecione membros da equipe geral para adicionar ao evento
+                    Selecione membros da equipe geral para adicionar a este evento
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -1429,58 +1378,49 @@ const getFilteredAndSortedTasks = () => {
                       <div className="flex justify-center py-4">
                         <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
                       </div>
-                    ) : allUsers && Array.isArray(allUsers) ? (
-                        allUsers
-                          .filter((user: any) => {
-                            const isAlreadyMember = team && Array.isArray(team) ? team.some((member: any) => member.userId === user.id) : false;
-                            const matchesSearch = memberSearchQuery === "" || 
-                              `${user.firstName} ${user.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
-                              user.email.toLowerCase().includes(memberSearchQuery.toLowerCase());
-                            return !isAlreadyMember && matchesSearch;
-                          })
-                          .map((user: any) => (
-                          <div
-                            key={user.id}
-                            className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                              selectedMembers.includes(user.id) 
-                                ? 'bg-primary/10 border border-primary/20' 
-                                : 'bg-muted/50 hover:bg-muted'
-                            }`}
-                            onClick={() => {
-                              setSelectedMembers(prev => 
-                                prev.includes(user.id)
-                                  ? prev.filter(id => id !== user.id)
-                                  : [...prev, user.id]
-                              );
-                            }}
-                          >
-                            <Checkbox
-                              checked={selectedMembers.includes(user.id)}
-                              className="pointer-events-none"
-                            />
-                            
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={user.profileImageUrl} />
-                              <AvatarFallback>
-                                {getInitials(user.firstName, user.lastName)}
-                              </AvatarFallback>
-                            </Avatar>
-                            
-                            <div className="flex-1">
-                              <p className="font-medium text-sm">
-                                {user.firstName} {user.lastName}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {user.email}
-                              </p>
-                            </div>
+                    ) : filteredUsers && filteredUsers.length > 0 ? (
+                      filteredUsers.map((user: any) => (
+                        <div
+                          key={user.id}
+                          className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                            selectedMembers.includes(user.id) 
+                              ? 'bg-primary/10 border border-primary/20' 
+                              : 'bg-muted/50 hover:bg-muted'
+                          }`}
+                          onClick={() => {
+                            setSelectedMembers(prev => 
+                              prev.includes(user.id)
+                                ? prev.filter(id => id !== user.id)
+                                : [...prev, user.id]
+                            );
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedMembers.includes(user.id)}
+                            className="pointer-events-none"
+                          />
+                          
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={user.profileImageUrl} />
+                            <AvatarFallback>
+                              {getInitials(user.firstName, user.lastName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">
+                              {user.firstName} {user.lastName}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {user.email}
+                            </p>
                           </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-4 text-muted-foreground">
-                          <p className="text-sm">Nenhum usuário disponível</p>
                         </div>
-                      )
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-muted-foreground">
+                        <p className="text-sm">Nenhum membro disponível para adicionar</p>
+                      </div>
                     )}
                   </div>
 
@@ -1496,7 +1436,7 @@ const getFilteredAndSortedTasks = () => {
                       }}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
-                      Adicionar novo membro à equipe geral
+                      + Adicionar novo membro à equipe geral
                     </Button>
                   </div>
                 </div>
@@ -1561,20 +1501,27 @@ const getFilteredAndSortedTasks = () => {
                         </Badge>
                       </div>
 
-                      {member.role !== 'organizer' && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 rounded-full hover:bg-red-100 hover:text-red-600 text-gray-400 hover:text-red-600 transition-colors"
-                          onClick={() => {
-                            if (confirm(`Tem certeza que deseja remover ${member.user.firstName} da equipe?`)) {
-                              removeTeamMemberMutation.mutate(member.user.id);
-                            }
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
+                      {/* Menu de três pontos apenas com opção remover */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <i className="fas fa-ellipsis-v text-gray-400"></i>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive" 
+                            onClick={() => {
+                              if (confirm(`Tem certeza que deseja remover ${member.user.firstName} da equipe deste evento?`)) {
+                                removeTeamMemberMutation.mutate(member.user.id);
+                              }
+                            }}
+                          >
+                            <i className="fas fa-trash mr-2"></i>
+                            Remover da equipe
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     
                     {member.user.email && (
