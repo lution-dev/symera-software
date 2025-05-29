@@ -3147,7 +3147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/events/:eventId/team/:memberId", isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
-      const memberId = req.params.memberId;
+      const teamMemberId = parseInt(req.params.memberId);
       const userId = req.user!.id;
 
       // Check access
@@ -3156,21 +3156,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
 
+      // Get team member to find the userId
+      const teamMembers = await dbStorage.getTeamMembersByEventId(eventId);
+      const teamMember = teamMembers.find(tm => tm.id === teamMemberId);
+      
+      if (!teamMember) {
+        return res.status(404).json({ message: "Membro da equipe não encontrado" });
+      }
+
       // Cannot remove event owner
       const event = await dbStorage.getEventById(eventId);
-      if (event?.ownerId === memberId) {
+      if (event?.ownerId === teamMember.userId) {
         return res.status(400).json({ message: "Não é possível remover o proprietário do evento" });
       }
 
-      // Remove team member
-      await dbStorage.removeTeamMember(eventId, memberId);
+      // Remove team member using userId
+      await dbStorage.removeTeamMember(eventId, teamMember.userId);
 
       // Log activity
       await dbStorage.createActivityLog({
         eventId,
         userId,
         action: 'team_member_removed',
-        details: { memberId }
+        details: { removedUserId: teamMember.userId }
       });
 
       res.status(204).send();
