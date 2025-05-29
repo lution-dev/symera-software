@@ -1671,7 +1671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           console.log(`Tentando adicionar membro ${memberId} ao evento ${eventId}`);
           
-          // Add team member
+          // Add team member directly without checking if exists
           const teamMember = await dbStorage.addTeamMember({
             eventId,
             userId: memberId,
@@ -1683,17 +1683,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
           
-          addedMembers.push(teamMember);
-          
-          // Log activity
-          await dbStorage.createActivityLog({
-            eventId,
-            userId,
-            action: "added_team_member",
-            details: { memberId }
-          });
-          
-          console.log(`Membro ${memberId} adicionado com sucesso ao evento ${eventId}`);
+          if (teamMember) {
+            addedMembers.push(teamMember);
+            console.log(`Membro ${memberId} adicionado com sucesso ao evento ${eventId}`);
+          }
           
         } catch (memberError) {
           console.error(`Error adding member ${memberId}:`, memberError);
