@@ -3208,10 +3208,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Middleware para garantir que rotas de feedback sejam verdadeiramente públicas
+  const ensurePublicRoute = (req: any, res: any, next: any) => {
+    // Limpar qualquer sessão ou dados de usuário para rotas públicas
+    req.user = null;
+    req.session = null;
+    next();
+  };
+
   // === ROTAS PÚBLICAS DE FEEDBACK ===
   
   // Rota para buscar dados públicos do evento para a página de feedback
-  app.get('/api/feedback/:eventId/event', async (req, res) => {
+  app.get('/api/feedback/:eventId/event', ensurePublicRoute, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId, 10);
       
@@ -3248,7 +3256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Rota para enviar feedback público (sem autenticação)
-  app.post('/api/feedback/:eventId', async (req, res) => {
+  app.post('/api/feedback/:eventId', ensurePublicRoute, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId, 10);
       
