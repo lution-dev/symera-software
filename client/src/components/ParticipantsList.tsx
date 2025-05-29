@@ -78,11 +78,18 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
   // Query para buscar participantes
   const { data: participantsData, isLoading } = useQuery({
     queryKey: ['/api/events', eventId, 'participants'],
-    queryFn: () => apiRequest(`/api/events/${eventId}/participants`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${eventId}/participants`);
+      console.log("🔍 Dados recebidos do servidor:", response);
+      return response;
+    },
   });
 
   const participants = participantsData?.participants || [];
   const stats = participantsData?.stats || { total: 0, confirmed: 0, pending: 0 };
+  
+  console.log("🔍 Participantes processados:", participants);
+  console.log("🔍 Stats processadas:", stats);
 
   // Mutations
   const createMutation = useMutation({
