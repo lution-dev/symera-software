@@ -142,6 +142,58 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       });
     },
   });
+
+  // Mutation para adicionar membro à equipe
+  const addTeamMemberMutation = useMutation({
+    mutationFn: async (userData: { userId: string; role: string }) => {
+      return apiRequest(`/api/events/${eventId}/team`, {
+        method: "POST",
+        body: JSON.stringify({ userIds: [userData.userId] }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Membro adicionado",
+        description: `Usuário foi adicionado à equipe do evento.`,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+      setIsAddMemberModalOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar o membro à equipe.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para remover membro da equipe
+  const removeTeamMemberMutation = useMutation({
+    mutationFn: async (memberId: number) => {
+      return apiRequest(`/api/events/${eventId}/team/${memberId}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Membro removido",
+        description: `O membro foi removido da equipe do evento.`,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+      setMemberToRemove(null);
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o membro da equipe.",
+        variant: "destructive",
+      });
+    },
+  });
   
   // Mutation para atualizar o status do evento
   const updateEventStatusMutation = useMutation({
@@ -1094,15 +1146,15 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     size="sm" 
                     variant="outline"
                     onClick={() => {
-                      toast({
-                        title: "Membro adicionado",
-                        description: `${user.name} foi adicionado à equipe do evento.`,
+                      addTeamMemberMutation.mutate({
+                        userId: user.id,
+                        role: "team_member"
                       });
-                      setIsAddMemberModalOpen(false);
                     }}
+                    disabled={addTeamMemberMutation.isPending}
                   >
                     <i className="fas fa-plus mr-1"></i>
-                    Adicionar
+                    {addTeamMemberMutation.isPending ? "Adicionando..." : "Adicionar"}
                   </Button>
                 </div>
               ))}
@@ -1137,16 +1189,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                // TODO: Implementar remoção do membro
-                toast({
-                  title: "Membro removido",
-                  description: `${memberToRemove?.user?.firstName} foi removido da equipe.`,
-                });
-                setMemberToRemove(null);
+                if (memberToRemove) {
+                  removeTeamMemberMutation.mutate(memberToRemove.id);
+                }
               }}
+              disabled={removeTeamMemberMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Remover da equipe
+              {removeTeamMemberMutation.isPending ? "Removendo..." : "Remover da equipe"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
