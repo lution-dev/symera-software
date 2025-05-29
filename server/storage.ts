@@ -638,7 +638,7 @@ export class DatabaseStorage implements IStorage {
       console.log(`Removendo membro da equipe - EventId: ${eventId}, UserId: ${userId}, Linhas afetadas:`, result);
       
       // Invalidar cache da equipe
-      teamCache.invalidate(`team:event:${eventId}`);
+      userCache.invalidate(`team:event:${eventId}`);
     });
   }
 

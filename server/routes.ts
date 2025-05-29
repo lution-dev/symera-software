@@ -1730,8 +1730,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
-      // Remove team member
-      await dbStorage.removeTeamMember(eventId, userIdToRemove);
+      // First, get the team member to find the actual userId
+      const teamMembers = await dbStorage.getTeamMembersByEventId(eventId);
+      const memberToRemove = teamMembers.find(member => member.id.toString() === userIdToRemove);
+      
+      if (!memberToRemove) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+      
+      // Remove team member using the actual userId
+      await dbStorage.removeTeamMember(eventId, memberToRemove.userId);
       
       // Log activity
       await dbStorage.createActivityLog({
