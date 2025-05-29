@@ -73,6 +73,7 @@ function Router() {
       <Route path="/events/:id/edit" component={(params: any) => <ProtectedRoute component={EditEvent} id={params.id} />} />
       <Route path="/events/:id/checklist" component={(params: any) => <ProtectedRoute component={Checklist} id={params.id} />} />
       <Route path="/events/:id/team" component={(params: any) => <ProtectedRoute component={EventTeam} />} />
+      <Route path="/events/:id/team/add" component={(params: any) => <ProtectedRoute component={EventTeam} />} />
       <Route path="/events/:id/tasks/new" component={(params: any) => <ProtectedRoute component={TaskNew} />} />
       <Route path="/events/:id/tasks/:taskId/edit" component={(params: any) => <ProtectedRoute component={TaskEdit} eventId={params.id} taskId={params.taskId} />} />
       <Route path="/schedule" component={() => <ProtectedRoute component={Schedule} />} />

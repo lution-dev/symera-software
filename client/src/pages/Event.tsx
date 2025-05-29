@@ -1559,18 +1559,20 @@ const getFilteredAndSortedTasks = () => {
                         </Badge>
                       </div>
 
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive opacity-60 group-hover:opacity-100 transition-opacity"
-                        onClick={() => {
-                          if (confirm(`Tem certeza que deseja remover ${member.user.firstName} da equipe?`)) {
-                            removeTeamMemberMutation.mutate(member.user.id);
-                          }
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      {member.role !== 'organizer' && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full hover:bg-red-100 hover:text-red-600 text-gray-400 hover:text-red-600 transition-colors"
+                          onClick={() => {
+                            if (confirm(`Tem certeza que deseja remover ${member.user.firstName} da equipe?`)) {
+                              removeTeamMemberMutation.mutate(member.user.id);
+                            }
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                     
                     {member.user.email && (
