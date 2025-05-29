@@ -80,8 +80,9 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
     queryKey: ['/api/events', eventId, 'participants'],
     queryFn: async () => {
       const response = await apiRequest(`/api/events/${eventId}/participants`);
-      console.log("🔍 Dados recebidos do servidor:", response);
-      return response;
+      const data = await response.json();
+      console.log("🔍 Dados recebidos do servidor:", data);
+      return data;
     },
   });
 
