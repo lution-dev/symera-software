@@ -342,7 +342,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       className="w-full justify-start text-muted-foreground"
                       onClick={() => {
                         setIsAddMemberModalOpen(false);
-                        navigate("/team");
+                        // Navigate to team page to add new member
                       }}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
