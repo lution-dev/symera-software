@@ -135,7 +135,9 @@ const Event: React.FC<EventProps> = ({ id }) => {
   // Buscar todos os usuários disponíveis para adicionar à equipe
   const { data: allUsers, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/users"],
-    enabled: !!eventId && isAddMemberModalOpen,
+    enabled: isAddMemberModalOpen,
+    retry: 1,
+    staleTime: 0,
   });
 
   // Filtrar usuários disponíveis (que não estão na equipe já)
