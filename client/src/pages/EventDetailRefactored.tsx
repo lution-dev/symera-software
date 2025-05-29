@@ -49,6 +49,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { AlertTriangle } from "lucide-react";
 
 interface EventProps {
@@ -1039,6 +1047,65 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           )}
         </div>
       </div>
+
+      {/* Modal de Adicionar Membro */}
+      <Dialog open={isAddMemberModalOpen} onOpenChange={setIsAddMemberModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <i className="fas fa-user-plus text-primary"></i>
+              Adicionar Membro à Equipe
+            </DialogTitle>
+            <DialogDescription>
+              Selecione usuários para adicionar à equipe deste evento. Eles poderão colaborar e acessar informações do evento.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {/* Campo de busca */}
+            <div className="mb-4">
+              <Input 
+                placeholder="Buscar usuários por nome ou email..."
+                className="w-full"
+              />
+            </div>
+            
+            {/* Lista de usuários disponíveis */}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              <div className="text-sm text-muted-foreground mb-2">Usuários disponíveis:</div>
+              
+              {/* Exemplo de usuários - esto será substituído pela busca real */}
+              {[
+                { id: "user1", name: "João Silva", email: "joao@exemplo.com" },
+                { id: "user2", name: "Maria Santos", email: "maria@exemplo.com" },
+                { id: "user3", name: "Carlos Oliveira", email: "carlos@exemplo.com" }
+              ].map((user) => (
+                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-sm">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline">
+                    <i className="fas fa-plus mr-1"></i>
+                    Adicionar
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddMemberModalOpen(false)}>
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de Confirmação de Remoção */}
       <AlertDialog open={!!memberToRemove} onOpenChange={() => setMemberToRemove(null)}>
