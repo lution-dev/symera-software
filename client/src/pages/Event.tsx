@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +45,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { AlertTriangle, UserPlus, X, Users, Search } from "lucide-react";
 
 interface EventProps {
   id?: string;
@@ -64,6 +74,11 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const [sortBy, setSortBy] = useState<string>("dueDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Team member selection modal state
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
   
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
@@ -111,6 +126,12 @@ const Event: React.FC<EventProps> = ({ id }) => {
   const { data: activities, isLoading: activitiesLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/activities`],
     enabled: !!eventId && !!event,
+  });
+
+  // Buscar todos os usuários disponíveis para adicionar à equipe
+  const { data: allUsers, isLoading: usersLoading } = useQuery({
+    queryKey: ["/api/users"],
+    enabled: !!eventId && isAddMemberModalOpen,
   });
   
   const regenerateChecklistMutation = useMutation({
@@ -196,6 +217,59 @@ const Event: React.FC<EventProps> = ({ id }) => {
       regenerateChecklistMutation.mutate();
     }
   };
+
+  // Mutation para adicionar múltiplos membros à equipe
+  const addTeamMembersMutation = useMutation({
+    mutationFn: async (members: { userId: string; role: string }[]) => {
+      const promises = members.map(member => 
+        apiRequest(`/api/events/${eventId}/team`, {
+          method: "POST",
+          body: JSON.stringify(member)
+        })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+      setIsAddMemberModalOpen(false);
+      setSelectedMembers([]);
+      setMemberSearchQuery("");
+      toast({
+        title: "Membros adicionados",
+        description: "Os membros foram adicionados à equipe com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar os membros à equipe.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para remover membro da equipe
+  const removeTeamMemberMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return apiRequest(`/api/events/${eventId}/team/${userId}`, {
+        method: "DELETE"
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+      toast({
+        title: "Membro removido",
+        description: "O membro foi removido da equipe com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o membro da equipe.",
+        variant: "destructive",
+      });
+    },
+  });
   
   if (isLoading) {
     return (
@@ -1248,89 +1322,168 @@ const getFilteredAndSortedTasks = () => {
           <div className="bg-card rounded-lg p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">Equipe do Evento</h2>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
+              <Dialog open={isAddMemberModalOpen} onOpenChange={setIsAddMemberModalOpen}>
+                <DialogTrigger asChild>
                   <Button size="sm">
-                    <i className="fas fa-user-plus mr-2"></i>
+                    <UserPlus className="h-4 w-4 mr-2" />
                     Adicionar Membro
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Adicionar Membro à Equipe</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Selecione um usuário para adicionar à equipe do evento.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="add-member-user">Usuário</Label>
-                      <Select id="add-member-user">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecionar usuário" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user1">Carlos Oliveira</SelectItem>
-                          <SelectItem value="user2">Maria Santos</SelectItem>
-                          <SelectItem value="user3">João Silva</SelectItem>
-                          <SelectItem value="user4">Ana Pereira</SelectItem>
-                        </SelectContent>
-                      </Select>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Adicionar Membros à Equipe
+                    </DialogTitle>
+                    <DialogDescription>
+                      Selecione membros da equipe geral para adicionar ao evento
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    {/* Barra de pesquisa */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Pesquisar membros..."
+                        value={memberSearchQuery}
+                        onChange={(e) => setMemberSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="add-member-role">Função</Label>
-                      <Select id="add-member-role" defaultValue="team_member">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecionar função" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="organizer">Organizador</SelectItem>
-                          <SelectItem value="team_member">Membro da Equipe</SelectItem>
-                        </SelectContent>
-                      </Select>
+
+                    {/* Lista de membros disponíveis */}
+                    <div className="max-h-60 overflow-y-auto space-y-2">
+                      {usersLoading ? (
+                        <div className="flex justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+                        </div>
+                      ) : (
+                        allUsers
+                          ?.filter((user: any) => {
+                            // Filtrar usuários que já estão na equipe do evento
+                            const isAlreadyMember = team?.some((member: any) => member.userId === user.id);
+                            
+                            // Filtrar por pesquisa
+                            const matchesSearch = memberSearchQuery === "" || 
+                              `${user.firstName} ${user.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+                              user.email.toLowerCase().includes(memberSearchQuery.toLowerCase());
+                            
+                            return !isAlreadyMember && matchesSearch;
+                          })
+                          ?.map((user: any) => (
+                            <div
+                              key={user.id}
+                              className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                                selectedMembers.includes(user.id) 
+                                  ? 'bg-primary/10 border border-primary/20' 
+                                  : 'bg-muted/50 hover:bg-muted'
+                              }`}
+                              onClick={() => {
+                                setSelectedMembers(prev => 
+                                  prev.includes(user.id)
+                                    ? prev.filter(id => id !== user.id)
+                                    : [...prev, user.id]
+                                );
+                              }}
+                            >
+                              <Checkbox
+                                checked={selectedMembers.includes(user.id)}
+                                readOnly
+                                className="pointer-events-none"
+                              />
+                              
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={user.profileImageUrl} />
+                                <AvatarFallback>
+                                  {getInitials(user.firstName, user.lastName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">
+                                  {user.firstName} {user.lastName}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {user.email}
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                      )}
+                      
+                      {/* Estado vazio */}
+                      {!usersLoading && allUsers?.filter((user: any) => {
+                        const isAlreadyMember = team?.some((member: any) => member.userId === user.id);
+                        const matchesSearch = memberSearchQuery === "" || 
+                          `${user.firstName} ${user.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+                          user.email.toLowerCase().includes(memberSearchQuery.toLowerCase());
+                        return !isAlreadyMember && matchesSearch;
+                      }).length === 0 && (
+                        <div className="text-center py-4 text-muted-foreground">
+                          <p className="text-sm">
+                            {memberSearchQuery ? "Nenhum membro encontrado" : "Todos os membros já estão na equipe"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Link para adicionar novo membro à equipe geral */}
+                    <div className="border-t pt-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-muted-foreground"
+                        onClick={() => {
+                          setIsAddMemberModalOpen(false);
+                          navigate("/team");
+                        }}
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Adicionar novo membro à equipe geral
+                      </Button>
                     </div>
                   </div>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => {
-                      const userSelect = document.getElementById("add-member-user") as HTMLSelectElement;
-                      const roleSelect = document.getElementById("add-member-role") as HTMLSelectElement;
-                      
-                      if (!userSelect || !userSelect.value) {
-                        toast({
-                          title: "Erro",
-                          description: "Selecione um usuário para adicionar à equipe.",
-                          variant: "destructive",
-                        });
-                        return;
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsAddMemberModalOpen(false);
+                        setSelectedMembers([]);
+                        setMemberSearchQuery("");
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (selectedMembers.length === 0) {
+                          toast({
+                            title: "Nenhum membro selecionado",
+                            description: "Selecione pelo menos um membro para adicionar.",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        const membersToAdd = selectedMembers.map(userId => ({
+                          userId,
+                          role: "team_member"
+                        }));
+
+                        addTeamMembersMutation.mutate(membersToAdd);
+                      }}
+                      disabled={selectedMembers.length === 0 || addTeamMembersMutation.isPending}
+                    >
+                      {addTeamMembersMutation.isPending 
+                        ? "Adicionando..." 
+                        : `Adicionar ${selectedMembers.length > 0 ? `(${selectedMembers.length})` : ""}`
                       }
-                      
-                      const userId = userSelect.value;
-                      const role = roleSelect?.value || "team_member";
-                      
-                      apiRequest(`/api/events/${eventId}/team`, {
-                        method: "POST",
-                        body: JSON.stringify({ userId, role })
-                      }).then(() => {
-                        queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
-                        toast({
-                          title: "Membro adicionado",
-                          description: "Membro adicionado à equipe com sucesso.",
-                        });
-                      }).catch((err) => {
-                        console.error("Erro ao adicionar membro:", err);
-                        toast({
-                          title: "Erro",
-                          description: "Não foi possível adicionar o membro à equipe.",
-                          variant: "destructive",
-                        });
-                      });
-                    }}>
-                      Adicionar
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
             
             {teamLoading ? (
