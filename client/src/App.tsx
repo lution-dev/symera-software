@@ -39,8 +39,11 @@ import { useAuth } from "@/hooks/useAuth";
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, [key: string]: any }) {
   const { isAuthenticated, isLoading } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
 
+  // Verificar se o usuário veio de uma rota pública e não está autenticado
+  const cameFromPublicRoute = sessionStorage.getItem('cameFromPublicRoute') === 'true';
+  
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-purple-900">
@@ -50,9 +53,17 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
   }
 
   if (!isAuthenticated) {
-    // Usar navigate em vez de window.location para manter a SPA
+    // Limpar qualquer indicação de rota pública
+    sessionStorage.removeItem('cameFromPublicRoute');
+    
+    // Redirecionar para login
     navigate("/login");
     return null;
+  }
+
+  // Se o usuário veio de uma rota pública mas agora está autenticado, limpar o flag
+  if (cameFromPublicRoute) {
+    sessionStorage.removeItem('cameFromPublicRoute');
   }
 
   return <Component {...rest} />;

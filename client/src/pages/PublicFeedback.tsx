@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -54,6 +54,11 @@ export default function PublicFeedback() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Marcar que o usuário veio de uma rota pública
+  useEffect(() => {
+    sessionStorage.setItem('cameFromPublicRoute', 'true');
+  }, []);
 
   const {
     register,
