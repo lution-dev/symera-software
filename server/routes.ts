@@ -1635,6 +1635,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST /api/events/:eventId/team - Add team members
+  app.post('/api/events/:eventId/team', ensureDevAuth, async (req: any, res) => {
+    try {
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        userId = req.session.devUserId;
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        userId = req.user.claims.sub;
+      } else {
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
+      const eventId = parseInt(req.params.eventId, 10);
+      const { userIds } = req.body;
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+      
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: "userIds array is required" });
+      }
+      
+      // Check if user has access to this event
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have access to this event" });
+      }
+      
+      const addedMembers = [];
+      
+      for (const memberId of userIds) {
+        try {
+          // Check if user exists
+          const user = await dbStorage.getUserById(memberId);
+          if (!user) {
+            console.log(`User ${memberId} not found, skipping`);
+            continue;
+          }
+          
+          // Check if already a team member
+          const existingMember = await dbStorage.getTeamMemberByEventAndUser(eventId, memberId);
+          if (existingMember) {
+            console.log(`User ${memberId} already in team, skipping`);
+            continue;
+          }
+          
+          // Add team member
+          const teamMember = await dbStorage.addTeamMember({
+            eventId,
+            userId: memberId,
+            role: 'team_member',
+            permissions: {
+              canEdit: true,
+              canDelete: false,
+              canInvite: false
+            }
+          });
+          
+          addedMembers.push(teamMember);
+          
+          // Log activity
+          await dbStorage.createActivityLog({
+            eventId,
+            userId,
+            action: "added_team_member",
+            details: { memberName: `${user.firstName} ${user.lastName}` }
+          });
+          
+        } catch (memberError) {
+          console.error(`Error adding member ${memberId}:`, memberError);
+        }
+      }
+      
+      res.status(201).json({
+        message: `${addedMembers.length} member(s) added successfully`,
+        addedMembers
+      });
+      
+    } catch (error) {
+      console.error("Error adding team members:", error);
+      res.status(500).json({ message: "Failed to add team members" });
+    }
+  });
+
+  // DELETE /api/events/:eventId/team/:userId - Remove team member
+  app.delete('/api/events/:eventId/team/:userId', ensureDevAuth, async (req: any, res) => {
+    try {
+      let currentUserId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        currentUserId = req.session.devUserId;
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        currentUserId = req.user.claims.sub;
+      } else {
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
+      const eventId = parseInt(req.params.eventId, 10);
+      const userIdToRemove = req.params.userId;
+      
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+      
+      // Check if user has access to this event
+      const hasAccess = await dbStorage.hasUserAccessToEvent(currentUserId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have access to this event" });
+      }
+      
+      // Remove team member
+      await dbStorage.removeTeamMember(eventId, userIdToRemove);
+      
+      // Log activity
+      await dbStorage.createActivityLog({
+        eventId,
+        userId: currentUserId,
+        action: "removed_team_member",
+        details: { removedUserId: userIdToRemove }
+      });
+      
+      res.status(204).send();
+      
+    } catch (error) {
+      console.error("Error removing team member:", error);
+      res.status(500).json({ message: "Failed to remove team member" });
+    }
+  });
+
   app.post('/api/events/:eventId/team', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
