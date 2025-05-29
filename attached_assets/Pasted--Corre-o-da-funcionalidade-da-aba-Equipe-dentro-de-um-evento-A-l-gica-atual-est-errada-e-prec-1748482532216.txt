@@ -1,0 +1,39 @@
+🛠️ Correção da funcionalidade da aba “Equipe” dentro de um evento
+A lógica atual está errada e precisa ser corrigida imediatamente. Abaixo está a descrição do comportamento correto:
+
+✅ Comportamento esperado ao clicar em “Adicionar Membro” na aba de Equipe do Evento
+Ao clicar no botão “Adicionar Membro”, deve abrir um modal com o título:
+“Selecionar membros da equipe”
+
+O modal deve exibir a lista de todos os membros já cadastrados na equipe geral do sistema, com possibilidade de selecionar um ou mais membros para adicionar ao evento atual.
+
+A lista não deve permitir selecionar membros já adicionados a este evento.
+
+No final da lista, incluir um botão sutil:
+“+ Adicionar novo membro à equipe geral”
+Ao clicar, esse botão deve redirecionar o usuário para a tela padrão de adição de membros gerais da plataforma (fora do evento).
+
+Ao confirmar a seleção, os membros escolhidos devem ser adicionados à equipe deste evento imediatamente.
+
+🧹 O que deve ser removido
+Não crie uma nova tela ou rota apenas para exibir os membros do evento.
+A gestão da equipe deve continuar dentro da própria aba “Equipe” do evento.
+Não queremos uma página separada para editar membros da equipe do evento.
+
+🧩 Ações nos membros adicionados ao evento
+Ao lado de cada membro listado na equipe do evento, deve haver um botão de “três pontos” com a única ação disponível:
+🗑️ Remover da equipe (remover esse membro deste evento específico)
+
+Nenhuma outra ação deve aparecer nesse menu.
+Não queremos opções para editar cargos, tornar organizador ou qualquer outra coisa por enquanto.
+
+🎨 Design e experiência
+O modal deve seguir o design atual do sistema, com os mesmos padrões de cor, gradiente roxo da marca, fontes e botões arredondados.
+
+A experiência deve ser fluida e prática, como no WhatsApp quando adicionamos pessoas a um grupo:
+lista simples de seleção com checkbox ou botão de adicionar ao lado de cada nome.
+
+🔒 Importante
+Não modifique ou quebre nenhuma outra parte do sistema.
+Essa implementação deve ser feita de forma isolada, segura e com testes, sem impactar outras funcionalidades.
+
