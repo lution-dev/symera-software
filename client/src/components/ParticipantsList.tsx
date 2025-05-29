@@ -28,7 +28,9 @@ import {
   FileText,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Mail,
+  Phone
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -458,7 +460,7 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
           </Select>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -470,14 +472,16 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
           <Button
             variant="outline"
             onClick={() => setShowImportModal(true)}
+            className="w-full sm:w-auto"
           >
             <Upload className="w-4 h-4 mr-2" />
-            Importar Lista
+            <span className="hidden sm:inline">Importar Lista</span>
+            <span className="sm:hidden">Importar</span>
           </Button>
 
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Participante
               </Button>
@@ -589,54 +593,108 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>E-mail</TableHead>
-                    <TableHead>Telefone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Origem</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredParticipants.map((participant: Participant) => (
-                    <TableRow key={participant.id}>
-                      <TableCell className="font-medium">{participant.name}</TableCell>
-                      <TableCell>{participant.email || '-'}</TableCell>
-                      <TableCell>{participant.phone || '-'}</TableCell>
-                      <TableCell>{getStatusBadge(participant.status)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {participant.origin === 'manual' ? 'Manual' : 'Importado'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(participant)}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(participant.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            <>
+              {/* Vista Desktop - Tabela */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>E-mail</TableHead>
+                      <TableHead>Telefone</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Origem</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredParticipants.map((participant: Participant) => (
+                      <TableRow key={participant.id}>
+                        <TableCell className="font-medium">{participant.name}</TableCell>
+                        <TableCell>{participant.email || '-'}</TableCell>
+                        <TableCell>{participant.phone || '-'}</TableCell>
+                        <TableCell>{getStatusBadge(participant.status)}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {participant.origin === 'manual' ? 'Manual' : 'Importado'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(participant)}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(participant.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Vista Mobile/Tablet - Cards */}
+              <div className="md:hidden space-y-4">
+                {filteredParticipants.map((participant: Participant) => (
+                  <Card key={participant.id} className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{participant.name}</h3>
+                        <div className="flex gap-2 mt-2">
+                          {getStatusBadge(participant.status)}
+                          <Badge variant="outline" className="text-xs">
+                            {participant.origin === 'manual' ? 'Manual' : 'Importado'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 ml-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(participant)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(participant.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      {participant.email && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          <span className="break-all">{participant.email}</span>
+                        </div>
+                      )}
+                      {participant.phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          <span>{participant.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
