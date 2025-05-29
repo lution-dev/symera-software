@@ -3181,5 +3181,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/users - Get all users for team member selection
+  app.get('/api/users', ensureDevAuth, async (req: any, res) => {
+    try {
+      const users = await dbStorage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   return app;
 }

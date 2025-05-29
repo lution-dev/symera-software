@@ -89,6 +89,7 @@ const participantCache = new MemoryCache(120000); // 2 minutos
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   upsertUser(user: UpsertUser): Promise<User>;
   findOrCreateUserByEmail(email: string): Promise<User>;
   
@@ -187,6 +188,21 @@ export class DatabaseStorage implements IStorage {
       }
       
       return user;
+    });
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    const cacheKey = 'all:users';
+    const cachedUsers = userCache.get<User[]>(cacheKey);
+    if (cachedUsers) return cachedUsers;
+    
+    return executeWithRetry(async () => {
+      const allUsers = await db.select().from(users);
+      
+      // Armazenar em cache para futuras requisições
+      userCache.set(cacheKey, allUsers);
+      
+      return allUsers;
     });
   }
   
