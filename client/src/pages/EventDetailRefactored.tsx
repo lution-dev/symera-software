@@ -205,15 +205,19 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
         method: "DELETE",
       });
     },
-    onSuccess: () => {
+    onSuccess: (data, memberId) => {
       toast({
         title: "Membro removido",
         description: `O membro foi removido da equipe do evento.`,
       });
+      // Invalidar múltiplas queries relacionadas
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
+      queryClient.refetchQueries({ queryKey: [`/api/events/${eventId}/team`] });
       setMemberToRemove(null);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao remover membro:", error);
       toast({
         title: "Erro",
         description: "Não foi possível remover o membro da equipe.",
