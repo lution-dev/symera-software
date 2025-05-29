@@ -1,8 +1,10 @@
 // Configuração e utilidades para o modo de desenvolvimento
 import type { Request, Response, NextFunction } from "express";
 
-// Middleware de login automático em desenvolvimento
+// Middleware de login automático em desenvolvimento - DESABILITADO PARA TESTES
 export const devModeAuth = async (req: Request, res: Response, next: NextFunction) => {
+  // TEMPORARIAMENTE DESABILITADO - para testar o fluxo de autenticação correto
+  /*
   // Se não está autenticado e está em desenvolvimento, fazer login automático
   if (!req.isAuthenticated() && process.env.NODE_ENV === 'development') {
     // Simular usuário logado
@@ -31,6 +33,10 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
   } else {
     return next();
   }
+  */
+  
+  // Simplesmente prosseguir sem fazer login automático
+  return next();
 };
 
 // Middleware de autenticação que verifica se o usuário está logado
