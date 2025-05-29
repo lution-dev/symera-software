@@ -34,6 +34,7 @@ import SimpleLogin from "@/pages/SimpleLogin";
 import DemoProfile from "@/pages/DemoProfile";
 import DemoApp from "@/pages/DemoApp";
 import NotFound from "@/pages/not-found";
+import PublicFeedback from "@/pages/PublicFeedback";
 import { useAuth } from "@/hooks/useAuth";
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, [key: string]: any }) {
@@ -66,6 +67,7 @@ function Router() {
       <Route path="/demo-profile" component={DemoProfile} />
       <Route path="/demo" component={DemoApp} />
       <Route path="/auth" component={Auth} />
+      <Route path="/feedback/:eventId" component={(params: any) => <PublicFeedback eventId={params.eventId} />} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
       <Route path="/events/new" component={() => <ProtectedRoute component={CreateEvent} />} />
