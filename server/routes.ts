@@ -1669,19 +1669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const memberId of userIds) {
         try {
-          // Check if user exists
-          const user = await dbStorage.getUserById(memberId);
-          if (!user) {
-            console.log(`User ${memberId} not found, skipping`);
-            continue;
-          }
-          
-          // Check if already a team member
-          const existingMember = await dbStorage.getTeamMemberByEventAndUser(eventId, memberId);
-          if (existingMember) {
-            console.log(`User ${memberId} already in team, skipping`);
-            continue;
-          }
+          console.log(`Tentando adicionar membro ${memberId} ao evento ${eventId}`);
           
           // Add team member
           const teamMember = await dbStorage.addTeamMember({
@@ -1702,8 +1690,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eventId,
             userId,
             action: "added_team_member",
-            details: { memberName: `${user.firstName} ${user.lastName}` }
+            details: { memberId }
           });
+          
+          console.log(`Membro ${memberId} adicionado com sucesso ao evento ${eventId}`);
           
         } catch (memberError) {
           console.error(`Error adding member ${memberId}:`, memberError);
