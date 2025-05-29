@@ -46,7 +46,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle, UserPlus, X, Users, Search } from "lucide-react";
+import { AlertTriangle, UserPlus, X, Users, Search, MoreVertical, Trash2, Mail, Phone } from "lucide-react";
 
 interface EventProps {
   id?: string;
@@ -342,7 +342,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       className="w-full justify-start text-muted-foreground"
                       onClick={() => {
                         setIsAddMemberModalOpen(false);
-                        // Navigate to team page to add new member
+                        window.open("/team", "_blank");
                       }}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
@@ -415,7 +415,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <i className="fas fa-ellipsis-v text-gray-400"></i>
+                            <MoreVertical className="h-4 w-4 text-gray-400" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -427,7 +427,7 @@ const Event: React.FC<EventProps> = ({ id }) => {
                               }
                             }}
                           >
-                            <i className="fas fa-trash mr-2"></i>
+                            <Trash2 className="h-4 w-4 mr-2" />
                             Remover da equipe
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -436,14 +436,14 @@ const Event: React.FC<EventProps> = ({ id }) => {
                     
                     {member.user.email && (
                       <div className="mt-3 text-sm flex items-center text-muted-foreground">
-                        <i className="fas fa-envelope mr-2 text-xs"></i>
+                        <Mail className="h-3 w-3 mr-2" />
                         <span className="truncate">{member.user.email}</span>
                       </div>
                     )}
                     
                     {member.user.phone && (
                       <div className="mt-1 text-sm flex items-center text-muted-foreground">
-                        <i className="fas fa-phone mr-2 text-xs"></i>
+                        <Phone className="h-3 w-3 mr-2" />
                         <span>{member.user.phone}</span>
                       </div>
                     )}
