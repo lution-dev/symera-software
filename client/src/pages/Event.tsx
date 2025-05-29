@@ -185,14 +185,14 @@ const Event: React.FC<EventProps> = ({ id }) => {
   
   // Mutations para gerenciamento da equipe
   const addTeamMembersMutation = useMutation({
-    mutationFn: async (membersToAdd: any[]) => {
-      const promises = membersToAdd.map(member => 
-        apiRequest(`/api/events/${eventId}/team`, {
-          method: "POST",
-          body: JSON.stringify(member)
-        })
-      );
-      return Promise.all(promises);
+    mutationFn: async (userIds: string[]) => {
+      return apiRequest(`/api/events/${eventId}/team`, {
+        method: "POST",
+        body: JSON.stringify({ userIds }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
     },
     onSuccess: () => {
       toast({
@@ -1508,12 +1508,7 @@ const getFilteredAndSortedTasks = () => {
                         return;
                       }
 
-                      const membersToAdd = selectedMembers.map(userId => ({
-                        userId,
-                        role: "team_member"
-                      }));
-
-                      addTeamMembersMutation.mutate(membersToAdd);
+                      addTeamMembersMutation.mutate(selectedMembers);
                     }}
                     disabled={selectedMembers.length === 0 || addTeamMembersMutation.isPending}
                   >

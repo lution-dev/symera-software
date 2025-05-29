@@ -3027,5 +3027,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST /api/events/:eventId/team - Add team members
+  app.post("/api/events/:eventId/team", isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user!.id;
+      const { userIds } = req.body;
+
+      // Validate input
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: "IDs de usuários são obrigatórios" });
+      }
+
+      // Check access
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+
+      // Add team members
+      const addedMembers = [];
+      for (const memberId of userIds) {
+        try {
+          const member = await dbStorage.addTeamMember({
+            eventId,
+            userId: memberId,
+            role: 'team_member',
+            permissions: {
+              canEdit: true,
+              canDelete: false,
+              canInvite: false
+            }
+          });
+          addedMembers.push(member);
+
+          // Log activity
+          await dbStorage.createActivityLog({
+            eventId,
+            userId,
+            action: 'team_member_added',
+            details: { memberId }
+          });
+        } catch (error) {
+          console.error(`Erro ao adicionar membro ${memberId}:`, error);
+        }
+      }
+
+      res.status(201).json({
+        message: `${addedMembers.length} membros adicionados à equipe`,
+        members: addedMembers
+      });
+
+    } catch (error) {
+      console.error("Erro ao adicionar membros à equipe:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
+  // DELETE /api/events/:eventId/team/:memberId - Remove team member
+  app.delete("/api/events/:eventId/team/:memberId", isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const memberId = req.params.memberId;
+      const userId = req.user!.id;
+
+      // Check access
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para acessar este evento" });
+      }
+
+      // Cannot remove event owner
+      const event = await dbStorage.getEventById(eventId);
+      if (event?.ownerId === memberId) {
+        return res.status(400).json({ message: "Não é possível remover o proprietário do evento" });
+      }
+
+      // Remove team member
+      await dbStorage.removeTeamMember(eventId, memberId);
+
+      // Log activity
+      await dbStorage.createActivityLog({
+        eventId,
+        userId,
+        action: 'team_member_removed',
+        details: { memberId }
+      });
+
+      res.status(204).send();
+
+    } catch (error) {
+      console.error("Erro ao remover membro da equipe:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
   return app;
 }
