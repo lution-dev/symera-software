@@ -285,7 +285,8 @@ export function ParticipantsList({ eventId }: ParticipantsListProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'participants'] });
       setShowUploadDialog(false);
       setUploadPreview(null);
-      toast({ title: `${data.count} participantes importados com sucesso!` });
+      const count = data.count || uploadPreview?.stats?.valid || 0;
+      toast({ title: `${count} participantes importados com sucesso!` });
     },
     onError: () => {
       toast({ title: 'Erro ao importar participantes', variant: 'destructive' });
