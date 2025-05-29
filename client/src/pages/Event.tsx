@@ -1493,110 +1493,52 @@ const getFilteredAndSortedTasks = () => {
             ) : team?.filter((member: any) => member.role !== 'vendor').length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {team.filter((member: any) => member.role !== 'vendor').map((member: any) => (
-                  <div key={member.id} className="bg-muted p-4 rounded-lg group relative">
+                  <div key={member.id} className="bg-muted/50 p-4 rounded-lg group relative border hover:border-primary/20 transition-all">
                     <div className="flex items-center">
-                      {member.user.profileImageUrl ? (
-                        <img 
-                          src={member.user.profileImageUrl} 
-                          alt={`${member.user.firstName} ${member.user.lastName}`}
-                          className="w-12 h-12 rounded-full object-cover mr-4"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
-                          <span className="text-primary font-medium">
-                            {member.user.firstName?.charAt(0) || ''}
-                            {member.user.lastName?.charAt(0) || ''}
-                          </span>
-                        </div>
-                      )}
-                      <div>
+                      <Avatar className="h-12 w-12 mr-4">
+                        <AvatarImage src={member.user.profileImageUrl} />
+                        <AvatarFallback>
+                          {getInitials(member.user.firstName, member.user.lastName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1">
                         <p className="font-medium">
                           {member.user.firstName} {member.user.lastName}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {member.role === 'organizer' ? 'Organizador' : 
-                           member.role === 'team_member' ? 'Membro da Equipe' : 
-                           'Fornecedor'}
-                        </p>
+                        <Badge variant="secondary" className="text-xs mt-1">
+                          {member.role === 'organizer' ? 'Organizador' : 'Membro da Equipe'}
+                        </Badge>
                       </div>
-                    </div>
-                    {member.user.email && (
-                      <div className="mt-3 text-sm flex items-center text-muted-foreground">
-                        <i className="fas fa-envelope mr-2"></i>
-                        <span>{member.user.email}</span>
-                      </div>
-                    )}
-                    
-                    {/* Botões de ação - visíveis ao passar o mouse */}
-                    <div className="absolute top-2 right-2 hidden group-hover:flex gap-1">
-                      {/* Alterar função */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                            <i className="fas fa-user-cog"></i>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuLabel>Alterar função</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuRadioGroup value={member.role} onValueChange={(value) => {
-                            if (value === member.role) return;
-                            
-                            if (confirm(`Deseja alterar a função de ${member.user.firstName} para ${value === 'organizer' ? 'Organizador' : 'Membro da Equipe'}?`)) {
-                              apiRequest(`/api/events/${eventId}/team/${member.user.id}`, {
-                                method: "PATCH",
-                                body: JSON.stringify({ role: value })
-                              }).then(() => {
-                                queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
-                                toast({
-                                  title: "Função atualizada",
-                                  description: `A função de ${member.user.firstName} foi atualizada com sucesso.`,
-                                });
-                              }).catch((err) => {
-                                console.error("Erro ao alterar função:", err);
-                                toast({
-                                  title: "Erro",
-                                  description: "Não foi possível atualizar a função do membro.",
-                                  variant: "destructive",
-                                });
-                              });
-                            }
-                          }}>
-                            <DropdownMenuRadioItem value="organizer">Organizador</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="team_member">Membro da Equipe</DropdownMenuRadioItem>
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      
-                      {/* Remover membro */}
+
+                      {/* Botão de remoção discreto - sempre visível no canto */}
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                        className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive opacity-60 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
                           if (confirm(`Tem certeza que deseja remover ${member.user.firstName} da equipe?`)) {
-                            apiRequest(`/api/events/${eventId}/team/${member.user.id}`, {
-                              method: "DELETE"
-                            }).then(() => {
-                              queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
-                              toast({
-                                title: "Membro removido",
-                                description: `${member.user.firstName} foi removido da equipe.`,
-                              });
-                            }).catch((err) => {
-                              console.error("Erro ao remover membro:", err);
-                              toast({
-                                title: "Erro",
-                                description: "Não foi possível remover o membro da equipe.",
-                                variant: "destructive",
-                              });
-                            });
+                            removeTeamMemberMutation.mutate(member.user.id);
                           }
                         }}
                       >
-                        <i className="fas fa-times"></i>
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
+                    
+                    {member.user.email && (
+                      <div className="mt-3 text-sm flex items-center text-muted-foreground">
+                        <i className="fas fa-envelope mr-2 text-xs"></i>
+                        <span className="truncate">{member.user.email}</span>
+                      </div>
+                    )}
+                    
+                    {member.user.phone && (
+                      <div className="mt-1 text-sm flex items-center text-muted-foreground">
+                        <i className="fas fa-phone mr-2 text-xs"></i>
+                        <span>{member.user.phone}</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1604,93 +1546,15 @@ const getFilteredAndSortedTasks = () => {
               <div className="text-center py-8">
                 <div className="mb-4 flex justify-center">
                   <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                    <i className="fas fa-users text-primary text-2xl"></i>
+                    <Users className="h-8 w-8 text-primary" />
                   </div>
                 </div>
                 <h3 className="text-lg font-medium mb-2">Nenhum membro na equipe</h3>
-                <p className="text-muted-foreground mb-6">Adicione membros para colaborar no evento</p>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button>
-                      <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Adicionar Membro à Equipe</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Selecione um usuário para adicionar à equipe do evento.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="add-empty-member-user">Usuário</Label>
-                        <Select id="add-empty-member-user">
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecionar usuário" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="user1">Carlos Oliveira</SelectItem>
-                            <SelectItem value="user2">Maria Santos</SelectItem>
-                            <SelectItem value="user3">João Silva</SelectItem>
-                            <SelectItem value="user4">Ana Pereira</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="add-empty-member-role">Função</Label>
-                        <Select id="add-empty-member-role" defaultValue="team_member">
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecionar função" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="organizer">Organizador</SelectItem>
-                            <SelectItem value="team_member">Membro da Equipe</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => {
-                        const userSelect = document.getElementById("add-empty-member-user") as HTMLSelectElement;
-                        const roleSelect = document.getElementById("add-empty-member-role") as HTMLSelectElement;
-                        
-                        if (!userSelect || !userSelect.value) {
-                          toast({
-                            title: "Erro",
-                            description: "Selecione um usuário para adicionar à equipe.",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                        
-                        const userId = userSelect.value;
-                        const role = roleSelect?.value || "team_member";
-                        
-                        apiRequest(`/api/events/${eventId}/team`, {
-                          method: "POST",
-                          body: JSON.stringify({ userId, role })
-                        }).then(() => {
-                          queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/team`] });
-                          toast({
-                            title: "Membro adicionado",
-                            description: "Membro adicionado à equipe com sucesso.",
-                          });
-                        }).catch((err) => {
-                          console.error("Erro ao adicionar membro:", err);
-                          toast({
-                            title: "Erro",
-                            description: "Não foi possível adicionar o membro à equipe.",
-                            variant: "destructive",
-                          });
-                        });
-                      }}>
-                        Adicionar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <p className="text-muted-foreground mb-6">Adicione membros da equipe geral para colaborar no evento</p>
+                <Button onClick={() => setIsAddMemberModalOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Adicionar Membro
+                </Button>
               </div>
             )}
           </div>
