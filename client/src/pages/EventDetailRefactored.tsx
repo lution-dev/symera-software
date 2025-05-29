@@ -862,7 +862,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             <div className="bg-card rounded-lg p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">Equipe do Evento</h2>
-                <Button onClick={() => navigate(`/events/${eventId}/team/add`)} variant="default">
+                <Button onClick={() => setIsAddMemberModalOpen(true)} variant="default">
                   <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
                 </Button>
               </div>
@@ -884,11 +884,33 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h3 className="font-medium truncate">{member.user?.firstName} {member.user?.lastName}</h3>
-                          <Badge variant="outline" className="ml-2 text-xs whitespace-nowrap">
-                            {member.role === 'organizer' ? 'Organizador' : 
-                             member.role === 'vendor' ? 'Fornecedor' : 
-                             member.role === 'team_member' ? 'Membro da Equipe' : member.role}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs whitespace-nowrap">
+                              {member.role === 'organizer' ? 'Organizador' : 
+                               member.role === 'vendor' ? 'Fornecedor' : 
+                               member.role === 'team_member' ? 'Membro da Equipe' : member.role}
+                            </Badge>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                  <i className="fas fa-ellipsis-v text-gray-400 text-sm"></i>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  className="text-destructive focus:text-destructive" 
+                                  onClick={() => {
+                                    if (confirm(`Tem certeza que deseja remover ${member.user?.firstName} da equipe deste evento?`)) {
+                                      // removeTeamMemberMutation.mutate(member.user.id);
+                                    }
+                                  }}
+                                >
+                                  <i className="fas fa-trash mr-2"></i>
+                                  Remover da equipe
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                         {member.user?.email && (
                           <p className="text-sm text-muted-foreground truncate">{member.user.email}</p>
@@ -909,7 +931,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   <p className="text-muted-foreground mb-4 max-w-md mx-auto">
                     Este evento ainda não tem membros na equipe. Adicione colaboradores para distribuir tarefas.
                   </p>
-                  <Button onClick={() => navigate(`/events/${eventId}/team/add`)} variant="default">
+                  <Button onClick={() => setIsAddMemberModalOpen(true)} variant="default">
                     <i className="fas fa-user-plus mr-2"></i> Adicionar Membro
                   </Button>
                 </div>
