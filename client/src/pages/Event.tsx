@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
+import { useLocation, Link, useRouter } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -1695,6 +1695,134 @@ const getFilteredAndSortedTasks = () => {
         </TabsContent>
       </Tabs>
       
+      {/* Modal para adicionar membros */}
+      <Dialog open={isAddMemberModalOpen} onOpenChange={setIsAddMemberModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Membros à Equipe</DialogTitle>
+            <DialogDescription>
+              Selecione os membros da equipe geral que você deseja adicionar a este evento.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Campo de busca */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Buscar membros..."
+                value={memberSearchQuery}
+                onChange={(e) => setMemberSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Lista de membros disponíveis */}
+            <div className="max-h-[300px] overflow-y-auto">
+              {usersLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-sm text-muted-foreground mt-2">Carregando usuários...</p>
+                </div>
+              ) : filteredUsers?.length > 0 ? (
+                <div className="space-y-2">
+                  {filteredUsers.map((user: any) => (
+                    <div
+                      key={user.id}
+                      className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        selectedMembers.includes(user.id)
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:bg-muted/50'
+                      }`}
+                      onClick={() => {
+                        if (selectedMembers.includes(user.id)) {
+                          setSelectedMembers(selectedMembers.filter(id => id !== user.id));
+                        } else {
+                          setSelectedMembers([...selectedMembers, user.id]);
+                        }
+                      }}
+                    >
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                        selectedMembers.includes(user.id)
+                          ? 'border-primary bg-primary'
+                          : 'border-muted-foreground'
+                      }`}>
+                        {selectedMembers.includes(user.id) && (
+                          <Check className="h-3 w-3 text-primary-foreground" />
+                        )}
+                      </div>
+                      
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.profileImageUrl} />
+                        <AvatarFallback>
+                          {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">
+                          {user.firstName} {user.lastName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  <p className="text-sm">Nenhum usuário disponível</p>
+                </div>
+              )}
+            </div>
+
+            {/* Link para adicionar novo membro à equipe geral */}
+            <div className="border-t pt-3">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate("/team");
+                }}
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Adicionar novo membro à equipe geral
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddMemberModalOpen(false);
+                setSelectedMembers([]);
+                setMemberSearchQuery("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedMembers.length === 0) {
+                  toast({
+                    title: "Nenhum membro selecionado",
+                    description: "Selecione pelo menos um membro para adicionar.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                addTeamMembersMutation.mutate(selectedMembers);
+              }}
+              disabled={selectedMembers.length === 0 || addTeamMembersMutation.isPending}
+            >
+              {addTeamMembersMutation.isPending ? "Adicionando..." : `Adicionar (${selectedMembers.length})`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
