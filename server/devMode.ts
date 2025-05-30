@@ -3,8 +3,8 @@ import type { Request, Response, NextFunction } from "express";
 
 // Middleware de login automático em desenvolvimento
 export const devModeAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // Se não está autenticado e está em desenvolvimento, fazer login automático
-  if (!req.isAuthenticated() && process.env.NODE_ENV === 'development') {
+  // Desabilitado: login automático em desenvolvimento
+  if (false && !req.isAuthenticated() && process.env.NODE_ENV === 'development') {
     // Simular usuário logado
     const mockUser = {
       claims: {
