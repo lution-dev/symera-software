@@ -61,10 +61,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
-      <Route path="/dev-login" component={DevLogin} />
-      <Route path="/simple-login" component={SimpleLogin} />
-      <Route path="/demo-profile" component={DemoProfile} />
-      <Route path="/demo" component={DemoApp} />
+
       <Route path="/auth" component={Auth} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />

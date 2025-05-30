@@ -784,7 +784,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get('/api/events/:eventId/tasks', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/events/:eventId/tasks', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
@@ -1549,7 +1549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Team members routes
-  app.get('/api/events/:eventId/team', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/events/:eventId/team', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
@@ -1589,7 +1589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/events/:eventId/team - Add team members
-  app.post('/api/events/:eventId/team', ensureDevAuth, async (req: any, res) => {
+  app.post('/api/events/:eventId/team', isAuthenticated, async (req: any, res) => {
     try {
       let userId;
       
@@ -1658,7 +1658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // DELETE /api/events/:eventId/team/:userId - Remove team member
-  app.delete('/api/events/:eventId/team/:userId', ensureDevAuth, async (req: any, res) => {
+  app.delete('/api/events/:eventId/team/:userId', isAuthenticated, async (req: any, res) => {
     try {
       let currentUserId;
       
@@ -1818,7 +1818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard data route
-  app.get('/api/dashboard', devModeAuth, ensureDevAuth, async (req: any, res) => {
+  app.get('/api/dashboard', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
@@ -1909,7 +1909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activity log routes
-  app.get('/api/events/:eventId/activities', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/events/:eventId/activities', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
@@ -2016,7 +2016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==== Rotas para Despesas ====
   
   // Obter despesas de um evento
-  app.get('/api/events/:eventId/expenses', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/events/:eventId/expenses', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
@@ -2251,7 +2251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==== Rotas para Documentos ====
   
   // Obter documentos de um evento
-  app.get('/api/events/:eventId/documents', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/events/:eventId/documents', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
@@ -3151,7 +3151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/users - Get all users for team member selection
-  app.get('/api/users', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/users', isAuthenticated, async (req: any, res) => {
     try {
       const users = await dbStorage.getAllUsers();
       res.json(users);
