@@ -3,28 +3,11 @@ import { useLocation } from "wouter";
 import LoginForm from "@/components/forms/LoginForm";
 import RegisterForm from "@/components/forms/RegisterForm";
 import Logo from "@/components/ui/logo";
-import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, Calendar, FileText, BarChart3, Sparkles, Users, DollarSign } from "lucide-react";
 
 const Auth: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
   const [, navigate] = useLocation();
   const [isLogin, setIsLogin] = React.useState(true);
-  
-  // If already authenticated, redirect to dashboard
-  React.useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate("/");
-    }
-  }, [isAuthenticated, isLoading, navigate]);
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
