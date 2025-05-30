@@ -1329,21 +1329,19 @@ export class DatabaseStorage implements IStorage {
       // Gerar um ID único para o feedback
       const feedbackId = `feedback_${eventId}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       
-      // Verificar se já existe um feedbackId para este evento
+      // Verificar se já existe um feedbackId para este evento (buscar por registros não nulos)
       const existingFeedback = await db
         .select()
         .from(eventFeedbacks)
-        .where(
-          and(
-            eq(eventFeedbacks.eventId, eventId),
-            isNotNull(eventFeedbacks.feedbackId)
-          )
-        )
+        .where(eq(eventFeedbacks.eventId, eventId))
         .limit(1);
       
-      if (existingFeedback.length > 0 && existingFeedback[0].feedbackId) {
+      // Filtrar apenas os que têm feedbackId não nulo
+      const validFeedback = existingFeedback.filter(f => f.feedbackId);
+      
+      if (validFeedback.length > 0) {
         // Se já existe um link, retornar o feedbackId existente
-        return existingFeedback[0].feedbackId;
+        return validFeedback[0].feedbackId!;
       }
       
       // Simplesmente retornar o feedbackId gerado, sem criar registro no banco
