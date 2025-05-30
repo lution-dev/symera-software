@@ -85,49 +85,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ativar autenticação de desenvolvimento para ambiente de preview
   app.use(devModeAuth);
   
-  // Middleware de proteção para rotas frontend - aplicado ANTES de todas as outras rotas
-  app.use((req, res, next) => {
-    const url = req.originalUrl;
-    
-    // Permitir todas as rotas da API
-    if (url.startsWith('/api/')) {
-      return next();
-    }
-    
-    // Permitir rota pública de feedback
-    if (url.startsWith('/feedback/')) {
-      return next();
-    }
-    
-    // Permitir rota de login e auth
-    if (url === '/login' || url.startsWith('/auth')) {
-      return next();
-    }
-    
-    // Permitir assets estáticos e recursos do Vite
-    if (url.startsWith('/uploads/') || 
-        url.startsWith('/assets/') || 
-        url.startsWith('/@') || // Recursos do Vite como /@vite/client, /@react-refresh
-        url.startsWith('/src/') || // Arquivos fonte do React
-        url.includes('.js') ||
-        url.includes('.css') ||
-        url.includes('.tsx') ||
-        url.includes('.ts') ||
-        url.includes('.map') ||
-        url.includes('.ico')) {
-      return next();
-    }
-    
-    // Para todas as outras rotas, verificar autenticação
-    if (!req.isAuthenticated()) {
-      console.log(`[SECURITY] Usuário não autenticado tentando acessar: ${url} - redirecionando para /login`);
-      return res.redirect('/login');
-    }
-    
-    // Se autenticado, continuar
-    next();
-  });
-  
   // Login alternativo temporário para contornar problemas do Replit Auth
   app.post('/api/auth/dev-login', async (req, res) => {
     try {

@@ -42,6 +42,51 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Middleware de proteção CRÍTICO - aplicado antes do Vite
+  app.use((req, res, next) => {
+    const url = req.originalUrl;
+    
+    // Permitir todas as rotas da API
+    if (url.startsWith('/api/')) {
+      return next();
+    }
+    
+    // Permitir rota pública de feedback - ÚNICA EXCEÇÃO
+    if (url.startsWith('/feedback/')) {
+      return next();
+    }
+    
+    // Permitir rota de login e auth
+    if (url === '/login' || url.startsWith('/auth')) {
+      return next();
+    }
+    
+    // Permitir assets estáticos e recursos do Vite
+    if (url.startsWith('/uploads/') || 
+        url.startsWith('/assets/') || 
+        url.startsWith('/@') || 
+        url.startsWith('/src/') ||
+        url.includes('.js') ||
+        url.includes('.css') ||
+        url.includes('.tsx') ||
+        url.includes('.ts') ||
+        url.includes('.map') ||
+        url.includes('.ico') ||
+        url.includes('.png') ||
+        url.includes('.svg')) {
+      return next();
+    }
+    
+    // Para todas as outras rotas, verificar autenticação
+    if (!req.isAuthenticated()) {
+      console.log(`[SECURITY BLOCK] Usuário não autenticado tentando acessar: ${url} - redirecionando para /login`);
+      return res.redirect('/login');
+    }
+    
+    // Se autenticado, continuar
+    next();
+  });
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
