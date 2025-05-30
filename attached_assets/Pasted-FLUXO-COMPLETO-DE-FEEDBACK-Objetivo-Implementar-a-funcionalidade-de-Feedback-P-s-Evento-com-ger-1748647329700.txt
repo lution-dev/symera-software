@@ -1,0 +1,124 @@
+FLUXO COMPLETO DE FEEDBACK]
+
+🎯 Objetivo
+Implementar a funcionalidade de Feedback Pós-Evento com geração de link público. A aba de feedback permanece privada, e o acesso público só ocorre via link gerado manualmente pelo organizador.
+
+📍 1. Aba “Feedback pós-evento” (privada)
+
+Esta aba estará dentro do evento, visível apenas para usuários logados com permissão de acesso ao evento.
+
+Nela deve conter:
+
+Informações e instruções sobre o formulário de feedback
+
+Um botão: “Gerar link de feedback”
+
+Após gerar:
+
+Exibir o link gerado: https://[domínio]/feedback/:feedbackId
+
+Botão de copiar link
+
+Botão para “visualizar como participante”
+
+📌 Regras:
+
+Esse link deve ser único por evento
+
+Pode ser regenerado se necessário (com um novo feedbackId)
+
+O feedbackId gerado deve estar salvo no banco de dados e associado ao evento
+
+🌐 2. Rota pública /feedback/:feedbackId
+
+Acesso sem login
+
+Essa é a única página pública permitida
+
+Deve conter:
+
+Nome e imagem de capa do evento
+
+Título: “Envie seu feedback sobre este evento”
+
+Formulário:
+
+Nome (opcional)
+
+E-mail (opcional)
+
+Avaliação de 1 a 5 estrelas
+
+Comentário (texto)
+
+Botão: “Enviar feedback”
+
+Mensagem de confirmação após envio
+
+Design limpo, sem:
+
+Sidebar
+
+Header de usuário
+
+Menu mobile
+
+🔐 3. Segurança e Proteção
+
+Apenas a rota /feedback/:feedbackId é pública
+
+Todas as outras rotas exigem autenticação e redirecionam para /auth
+
+O link público não pode expor dados do usuário logado
+
+Se tentar acessar /feedback/:feedbackId com sessão ativa, o app deve ignorar o contexto do usuário
+
+Nenhum dado de sessão deve ser carregado nesta tela
+
+💾 4. Armazenamento
+
+Criar tabela eventFeedbacks com os campos:
+
+id (UUID)
+
+eventId (referência ao evento)
+
+feedbackId (string pública gerada)
+
+name (string, opcional)
+
+email (string, opcional)
+
+rating (1 a 5)
+
+comment (text)
+
+createdAt (timestamp)
+
+🎨 5. Design
+
+Aplicar as cores e gradiente oficiais da Symera
+
+Fontes:
+
+Títulos: Sora
+
+Textos e inputs: Work Sans
+
+Responsivo
+
+Corrigir contraste: evitar fundo branco puro com textos claros
+
+Layout limpo para a página de feedback
+
+✅ Resumo final
+
+A aba “Feedback pós-evento” é privada
+
+Só o link gerado é público, via /feedback/:feedbackId
+
+Nenhum dado de sessão deve ser carregado na tela pública
+
+Feedbacks são salvos com segurança e vinculados ao evento
+
+Design consistente com o sistema e responsivo
