@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -33,8 +34,15 @@ import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, [key: string]: any }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, error } = useAuth();
   const [, navigate] = useLocation();
+
+  // Force redirect on authentication error
+  React.useEffect(() => {
+    if (!isLoading && (!isAuthenticated || error)) {
+      window.location.href = "/auth";
+    }
+  }, [isAuthenticated, isLoading, error]);
 
   if (isLoading) {
     return (
@@ -44,8 +52,8 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
     );
   }
 
-  if (!isAuthenticated) {
-    // Redirecionar para /auth conforme documentação do Replit Auth
+  if (!isAuthenticated || error) {
+    // Force immediate redirect
     window.location.href = "/auth";
     return null;
   }
