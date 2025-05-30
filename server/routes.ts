@@ -104,8 +104,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
     
-    // Permitir assets estáticos
-    if (url.startsWith('/uploads/') || url.startsWith('/assets/') || url.includes('.')) {
+    // Permitir assets estáticos e recursos do Vite
+    if (url.startsWith('/uploads/') || 
+        url.startsWith('/assets/') || 
+        url.startsWith('/@') || // Recursos do Vite como /@vite/client, /@react-refresh
+        url.startsWith('/src/') || // Arquivos fonte do React
+        url.includes('.js') ||
+        url.includes('.css') ||
+        url.includes('.tsx') ||
+        url.includes('.ts') ||
+        url.includes('.map') ||
+        url.includes('.ico')) {
       return next();
     }
     
