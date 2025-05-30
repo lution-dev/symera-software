@@ -30,6 +30,7 @@ import ProfileConfigAparencia from "@/pages/ProfileConfigAparencia";
 import ProfileConfigSeguranca from "@/pages/ProfileConfigSeguranca";
 import Auth from "@/pages/Auth";
 import LoginPage from "@/pages/LoginPage";
+import PublicFeedback from "@/pages/PublicFeedback";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -82,6 +83,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
+      <Route path="/feedback/:feedbackId" component={PublicFeedback} />
 
       <Route path="/auth" component={Auth} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
