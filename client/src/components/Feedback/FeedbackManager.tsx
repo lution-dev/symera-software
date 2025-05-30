@@ -37,15 +37,20 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
 
   // Gerar link de feedback
   const generateLinkMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/events/${eventId}/generate-feedback-link`, { method: 'POST' }),
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/events/${eventId}/generate-feedback-link`, { method: 'POST' });
+      return response;
+    },
     onSuccess: (data: { feedbackUrl: string }) => {
+      console.log('Resposta do servidor:', data);
       setGeneratedLink(data.feedbackUrl);
       toast({
         title: "Link gerado com sucesso!",
         description: "O link de feedback foi criado e está pronto para ser compartilhado.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Erro ao gerar link:', error);
       toast({
         title: "Erro ao gerar link",
         description: "Não foi possível gerar o link de feedback. Tente novamente.",
