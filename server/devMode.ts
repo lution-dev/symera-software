@@ -1,20 +1,36 @@
 // Configuração e utilidades para o modo de desenvolvimento
 import type { Request, Response, NextFunction } from "express";
 
-// Middleware de login manual em desenvolvimento
+// Middleware de login automático em desenvolvimento
 export const devModeAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // Verificar se já está autenticado via Replit
-  if (req.isAuthenticated()) {
+  // Se não está autenticado e está em desenvolvimento, fazer login automático
+  if (!req.isAuthenticated() && process.env.NODE_ENV === 'development') {
+    // Simular usuário logado
+    const mockUser = {
+      claims: {
+        sub: '8650891',
+        email: 'applution@gmail.com', 
+        first_name: 'Dev',
+        last_name: 'User',
+        profile_image_url: undefined
+      },
+      access_token: 'dev-token',
+      refresh_token: 'dev-refresh',
+      expires_at: Date.now() + 86400000
+    };
+
+    // Fazer login do usuário
+    req.logIn(mockUser, (err) => {
+      if (err) {
+        console.error('Erro no login de desenvolvimento:', err);
+        return next();
+      }
+      console.log('Login de desenvolvimento realizado para:', mockUser.claims.email);
+      return next();
+    });
+  } else {
     return next();
   }
-  
-  // Verificar se há uma sessão de desenvolvimento ativa
-  if (req.session && (req.session as any).devIsAuthenticated) {
-    return next();
-  }
-  
-  // Se não está autenticado, apenas continuar
-  return next();
 };
 
 // Middleware de autenticação que verifica se o usuário está logado

@@ -34,16 +34,12 @@ import SimpleLogin from "@/pages/SimpleLogin";
 import DemoProfile from "@/pages/DemoProfile";
 import DemoApp from "@/pages/DemoApp";
 import NotFound from "@/pages/not-found";
-import PublicFeedback from "@/pages/PublicFeedback";
 import { useAuth } from "@/hooks/useAuth";
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, [key: string]: any }) {
   const { isAuthenticated, isLoading } = useAuth();
-  const [location, navigate] = useLocation();
+  const [, navigate] = useLocation();
 
-  // Verificar se o usuário veio de uma rota pública e não está autenticado
-  const cameFromPublicRoute = sessionStorage.getItem('cameFromPublicRoute') === 'true';
-  
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-purple-900">
@@ -53,17 +49,9 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
   }
 
   if (!isAuthenticated) {
-    // Limpar qualquer indicação de rota pública
-    sessionStorage.removeItem('cameFromPublicRoute');
-    
-    // Redirecionar para login
+    // Usar navigate em vez de window.location para manter a SPA
     navigate("/login");
     return null;
-  }
-
-  // Se o usuário veio de uma rota pública mas agora está autenticado, limpar o flag
-  if (cameFromPublicRoute) {
-    sessionStorage.removeItem('cameFromPublicRoute');
   }
 
   return <Component {...rest} />;
@@ -78,7 +66,6 @@ function Router() {
       <Route path="/demo-profile" component={DemoProfile} />
       <Route path="/demo" component={DemoApp} />
       <Route path="/auth" component={Auth} />
-      <Route path="/feedback/:eventId" component={PublicFeedback} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
       <Route path="/events/new" component={() => <ProtectedRoute component={CreateEvent} />} />
@@ -118,23 +105,14 @@ function App() {
     window.location.href = '/login';
     return null;
   }
-
-  // Verificar se é uma rota pública (feedback)
-  const isPublicRoute = window.location.pathname.startsWith('/feedback/');
   
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        {isPublicRoute ? (
-          // Rotas públicas sem layout (sidebar/menu)
+        <Layout>
           <Router />
-        ) : (
-          // Rotas autenticadas com layout completo
-          <Layout>
-            <Router />
-          </Layout>
-        )}
+        </Layout>
       </TooltipProvider>
     </QueryClientProvider>
   );

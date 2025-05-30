@@ -5,7 +5,7 @@ import path from "path";
 import multer from "multer";
 import fs from "fs";
 import { storage as dbStorage } from "./storage";
-import { db, pool } from "./db";
+import { db } from "./db";
 import { events, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -85,34 +85,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ativar autenticação de desenvolvimento para ambiente de preview
   app.use(devModeAuth);
   
-  // Login de teste rápido
-  app.post('/api/auth/quick-login', async (req, res) => {
-    try {
-      // Simular login usando o sistema do Passport
-      const mockUser = {
-        claims: {
-          sub: "8650891",
-          email: "applution@gmail.com",
-          first_name: "Lucas",
-          last_name: "Pires"
-        }
-      };
-      
-      req.logIn(mockUser, (err) => {
-        if (err) {
-          console.error("Erro no login rápido:", err);
-          return res.status(500).json({ message: "Erro no login" });
-        }
-        
-        console.log("Login rápido realizado com sucesso");
-        res.json({ message: "Login realizado com sucesso" });
-      });
-    } catch (error) {
-      console.error("Erro no login rápido:", error);
-      res.status(500).json({ message: "Erro interno" });
-    }
-  });
-
   // Login alternativo temporário para contornar problemas do Replit Auth
   app.post('/api/auth/dev-login', async (req, res) => {
     try {
@@ -3233,175 +3205,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  // Middleware para garantir que rotas de feedback sejam verdadeiramente públicas
-  const ensurePublicRoute = (req: any, res: any, next: any) => {
-    // Limpar qualquer sessão ou dados de usuário para rotas públicas
-    req.user = null;
-    req.session = null;
-    next();
-  };
-
-  // === ROTAS PÚBLICAS DE FEEDBACK ===
-  
-  // Rota para buscar dados públicos do evento para a página de feedback
-  app.get('/api/feedback/:eventId/event', ensurePublicRoute, async (req, res) => {
-    try {
-      const eventId = parseInt(req.params.eventId, 10);
-      
-      if (isNaN(eventId)) {
-        return res.status(400).json({ message: "ID de evento inválido" });
-      }
-      
-      // Buscar apenas dados públicos do evento
-      const [event] = await db
-        .select({
-          id: events.id,
-          name: events.name,
-          startDate: events.startDate,
-          endDate: events.endDate,
-          startTime: events.startTime,
-          endTime: events.endTime,
-          location: events.location,
-          description: events.description,
-          coverImageUrl: events.coverImageUrl,
-          type: events.type,
-        })
-        .from(events)
-        .where(eq(events.id, eventId));
-      
-      if (!event) {
-        return res.status(404).json({ message: "Evento não encontrado" });
-      }
-      
-      res.json(event);
-    } catch (error) {
-      console.error("Erro ao buscar dados do evento para feedback:", error);
-      res.status(500).json({ message: "Falha ao buscar dados do evento" });
-    }
-  });
-
-  // Rota para enviar feedback público (sem autenticação)
-  app.post('/api/feedback/:eventId', ensurePublicRoute, async (req, res) => {
-    try {
-      const eventId = parseInt(req.params.eventId, 10);
-      
-      if (isNaN(eventId)) {
-        return res.status(400).json({ message: "ID de evento inválido" });
-      }
-      
-      // Validar dados do feedback
-      const { name, rating, comment } = req.body;
-      
-      if (!rating || rating < 1 || rating > 5) {
-        return res.status(400).json({ message: "Avaliação deve ser entre 1 e 5 estrelas" });
-      }
-      
-      if (!comment || comment.trim().length === 0) {
-        return res.status(400).json({ message: "Comentário é obrigatório" });
-      }
-      
-      // Verificar se o evento existe
-      const [event] = await db
-        .select({ id: events.id })
-        .from(events)
-        .where(eq(events.id, eventId));
-        
-      if (!event) {
-        return res.status(404).json({ message: "Evento não encontrado" });
-      }
-      
-      // Rate limiting simples por IP
-      const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
-      
-      // Verificar submissões nas últimas 24 horas do mesmo IP
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      
-      const recentSubmissions = await db.execute(`
-        SELECT COUNT(*) as count 
-        FROM event_feedbacks 
-        WHERE event_id = $1 AND ip_address = $2 AND created_at > $3
-      `, [eventId, clientIp, twentyFourHoursAgo]);
-      
-      if (recentSubmissions.rows[0]?.count >= 3) {
-        return res.status(429).json({ 
-          message: "Muitos feedbacks enviados. Tente novamente em 24 horas." 
-        });
-      }
-      
-      // Inserir feedback
-      const isAnonymous = !name || name.trim().length === 0;
-      
-      const newFeedback = await db.execute(`
-        INSERT INTO event_feedbacks (event_id, name, rating, comment, anonymous, ip_address)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id
-      `, [
-        eventId,
-        isAnonymous ? null : name.trim(),
-        rating,
-        comment.trim(),
-        isAnonymous,
-        clientIp
-      ]);
-      
-      res.status(201).json({ 
-        message: "Feedback enviado com sucesso!",
-        id: newFeedback.rows[0].id
-      });
-      
-    } catch (error) {
-      console.error("Erro ao enviar feedback:", error);
-      res.status(500).json({ message: "Falha ao enviar feedback" });
-    }
-  });
-
-  // Rota para buscar feedbacks de um evento (para administradores)
-  app.get('/api/events/:eventId/feedbacks', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const eventId = parseInt(req.params.eventId, 10);
-      
-      if (isNaN(eventId)) {
-        return res.status(400).json({ message: "ID de evento inválido" });
-      }
-      
-      // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
-      if (!hasAccess) {
-        return res.status(403).json({ message: "Você não tem acesso a este evento" });
-      }
-      
-      // Buscar feedbacks do evento usando o pool diretamente
-      const feedbackResult = await pool.query(`
-        SELECT id, name, rating, comment, anonymous, created_at 
-        FROM event_feedbacks 
-        WHERE event_id = $1 
-        ORDER BY created_at DESC
-      `, [eventId]);
-      
-      // Calcular estatísticas
-      const statsResult = await pool.query(`
-        SELECT 
-          COUNT(*) as total_feedbacks,
-          AVG(rating::numeric) as average_rating,
-          COUNT(CASE WHEN rating >= 4 THEN 1 END) as positive_feedbacks,
-          COUNT(CASE WHEN rating <= 2 THEN 1 END) as negative_feedbacks
-        FROM event_feedbacks 
-        WHERE event_id = $1
-      `, [eventId]);
-      
-      res.json({
-        feedbacks: feedbackResult.rows,
-        stats: statsResult.rows[0]
-      });
-      
-    } catch (error) {
-      console.error("Erro ao buscar feedbacks:", error);
-      res.status(500).json({ message: "Falha ao buscar feedbacks" });
     }
   });
 
