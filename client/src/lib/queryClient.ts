@@ -87,8 +87,9 @@ export const getQueryFn: <T>(options: {
       console.log(`[Debug] Resposta da requisição ${url}: status=${res.status}`);
 
       if (res.status === 401) {
-        console.log("[Debug] 401 detectado em", url, "- retornando array vazio");
-        return []; // Always return empty array for 401s too
+        console.log("[Debug] 401 detectado em", url, "- redirecionando para /auth");
+        window.location.href = '/auth';
+        return [];
       }
       
       if (!res.ok) {
