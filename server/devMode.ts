@@ -1,10 +1,19 @@
 // Configuração e utilidades para o modo de desenvolvimento
 import type { Request, Response, NextFunction } from "express";
 
-// Middleware de login automático em desenvolvimento - DESATIVADO para segurança
+// Middleware de login manual em desenvolvimento
 export const devModeAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // DESATIVADO: Não fazer login automático para manter segurança
-  // Apenas passar para o próximo middleware
+  // Verificar se já está autenticado via Replit
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  
+  // Verificar se há uma sessão de desenvolvimento ativa
+  if (req.session && (req.session as any).devIsAuthenticated) {
+    return next();
+  }
+  
+  // Se não está autenticado, apenas continuar
   return next();
 };
 

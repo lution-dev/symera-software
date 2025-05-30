@@ -85,6 +85,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ativar autenticação de desenvolvimento para ambiente de preview
   app.use(devModeAuth);
   
+  // Login de teste rápido
+  app.post('/api/auth/quick-login', async (req, res) => {
+    try {
+      // Simular login usando o sistema do Passport
+      const mockUser = {
+        claims: {
+          sub: "8650891",
+          email: "applution@gmail.com",
+          first_name: "Lucas",
+          last_name: "Pires"
+        }
+      };
+      
+      req.logIn(mockUser, (err) => {
+        if (err) {
+          console.error("Erro no login rápido:", err);
+          return res.status(500).json({ message: "Erro no login" });
+        }
+        
+        console.log("Login rápido realizado com sucesso");
+        res.json({ message: "Login realizado com sucesso" });
+      });
+    } catch (error) {
+      console.error("Erro no login rápido:", error);
+      res.status(500).json({ message: "Erro interno" });
+    }
+  });
+
   // Login alternativo temporário para contornar problemas do Replit Auth
   app.post('/api/auth/dev-login', async (req, res) => {
     try {
