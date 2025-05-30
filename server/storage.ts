@@ -11,6 +11,7 @@ import {
   scheduleItems,
   documents,
   participants,
+  eventFeedbacks,
   type User,
   type Event,
   type Task,
@@ -21,6 +22,7 @@ import {
   type Expense,
   type Document,
   type Participant,
+  type EventFeedback,
   type UpsertUser,
   type InsertEvent,
   type InsertTask,
@@ -33,6 +35,7 @@ import {
   type InsertExpense,
   type InsertDocument,
   type InsertParticipant,
+  type InsertEventFeedback,
   type TaskReminder,
   type InsertTaskReminder,
 } from "@shared/schema";
@@ -168,6 +171,13 @@ export interface IStorage {
   updateParticipant(id: number, participant: Partial<InsertParticipant>): Promise<Participant>;
   deleteParticipant(id: number): Promise<void>;
   getParticipantStats(eventId: number): Promise<{ total: number; confirmed: number; pending: number }>;
+  
+  // Feedback operations
+  getFeedbacksByEventId(eventId: number): Promise<EventFeedback[]>;
+  getFeedbackByFeedbackId(feedbackId: string): Promise<(EventFeedback & { event: Event }) | undefined>;
+  createFeedback(feedback: InsertEventFeedback): Promise<EventFeedback>;
+  generateFeedbackLink(eventId: number): Promise<string>;
+  getEventByFeedbackId(feedbackId: string): Promise<Event | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1263,6 +1273,98 @@ export class DatabaseStorage implements IStorage {
       const pending = eventParticipants.filter(p => p.status === 'pending').length;
       
       return { total, confirmed, pending };
+    });
+  }
+
+  // Feedback operations
+  async getFeedbacksByEventId(eventId: number): Promise<EventFeedback[]> {
+    return executeWithRetry(async () => {
+      const feedbacks = await db
+        .select()
+        .from(eventFeedbacks)
+        .where(eq(eventFeedbacks.eventId, eventId))
+        .orderBy(desc(eventFeedbacks.createdAt));
+      
+      return feedbacks;
+    });
+  }
+
+  async getFeedbackByFeedbackId(feedbackId: string): Promise<(EventFeedback & { event: Event }) | undefined> {
+    return executeWithRetry(async () => {
+      const [result] = await db
+        .select({
+          id: eventFeedbacks.id,
+          eventId: eventFeedbacks.eventId,
+          feedbackId: eventFeedbacks.feedbackId,
+          name: eventFeedbacks.name,
+          email: eventFeedbacks.email,
+          rating: eventFeedbacks.rating,
+          comment: eventFeedbacks.comment,
+          createdAt: eventFeedbacks.createdAt,
+          event: events
+        })
+        .from(eventFeedbacks)
+        .innerJoin(events, eq(eventFeedbacks.eventId, events.id))
+        .where(eq(eventFeedbacks.feedbackId, feedbackId));
+      
+      return result;
+    });
+  }
+
+  async createFeedback(feedbackData: InsertEventFeedback): Promise<EventFeedback> {
+    return executeWithRetry(async () => {
+      const [feedback] = await db
+        .insert(eventFeedbacks)
+        .values(feedbackData)
+        .returning();
+      
+      return feedback;
+    });
+  }
+
+  async generateFeedbackLink(eventId: number): Promise<string> {
+    return executeWithRetry(async () => {
+      // Gerar um ID único para o feedback
+      const feedbackId = `feedback_${eventId}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      
+      // Verificar se já existe um feedbackId para este evento
+      const existingFeedback = await db
+        .select()
+        .from(eventFeedbacks)
+        .where(eq(eventFeedbacks.eventId, eventId))
+        .limit(1);
+      
+      if (existingFeedback.length > 0) {
+        // Se já existe, retornar o feedbackId existente
+        return existingFeedback[0].feedbackId;
+      }
+      
+      // Criar um registro de feedback apenas com o feedbackId e eventId
+      // Os outros campos serão preenchidos quando alguém enviar o feedback
+      await db
+        .insert(eventFeedbacks)
+        .values({
+          eventId,
+          feedbackId,
+          rating: 5, // valor padrão temporário
+          comment: 'Link gerado - aguardando feedback', // comentário temporário
+        });
+      
+      return feedbackId;
+    });
+  }
+
+  async getEventByFeedbackId(feedbackId: string): Promise<Event | undefined> {
+    return executeWithRetry(async () => {
+      const [result] = await db
+        .select({
+          event: events
+        })
+        .from(eventFeedbacks)
+        .innerJoin(events, eq(eventFeedbacks.eventId, events.id))
+        .where(eq(eventFeedbacks.feedbackId, feedbackId));
+      
+      return result?.event;
     });
   }
 }

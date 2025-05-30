@@ -3161,5 +3161,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Feedback routes
+  // GET /api/events/:id/feedbacks - Get feedbacks for event (private)
+  app.get('/api/events/:id/feedbacks', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.id;
+      
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Acesso negado ao evento" });
+      }
+      
+      const feedbacks = await dbStorage.getFeedbacksByEventId(eventId);
+      res.json(feedbacks);
+    } catch (error) {
+      console.error("Erro ao buscar feedbacks:", error);
+      res.status(500).json({ message: "Erro ao buscar feedbacks" });
+    }
+  });
+
+  // POST /api/events/:id/generate-feedback-link - Generate feedback link (private)
+  app.post('/api/events/:id/generate-feedback-link', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.id;
+      
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Acesso negado ao evento" });
+      }
+      
+      const feedbackId = await dbStorage.generateFeedbackLink(eventId);
+      const feedbackUrl = `${req.protocol}://${req.get('host')}/feedback/${feedbackId}`;
+      
+      res.json({ 
+        feedbackId,
+        feedbackUrl
+      });
+    } catch (error) {
+      console.error("Erro ao gerar link de feedback:", error);
+      res.status(500).json({ message: "Erro ao gerar link de feedback" });
+    }
+  });
+
+  // GET /api/feedback/:feedbackId/event - Get event info for public feedback page
+  app.get('/api/feedback/:feedbackId/event', async (req, res) => {
+    try {
+      const { feedbackId } = req.params;
+      
+      const event = await dbStorage.getEventByFeedbackId(feedbackId);
+      if (!event) {
+        return res.status(404).json({ message: "Link de feedback inválido" });
+      }
+      
+      // Retornar apenas as informações necessárias para a página pública
+      res.json({
+        id: event.id,
+        name: event.name,
+        coverImageUrl: event.coverImageUrl,
+        type: event.type
+      });
+    } catch (error) {
+      console.error("Erro ao buscar evento pelo feedbackId:", error);
+      res.status(500).json({ message: "Erro ao buscar informações do evento" });
+    }
+  });
+
+  // POST /api/feedback/:feedbackId - Submit feedback (public)
+  app.post('/api/feedback/:feedbackId', async (req, res) => {
+    try {
+      const { feedbackId } = req.params;
+      const { name, email, rating, comment } = req.body;
+      
+      // Validar dados obrigatórios
+      if (!rating || !comment) {
+        return res.status(400).json({ message: "Avaliação e comentário são obrigatórios" });
+      }
+      
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Avaliação deve ser entre 1 e 5 estrelas" });
+      }
+      
+      // Verificar se o feedbackId existe e obter o eventId
+      const event = await dbStorage.getEventByFeedbackId(feedbackId);
+      if (!event) {
+        return res.status(404).json({ message: "Link de feedback inválido" });
+      }
+      
+      // Criar o feedback
+      const feedback = await dbStorage.createFeedback({
+        eventId: event.id,
+        feedbackId,
+        name: name || null,
+        email: email || null,
+        rating: parseInt(rating),
+        comment
+      });
+      
+      res.json({ 
+        message: "Feedback enviado com sucesso!",
+        feedback: {
+          id: feedback.id,
+          rating: feedback.rating,
+          comment: feedback.comment,
+          createdAt: feedback.createdAt
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao enviar feedback:", error);
+      res.status(500).json({ message: "Erro ao enviar feedback" });
+    }
+  });
+
   return app;
 }

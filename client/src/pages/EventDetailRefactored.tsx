@@ -12,6 +12,7 @@ import { ExpenseList } from "@/components/Finance/ExpenseList";
 import { ExpenseListFixed } from "@/components/Finance/ExpenseListFixed";
 import { DocumentManager } from "@/components/Documents/DocumentManager";
 import { ParticipantsList } from "@/components/ParticipantsList";
+import { FeedbackManager } from "@/components/Feedback/FeedbackManager";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -1096,37 +1097,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           
           {/* Feedback pós-evento */}
           {activeSection === "feedback" && (
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-                <h2 className="text-xl font-semibold">Feedback pós-evento</h2>
-                <Button variant="default" className="w-full sm:w-auto">
-                  <i className="fas fa-paper-plane mr-2"></i> Enviar Pesquisa
-                </Button>
-              </div>
-              
-              <div className="bg-card rounded-lg border border-border p-6">
-                <div className="mb-6">
-                  <h3 className="font-medium mb-2">Resumo de Feedbacks</h3>
-                  <p className="text-sm text-muted-foreground">Colete feedbacks sobre o evento após sua realização</p>
-                </div>
-                
-                <div className="text-center py-8">
-                  <i className="fas fa-comment-alt text-3xl text-muted-foreground/50 mb-3"></i>
-                  <h3 className="font-medium text-lg mb-2">Nenhum feedback recebido</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {event.startDate && getRemainingDays(event.startDate) > 0 ? 
-                      `O evento acontecerá em ${getRemainingDays(event.startDate)} dias. Os feedbacks serão coletados após o evento.` : 
-                      'Envie um formulário de feedback para os participantes avaliarem o evento.'
-                    }
-                  </p>
-                  {event.startDate && getRemainingDays(event.startDate) <= 0 && (
-                    <Button variant="default">
-                      <i className="fas fa-paper-plane mr-2"></i> Enviar Pesquisa de Feedback
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <FeedbackManager eventId={Number(eventId)} />
           )}
         </div>
       </div>
