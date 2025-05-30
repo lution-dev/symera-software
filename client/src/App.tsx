@@ -45,8 +45,8 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
   }
 
   if (!isAuthenticated) {
-    // Usar navigate em vez de window.location para manter a SPA
-    navigate("/login");
+    // Redirecionar para /auth conforme documentação do Replit Auth
+    navigate("/auth");
     return null;
   }
 
