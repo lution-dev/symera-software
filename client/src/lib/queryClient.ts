@@ -87,8 +87,14 @@ export const getQueryFn: <T>(options: {
       console.log(`[Debug] Resposta da requisição ${url}: status=${res.status}`);
 
       if (res.status === 401) {
-        console.log("[Debug] 401 detectado em", url, "- redirecionando para /auth");
-        window.location.href = '/auth';
+        console.log("[Debug] 401 detectado em", url);
+        // Só redireciona se não estivermos já na página de auth
+        if (!window.location.pathname.includes('/auth')) {
+          console.log("[Debug] Redirecionando para /auth");
+          window.location.replace('/auth');
+          throw new Error('Unauthorized - redirecting to auth');
+        }
+        console.log("[Debug] Já na página de auth, retornando array vazio");
         return [];
       }
       
