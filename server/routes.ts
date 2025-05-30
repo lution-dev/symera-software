@@ -9,7 +9,7 @@ import { db } from "./db";
 import { events, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { devModeAuth, ensureDevAuth } from "./devMode";
+
 import { 
   insertEventSchema,
   insertTaskSchema,
@@ -85,47 +85,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Desabilitado: autenticação de desenvolvimento automática
   // app.use(devModeAuth);
   
-  // Login alternativo temporário para contornar problemas do Replit Auth
-  app.post('/api/auth/dev-login', async (req, res) => {
-    try {
-      const { email } = req.body;
-      
-      if (!email) {
-        return res.status(400).json({ message: "Email é obrigatório" });
-      }
-      
-      // Criar ou buscar usuário pelo e-mail
-      const user = await dbStorage.findOrCreateUserByEmail(email);
-      
-      // Armazenar na sessão
-      req.session.devUserId = user.id;
-      req.session.devIsAuthenticated = true;
-      await new Promise<void>((resolve) => {
-        req.session.save(() => resolve());
-      });
-      
-      console.log(`Login de desenvolvimento bem-sucedido para: ${email} (ID: ${user.id})`);
-      
-      return res.status(200).json({ 
-        success: true,
-        user
-      });
-    } catch (error) {
-      console.error("Erro no login de desenvolvimento:", error);
-      return res.status(500).json({ message: "Erro no processo de login" });
-    }
-  });
 
-  // Auth routes - Versão melhorada com suporte a persistência de sessão
-  app.get('/api/auth/user', async (req: any, res) => {
+
+  // Auth routes - Requer autenticação obrigatória
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       console.log("Verificando autenticação do usuário:");
       console.log("- Session ID:", req.sessionID);
       console.log("- Is Authenticated:", req.isAuthenticated());
-      
-      // Limpar qualquer autenticação de desenvolvimento
-      req.session.devIsAuthenticated = false;
-      req.session.devUserId = undefined;
       
       // Verificar se o usuário está autenticado via Replit Auth
       if (req.isAuthenticated() && req.user?.claims?.sub) {
@@ -138,7 +105,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("- Usuário encontrado no banco de dados");
           return res.json(user);
         } else {
-          console.log("- Usuário não encontrado no banco de dados");
+          console.log("- Usuário não encontrado no banco de dados, criando novo usuário");
+          // Criar usuário se não existir
+          const newUser = await dbStorage.createUser({
+            id: userId,
+            name: req.user.claims.name || req.user.claims.email || 'Usuário',
+            email: req.user.claims.email || '',
+            role: 'user'
+          });
+          return res.json(newUser);
         }
       }
       
@@ -152,22 +127,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Events routes
-  app.get('/api/events', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/events', isAuthenticated, async (req: any, res) => {
     try {
-      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
-      let userId;
-      
-      if (req.session.devIsAuthenticated && req.session.devUserId) {
-        // Usar ID da sessão de desenvolvimento
-        userId = req.session.devUserId;
-        console.log("Usando ID de desenvolvimento para buscar eventos:", userId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
-        // Usar ID da autenticação Replit
-        userId = req.user.claims.sub;
-        console.log("Usando ID de autenticação Replit para buscar eventos:", userId);
-      } else {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      // Obter ID do usuário da autenticação Replit
+      const userId = req.user.claims.sub;
+      console.log("Usando ID de autenticação Replit para buscar eventos:", userId);
       
       const events = await dbStorage.getEventsByUser(userId);
       
@@ -185,22 +149,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/events/:id', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
-      let userId;
-      
-      if (req.session.devIsAuthenticated && req.session.devUserId) {
-        // Usar ID da sessão de desenvolvimento
-        userId = req.session.devUserId;
-        console.log("Usando ID de desenvolvimento para acessar evento:", req.params.id);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
-        // Usar ID da autenticação Replit
-        userId = req.user.claims.sub;
-      } else {
-        console.log("Erro na autenticação do usuário ao acessar evento:", req.params.id);
-        return res.status(401).json({ message: "User not authenticated properly" });
-      }
+      // Obter ID do usuário da autenticação Replit
+      const userId = req.user.claims.sub;
+      console.log("Usando ID de autenticação Replit para acessar evento:", req.params.id);
       
       const eventId = parseInt(req.params.id, 10);
       
@@ -594,7 +547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/events/:id', ensureDevAuth, async (req: any, res) => {
+  app.delete('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
@@ -638,7 +591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Task routes
   // Endpoint para buscar os responsáveis de uma tarefa
-  app.get('/api/tasks/:taskId/assignees', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/tasks/:taskId/assignees', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.taskId, 10);
@@ -672,7 +625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint para buscar uma tarefa específica pelo ID
-  app.get('/api/tasks/:id', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.id, 10);
@@ -703,7 +656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint para atualizar uma tarefa específica
-  app.put('/api/tasks/:id', ensureDevAuth, async (req: any, res) => {
+  app.put('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.id, 10);
@@ -755,7 +708,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint para buscar todas as tarefas do usuário
-  app.get('/api/tasks', ensureDevAuth, async (req: any, res) => {
+  app.get('/api/tasks', isAuthenticated, async (req: any, res) => {
     try {
       console.log('Buscando todas as tarefas do usuário');
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
