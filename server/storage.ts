@@ -677,23 +677,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async hasUserAccessToEvent(userId: string, eventId: number): Promise<boolean> {
-    // Check if user is owner
-    const [event] = await db
-      .select()
-      .from(events)
-      .where(
-        and(
-          eq(events.id, eventId),
-          eq(events.ownerId, userId)
-        )
-      );
-    
-    if (event) {
-      return true;
-    }
-    
-    // Check if user is team member
-    return this.isUserTeamMember(userId, eventId);
+    return executeWithRetry(async () => {
+      // Check if user is owner
+      const [event] = await db
+        .select()
+        .from(events)
+        .where(
+          and(
+            eq(events.id, eventId),
+            eq(events.ownerId, userId)
+          )
+        );
+      
+      if (event) {
+        return true;
+      }
+      
+      // Check if user is team member
+      return this.isUserTeamMember(userId, eventId);
+    });
   }
 
   // Vendor operations

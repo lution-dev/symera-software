@@ -3188,14 +3188,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = req.user.id;
       
+      console.log(`Verificando acesso para usuário ${userId} ao evento ${eventId}`);
+      
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      console.log(`Usuário ${userId} tem acesso ao evento ${eventId}:`, hasAccess);
+      
       if (!hasAccess) {
+        console.log(`Acesso negado ao evento ${eventId} para usuário ${userId}`);
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
       
       const feedbackId = await dbStorage.generateFeedbackLink(eventId);
       const feedbackUrl = `${req.protocol}://${req.get('host')}/feedback/${feedbackId}`;
+      
+      console.log(`Link de feedback gerado para evento ${eventId}: ${feedbackUrl}`);
       
       res.json({ 
         feedbackId,
