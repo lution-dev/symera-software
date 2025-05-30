@@ -62,6 +62,23 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
 }
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Force redirect for unauthenticated users
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated && window.location.pathname !== '/auth' && window.location.pathname !== '/login') {
+      window.location.href = '/auth';
+    }
+  }, [isAuthenticated, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-purple-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
