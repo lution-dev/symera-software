@@ -82,8 +82,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
   
-  // Ativar autenticação de desenvolvimento para ambiente de preview
-  app.use(devModeAuth);
+  // Desabilitado: autenticação de desenvolvimento automática
+  // app.use(devModeAuth);
   
   // Login alternativo temporário para contornar problemas do Replit Auth
   app.post('/api/auth/dev-login', async (req, res) => {
