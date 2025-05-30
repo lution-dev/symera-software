@@ -29,10 +29,6 @@ import ProfileConfigAparencia from "@/pages/ProfileConfigAparencia";
 import ProfileConfigSeguranca from "@/pages/ProfileConfigSeguranca";
 import Auth from "@/pages/Auth";
 import LoginPage from "@/pages/LoginPage";
-import DevLogin from "@/pages/DevLogin";
-import SimpleLogin from "@/pages/SimpleLogin";
-import DemoProfile from "@/pages/DemoProfile";
-import DemoApp from "@/pages/DemoApp";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 
