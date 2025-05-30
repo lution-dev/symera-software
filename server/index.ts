@@ -42,7 +42,15 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Middleware de proteção CRÍTICO - aplicado antes do Vite
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // Middleware de proteção CRÍTICO - aplicado ANTES do Vite
   app.use((req, res, next) => {
     const url = req.originalUrl;
     
@@ -79,20 +87,22 @@ app.use((req, res, next) => {
     
     // Para todas as outras rotas, verificar autenticação
     if (!req.isAuthenticated()) {
-      console.log(`[SECURITY BLOCK] Usuário não autenticado tentando acessar: ${url} - redirecionando para /login`);
-      return res.redirect('/login');
+      console.log(`[SECURITY BLOCK] Bloqueando acesso não autorizado: ${url}`);
+      return res.status(401).send(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>Acesso Negado</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+        <h1>Acesso Negado</h1>
+        <p>Você precisa estar logado para acessar esta página.</p>
+        <script>window.location.href = '/login';</script>
+        </body>
+        </html>
+      `);
     }
     
     // Se autenticado, continuar
     next();
-  });
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after
