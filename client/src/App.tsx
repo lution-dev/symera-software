@@ -46,7 +46,7 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
 
   if (!isAuthenticated) {
     // Redirecionar para /auth conforme documentação do Replit Auth
-    navigate("/auth");
+    window.location.href = "/auth";
     return null;
   }
 
