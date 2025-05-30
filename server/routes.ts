@@ -3186,9 +3186,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:id/generate-feedback-link', isAuthenticated, async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      const userId = req.user.id;
+      const userId = req.session.userId || req.user?.id;
       
       console.log(`Verificando acesso para usuário ${userId} ao evento ${eventId}`);
+      console.log('req.user:', req.user);
+      console.log('req.session.userId:', req.session.userId);
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não identificado" });
+      }
       
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
