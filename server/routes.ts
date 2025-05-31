@@ -3307,19 +3307,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/events/:id/feedbacks - Buscar feedbacks do evento (autenticado)
+  app.get('/api/events/:id/feedbacks', async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.session.userId;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - Login Required" });
+      }
+
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Acesso negado ao evento" });
+      }
+
+      const feedbacks = await dbStorage.getEventFeedbacks(eventId);
+      res.json(feedbacks);
+    } catch (error) {
+      console.error("Erro ao buscar feedbacks:", error);
+      res.status(500).json({ message: "Erro ao buscar feedbacks" });
+    }
+  });
+
+  // DELETE /api/events/:eventId/feedbacks/:feedbackId - Excluir feedback (autenticado)
+  app.delete('/api/events/:eventId/feedbacks/:feedbackId', async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const feedbackId = parseInt(req.params.feedbackId);
+      const userId = req.session.userId;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - Login Required" });
+      }
+
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Acesso negado ao evento" });
+      }
+
+      await dbStorage.deleteFeedback(feedbackId);
+      res.json({ message: "Feedback excluído com sucesso" });
+    } catch (error) {
+      console.error("Erro ao excluir feedback:", error);
+      res.status(500).json({ message: "Erro ao excluir feedback" });
+    }
+  });
+
   // Rota pública para buscar informações do evento via feedbackId (sem autenticação)
   app.get('/api/feedback/:feedbackId/event', async (req, res) => {
     try {
       const { feedbackId } = req.params;
       
-      const feedback = await storage.getEventFeedbackByFeedbackId(feedbackId);
-      if (!feedback) {
+      const event = await dbStorage.getEventByFeedbackId(feedbackId);
+      if (!event) {
         return res.status(404).json({ message: "Link de feedback não encontrado ou expirado" });
       }
 
-      const event = await storage.getEventById(feedback.eventId);
-      if (!event) {
-        return res.status(404).json({ message: "Evento não encontrado" });
+      // Registrar métricas de visualização
+      try {
+        const ipAddress = req.ip || req.connection.remoteAddress;
+        const userAgent = req.get('User-Agent');
+        
+        await dbStorage.createFeedbackMetric({
+          feedbackId,
+          viewedAt: new Date(),
+          ipAddress,
+          userAgent
+        });
+      } catch (metricError) {
+        console.error("Erro ao registrar métrica de visualização:", metricError);
+        // Não falhar a requisição se a métrica falhar
       }
 
       res.json({

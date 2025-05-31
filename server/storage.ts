@@ -1439,6 +1439,36 @@ export class DatabaseStorage implements IStorage {
       return result;
     });
   }
+
+  async getEventFeedbacks(eventId: number): Promise<EventFeedback[]> {
+    return executeWithRetry(async () => {
+      const results = await db
+        .select({
+          id: eventFeedbacks.id,
+          eventId: eventFeedbacks.eventId,
+          feedbackId: eventFeedbacks.feedbackId,
+          name: eventFeedbacks.name,
+          email: eventFeedbacks.email,
+          rating: eventFeedbacks.rating,
+          comment: eventFeedbacks.comment,
+          isAnonymous: eventFeedbacks.isAnonymous,
+          createdAt: eventFeedbacks.createdAt
+        })
+        .from(eventFeedbacks)
+        .where(eq(eventFeedbacks.eventId, eventId))
+        .orderBy(desc(eventFeedbacks.createdAt));
+      
+      return results;
+    });
+  }
+
+  async deleteFeedback(feedbackId: number): Promise<void> {
+    return executeWithRetry(async () => {
+      await db
+        .delete(eventFeedbacks)
+        .where(eq(eventFeedbacks.id, feedbackId));
+    });
+  }
 }
 
 export const storage = new DatabaseStorage();
