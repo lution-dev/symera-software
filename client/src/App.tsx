@@ -67,7 +67,7 @@ function Router() {
 
   // Force redirect for unauthenticated users
   React.useEffect(() => {
-    if (!isLoading && !isAuthenticated && window.location.pathname !== '/auth' && window.location.pathname !== '/login') {
+    if (!isLoading && !isAuthenticated && window.location.pathname !== '/auth' && window.location.pathname !== '/login' && !window.location.pathname.startsWith('/feedback/')) {
       window.location.href = '/auth';
     }
   }, [isAuthenticated, isLoading]);
