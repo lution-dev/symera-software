@@ -171,6 +171,18 @@ export const eventFeedbacks = pgTable('event_feedbacks', {
   email: text('email'), // opcional
   rating: integer('rating').notNull(), // 1 a 5 estrelas
   comment: text('comment').notNull(),
+  isAnonymous: boolean('is_anonymous').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Tabela para métricas de feedback
+export const feedbackMetrics = pgTable('feedback_metrics', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  feedbackId: text('feedback_id').references(() => eventFeedbacks.feedbackId).notNull(),
+  viewedAt: timestamp('viewed_at'),
+  submittedAt: timestamp('submitted_at'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -199,10 +211,18 @@ export const participantsRelations = relations(participants, ({ one }) => ({
   }),
 }));
 
-export const eventFeedbacksRelations = relations(eventFeedbacks, ({ one }) => ({
+export const eventFeedbacksRelations = relations(eventFeedbacks, ({ one, many }) => ({
   event: one(events, {
     fields: [eventFeedbacks.eventId],
     references: [events.id],
+  }),
+  metrics: many(feedbackMetrics),
+}));
+
+export const feedbackMetricsRelations = relations(feedbackMetrics, ({ one }) => ({
+  feedback: one(eventFeedbacks, {
+    fields: [feedbackMetrics.feedbackId],
+    references: [eventFeedbacks.feedbackId],
   }),
 }));
 
@@ -220,6 +240,7 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({ createdAt
 export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true, createdAt: true, updatedAt: true, uploadedAt: true });
 export const insertParticipantSchema = createInsertSchema(participants).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertEventFeedbackSchema = createInsertSchema(eventFeedbacks).omit({ id: true, createdAt: true });
+export const insertFeedbackMetricsSchema = createInsertSchema(feedbackMetrics).omit({ id: true, createdAt: true });
 
 // Types para inserção
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -235,6 +256,7 @@ export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type InsertParticipant = z.infer<typeof insertParticipantSchema>;
 export type InsertEventFeedback = z.infer<typeof insertEventFeedbackSchema>;
+export type InsertFeedbackMetrics = z.infer<typeof insertFeedbackMetricsSchema>;
 
 // Types para seleção
 export type User = typeof users.$inferSelect;
@@ -250,6 +272,7 @@ export type Expense = typeof expenses.$inferSelect;
 export type Document = typeof documents.$inferSelect;
 export type Participant = typeof participants.$inferSelect;
 export type EventFeedback = typeof eventFeedbacks.$inferSelect;
+export type FeedbackMetrics = typeof feedbackMetrics.$inferSelect;
 
 // Adicionar as relações de eventos no final do arquivo após todas as definições de tabelas
 export const eventsRelations = relations(events, ({ one, many }) => ({
