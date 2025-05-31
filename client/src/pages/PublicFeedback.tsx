@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
+import { Calendar, Shield } from "lucide-react";
 
 const feedbackSchema = z.object({
   name: z.string().optional(),
@@ -151,10 +152,10 @@ export default function PublicFeedback() {
 
   if (!feedbackId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-sm border-white/20">
           <CardContent className="pt-6">
-            <p className="text-center text-gray-600">Link de feedback inválido.</p>
+            <p className="text-center text-white/80 font-work-sans">Link de feedback inválido.</p>
           </CardContent>
         </Card>
       </div>
@@ -163,10 +164,10 @@ export default function PublicFeedback() {
 
   if (isLoadingEvent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-sm border-white/20">
           <CardContent className="pt-6">
-            <p className="text-center text-gray-600">Carregando informações do evento...</p>
+            <p className="text-center text-white/80 font-work-sans">Carregando informações do evento...</p>
           </CardContent>
         </Card>
       </div>
@@ -175,10 +176,10 @@ export default function PublicFeedback() {
 
   if (!eventInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-sm border-white/20">
           <CardContent className="pt-6">
-            <p className="text-center text-gray-600">Evento não encontrado.</p>
+            <p className="text-center text-white/80 font-work-sans">Evento não encontrado.</p>
           </CardContent>
         </Card>
       </div>
@@ -187,15 +188,15 @@ export default function PublicFeedback() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center bg-white/10 backdrop-blur-sm border-white/20">
           <CardContent className="pt-6">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Obrigado!</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-2xl font-bold text-white font-sora mb-2">Obrigado!</h2>
+            <p className="text-white/80 mb-4 font-work-sans">
               Seu feedback sobre o evento "{eventInfo.name}" foi enviado com sucesso.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-white/60 font-work-sans">
               Sua opinião é muito importante para nós e nos ajuda a melhorar nossos eventos.
             </p>
           </CardContent>
@@ -205,18 +206,31 @@ export default function PublicFeedback() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl bg-white/10 backdrop-blur-sm border-white/20">
         <CardHeader className="text-center pb-6">
-          <div className="w-20 h-20 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
-            <span className="text-2xl">📝</span>
+          {/* Event Image */}
+          <div className="w-32 h-32 mx-auto mb-6 rounded-2xl overflow-hidden">
+            {eventInfo.coverImageUrl ? (
+              <img 
+                src={eventInfo.coverImageUrl} 
+                alt={eventInfo.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                <Calendar className="w-12 h-12 text-white/60" />
+              </div>
+            )}
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          
+          <CardTitle className="text-2xl font-bold text-white font-sora mb-4">
             Avalie o Evento
           </CardTitle>
-          <div className="mt-4 p-4 bg-white rounded-lg border">
-            <h3 className="font-semibold text-lg text-gray-900">{eventInfo.name}</h3>
-            <p className="text-sm text-gray-600 mt-1">
+          
+          <div className="mt-4 p-4 bg-white/10 rounded-lg border border-white/20">
+            <h3 className="font-semibold text-lg text-white font-sora">{eventInfo.name}</h3>
+            <p className="text-sm text-white/80 mt-1 font-work-sans">
               {getEventTypeLabel(eventInfo.type)}
             </p>
           </div>
@@ -231,13 +245,13 @@ export default function PublicFeedback() {
                 name="rating"
                 render={() => (
                   <FormItem>
-                    <FormLabel className="text-base font-semibold">
+                    <FormLabel className="text-base font-semibold text-white font-sora">
                       Como você avalia este evento? *
                     </FormLabel>
                     <FormControl>
                       <div className="flex flex-col items-center space-y-2">
                         {renderStarRating()}
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-white/60 font-work-sans">
                           {selectedRating === 0 && "Clique nas estrelas para avaliar"}
                           {selectedRating === 1 && "Muito ruim"}
                           {selectedRating === 2 && "Ruim"}
@@ -258,18 +272,18 @@ export default function PublicFeedback() {
                 name="comment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base font-semibold">
+                    <FormLabel className="text-base font-semibold text-white font-sora">
                       Conte-nos mais sobre sua experiência *
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Compartilhe detalhes sobre o que você achou do evento..."
+                        placeholder="Compartilhe o que achou do evento..."
                         {...field}
                         rows={4}
-                        className="resize-none"
+                        className="resize-none bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
                       />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-white/60 font-work-sans">
                       Mínimo de 10 caracteres
                     </FormDescription>
                     <FormMessage />
@@ -283,9 +297,13 @@ export default function PublicFeedback() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome (opcional)</FormLabel>
+                    <FormLabel className="text-white font-work-sans">Nome (opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Seu nome" {...field} />
+                      <Input 
+                        placeholder="Deixe em branco para permanecer anônimo" 
+                        {...field} 
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -298,25 +316,34 @@ export default function PublicFeedback() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email (opcional)</FormLabel>
+                    <FormLabel className="text-white font-work-sans">Email (opcional)</FormLabel>
                     <FormControl>
                       <Input 
                         type="email" 
-                        placeholder="seu@email.com" 
+                        placeholder="Opcional – só entraremos em contato se necessário" 
                         {...field} 
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
                       />
                     </FormControl>
-                    <FormDescription>
-                      Para caso queiramos entrar em contato sobre seu feedback
+                    <FormDescription className="text-white/60 text-sm font-work-sans">
+                      Opcional – só entraremos em contato se necessário
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* Privacy disclaimer */}
+              <div className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
+                <Shield className="w-4 h-4 text-white/60 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-white/70 font-work-sans">
+                  🔒 Seu feedback pode ser anônimo. Nenhuma informação pessoal será exibida publicamente.
+                </p>
+              </div>
+
               <Button 
                 type="submit" 
-                className="w-full bg-purple-600 hover:bg-purple-700"
+                className="w-full bg-purple-600 hover:bg-purple-700 font-work-sans font-semibold"
                 disabled={isSubmitting || selectedRating === 0}
               >
                 {isSubmitting ? "Enviando..." : "Enviar Feedback"}
