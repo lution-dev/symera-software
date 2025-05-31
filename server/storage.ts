@@ -40,7 +40,7 @@ import {
   type InsertTaskReminder,
 } from "@shared/schema";
 import { db, executeWithRetry } from "./db";
-import { eq, and, or, desc, gte, lte, sql } from "drizzle-orm";
+import { eq, and, or, desc, gte, lte, sql, isNotNull } from "drizzle-orm";
 
 // Sistema de cache em memória para reduzir consultas
 class MemoryCache {
