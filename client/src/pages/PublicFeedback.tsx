@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { Calendar, Shield } from "lucide-react";
+import { Calendar, Shield, Check } from "lucide-react";
 
 const feedbackSchema = z.object({
   name: z.string().optional(),
@@ -36,6 +37,7 @@ export default function PublicFeedback() {
   const [eventInfo, setEventInfo] = useState<EventInfo | null>(null);
   const [isLoadingEvent, setIsLoadingEvent] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(true);
 
   const form = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
@@ -83,8 +85,8 @@ export default function PublicFeedback() {
         body: JSON.stringify({
           ...data,
           rating: selectedRating,
-          email: data.email || undefined,
-          name: data.name || undefined,
+          email: isAnonymous ? undefined : data.email || undefined,
+          name: isAnonymous ? undefined : data.name || undefined,
         }),
       });
 
@@ -235,9 +237,12 @@ export default function PublicFeedback() {
         </div>
 
         <CardHeader className="text-center pb-6 pt-8">
-          <CardTitle className="text-2xl font-bold text-white font-sora mb-2">
+          <CardTitle className="text-2xl font-bold text-white font-sora mb-4">
             Avalie o Evento
           </CardTitle>
+          <p className="text-white/80 font-work-sans text-base leading-relaxed max-w-md mx-auto">
+            Seu feedback é muito importante para nós. Ele nos ajuda a melhorar os próximos eventos.
+          </p>
         </CardHeader>
         
         <CardContent>
@@ -295,57 +300,72 @@ export default function PublicFeedback() {
                 )}
               />
 
-              {/* Nome (opcional) */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-white font-work-sans">Nome (opcional)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Deixe em branco para permanecer anônimo" 
-                        {...field} 
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
-                      />
-                    </FormControl>
-                    <FormDescription className="text-white/60 text-sm font-work-sans">
-                      Deixe em branco para permanecer anônimo
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Toggle de Anonimato */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Switch
+                    id="anonymous-mode"
+                    checked={isAnonymous}
+                    onCheckedChange={setIsAnonymous}
+                    className="data-[state=checked]:bg-green-600"
+                  />
+                  <label htmlFor="anonymous-mode" className="text-white font-work-sans font-medium">
+                    Enviar como anônimo
+                  </label>
+                </div>
 
-              {/* Email (opcional) */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-white font-work-sans">Email (opcional)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="email" 
-                        placeholder="seu@email.com" 
-                        {...field} 
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
-                      />
-                    </FormControl>
-                    <FormDescription className="text-white/60 text-sm font-work-sans">
-                      Só entraremos em contato se necessário
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                {isAnonymous ? (
+                  /* Mensagem quando anônimo */
+                  <div className="flex items-start gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-green-200 font-work-sans">
+                      Seu feedback será enviado de forma anônima. Nenhuma informação pessoal será exibida publicamente.
+                    </p>
+                  </div>
+                ) : (
+                  /* Campos de identificação quando não anônimo */
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white font-work-sans">Nome (opcional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Digite seu nome completo" 
+                              {...field} 
+                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {/* Privacy disclaimer */}
-              <div className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
-                <Shield className="w-4 h-4 text-white/60 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-white/70 font-work-sans">
-                  🔒 Seu feedback pode ser anônimo. Nenhuma informação pessoal será exibida publicamente.
-                </p>
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white font-work-sans">Email (opcional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="email" 
+                              placeholder="seu@email.com" 
+                              {...field} 
+                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-white/60 text-sm font-work-sans">
+                            Só entraremos em contato se necessário
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
               </div>
 
               <Button 
