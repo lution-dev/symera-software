@@ -1,0 +1,105 @@
+✅ MELHORIAS NA ABA “FEEDBACK PÓS-EVENTO” — VERSÃO FINAL
+🛠️ Correção urgente
+O formulário de feedback está com erro ao enviar.
+
+Verifique e corrija o backend (rota de envio) para garantir que os dados sejam salvos corretamente no banco.
+
+O link testado foi:
+https://<domínio>/feedback/<feedback_id>
+
+Checklist técnico:
+
+Verificar se os campos rating, comment, name, email e isAnonymous estão sendo enviados corretamente.
+
+Corrigir qualquer erro de serialização, validação ou salvamento no Supabase.
+
+No caso de feedback anônimo, name e email devem ser ignorados e não obrigatórios.
+
+🧾 Exibição de feedbacks recebidos
+Exibir os feedbacks em cards/linhas, contendo:
+
+Nota com estrelas ⭐
+
+Comentário do participante
+
+Nome ou "Anônimo" (com ícone de cadeado)
+
+Data e hora do envio
+
+Ícone de email se informado
+
+✏️ Ações por item
+Nos três pontinhos de cada item:
+
+🔍 Ver detalhes
+
+📋 Copiar comentário
+
+🗑️ Excluir feedback (com confirmação)
+
+🔎 Filtros e barra de busca
+Filtro por nota
+
+Filtro por tipo: Todos / Anônimos / Identificados
+
+Campo de busca (nome ou texto do comentário)
+
+📊 Indicadores no topo
+Média geral de estrelas
+
+Total de feedbacks
+
+% anônimos
+
+🔗 Geração e gerenciamento do link público
+Exibir botão “Gerar link de feedback” apenas se o evento já tiver terminado
+
+Após gerar, mostrar:
+
+📎 Copiar link
+
+🔗 Abrir link
+
+🎯 Melhorias para conversão no formulário
+Frase explicativa abaixo do título:
+
+Seu feedback é muito importante para nós. Ele nos ajuda a melhorar os próximos eventos.
+
+Alternador anônimo com melhor experiência de UX:
+
+Toggle padrão: Enviar como anônimo = ativado
+
+Se o usuário desativar, exibe os campos: Nome (opcional) e Email (opcional)
+
+Mensagem final após envio:
+
+Mostrar modal ou mensagem:
+
+Obrigado pelo seu feedback! Ele é essencial para melhorarmos os próximos eventos 🎉
+
+Com botão:
+
+Conheça a Symera → abre site oficial da Symera
+
+📈 Rastreamento de métricas
+Criar ou atualizar a tabela feedbackMetrics no Supabase com os campos:
+
+feedbackId
+
+viewedAt
+
+submittedAt
+
+ip (se possível)
+
+userAgent (ou device)
+
+Registrar:
+
+Cada acesso ao link
+
+Cada submissão realizada com sucesso
+
+🧩 Importante: Isolamento da funcionalidade
+⚠️ Não alterar ou quebrar nenhuma outra parte do sistema.
+Todas as mudanças devem ser aplicadas apenas na aba "Feedback pós-evento" e na rota pública de envio.
