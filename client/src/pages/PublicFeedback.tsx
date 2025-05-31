@@ -18,6 +18,7 @@ const feedbackSchema = z.object({
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   rating: z.number().min(1, "Por favor, selecione uma avaliação").max(5),
   comment: z.string().min(10, "O comentário deve ter pelo menos 10 caracteres"),
+  isAnonymous: z.boolean().default(true),
 });
 
 type FeedbackFormData = z.infer<typeof feedbackSchema>;
@@ -46,6 +47,7 @@ export default function PublicFeedback() {
       email: "",
       rating: 0,
       comment: "",
+      isAnonymous: true,
     },
   });
 
@@ -83,8 +85,9 @@ export default function PublicFeedback() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...data,
           rating: selectedRating,
+          comment: data.comment,
+          isAnonymous: isAnonymous,
           email: isAnonymous ? undefined : data.email || undefined,
           name: isAnonymous ? undefined : data.name || undefined,
         }),

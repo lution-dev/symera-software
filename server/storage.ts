@@ -12,6 +12,7 @@ import {
   documents,
   participants,
   eventFeedbacks,
+  feedbackMetrics,
   type User,
   type Event,
   type Task,
@@ -23,6 +24,7 @@ import {
   type Document,
   type Participant,
   type EventFeedback,
+  type FeedbackMetrics,
   type UpsertUser,
   type InsertEvent,
   type InsertTask,
@@ -36,6 +38,7 @@ import {
   type InsertDocument,
   type InsertParticipant,
   type InsertEventFeedback,
+  type InsertFeedbackMetrics,
   type TaskReminder,
   type InsertTaskReminder,
 } from "@shared/schema";
@@ -176,8 +179,15 @@ export interface IStorage {
   getFeedbacksByEventId(eventId: number): Promise<EventFeedback[]>;
   getFeedbackByFeedbackId(feedbackId: string): Promise<(EventFeedback & { event: Event }) | undefined>;
   createFeedback(feedback: InsertEventFeedback): Promise<EventFeedback>;
+  deleteFeedback(id: number): Promise<void>;
   generateFeedbackLink(eventId: number): Promise<string>;
   getEventByFeedbackId(feedbackId: string): Promise<Event | undefined>;
+  getEventFeedbackByFeedbackId(feedbackId: string): Promise<{ eventId: number; feedbackId: string } | undefined>;
+  getFeedbackStats(eventId: number): Promise<{ total: number; averageRating: number; anonymousPercentage: number }>;
+  
+  // Feedback metrics operations
+  createFeedbackMetric(metric: InsertFeedbackMetrics): Promise<FeedbackMetrics>;
+  updateFeedbackMetricSubmission(feedbackId: string, ipAddress?: string, userAgent?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1302,6 +1312,7 @@ export class DatabaseStorage implements IStorage {
           email: eventFeedbacks.email,
           rating: eventFeedbacks.rating,
           comment: eventFeedbacks.comment,
+          isAnonymous: eventFeedbacks.isAnonymous,
           createdAt: eventFeedbacks.createdAt,
           event: events
         })
@@ -1324,12 +1335,18 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  async deleteFeedback(id: number): Promise<void> {
+    return executeWithRetry(async () => {
+      await db.delete(eventFeedbacks).where(eq(eventFeedbacks.id, id));
+    });
+  }
+
   async generateFeedbackLink(eventId: number): Promise<string> {
     return executeWithRetry(async () => {
       // Gerar um ID único para o feedback
       const feedbackId = `feedback_${eventId}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       
-      // Verificar se já existe um feedbackId para este evento (buscar por registros não nulos)
+      // Verificar se já existe um feedbackId para este evento
       const existingFeedback = await db
         .select()
         .from(eventFeedbacks)
@@ -1341,20 +1358,57 @@ export class DatabaseStorage implements IStorage {
         return existingFeedback[0].feedbackId!;
       }
       
-      // Criar um registro placeholder no banco para que o link seja válido
-      await db.insert(eventFeedbacks).values({
-        eventId: eventId,
-        feedbackId: feedbackId,
-        name: null,
-        email: null,
-        rating: 0,
-        comment: '',
-        anonymous: true,
-        ipAddress: null,
-        createdAt: new Date()
-      });
-      
       return feedbackId;
+    });
+  }
+
+  async getFeedbackStats(eventId: number): Promise<{ total: number; averageRating: number; anonymousPercentage: number }> {
+    return executeWithRetry(async () => {
+      const feedbacks = await db
+        .select()
+        .from(eventFeedbacks)
+        .where(and(eq(eventFeedbacks.eventId, eventId), sql`${eventFeedbacks.rating} > 0`));
+
+      const total = feedbacks.length;
+      if (total === 0) {
+        return { total: 0, averageRating: 0, anonymousPercentage: 0 };
+      }
+
+      const totalRating = feedbacks.reduce((sum, feedback) => sum + feedback.rating, 0);
+      const averageRating = totalRating / total;
+      
+      const anonymousCount = feedbacks.filter(feedback => feedback.isAnonymous).length;
+      const anonymousPercentage = (anonymousCount / total) * 100;
+
+      return {
+        total,
+        averageRating: Math.round(averageRating * 10) / 10,
+        anonymousPercentage: Math.round(anonymousPercentage)
+      };
+    });
+  }
+
+  async createFeedbackMetric(metric: InsertFeedbackMetrics): Promise<FeedbackMetrics> {
+    return executeWithRetry(async () => {
+      const [result] = await db
+        .insert(feedbackMetrics)
+        .values(metric)
+        .returning();
+      
+      return result;
+    });
+  }
+
+  async updateFeedbackMetricSubmission(feedbackId: string, ipAddress?: string, userAgent?: string): Promise<void> {
+    return executeWithRetry(async () => {
+      await db
+        .update(feedbackMetrics)
+        .set({
+          submittedAt: new Date(),
+          ipAddress,
+          userAgent
+        })
+        .where(eq(feedbackMetrics.feedbackId, feedbackId));
     });
   }
 
