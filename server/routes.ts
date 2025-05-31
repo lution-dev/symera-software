@@ -3394,5 +3394,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gerar link de feedback
+  app.post('/api/events/:eventId/generate-feedback-link', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - Login Required" });
+      }
+
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Acesso negado ao evento" });
+      }
+
+      const feedbackUrl = await dbStorage.generateFeedbackLink(eventId);
+      res.json({ feedbackUrl });
+    } catch (error) {
+      console.error("Erro ao gerar link de feedback:", error);
+      res.status(500).json({ message: "Erro ao gerar link de feedback" });
+    }
+  });
+
   return app;
 }

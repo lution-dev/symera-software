@@ -688,6 +688,8 @@ export class DatabaseStorage implements IStorage {
 
   async hasUserAccessToEvent(userId: string, eventId: number): Promise<boolean> {
     return executeWithRetry(async () => {
+      console.log(`Verificando acesso do usuário ${userId} ao evento ${eventId}`);
+      
       // Check if user is owner
       const [event] = await db
         .select()
@@ -699,12 +701,16 @@ export class DatabaseStorage implements IStorage {
           )
         );
       
+      console.log(`Evento encontrado como proprietário:`, event ? 'SIM' : 'NÃO');
+      
       if (event) {
         return true;
       }
       
       // Check if user is team member
-      return this.isUserTeamMember(userId, eventId);
+      const isTeamMember = await this.isUserTeamMember(userId, eventId);
+      console.log(`Usuário é membro da equipe:`, isTeamMember ? 'SIM' : 'NÃO');
+      return isTeamMember;
     });
   }
 
