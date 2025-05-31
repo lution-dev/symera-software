@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
 import { useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +10,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 
 const feedbackSchema = z.object({
   name: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
-  rating: z.number().min(1, "Selecione uma avaliação").max(5),
+  rating: z.number().min(1, "Por favor, selecione uma avaliação").max(5),
   comment: z.string().min(10, "O comentário deve ter pelo menos 10 caracteres"),
 });
 
@@ -34,6 +32,9 @@ export default function PublicFeedback() {
   const feedbackId = params?.feedbackId;
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedRating, setSelectedRating] = useState<number>(0);
+  const [eventInfo, setEventInfo] = useState<EventInfo | null>(null);
+  const [isLoadingEvent, setIsLoadingEvent] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
@@ -45,49 +46,70 @@ export default function PublicFeedback() {
     },
   });
 
-  // Buscar informações do evento - sem autenticação
-  const { data: event, isLoading: loadingEvent, error } = useQuery<EventInfo>({
-    queryKey: ['/api/feedback', feedbackId, 'event'],
-    queryFn: async () => {
-      const response = await fetch(`/api/feedback/${feedbackId}/event`);
-      if (!response.ok) {
-        throw new Error('Não foi possível carregar as informações do evento');
+  // Buscar informações do evento via feedback ID
+  useEffect(() => {
+    if (!feedbackId) return;
+    
+    const fetchEventInfo = async () => {
+      try {
+        setIsLoadingEvent(true);
+        const response = await fetch(`/api/feedback/${feedbackId}/event`);
+        if (response.ok) {
+          const data = await response.json();
+          setEventInfo(data);
+        } else {
+          console.error('Erro ao buscar informações do evento:', response.status);
+        }
+      } catch (error) {
+        console.error('Erro na requisição:', error);
+      } finally {
+        setIsLoadingEvent(false);
       }
-      return response.json();
-    },
-    enabled: !!feedbackId,
-  });
+    };
 
-  // Enviar feedback
-  const submitFeedbackMutation = useMutation({
-    mutationFn: (data: FeedbackFormData) =>
-      apiRequest(`/api/feedback/${feedbackId}`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => {
-      setIsSubmitted(true);
-      toast({
-        title: "Feedback enviado com sucesso!",
-        description: "Obrigado por compartilhar sua opinião sobre o evento.",
+    fetchEventInfo();
+  }, [feedbackId]);
+
+  // Função para enviar feedback
+  const onSubmit = async (data: FeedbackFormData) => {
+    try {
+      setIsSubmitting(true);
+      const response = await fetch(`/api/feedback/${feedbackId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          rating: selectedRating,
+          email: data.email || undefined,
+          name: data.name || undefined,
+        }),
       });
-    },
-    onError: (error: any) => {
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        toast({
+          title: "Feedback enviado com sucesso!",
+          description: "Obrigado por compartilhar sua opinião sobre o evento.",
+        });
+      } else {
+        toast({
+          title: "Erro ao enviar feedback",
+          description: "Não foi possível enviar o feedback. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao enviar feedback:', error);
       toast({
         title: "Erro ao enviar feedback",
-        description: error.message || "Não foi possível enviar o feedback. Tente novamente.",
+        description: "Não foi possível enviar o feedback. Tente novamente.",
         variant: "destructive",
       });
-    },
-  });
-
-  const onSubmit = (data: FeedbackFormData) => {
-    submitFeedbackMutation.mutate({
-      ...data,
-      rating: selectedRating,
-      email: data.email || undefined,
-      name: data.name || undefined,
-    });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStarRating = () => {
@@ -121,60 +143,42 @@ export default function PublicFeedback() {
       birthday: "Aniversário",
       corporate: "Corporativo",
       conference: "Conferência",
-      party: "Festa",
-      meeting: "Reunião",
-      workshop: "Workshop",
-      seminar: "Seminário",
-      other: "Outro"
+      social: "Social",
+      other: "Outro",
     };
     return types[type] || type;
   };
 
   if (!feedbackId) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
-            <div className="text-center">
-              <i className="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
-              <h2 className="text-lg font-semibold mb-2">Link inválido</h2>
-              <p className="text-muted-foreground text-sm">
-                O link de feedback não é válido ou expirou.
-              </p>
-            </div>
+            <p className="text-center text-gray-600">Link de feedback inválido.</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (loadingEvent) {
+  if (isLoadingEvent) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Carregando informações do evento...</p>
-            </div>
+            <p className="text-center text-gray-600">Carregando informações do evento...</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (error || !event) {
+  if (!eventInfo) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
-            <div className="text-center">
-              <i className="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
-              <h2 className="text-lg font-semibold mb-2">Evento não encontrado</h2>
-              <p className="text-muted-foreground text-sm">
-                Não foi possível encontrar as informações do evento. Verifique se o link está correto.
-              </p>
-            </div>
+            <p className="text-center text-gray-600">Evento não encontrado.</p>
           </CardContent>
         </Card>
       </div>
@@ -183,19 +187,17 @@ export default function PublicFeedback() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
-            <div className="text-center">
-              <i className="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
-              <h2 className="text-lg font-semibold mb-2">Feedback enviado!</h2>
-              <p className="text-muted-foreground text-sm mb-4">
-                Obrigado por compartilhar sua opinião sobre o evento <strong>{event.name}</strong>.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Sua avaliação é muito importante para nós e nos ajuda a melhorar futuros eventos.
-              </p>
-            </div>
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Obrigado!</h2>
+            <p className="text-gray-600 mb-4">
+              Seu feedback sobre o evento "{eventInfo.name}" foi enviado com sucesso.
+            </p>
+            <p className="text-sm text-gray-500">
+              Sua opinião é muito importante para nós e nos ajuda a melhorar nossos eventos.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -203,162 +205,126 @@ export default function PublicFeedback() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header com informações do evento */}
-      <div className="bg-card border-b">
-        <div className="max-w-2xl mx-auto p-6">
-          <div className="flex items-center gap-4">
-            {event.coverImageUrl ? (
-              <img 
-                src={event.coverImageUrl} 
-                alt={event.name}
-                className="w-16 h-16 rounded-lg object-cover"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                <i className="fas fa-calendar-alt text-primary text-xl"></i>
-              </div>
-            )}
-            <div>
-              <h1 className="text-xl font-semibold">{event.name}</h1>
-              <p className="text-sm text-muted-foreground">
-                {getEventTypeLabel(event.type)}
-              </p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="text-center pb-6">
+          <div className="w-20 h-20 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+            <span className="text-2xl">📝</span>
           </div>
-        </div>
-      </div>
-
-      {/* Formulário de feedback */}
-      <div className="max-w-2xl mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <i className="fas fa-star text-yellow-400"></i>
-              Avalie este evento
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Sua opinião é muito importante! Compartilhe sua experiência para nos ajudar a melhorar.
+          <CardTitle className="text-2xl font-bold text-gray-900">
+            Avalie o Evento
+          </CardTitle>
+          <div className="mt-4 p-4 bg-white rounded-lg border">
+            <h3 className="font-semibold text-lg text-gray-900">{eventInfo.name}</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {getEventTypeLabel(eventInfo.type)}
             </p>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Avaliação por estrelas */}
-                <FormField
-                  control={form.control}
-                  name="rating"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Como você avalia este evento? *
-                      </FormLabel>
-                      <FormControl>
-                        <div className="space-y-2">
-                          {renderStarRating()}
-                          {selectedRating > 0 && (
-                            <p className="text-sm text-muted-foreground">
-                              {selectedRating === 1 && "Muito ruim"}
-                              {selectedRating === 2 && "Ruim"}
-                              {selectedRating === 3 && "Regular"}
-                              {selectedRating === 4 && "Bom"}
-                              {selectedRating === 5 && "Excelente"}
-                            </p>
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Rating */}
+              <FormField
+                control={form.control}
+                name="rating"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="text-base font-semibold">
+                      Como você avalia este evento? *
+                    </FormLabel>
+                    <FormControl>
+                      <div className="flex flex-col items-center space-y-2">
+                        {renderStarRating()}
+                        <p className="text-sm text-gray-500">
+                          {selectedRating === 0 && "Clique nas estrelas para avaliar"}
+                          {selectedRating === 1 && "Muito ruim"}
+                          {selectedRating === 2 && "Ruim"}
+                          {selectedRating === 3 && "Regular"}
+                          {selectedRating === 4 && "Bom"}
+                          {selectedRating === 5 && "Excelente"}
+                        </p>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* Comentário */}
-                <FormField
-                  control={form.control}
-                  name="comment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Deixe seu comentário *
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder="Conte-nos sobre sua experiência no evento. O que você mais gostou? Há algo que poderia ser melhorado?"
-                          className="min-h-[120px] resize-none"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Mínimo de 10 caracteres. Seja específico sobre sua experiência.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Comentário */}
+              <FormField
+                control={form.control}
+                name="comment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-semibold">
+                      Conte-nos mais sobre sua experiência *
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Compartilhe detalhes sobre o que você achou do evento..."
+                        {...field}
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Mínimo de 10 caracteres
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* Campos opcionais */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome (opcional)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            placeholder="Seu nome"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              {/* Nome (opcional) */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome (opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Seu nome" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email (opcional)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="email"
-                            placeholder="seu@email.com"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              {/* Email (opcional) */}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email (opcional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="email" 
+                        placeholder="seu@email.com" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Para caso queiramos entrar em contato sobre seu feedback
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* Botão de envio */}
-                <div className="pt-4">
-                  <Button 
-                    type="submit" 
-                    className="w-full"
-                    disabled={submitFeedbackMutation.isPending}
-                  >
-                    {submitFeedbackMutation.isPending ? (
-                      <>
-                        <i className="fas fa-spinner fa-spin mr-2"></i>
-                        Enviando feedback...
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-paper-plane mr-2"></i>
-                        Enviar feedback
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                disabled={isSubmitting || selectedRating === 0}
+              >
+                {isSubmitting ? "Enviando..." : "Enviar Feedback"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
