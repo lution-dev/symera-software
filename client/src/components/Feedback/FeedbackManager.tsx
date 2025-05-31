@@ -38,8 +38,19 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   // Gerar link de feedback
   const generateLinkMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/events/${eventId}/generate-feedback-link`, { method: 'POST' });
-      return response;
+      const response = await fetch(`/api/events/${eventId}/generate-feedback-link`, { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
     },
     onSuccess: (data: { feedbackUrl: string }) => {
       console.log('Resposta do servidor:', data);
