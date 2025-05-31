@@ -210,9 +210,9 @@ export default function PublicFeedback() {
       <Card className="w-full max-w-2xl bg-white/10 backdrop-blur-sm border-white/20">
         <CardHeader className="text-center pb-6 pt-8">
           {/* Event Card - matching system resumo card style */}
-          <div className="bg-zinc-900 rounded-xl overflow-hidden mx-auto max-w-sm border border-white/10">
-            {/* Event Image - part of the card, no separate borders */}
-            <div className="w-full h-48">
+          <div className="bg-zinc-900 rounded-xl overflow-hidden mx-auto max-w-sm border border-white/10 relative">
+            {/* Event Image - fills the entire card with rounded corners */}
+            <div className="w-full h-48 relative">
               {eventInfo.coverImageUrl ? (
                 <img 
                   src={eventInfo.coverImageUrl} 
@@ -224,14 +224,17 @@ export default function PublicFeedback() {
                   <Calendar className="w-12 h-12 text-white/60" />
                 </div>
               )}
-            </div>
-            
-            {/* Event Info - inside the same card */}
-            <div className="p-4 text-center">
-              <h3 className="font-semibold text-lg text-white font-sora mb-1">{eventInfo.name}</h3>
-              <p className="text-sm text-white/60 font-work-sans">
-                {getEventTypeLabel(eventInfo.type)}
-              </p>
+              
+              {/* Gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+              
+              {/* Event Info - overlaid on image */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
+                <h3 className="font-semibold text-lg text-white font-sora mb-1">{eventInfo.name}</h3>
+                <p className="text-sm text-white/80 font-work-sans">
+                  {getEventTypeLabel(eventInfo.type)} • São Paulo, SP
+                </p>
+              </div>
             </div>
           </div>
           
