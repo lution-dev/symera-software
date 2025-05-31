@@ -1363,6 +1363,20 @@ export class DatabaseStorage implements IStorage {
       return result?.event;
     });
   }
+
+  async getEventFeedbackByFeedbackId(feedbackId: string): Promise<{ eventId: number; feedbackId: string } | undefined> {
+    return executeWithRetry(async () => {
+      const [result] = await db
+        .select({
+          eventId: eventFeedbacks.eventId,
+          feedbackId: eventFeedbacks.feedbackId
+        })
+        .from(eventFeedbacks)
+        .where(eq(eventFeedbacks.feedbackId, feedbackId));
+      
+      return result;
+    });
+  }
 }
 
 export const storage = new DatabaseStorage();
