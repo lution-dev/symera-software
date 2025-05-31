@@ -63,16 +63,20 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
 }
 
 function Router() {
+  const [, setLocation] = useLocation();
+  const isFeedbackRoute = window.location.pathname.startsWith('/feedback/');
+  
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Force redirect for unauthenticated users
+  // Force redirect for unauthenticated users (except feedback routes)
   React.useEffect(() => {
-    if (!isLoading && !isAuthenticated && window.location.pathname !== '/auth' && window.location.pathname !== '/login' && !window.location.pathname.startsWith('/feedback/')) {
+    if (!isFeedbackRoute && !isLoading && !isAuthenticated && window.location.pathname !== '/auth' && window.location.pathname !== '/login') {
       window.location.href = '/auth';
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, isFeedbackRoute]);
 
-  if (isLoading) {
+  // Show loading only for non-feedback routes
+  if (!isFeedbackRoute && isLoading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-purple-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
