@@ -3308,10 +3308,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/events/:id/feedbacks - Buscar feedbacks do evento (autenticado)
-  app.get('/api/events/:id/feedbacks', async (req, res) => {
+  app.get('/api/events/:id/feedbacks', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      const userId = req.session.userId;
+      const userId = req.user?.id;
+
+      console.log(`[DEBUG] Buscando feedbacks - EventId: ${eventId}, UserId: ${userId}`);
 
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized - Login Required" });
@@ -3319,6 +3321,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      console.log(`[DEBUG] Usuário ${userId} tem acesso ao evento ${eventId}: ${hasAccess}`);
+      
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
