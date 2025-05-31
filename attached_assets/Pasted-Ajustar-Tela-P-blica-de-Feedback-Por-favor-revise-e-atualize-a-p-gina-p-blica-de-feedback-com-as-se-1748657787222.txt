@@ -1,0 +1,60 @@
+Ajustar Tela Pública de Feedback
+Por favor, revise e atualize a página pública de feedback com as seguintes instruções:
+
+✅ 1. Estrutura e visibilidade
+A rota pública gerada (/feedback/{id}) deve acessar diretamente a tela de feedback sem exigir autenticação.
+
+Não pode exibir sidebar, menu mobile ou qualquer outro componente de navegação, mesmo que o usuário esteja logado.
+
+Essa rota deve continuar funcionando de forma pública e independente da sessão do usuário.
+
+🎨 2. Layout e identidade visual
+A identidade visual precisa seguir o padrão da Symera, como já aplicado no restante do sistema.
+
+Ajustes obrigatórios:
+
+Remover fundo branco atual (#fff)
+
+Substituir por:
+
+css
+Copiar
+Editar
+background: linear-gradient(to bottom right, #120922, #1C0E2D);
+ou ao menos:
+
+css
+Copiar
+Editar
+background-color: #1C0E2D;
+A fonte utilizada deve seguir:
+
+Sora para títulos
+
+Work Sans para corpo de texto
+
+🧾 3. Conteúdo do formulário de feedback
+Ajustar os campos e textos para refletir melhor a experiência esperada:
+
+Campos:
+Campo	É obrigatório?	Placeholder sugerido	Observação extra
+Avaliação	✅ Sim	-	Avaliação por estrelas
+Comentário	✅ Sim	Compartilhe o que achou do evento...	Mínimo de 10 caracteres
+Nome	❌ Opcional	Deixe em branco para permanecer anônimo	Colocar isso claramente no placeholder
+Email	❌ Opcional	Opcional – só entraremos em contato se necessário	Adicionar abaixo do campo um texto explicativo menor
+
+Texto abaixo do formulário:
+Adicionar um texto discreto como:
+
+txt
+Copiar
+Editar
+🔒 Seu feedback pode ser anônimo. Nenhuma informação pessoal será exibida publicamente.
+🖼️ 4. Imagem do evento
+No topo do formulário deve ser exibida a imagem do evento (se existir), com bordas arredondadas e responsiva.
+
+Se não houver imagem, usar o ícone padrão da Symera.
+
+⚠️ 5. Importante
+⚠️ NÃO modificar nenhuma outra rota, comportamento ou componente do sistema além do necessário para essa tela de feedback.
+A tela de feedback deve ser isolada, estável e não interferir na experiência autenticada do app.
