@@ -209,32 +209,35 @@ export default function PublicFeedback() {
     <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4 py-8">
       <Card className="w-full max-w-2xl bg-white/10 backdrop-blur-sm border-white/20">
         <CardHeader className="text-center pb-6 pt-8">
-          {/* Event Image - larger like in event summary */}
-          <div className="w-48 h-32 mx-auto mb-6 rounded-xl overflow-hidden shadow-lg">
-            {eventInfo.coverImageUrl ? (
-              <img 
-                src={eventInfo.coverImageUrl} 
-                alt={eventInfo.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                <Calendar className="w-12 h-12 text-white/60" />
-              </div>
-            )}
+          {/* Event Card - matching system style */}
+          <div className="bg-zinc-900/80 rounded-xl p-6 shadow-lg border border-white/10 backdrop-blur-sm mx-auto max-w-sm">
+            {/* Event Image */}
+            <div className="w-full h-48 mb-4 rounded-xl overflow-hidden">
+              {eventInfo.coverImageUrl ? (
+                <img 
+                  src={eventInfo.coverImageUrl} 
+                  alt={eventInfo.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                  <Calendar className="w-12 h-12 text-white/60" />
+                </div>
+              )}
+            </div>
+            
+            {/* Event Info */}
+            <div className="text-center">
+              <h3 className="font-bold text-lg text-white font-sora mb-2">{eventInfo.name}</h3>
+              <p className="text-sm text-white/60 font-work-sans">
+                {getEventTypeLabel(eventInfo.type)}
+              </p>
+            </div>
           </div>
           
-          <CardTitle className="text-2xl font-bold text-white font-sora mb-6">
+          <CardTitle className="text-2xl font-bold text-white font-sora mt-8 mb-2">
             Avalie o Evento
           </CardTitle>
-          
-          {/* Event info card - matching the summary style */}
-          <div className="p-4 bg-white/10 rounded-xl border border-white/20 backdrop-blur-sm">
-            <h3 className="font-semibold text-lg text-white font-sora mb-1">{eventInfo.name}</h3>
-            <p className="text-sm text-white/70 font-work-sans">
-              {getEventTypeLabel(eventInfo.type)}
-            </p>
-          </div>
         </CardHeader>
         
         <CardContent>
