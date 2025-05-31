@@ -3318,12 +3318,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
 
-      const feedbacks = await storage.getEventFeedbacks(eventId);
+      const feedbacks = await dbStorage.getEventFeedbacks(eventId);
       res.json(feedbacks);
     } catch (error) {
       console.error("Erro ao buscar feedbacks:", error);
@@ -3343,12 +3343,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
 
-      await storage.deleteFeedback(feedbackId);
+      await dbStorage.deleteFeedback(feedbackId);
       res.json({ message: "Feedback excluído com sucesso" });
     } catch (error) {
       console.error("Erro ao excluir feedback:", error);

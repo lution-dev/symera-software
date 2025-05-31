@@ -46,6 +46,23 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   const [feedbackToDelete, setFeedbackToDelete] = useState<number | null>(null);
   const [selectedFeedback, setSelectedFeedback] = useState<EventFeedback | null>(null);
 
+  // Função para copiar link
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Link copiado!",
+        description: "O link foi copiado para a área de transferência.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar o link. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Buscar evento para verificar status
   const { data: event } = useQuery<Event>({
     queryKey: ['/api/events', eventId],
@@ -133,22 +150,6 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
       return matchesSearch && matchesRating && matchesType;
     });
   }, [feedbacks, searchTerm, ratingFilter, typeFilter]);
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copiado!",
-        description: "Texto copiado para a área de transferência.",
-      });
-    } catch (err) {
-      toast({
-        title: "Erro ao copiar",
-        description: "Não foi possível copiar o texto.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
