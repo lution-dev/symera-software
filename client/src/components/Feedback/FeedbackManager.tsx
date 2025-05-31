@@ -71,6 +71,15 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   // Buscar feedbacks do evento
   const { data: feedbacks = [], isLoading: loadingFeedbacks, refetch } = useQuery<EventFeedback[]>({
     queryKey: ['/api/events', eventId, 'feedbacks'],
+    queryFn: async () => {
+      const response = await fetch(`/api/events/${eventId}/feedbacks`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
     enabled: !!eventId
   });
 
@@ -401,7 +410,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
           ) : (
             <div className="space-y-4">
               {filteredFeedbacks.map((feedback) => (
-                <div key={feedback.id} className="border rounded-lg p-4 hover:bg-gray-50/50 transition-colors">
+                <div key={feedback.id} className="border rounded-lg p-4 hover:shadow-md hover:border-gray-300 transition-all duration-200 bg-white">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
                       <div className="flex">
