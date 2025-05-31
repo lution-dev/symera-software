@@ -1333,19 +1333,27 @@ export class DatabaseStorage implements IStorage {
       const existingFeedback = await db
         .select()
         .from(eventFeedbacks)
-        .where(eq(eventFeedbacks.eventId, eventId))
+        .where(and(eq(eventFeedbacks.eventId, eventId), isNotNull(eventFeedbacks.feedbackId)))
         .limit(1);
       
-      // Filtrar apenas os que têm feedbackId não nulo
-      const validFeedback = existingFeedback.filter(f => f.feedbackId);
-      
-      if (validFeedback.length > 0) {
+      if (existingFeedback.length > 0) {
         // Se já existe um link, retornar o feedbackId existente
-        return validFeedback[0].feedbackId!;
+        return existingFeedback[0].feedbackId!;
       }
       
-      // Simplesmente retornar o feedbackId gerado, sem criar registro no banco
-      // O registro será criado quando alguém enviar o feedback
+      // Criar um registro placeholder no banco para que o link seja válido
+      await db.insert(eventFeedbacks).values({
+        eventId: eventId,
+        feedbackId: feedbackId,
+        name: null,
+        email: null,
+        rating: 0,
+        comment: '',
+        anonymous: true,
+        ipAddress: null,
+        createdAt: new Date()
+      });
+      
       return feedbackId;
     });
   }
