@@ -206,11 +206,11 @@ export default function PublicFeedback() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4 py-8">
       <Card className="w-full max-w-2xl bg-white/10 backdrop-blur-sm border-white/20">
-        <CardHeader className="text-center pb-6">
+        <CardHeader className="text-center pb-6 pt-8">
           {/* Event Image */}
-          <div className="w-32 h-32 mx-auto mb-6 rounded-2xl overflow-hidden">
+          <div className="w-40 h-40 mx-auto mb-6 rounded-xl overflow-hidden shadow-lg">
             {eventInfo.coverImageUrl ? (
               <img 
                 src={eventInfo.coverImageUrl} 
@@ -305,6 +305,9 @@ export default function PublicFeedback() {
                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
                       />
                     </FormControl>
+                    <FormDescription className="text-white/60 text-sm font-work-sans">
+                      Deixe em branco para permanecer anônimo
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -320,13 +323,13 @@ export default function PublicFeedback() {
                     <FormControl>
                       <Input 
                         type="email" 
-                        placeholder="Opcional – só entraremos em contato se necessário" 
+                        placeholder="seu@email.com" 
                         {...field} 
                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-work-sans"
                       />
                     </FormControl>
                     <FormDescription className="text-white/60 text-sm font-work-sans">
-                      Opcional – só entraremos em contato se necessário
+                      Só entraremos em contato se necessário
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -343,7 +346,7 @@ export default function PublicFeedback() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-purple-600 hover:bg-purple-700 font-work-sans font-semibold"
+                className="w-full bg-gradient-to-r from-[#FF8800] to-[#EC4130] hover:from-[#FF9933] hover:to-[#F05545] text-white font-sora font-semibold py-3 transition-all duration-200"
                 disabled={isSubmitting || selectedRating === 0}
               >
                 {isSubmitting ? "Enviando..." : "Enviar Feedback"}
