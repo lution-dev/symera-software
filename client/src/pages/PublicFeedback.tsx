@@ -209,8 +209,8 @@ export default function PublicFeedback() {
     <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4 py-8">
       <Card className="w-full max-w-2xl bg-white/10 backdrop-blur-sm border-white/20">
         <CardHeader className="text-center pb-6 pt-8">
-          {/* Event Image */}
-          <div className="w-40 h-40 mx-auto mb-6 rounded-xl overflow-hidden shadow-lg">
+          {/* Event Image - larger like in event summary */}
+          <div className="w-48 h-32 mx-auto mb-6 rounded-xl overflow-hidden shadow-lg">
             {eventInfo.coverImageUrl ? (
               <img 
                 src={eventInfo.coverImageUrl} 
@@ -224,13 +224,14 @@ export default function PublicFeedback() {
             )}
           </div>
           
-          <CardTitle className="text-2xl font-bold text-white font-sora mb-4">
+          <CardTitle className="text-2xl font-bold text-white font-sora mb-6">
             Avalie o Evento
           </CardTitle>
           
-          <div className="mt-4 p-4 bg-white/10 rounded-lg border border-white/20">
-            <h3 className="font-semibold text-lg text-white font-sora">{eventInfo.name}</h3>
-            <p className="text-sm text-white/80 mt-1 font-work-sans">
+          {/* Event info card - matching the summary style */}
+          <div className="p-4 bg-white/10 rounded-xl border border-white/20 backdrop-blur-sm">
+            <h3 className="font-semibold text-lg text-white font-sora mb-1">{eventInfo.name}</h3>
+            <p className="text-sm text-white/70 font-work-sans">
               {getEventTypeLabel(eventInfo.type)}
             </p>
           </div>
