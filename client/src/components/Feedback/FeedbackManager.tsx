@@ -52,8 +52,9 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   });
 
   // Buscar feedbacks do evento
-  const { data: feedbacks = [], isLoading: loadingFeedbacks } = useQuery<EventFeedback[]>({
+  const { data: feedbacks = [], isLoading: loadingFeedbacks, refetch } = useQuery<EventFeedback[]>({
     queryKey: ['/api/events', eventId, 'feedbacks'],
+    enabled: !!eventId
   });
 
   // Gerar link de feedback

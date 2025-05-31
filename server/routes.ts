@@ -3318,12 +3318,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
 
-      const feedbacks = await dbStorage.getEventFeedbacks(eventId);
+      const feedbacks = await storage.getEventFeedbacks(eventId);
       res.json(feedbacks);
     } catch (error) {
       console.error("Erro ao buscar feedbacks:", error);
@@ -3343,12 +3343,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
 
-      await dbStorage.deleteFeedback(feedbackId);
+      await storage.deleteFeedback(feedbackId);
       res.json({ message: "Feedback excluído com sucesso" });
     } catch (error) {
       console.error("Erro ao excluir feedback:", error);
@@ -3361,7 +3361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { feedbackId } = req.params;
       
-      const event = await dbStorage.getEventByFeedbackId(feedbackId);
+      const event = await storage.getEventByFeedbackId(feedbackId);
       if (!event) {
         return res.status(404).json({ message: "Link de feedback não encontrado ou expirado" });
       }
@@ -3371,7 +3371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const ipAddress = req.ip || req.connection.remoteAddress;
         const userAgent = req.get('User-Agent');
         
-        await dbStorage.createFeedbackMetric({
+        await storage.createFeedbackMetric({
           feedbackId,
           viewedAt: new Date(),
           ipAddress,
