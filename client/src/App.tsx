@@ -120,6 +120,9 @@ function Router() {
 }
 
 function App() {
+  // Verificar se é uma rota de feedback (completamente pública)
+  const isFeedbackRoute = window.location.pathname.startsWith('/feedback/');
+  
   // Verificar se a URL contém o parâmetro visitante
   const isVisitor = window.location.search.includes('visitante=true') || 
                     window.location.search.includes('visitor=true');
@@ -128,6 +131,20 @@ function App() {
   if (isVisitor) {
     window.location.href = '/login';
     return null;
+  }
+  
+  // Se for rota de feedback, renderizar sem Layout nem autenticação
+  if (isFeedbackRoute) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Switch>
+            <Route path="/feedback/:feedbackId" component={PublicFeedback} />
+          </Switch>
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
   }
   
   return (
