@@ -3247,7 +3247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/feedback/:feedbackId', async (req, res) => {
     try {
       const { feedbackId } = req.params;
-      const { name, email, rating, comment } = req.body;
+      const { name, email, rating, comment, isAnonymous } = req.body;
       
       // Validar dados obrigatórios
       if (!rating || !comment) {
@@ -3264,15 +3264,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Link de feedback inválido" });
       }
       
+      // Capturar dados de métricas
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const userAgent = req.get('User-Agent');
+      
       // Criar o feedback
       const feedback = await dbStorage.createFeedback({
         eventId: event.id,
         feedbackId,
-        name: name || null,
-        email: email || null,
+        name: isAnonymous ? null : (name || null),
+        email: isAnonymous ? null : (email || null),
         rating: parseInt(rating),
-        comment
+        comment,
+        isAnonymous: isAnonymous !== undefined ? isAnonymous : true
       });
+      
+      // Criar métrica de feedback
+      try {
+        await dbStorage.createFeedbackMetric({
+          feedbackId,
+          submittedAt: new Date(),
+          ipAddress,
+          userAgent
+        });
+      } catch (metricError) {
+        console.error("Erro ao criar métrica de feedback:", metricError);
+        // Não falhar o feedback se a métrica falhar
+      }
       
       res.json({ 
         message: "Feedback enviado com sucesso!",

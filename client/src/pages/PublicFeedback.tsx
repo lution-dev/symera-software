@@ -95,10 +95,7 @@ export default function PublicFeedback() {
 
       if (response.ok) {
         setIsSubmitted(true);
-        toast({
-          title: "Feedback enviado com sucesso!",
-          description: "Obrigado por compartilhar sua opinião sobre o evento.",
-        });
+        // Não usar toast aqui, vamos mostrar o modal customizado
       } else {
         toast({
           title: "Erro ao enviar feedback",
@@ -195,15 +192,20 @@ export default function PublicFeedback() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#120922] to-[#1C0E2D] flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center bg-white/10 backdrop-blur-sm border-white/20">
-          <CardContent className="pt-6">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-white font-sora mb-2">Obrigado!</h2>
-            <p className="text-white/80 mb-4 font-work-sans">
-              Seu feedback sobre o evento "{eventInfo.name}" foi enviado com sucesso.
+          <CardContent className="pt-6 pb-8">
+            <div className="text-6xl mb-6">🎉</div>
+            <h2 className="text-2xl font-bold text-white font-sora mb-4">
+              Obrigado pelo seu feedback!
+            </h2>
+            <p className="text-white/80 mb-6 font-work-sans leading-relaxed">
+              Ele é essencial para melhorarmos os próximos eventos
             </p>
-            <p className="text-sm text-white/60 font-work-sans">
-              Sua opinião é muito importante para nós e nos ajuda a melhorar nossos eventos.
-            </p>
+            <Button 
+              onClick={() => window.open('https://symera.com.br', '_blank')}
+              className="w-full bg-gradient-to-r from-[#FF8800] to-[#EC4130] hover:from-[#FF9933] hover:to-[#F05545] text-white font-sora font-semibold py-3 transition-all duration-200"
+            >
+              Conheça a Symera →
+            </Button>
           </CardContent>
         </Card>
       </div>
