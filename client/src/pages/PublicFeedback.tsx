@@ -45,9 +45,16 @@ export default function PublicFeedback() {
     },
   });
 
-  // Buscar informações do evento
+  // Buscar informações do evento - sem autenticação
   const { data: event, isLoading: loadingEvent, error } = useQuery<EventInfo>({
     queryKey: ['/api/feedback', feedbackId, 'event'],
+    queryFn: async () => {
+      const response = await fetch(`/api/feedback/${feedbackId}/event`);
+      if (!response.ok) {
+        throw new Error('Não foi possível carregar as informações do evento');
+      }
+      return response.json();
+    },
     enabled: !!feedbackId,
   });
 

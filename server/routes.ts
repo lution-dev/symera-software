@@ -3289,5 +3289,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota pública para buscar informações do evento via feedbackId (sem autenticação)
+  app.get('/api/feedback/:feedbackId/event', async (req, res) => {
+    try {
+      const { feedbackId } = req.params;
+      
+      const feedback = await storage.getEventFeedbackByFeedbackId(feedbackId);
+      if (!feedback) {
+        return res.status(404).json({ message: "Link de feedback não encontrado ou expirado" });
+      }
+
+      const event = await storage.getEventById(feedback.eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+
+      res.json({
+        id: event.id,
+        name: event.name,
+        type: event.type,
+        coverImageUrl: event.coverImageUrl
+      });
+    } catch (error) {
+      console.error("Erro ao buscar informações do evento para feedback:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   return app;
 }
