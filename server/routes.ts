@@ -3451,12 +3451,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId);
       const userId = req.session.userId;
 
-      if (!userId) {
+      const finalUserId = userId || req.user?.id;
+      if (!finalUserId) {
         return res.status(401).json({ message: "Unauthorized - Login Required" });
       }
 
+      console.log(`[DEBUG] Buscando link existente - EventId: ${eventId}, UserId: ${finalUserId}`);
+
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(finalUserId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
