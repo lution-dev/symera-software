@@ -267,10 +267,40 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
                         variant="outline" 
                         size="sm"
                         onClick={() => window.open(generatedLink, '_blank')}
+                        title="Abrir link"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </Button>
                     </div>
+                    
+                    {/* Opções de compartilhamento */}
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${generatedLink}`)}`;
+                          window.open(whatsappUrl, '_blank');
+                        }}
+                        className="flex-1"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        WhatsApp
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${generatedLink}`)}`;
+                          window.open(emailUrl, '_blank');
+                        }}
+                        className="flex-1"
+                      >
+                        <Mail className="w-4 h-4 mr-1" />
+                        Email
+                      </Button>
+                    </div>
+                    
                     <p className="text-xs text-muted-foreground">
                       Compartilhe este link com os participantes do evento para coletar feedbacks.
                     </p>
@@ -425,7 +455,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
           ) : (
             <div className="space-y-4">
               {filteredFeedbacks.map((feedback) => (
-                <div key={feedback.id} className="border rounded-lg p-4 hover:shadow-md hover:border-gray-300 transition-all duration-200 bg-white">
+                <div key={feedback.id} className="border border-border rounded-lg p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 bg-card">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
                       <div className="flex">
