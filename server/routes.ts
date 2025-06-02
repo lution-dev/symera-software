@@ -3314,9 +3314,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId;
 
       console.log(`[DEBUG] Buscando feedbacks - EventId: ${eventId}, UserId: ${userId}, Session:`, req.session);
+      console.log(`[DEBUG] req.user:`, req.user);
 
       if (!userId) {
-        return res.status(401).json({ message: "Unauthorized - Login Required" });
+        console.log(`[DEBUG] UserId não encontrado - tentando req.user.id:`, req.user?.id);
+        const altUserId = req.user?.id;
+        if (!altUserId) {
+          return res.status(401).json({ message: "Unauthorized - Login Required" });
+        }
+        // Usar o ID do req.user como fallback
+        const hasAccess = await dbStorage.hasUserAccessToEvent(altUserId, eventId);
+        console.log(`[DEBUG] Usuário ${altUserId} (fallback) tem acesso ao evento ${eventId}: ${hasAccess}`);
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Acesso negado ao evento" });
+        }
+
+        const feedbacks = await dbStorage.getEventFeedbacks(eventId);
+        console.log(`[DEBUG] Retornando ${feedbacks.length} feedbacks para evento ${eventId}`);
+        return res.json(feedbacks);
       }
 
       // Verificar se o usuário tem acesso ao evento
@@ -3406,12 +3422,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[DEBUG] Gerando link - EventId: ${eventId}, UserId: ${userId}`);
 
-      if (!userId) {
+      const finalUserId = userId || req.user?.id;
+      if (!finalUserId) {
         return res.status(401).json({ message: "Unauthorized - Login Required" });
       }
 
+      console.log(`[DEBUG] UserId final para geração: ${finalUserId}`);
+
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(finalUserId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
