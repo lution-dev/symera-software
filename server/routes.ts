@@ -78,6 +78,15 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files statically
   app.use('/uploads', express.static(uploadDir));
+
+  // ROTA DE DESENVOLVIMENTO - LOGIN AUTOMÁTICO
+  app.get('/api/dev-login', (req: any, res) => {
+    req.session.devIsAuthenticated = true;
+    req.session.devUserId = "8650891";
+    req.session.userId = "8650891";
+    console.log("🔧 LOGIN DE DESENVOLVIMENTO ATIVO - UserId: 8650891");
+    res.json({ message: "Login de desenvolvimento ativo", userId: "8650891" });
+  });
   
   // Auth middleware
   await setupAuth(app);
