@@ -3161,26 +3161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Feedback routes
-  // GET /api/events/:id/feedbacks - Get feedbacks for event (private)
-  app.get('/api/events/:id/feedbacks', isAuthenticated, async (req: any, res) => {
-    try {
-      const eventId = parseInt(req.params.id);
-      const userId = req.user.id;
-      
-      // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      if (!hasAccess) {
-        return res.status(403).json({ message: "Acesso negado ao evento" });
-      }
-      
-      const feedbacks = await dbStorage.getFeedbacksByEventId(eventId);
-      res.json(feedbacks);
-    } catch (error) {
-      console.error("Erro ao buscar feedbacks:", error);
-      res.status(500).json({ message: "Erro ao buscar feedbacks" });
-    }
-  });
+  // Feedback routes - ROTA REMOVIDA (duplicada)
 
   // POST /api/events/:id/generate-feedback-link - Generate feedback link (private)
   app.post('/api/events/:id/generate-feedback-link', isAuthenticated, async (req: any, res) => {
