@@ -83,6 +83,21 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
     enabled: !!eventId
   });
 
+  // Buscar link existente
+  const { data: existingLinkData } = useQuery<{ feedbackUrl: string | null }>({
+    queryKey: ['/api/events', eventId, 'feedback-link'],
+    queryFn: async () => {
+      const response = await fetch(`/api/events/${eventId}/feedback-link`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+    enabled: !!eventId
+  });
+
   // Gerar link de feedback
   const generateLinkMutation = useMutation({
     mutationFn: async () => {

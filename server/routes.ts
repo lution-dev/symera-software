@@ -3311,9 +3311,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:id/feedbacks', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      const userId = req.user?.id;
+      const userId = req.session.userId;
 
-      console.log(`[DEBUG] Buscando feedbacks - EventId: ${eventId}, UserId: ${userId}`);
+      console.log(`[DEBUG] Buscando feedbacks - EventId: ${eventId}, UserId: ${userId}, Session:`, req.session);
 
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized - Login Required" });
@@ -3402,7 +3402,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/generate-feedback-link', isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
-      const userId = req.user?.id;
+      const userId = req.session.userId;
+
+      console.log(`[DEBUG] Gerando link - EventId: ${eventId}, UserId: ${userId}`);
 
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized - Login Required" });
@@ -3419,6 +3421,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao gerar link de feedback:", error);
       res.status(500).json({ message: "Erro ao gerar link de feedback" });
+    }
+  });
+
+  // Buscar link de feedback existente
+  app.get('/api/events/:eventId/feedback-link', isAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.session.userId;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - Login Required" });
+      }
+
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Acesso negado ao evento" });
+      }
+
+      const feedbackUrl = await dbStorage.getExistingFeedbackLink(eventId);
+      res.json({ feedbackUrl: feedbackUrl || null });
+    } catch (error) {
+      console.error("Erro ao buscar link de feedback:", error);
+      res.status(500).json({ message: "Erro ao buscar link de feedback" });
     }
   });
 

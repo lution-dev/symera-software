@@ -1475,6 +1475,44 @@ export class DatabaseStorage implements IStorage {
         .where(eq(eventFeedbacks.id, feedbackId));
     });
   }
+
+  async generateFeedbackLink(eventId: number): Promise<string> {
+    return executeWithRetry(async () => {
+      // Verificar se já existe um link
+      const [existingEvent] = await db
+        .select({ feedbackUrl: events.feedbackUrl })
+        .from(events)
+        .where(eq(events.id, eventId));
+
+      if (existingEvent?.feedbackUrl) {
+        return existingEvent.feedbackUrl;
+      }
+
+      // Gerar novo link único
+      const feedbackId = `feedback_${eventId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const feedbackUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://symera.replit.app'}/feedback/${feedbackId}`;
+
+      // Salvar o link no evento
+      await db
+        .update(events)
+        .set({ feedbackUrl })
+        .where(eq(events.id, eventId));
+
+      console.log(`[DEBUG] Link de feedback gerado: ${feedbackUrl} para evento ${eventId}`);
+      return feedbackUrl;
+    });
+  }
+
+  async getExistingFeedbackLink(eventId: number): Promise<string | null> {
+    return executeWithRetry(async () => {
+      const [event] = await db
+        .select({ feedbackUrl: events.feedbackUrl })
+        .from(events)
+        .where(eq(events.id, eventId));
+
+      return event?.feedbackUrl || null;
+    });
+  }
 }
 
 export const storage = new DatabaseStorage();

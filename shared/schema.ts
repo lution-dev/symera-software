@@ -31,6 +31,7 @@ export const events = pgTable('events', {
   attendees: integer('attendees'),
   coverImageUrl: text('cover_image_url'),
   status: text('status').default('planning'),
+  feedbackUrl: text('feedback_url'),
   ownerId: text('owner_id').references(() => users.id).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
