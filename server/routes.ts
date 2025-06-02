@@ -3308,44 +3308,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/events/:id/feedbacks - Buscar feedbacks do evento (autenticado)
-  app.get('/api/events/:id/feedbacks', isAuthenticated, async (req, res) => {
+  app.get('/api/events/:id/feedbacks', isAuthenticated, async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      const userId = req.session.userId;
-
-      console.log(`[DEBUG] Buscando feedbacks - EventId: ${eventId}, UserId: ${userId}, Session:`, req.session);
-      console.log(`[DEBUG] req.user:`, req.user);
-
-      if (!userId) {
-        console.log(`[DEBUG] UserId não encontrado - tentando req.user.id:`, req.user?.id);
-        const altUserId = req.user?.id;
-        if (!altUserId) {
-          return res.status(401).json({ message: "Unauthorized - Login Required" });
-        }
-        // Usar o ID do req.user como fallback
-        const hasAccess = await dbStorage.hasUserAccessToEvent(altUserId, eventId);
-        console.log(`[DEBUG] Usuário ${altUserId} (fallback) tem acesso ao evento ${eventId}: ${hasAccess}`);
-        
-        if (!hasAccess) {
-          return res.status(403).json({ message: "Acesso negado ao evento" });
-        }
-
-        const feedbacks = await dbStorage.getEventFeedbacks(eventId);
-        console.log(`[DEBUG] Retornando ${feedbacks.length} feedbacks para evento ${eventId}`);
-        return res.json(feedbacks);
+      
+      // CORREÇÃO DIRETA: usar a mesma lógica de autenticação que funciona em outras rotas
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        userId = req.session.devUserId;
+        console.log(`[DEBUG] Usando devUserId: ${userId}`);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        userId = req.user.claims.sub;
+        console.log(`[DEBUG] Usando claims.sub: ${userId}`);
+      } else {
+        console.log("Erro na autenticação do usuário ao acessar feedbacks do evento:", req.params.id);
+        return res.status(401).json({ message: "User not authenticated properly" });
       }
 
-      // Verificar se o usuário tem acesso ao evento (usando fallback se necessário)
-      const finalUserIdForAccess = userId || req.user?.id;
-      console.log(`[DEBUG] UserId final para verificação de acesso: ${finalUserIdForAccess}`);
-      const hasAccess = await dbStorage.hasUserAccessToEvent(finalUserIdForAccess, eventId);
-      console.log(`[DEBUG] Usuário ${finalUserIdForAccess} tem acesso ao evento ${eventId}: ${hasAccess}`);
+      console.log(`[DEBUG] Buscando feedbacks - EventId: ${eventId}, UserId: ${userId}`);
+
+      // Verificar se o usuário tem acesso ao evento
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      console.log(`[DEBUG] Usuário ${userId} tem acesso ao evento ${eventId}: ${hasAccess}`);
       
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
 
       const feedbacks = await dbStorage.getEventFeedbacks(eventId);
+      console.log(`[DEBUG] Retornando ${feedbacks.length} feedbacks para evento ${eventId}`);
       res.json(feedbacks);
     } catch (error) {
       console.error("Erro ao buscar feedbacks:", error);
