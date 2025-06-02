@@ -690,6 +690,11 @@ export class DatabaseStorage implements IStorage {
     return executeWithRetry(async () => {
       console.log(`Verificando acesso do usuário ${userId} ao evento ${eventId}`);
       
+      if (!userId || userId === 'undefined') {
+        console.log('UserId é undefined ou inválido');
+        return false;
+      }
+      
       // Check if user is owner
       const [event] = await db
         .select()

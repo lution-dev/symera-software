@@ -852,7 +852,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Última atualização:</span>
                       <span className="font-semibold">
-                        {formatDate(new Date(), { dateStyle: "short" })}
+                        {formatDate(event.updatedAt ? new Date(event.updatedAt) : new Date(), { dateStyle: "short" })}
                       </span>
                     </div>
                     {event.startDate && (
