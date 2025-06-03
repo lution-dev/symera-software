@@ -1462,13 +1462,18 @@ export class DatabaseStorage implements IStorage {
           email: eventFeedbacks.email,
           rating: eventFeedbacks.rating,
           comment: eventFeedbacks.comment,
-          isAnonymous: eventFeedbacks.isAnonymous,
+          isAnonymous: sql<boolean>`COALESCE(${eventFeedbacks.isAnonymous}, ${eventFeedbacks.anonymous}, false)`,
           createdAt: eventFeedbacks.createdAt
         })
         .from(eventFeedbacks)
-        .where(eq(eventFeedbacks.eventId, eventId))
+        .where(and(
+          eq(eventFeedbacks.eventId, eventId),
+          sql`${eventFeedbacks.rating} > 0`,
+          sql`${eventFeedbacks.comment} IS NOT NULL AND ${eventFeedbacks.comment} != ''`
+        ))
         .orderBy(desc(eventFeedbacks.createdAt));
       
+      console.log(`[DEBUG] Encontrados ${results.length} feedbacks válidos para evento ${eventId}`);
       return results;
     });
   }
