@@ -1454,22 +1454,11 @@ export class DatabaseStorage implements IStorage {
   async getEventFeedbacks(eventId: number): Promise<EventFeedback[]> {
     return executeWithRetry(async () => {
       const results = await db
-        .select({
-          id: eventFeedbacks.id,
-          eventId: eventFeedbacks.eventId,
-          feedbackId: eventFeedbacks.feedbackId,
-          name: eventFeedbacks.name,
-          email: eventFeedbacks.email,
-          rating: eventFeedbacks.rating,
-          comment: eventFeedbacks.comment,
-          isAnonymous: sql<boolean>`COALESCE(${eventFeedbacks.isAnonymous}, ${eventFeedbacks.anonymous}, false)`,
-          createdAt: eventFeedbacks.createdAt
-        })
+        .select()
         .from(eventFeedbacks)
         .where(and(
           eq(eventFeedbacks.eventId, eventId),
-          sql`${eventFeedbacks.rating} > 0`,
-          sql`${eventFeedbacks.comment} IS NOT NULL AND ${eventFeedbacks.comment} != ''`
+          sql`${eventFeedbacks.rating} > 0`
         ))
         .orderBy(desc(eventFeedbacks.createdAt));
       
