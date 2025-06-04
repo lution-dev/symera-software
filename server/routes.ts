@@ -3173,37 +3173,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Feedback routes - ROTA REMOVIDA (duplicada)
 
   // POST /api/events/:id/generate-feedback-link - Generate feedback link (private)
-  app.post('/api/events/:id/generate-feedback-link', isAuthenticated, async (req: any, res) => {
+  app.post('/api/events/:id/generate-feedback-link', async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      const userId = req.session.userId || req.user?.id;
-      
-      console.log(`Verificando acesso para usuário ${userId} ao evento ${eventId}`);
-      console.log('req.user:', req.user);
-      console.log('req.session.userId:', req.session.userId);
+      const userId = req.session.userId;
       
       if (!userId) {
-        return res.status(401).json({ message: "Usuário não identificado" });
+        return res.status(401).json({ message: "Unauthorized - Login Required" });
       }
+      
+      console.log(`Verificando acesso para usuário ${userId} ao evento ${eventId}`);
       
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       console.log(`Usuário ${userId} tem acesso ao evento ${eventId}:`, hasAccess);
       
       if (!hasAccess) {
-        console.log(`Acesso negado ao evento ${eventId} para usuário ${userId}`);
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
       
-      const feedbackId = await dbStorage.generateFeedbackLink(eventId);
-      const feedbackUrl = `${req.protocol}://${req.get('host')}/feedback/${feedbackId}`;
+      const feedbackUrl = await dbStorage.generateFeedbackLink(eventId);
       
       console.log(`Link de feedback gerado para evento ${eventId}: ${feedbackUrl}`);
       
-      res.json({ 
-        feedbackId,
-        feedbackUrl
-      });
+      res.json({ feedbackUrl });
     } catch (error) {
       console.error("Erro ao gerar link de feedback:", error);
       res.status(500).json({ message: "Erro ao gerar link de feedback" });
@@ -3298,22 +3291,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/events/:id/feedbacks - Buscar feedbacks do evento (autenticado)
-  app.get('/api/events/:id/feedbacks', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events/:id/feedbacks', async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
       
-      // CORREÇÃO DIRETA: usar a mesma lógica de autenticação que funciona em outras rotas
-      let userId;
-      
-      if (req.session.devIsAuthenticated && req.session.devUserId) {
-        userId = req.session.devUserId;
-        console.log(`[DEBUG] Usando devUserId: ${userId}`);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
-        userId = req.user.claims.sub;
-        console.log(`[DEBUG] Usando claims.sub: ${userId}`);
-      } else {
-        console.log("Erro na autenticação do usuário ao acessar feedbacks do evento:", req.params.id);
-        return res.status(401).json({ message: "User not authenticated properly" });
+      // Usar mesma lógica de autenticação das outras rotas que funcionam
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized - Login Required" });
       }
 
       console.log(`[DEBUG] Buscando feedbacks - EventId: ${eventId}, UserId: ${userId}`);
