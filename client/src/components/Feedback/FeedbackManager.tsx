@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { formatDate } from "@/lib/utils";
-import { Star, MoreVertical, Copy, Trash2, Eye, Lock, Mail, ExternalLink, Search, Filter, Link, StarIcon } from "lucide-react";
+import { Star, MoreVertical, Copy, Trash2, Eye, Lock, Mail, ExternalLink, Search, Filter, Link, StarIcon, MessageCircle } from "lucide-react";
 
 interface FeedbackManagerProps {
   eventId: number;
@@ -230,15 +230,60 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
           </p>
         </div>
         
-        {eventEnded && (
-          <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
-            <DialogTrigger asChild>
-              <Button variant="default" className="w-full sm:w-auto">
-                <Link className="w-4 h-4 mr-2" />
-                Gerar Link de Feedback
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          {/* Botões de ação do link existente */}
+          {eventEnded && generatedLink && (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => copyToClipboard(generatedLink)}
+                title="Copiar link"
+              >
+                <Copy className="w-4 h-4" />
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(generatedLink, '_blank')}
+                title="Abrir link"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${generatedLink}`)}`;
+                  window.open(whatsappUrl, '_blank');
+                }}
+                title="Compartilhar no WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${generatedLink}`)}`;
+                  window.open(emailUrl, '_blank');
+                }}
+                title="Compartilhar por Email"
+              >
+                <Mail className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+          
+          {eventEnded && (
+            <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+              <DialogTrigger asChild>
+                <Button variant="default" className="w-full sm:w-auto">
+                  <Link className="w-4 h-4 mr-2" />
+                  {generatedLink ? 'Gerenciar Link' : 'Gerar Link de Feedback'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Gerar Link de Feedback</DialogTitle>
               </DialogHeader>
@@ -328,8 +373,9 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
                 )}
               </div>
             </DialogContent>
-          </Dialog>
-        )}
+            </Dialog>
+          )}
+        </div>
       </div>
 
       {/* Indicadores no topo */}
