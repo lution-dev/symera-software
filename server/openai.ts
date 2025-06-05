@@ -450,6 +450,113 @@ export async function generateEventChecklist(eventData: CreateEventData): Promis
         priority: "high"
       });
       
+    } else if (eventData.type === "social") {
+      // Checklist específico para eventos sociais (workshops, festas, encontros)
+      const isLargeEvent = (eventData.attendees || 0) >= 50;
+      const hasLocation = !!eventData.location;
+      const isWorkshop = eventData.name?.toLowerCase().includes("workshop") || 
+                        eventData.description?.toLowerCase().includes("workshop") ||
+                        eventData.description?.toLowerCase().includes("intensivo") ||
+                        eventData.description?.toLowerCase().includes("aprenda");
+      
+      // Planejamento inicial
+      checklist.push({
+        title: "Definir objetivo e formato do evento",
+        dueDateBefore: Math.min(daysUntilEvent - 3, 30),
+        description: "Estabelecer propósito, estrutura e experiência desejada para os participantes",
+        priority: "high"
+      });
+      
+      if (isWorkshop) {
+        checklist.push({
+          title: "Preparar conteúdo e material didático",
+          dueDateBefore: Math.min(daysUntilEvent - 5, 25),
+          description: "Desenvolver apostilas, apresentações e exercícios práticos para o workshop",
+          priority: "high"
+        });
+        
+        checklist.push({
+          title: "Testar equipamentos e materiais",
+          dueDateBefore: Math.min(daysUntilEvent - 2, 7),
+          description: "Verificar som, projeção e todos os materiais necessários para as atividades",
+          priority: "high"
+        });
+      }
+      
+      // Local e infraestrutura
+      if (!hasLocation) {
+        checklist.push({
+          title: "Reservar espaço adequado",
+          dueDateBefore: Math.min(daysUntilEvent - 10, 20),
+          description: `Encontrar local que comporte ${eventData.attendees || "todos"} participantes com infraestrutura necessária`,
+          priority: "high"
+        });
+      } else {
+        checklist.push({
+          title: "Confirmar reserva e preparar o espaço",
+          dueDateBefore: Math.min(daysUntilEvent - 5, 15),
+          description: `Finalizar detalhes com ${eventData.location} e planejar layout do ambiente`,
+          priority: "high"
+        });
+      }
+      
+      // Participantes e comunicação
+      checklist.push({
+        title: "Criar e enviar convites",
+        dueDateBefore: Math.min(daysUntilEvent - 7, 15),
+        description: `Desenvolver convites atrativos e enviar para os ${eventData.attendees || ""} participantes`,
+        priority: "high"
+      });
+      
+      checklist.push({
+        title: "Criar estratégia de divulgação",
+        dueDateBefore: Math.min(daysUntilEvent - 10, 20),
+        description: "Planejar posts nas redes sociais e materiais promocionais",
+        priority: "medium"
+      });
+      
+      // Logística e fornecedores
+      if (eventData.budget && eventData.budget > 1000) {
+        checklist.push({
+          title: "Organizar alimentação e bebidas",
+          dueDateBefore: Math.min(daysUntilEvent - 5, 10),
+          description: "Providenciar coffee break, lanches ou refeições para os participantes",
+          priority: "medium"
+        });
+      }
+      
+      if (isLargeEvent) {
+        checklist.push({
+          title: "Organizar equipe de apoio",
+          dueDateBefore: Math.min(daysUntilEvent - 5, 10),
+          description: "Definir recepção, controle de acesso e suporte durante o evento",
+          priority: "medium"
+        });
+      }
+      
+      // Preparação final
+      checklist.push({
+        title: "Confirmar presença dos participantes",
+        dueDateBefore: Math.min(daysUntilEvent - 2, 5),
+        description: "Fazer follow-up final e organizar lista de confirmados",
+        priority: "medium"
+      });
+      
+      checklist.push({
+        title: "Preparar kit e materiais do dia",
+        dueDateBefore: 1,
+        description: "Organizar crachás, materiais impressos e tudo que será distribuído",
+        priority: "high"
+      });
+      
+      // Pós-evento
+      checklist.push({
+        title: "Coletar feedback dos participantes",
+        dueDateBefore: -2, // 2 dias após o evento
+        description: "Enviar formulário de avaliação e reunir sugestões para futuros eventos",
+        priority: "medium"
+      });
+      
     } else {
       // Checklist genérico para outros tipos de eventos
       checklist.push({
