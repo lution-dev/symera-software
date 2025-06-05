@@ -234,151 +234,153 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          {/* Botões de ação do link existente */}
-          {eventEnded && (generatedLink || existingLinkData?.feedbackUrl) && (
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => copyToClipboard(generatedLink || existingLinkData?.feedbackUrl || '')}
-                title="Copiar link"
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.open(generatedLink || existingLinkData?.feedbackUrl || '', '_blank')}
-                title="Abrir link"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  const link = generatedLink || existingLinkData?.feedbackUrl || '';
-                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${link}`)}`;
-                  window.open(whatsappUrl, '_blank');
-                }}
-                title="Compartilhar no WhatsApp"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  const link = generatedLink || existingLinkData?.feedbackUrl || '';
-                  const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${link}`)}`;
-                  window.open(emailUrl, '_blank');
-                }}
-                title="Compartilhar por Email"
-              >
-                <Mail className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-          
           {eventEnded && (
-            <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
-              <DialogTrigger asChild>
-                <Button variant="default" className="w-full sm:w-auto">
-                  <Link className="w-4 h-4 mr-2" />
-                  {generatedLink ? 'Gerenciar Link' : 'Gerar Link de Feedback'}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Gerar Link de Feedback</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Gere um link único para que os participantes possam enviar feedback sobre o evento.
-                </p>
-                
-                {generatedLink ? (
-                  <div className="space-y-3">
-                    <Label>Link gerado:</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={generatedLink} 
-                        readOnly 
-                        className="font-mono text-xs"
-                      />
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => copyToClipboard(generatedLink)}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(generatedLink, '_blank')}
-                        title="Abrir link"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    {/* Opções de compartilhamento */}
-                    <div className="flex gap-2 pt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${generatedLink}`)}`;
-                          window.open(whatsappUrl, '_blank');
-                        }}
-                        className="flex-1"
-                      >
-                        <MessageCircle className="w-4 h-4 mr-1" />
-                        WhatsApp
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${generatedLink}`)}`;
-                          window.open(emailUrl, '_blank');
-                        }}
-                        className="flex-1"
-                      >
-                        <Mail className="w-4 h-4 mr-1" />
-                        Email
-                      </Button>
-                    </div>
-                    
-                    <p className="text-xs text-muted-foreground">
-                      Compartilhe este link com os participantes do evento para coletar feedbacks.
+            <>
+              {/* Botões de ação do link existente */}
+              {(generatedLink || existingLinkData?.feedbackUrl) && (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(generatedLink || existingLinkData?.feedbackUrl || '')}
+                    title="Copiar link"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.open(generatedLink || existingLinkData?.feedbackUrl || '', '_blank')}
+                    title="Abrir link"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const link = generatedLink || existingLinkData?.feedbackUrl || '';
+                      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${link}`)}`;
+                      window.open(whatsappUrl, '_blank');
+                    }}
+                    title="Compartilhar no WhatsApp"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const link = generatedLink || existingLinkData?.feedbackUrl || '';
+                      const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${link}`)}`;
+                      window.open(emailUrl, '_blank');
+                    }}
+                    title="Compartilhar por Email"
+                  >
+                    <Mail className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              
+              <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="default" className="w-full sm:w-auto">
+                    <Link className="w-4 h-4 mr-2" />
+                    {(generatedLink || existingLinkData?.feedbackUrl) ? 'Gerenciar Link' : 'Gerar Link de Feedback'}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Gerar Link de Feedback</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Gere um link único para que os participantes possam enviar feedback sobre o evento.
                     </p>
+                    
+                    {generatedLink ? (
+                      <div className="space-y-3">
+                        <Label>Link gerado:</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            value={generatedLink} 
+                            readOnly 
+                            className="font-mono text-xs"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => copyToClipboard(generatedLink)}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(generatedLink, '_blank')}
+                            title="Abrir link"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        
+                        {/* Opções de compartilhamento */}
+                        <div className="flex gap-2 pt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${generatedLink}`)}`;
+                              window.open(whatsappUrl, '_blank');
+                            }}
+                            className="flex-1"
+                          >
+                            <MessageCircle className="w-4 h-4 mr-1" />
+                            WhatsApp
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${generatedLink}`)}`;
+                              window.open(emailUrl, '_blank');
+                            }}
+                            className="flex-1"
+                          >
+                            <Mail className="w-4 h-4 mr-1" />
+                            Email
+                          </Button>
+                        </div>
+                        
+                        <p className="text-xs text-muted-foreground">
+                          Compartilhe este link com os participantes do evento para coletar feedbacks.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center">
+                        <Button 
+                          onClick={() => generateLinkMutation.mutate()}
+                          disabled={generateLinkMutation.isPending}
+                          className="w-full"
+                        >
+                          {generateLinkMutation.isPending ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Gerando...
+                            </>
+                          ) : (
+                            <>
+                              <Link className="w-4 h-4 mr-2" />
+                              Gerar Link
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="flex justify-center">
-                    <Button 
-                      onClick={() => generateLinkMutation.mutate()}
-                      disabled={generateLinkMutation.isPending}
-                      className="w-full"
-                    >
-                      {generateLinkMutation.isPending ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Gerando...
-                        </>
-                      ) : (
-                        <>
-                          <Link className="w-4 h-4 mr-2" />
-                          Gerar Link
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </>
           )}
         </div>
       </div>
