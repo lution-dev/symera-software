@@ -149,9 +149,9 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
       // Filtro de tipo
       let typeMatch = true;
       if (typeFilter === "anonymous") {
-        typeMatch = feedback.isAnonymous || (!feedback.name && !feedback.email);
+        typeMatch = !!feedback.isAnonymous || (!feedback.name && !feedback.email);
       } else if (typeFilter === "identified") {
-        typeMatch = !feedback.isAnonymous && (feedback.name || feedback.email);
+        typeMatch = !feedback.isAnonymous && Boolean(feedback.name || feedback.email);
       }
 
       return searchMatch && ratingMatch && typeMatch;
@@ -397,7 +397,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
       </div>
 
       {/* Link atual */}
-      {currentFeedbackUrl && (
+      {finalFeedbackUrl && finalFeedbackUrl !== "EXISTS_BUT_NOT_LOADED" && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Link de Feedback Ativo</CardTitle>
@@ -407,11 +407,11 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
-              <code className="flex-1 text-sm break-all">{currentFeedbackUrl}</code>
+              <code className="flex-1 text-sm break-all">{finalFeedbackUrl}</code>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(currentFeedbackUrl)}
+                onClick={() => copyToClipboard(finalFeedbackUrl)}
               >
                 <Copy className="w-4 h-4" />
               </Button>
