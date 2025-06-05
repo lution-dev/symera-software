@@ -917,6 +917,63 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Ações do evento */}
+              <div className="bg-card rounded-xl shadow-sm p-4 border border-border mb-6">
+                <h3 className="text-sm font-medium mb-4 flex items-center">
+                  <i className="fas fa-cog text-primary mr-2"></i> Ações do evento
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  <Button 
+                    onClick={() => navigate(`/events/${eventId}/edit`)}
+                    variant="outline"
+                    className="flex items-center"
+                  >
+                    <i className="fas fa-edit mr-2"></i> Editar evento
+                  </Button>
+                  <Button 
+                    onClick={handleRegenerateChecklist}
+                    variant="outline"
+                    disabled={regenerateChecklistMutation.isPending}
+                    className="flex items-center"
+                  >
+                    <i className="fas fa-magic mr-2"></i> 
+                    {regenerateChecklistMutation.isPending ? 'Regenerando...' : 'Regenerar checklist IA'}
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="destructive"
+                        className="flex items-center"
+                      >
+                        <i className="fas fa-trash mr-2"></i> Excluir evento
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center">
+                          <AlertTriangle className="w-5 h-5 text-destructive mr-2" />
+                          Excluir evento
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir o evento "{event.name}"? 
+                          Esta ação não pode ser desfeita e todos os dados relacionados (tarefas, equipe, documentos) serão perdidos permanentemente.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={handleDeleteEvent}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={deleteEventMutation.isPending}
+                        >
+                          {deleteEventMutation.isPending ? 'Excluindo...' : 'Excluir evento'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
             </div>
           )}
           

@@ -230,6 +230,7 @@ const Events: React.FC = () => {
               attendees={event.attendees}
               team={event.team || []}
               tasks={event.tasks || []}
+              coverImage={event.coverImageUrl || event.cover_image_url}
             />
           ))}
         </div>
