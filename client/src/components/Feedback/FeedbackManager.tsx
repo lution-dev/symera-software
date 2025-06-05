@@ -239,6 +239,11 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   const eventFeedbackUrl = (event as any)?.feedbackUrl;
   const linkFeedbackUrl = (linkData as any)?.feedbackUrl;
   
+  // Debug para ver o que está chegando
+  console.log('DEBUG - eventFeedbackUrl:', eventFeedbackUrl);
+  console.log('DEBUG - linkFeedbackUrl:', linkFeedbackUrl);
+  console.log('DEBUG - generatedLink:', generatedLink);
+  
   // Detectar URL válida - qualquer uma que exista
   const currentFeedbackUrl = eventFeedbackUrl || linkFeedbackUrl || generatedLink;
   
@@ -246,6 +251,9 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   const finalFeedbackUrl = currentFeedbackUrl && !currentFeedbackUrl.startsWith('http') 
     ? `https://${currentFeedbackUrl}` 
     : currentFeedbackUrl;
+  
+  console.log('DEBUG - finalFeedbackUrl:', finalFeedbackUrl);
+  console.log('DEBUG - !!finalFeedbackUrl:', !!finalFeedbackUrl);
 
   return (
     <div className="space-y-6">
