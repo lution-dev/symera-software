@@ -173,28 +173,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Buscando evento ${eventId} para usuário ${userId}`);
       
-      try {
-        // Obter dados do evento diretamente do banco de dados para garantir valores corretos
-        const eventFromDb = await db.select().from(events).where(eq(events.id, parseInt(eventId))).limit(1);
-        console.log("Evento encontrado no banco:", eventFromDb);
-        
-        if (eventFromDb && eventFromDb.length > 0) {
-          return res.json(eventFromDb[0]);
-        } else {
-          // Fallback para o método de storage
-          const event = await dbStorage.getEventById(eventId);
-          
-          if (!event) {
-            console.log(`Evento ${eventId} não encontrado`);
-            return res.status(404).json({ message: "Event not found" });
-          }
-          
-          return res.json(event);
-        }
-      } catch (error) {
-        console.error("Error fetching event:", error);
-        return res.status(500).json({ message: "Failed to fetch event" });
-      }
+      // Obter dados do evento do storage (que inclui feedbackUrl)
+      const event = await dbStorage.getEventById(eventId);
       
       if (!event) {
         console.log(`Evento ${eventId} não encontrado`);
@@ -213,6 +193,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Usuário ${userId} não tem acesso ao evento ${eventId}`);
         return res.status(403).json({ message: "You don't have access to this event" });
       }
+      
+      console.log(`Retornando evento com feedbackUrl: ${event.feedbackUrl || 'null'}`);
+      return res.json(event);
       
       // Verificação automática de status baseado nas tarefas e datas
       // Verificamos os logs de atividade para determinar se o status atual foi definido manualmente
