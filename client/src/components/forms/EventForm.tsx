@@ -163,6 +163,8 @@ const EventForm: React.FC<EventFormProps> = ({
         // Converter datas de string para Date objects
         startDate: new Date(data.startDate),
         endDate: data.endDate ? new Date(data.endDate) : undefined,
+        // Incluir a URL da imagem de capa
+        coverImageUrl: data.coverImageUrl || "",
       };
       
       // Garantir que o meetingUrl seja incluído quando o formato for online ou híbrido
