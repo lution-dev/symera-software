@@ -244,8 +244,13 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const handleFormSubmit = (e: React.FormEvent) => {
     console.log("[Debug EventForm] Form submit triggered");
+    console.log("[Debug EventForm] Form state:", form.formState);
+    console.log("[Debug EventForm] Form errors:", form.formState.errors);
+    console.log("[Debug EventForm] Form values:", form.getValues());
     e.preventDefault();
-    form.handleSubmit(onSubmit)(e);
+    form.handleSubmit(onSubmit, (errors) => {
+      console.log("[Debug EventForm] Validation errors:", errors);
+    })(e);
   };
 
   return (
