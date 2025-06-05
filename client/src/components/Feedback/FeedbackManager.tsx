@@ -265,7 +265,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2">
-          {!currentFeedbackUrl ? (
+          {(!currentFeedbackUrl && !event?.feedbackUrl) ? (
             /* Botão Gerar Link - visível apenas quando não há link */
             <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
               <DialogTrigger asChild>
