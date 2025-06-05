@@ -12,6 +12,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 
 import { 
   insertEventSchema,
+  eventFormSchema,
   insertTaskSchema,
   insertScheduleItemSchema,
   insertExpenseSchema,
@@ -306,26 +307,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // Validate event data
-      const eventData = insertEventSchema.parse(req.body);
+      // Validate event data using form schema and convert to backend format
+      const formData = eventFormSchema.parse(req.body);
       
       // Preparar os dados para criação do evento com tipos corretos
       const createData: any = {
-        ...eventData,
-        date: new Date(eventData.date),
+        name: formData.name,
+        type: formData.type,
+        format: formData.format,
+        description: formData.description,
+        location: formData.location,
+        meetingUrl: formData.meetingUrl,
+        budget: formData.budget,
+        attendees: formData.attendees,
+        coverImageUrl: formData.coverImageUrl,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        startDate: new Date(formData.startDate),
         ownerId: userId,
       };
       
-      // Adicionar startDate se disponível
-      if (eventData.startDate) {
-        createData.startDate = new Date(eventData.startDate);
-      } else {
-        createData.startDate = new Date(eventData.date);
-      }
-      
       // Adicionar endDate se disponível
-      if (eventData.endDate) {
-        createData.endDate = new Date(eventData.endDate);
+      if (formData.endDate) {
+        createData.endDate = new Date(formData.endDate);
       }
       
       // Create event
@@ -340,9 +344,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Generate AI checklist if requested
-      if (eventData.generateAIChecklist) {
+      if (formData.generateAIChecklist) {
         try {
-          const checklistItems = await generateEventChecklist(eventData);
+          const checklistItems = await generateEventChecklist(formData);
           
           // Create tasks from checklist
           for (const item of checklistItems) {
@@ -391,8 +395,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid event ID" });
       }
       
-      // Validate event data
-      const eventData = insertEventSchema.parse(req.body);
+      // Validate event data using form schema and convert to backend format
+      const formData = eventFormSchema.parse(req.body);
       
       // Check if user is the owner
       const event = await dbStorage.getEventById(eventId);
@@ -407,44 +411,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Preparar os dados para atualização com tipos corretos
       const updateData: any = {
-        ...eventData,
+        name: formData.name,
+        type: formData.type,
+        format: formData.format,
+        description: formData.description,
+        location: formData.location,
+        meetingUrl: formData.meetingUrl,
+        budget: formData.budget,
+        attendees: formData.attendees,
+        coverImageUrl: formData.coverImageUrl,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        startDate: new Date(formData.startDate),
       };
       
-      // Forçar o formato correto do evento
-      console.log("[Debug API] Formato recebido do cliente:", eventData.format);
+      // Adicionar endDate se disponível
+      if (formData.endDate) {
+        updateData.endDate = new Date(formData.endDate);
+      }
       
-      // Garantir que o formato seja definido explicitamente, não pode ser nulo
-      updateData.format = eventData.format || 'in_person';
+      // Forçar o formato correto do evento
+      console.log("[Debug API] Formato recebido do cliente:", formData.format);
       
       console.log("[Debug API] Atualizando evento com formato:", updateData.format, "tipo:", typeof updateData.format);
-      
-      // Adicionar startDate se disponível
-      if (eventData.startDate) {
-        updateData.startDate = new Date(eventData.startDate);
-      }
-      
-      // Adicionar endDate se disponível
-      if (eventData.endDate) {
-        updateData.endDate = new Date(eventData.endDate);
-      }
-      
-      // Verificar campos específicos para cada formato
-      if (updateData.format === 'online' || updateData.format === 'hybrid') {
-        // Certifique-se de incluir o campo meetingUrl para formatos online ou híbrido
-        updateData.meetingUrl = eventData.meetingUrl || '';
-        console.log("[Debug API] Encontrado formato online/híbrido, meetingUrl:", updateData.meetingUrl);
-      } else {
-        // Para eventos presenciais, definir meetingUrl como null ou string vazia
-        updateData.meetingUrl = '';
-      }
-      
-      if (updateData.format === 'in_person' || updateData.format === 'hybrid') {
-        // Certifique-se de incluir o campo location para formatos presencial ou híbrido
-        updateData.location = eventData.location || '';
-      } else {
-        // Para eventos online, location pode ser vazio
-        updateData.location = '';
-      }
       
       // Remover campo date se estiver presente (obsoleto)
       if ('date' in updateData) {
