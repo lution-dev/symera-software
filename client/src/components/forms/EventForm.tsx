@@ -166,7 +166,7 @@ const EventForm: React.FC<EventFormProps> = ({
         endDate: data.endDate || data.startDate,
         // Incluir a URL da imagem de capa - se for base64, manter a URL original
         coverImageUrl: data.coverImageUrl && data.coverImageUrl.startsWith('data:') 
-          ? (eventData?.coverImageUrl || "") 
+          ? (inputDefaultValues?.coverImageUrl || "") 
           : (data.coverImageUrl || ""),
       };
       
