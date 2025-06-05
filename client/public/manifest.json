@@ -1,0 +1,20 @@
+{
+  "name": "Symera",
+  "short_name": "Symera",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a0826",
+  "theme_color": "#ff6a00",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "description": "Plataforma para planejamento e gestão de eventos sociais e corporativos com checklist inteligente gerado por IA",
+  "icons": [
+    {
+      "src": "/icons/symera-icon-home.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
