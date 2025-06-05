@@ -1,22 +1,17 @@
-import React, { useState, useMemo } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import { formatDate } from "@/lib/utils";
-import { Star, MoreVertical, Copy, Trash2, Eye, Lock, Mail, ExternalLink, Search, Filter, Link, StarIcon, MessageCircle } from "lucide-react";
-
-interface FeedbackManagerProps {
-  eventId: number;
-}
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Share2, ExternalLink, Copy, Download, Star, Trash2, Filter, Search, MessageCircle, Users, BarChart3, Plus } from 'lucide-react';
 
 interface EventFeedback {
   id: number;
@@ -30,63 +25,43 @@ interface EventFeedback {
   createdAt: string;
 }
 
-interface Event {
-  id: number;
-  name: string;
-  status: string;
-  endDate: string | null;
+interface FeedbackManagerProps {
+  eventId: number;
 }
 
 export function FeedbackManager({ eventId }: FeedbackManagerProps) {
-  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [ratingFilter, setRatingFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [feedbackToDelete, setFeedbackToDelete] = useState<number | null>(null);
-  const [selectedFeedback, setSelectedFeedback] = useState<EventFeedback | null>(null);
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [ratingFilter, setRatingFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
 
-  // Função para copiar link
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Link copiado!",
-        description: "O link foi copiado para sua área de transferência."
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao copiar",
-        description: "Não foi possível copiar o link.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Query para buscar feedbacks
-  const { data: feedbacks = [], isLoading: feedbacksLoading, refetch: refetchFeedbacks } = useQuery({
-    queryKey: ['/api/events', eventId, 'feedbacks'],
-    queryFn: () => apiRequest(`/api/events/${eventId}/feedbacks`)
-  });
-
-  // Query para buscar evento
+  // Buscar evento
   const { data: event } = useQuery({
     queryKey: ['/api/events', eventId],
     queryFn: () => apiRequest(`/api/events/${eventId}`)
   });
 
-  // Query para buscar link existente
-  const { data: existingLinkData, refetch: refetchLink } = useQuery({
+  // Buscar feedbacks
+  const { data: feedbacksData = [], isLoading: feedbacksLoading, refetch: refetchFeedbacks } = useQuery({
+    queryKey: ['/api/events', eventId, 'feedbacks'],
+    queryFn: () => apiRequest(`/api/events/${eventId}/feedbacks`)
+  });
+
+  // Buscar link existente
+  const { data: linkData, refetch: refetchLink } = useQuery({
     queryKey: ['/api/events', eventId, 'feedback-link'],
     queryFn: () => apiRequest(`/api/events/${eventId}/feedback-link`)
   });
 
   // Mutation para gerar link de feedback
   const generateLinkMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/events/${eventId}/generate-feedback-link`, { method: 'POST', body: {} }),
-    onSuccess: (data) => {
+    mutationFn: () => apiRequest(`/api/events/${eventId}/generate-feedback-link`, { method: 'POST' }),
+    onSuccess: (data: any) => {
       setGeneratedLink(data.feedbackUrl);
       refetchLink();
+      setShowGenerateModal(false);
       toast({
         title: "Link gerado com sucesso!",
         description: "O link de feedback está pronto para ser compartilhado."
@@ -105,8 +80,8 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   const deleteFeedbackMutation = useMutation({
     mutationFn: (feedbackId: number) => apiRequest(`/api/events/${eventId}/feedbacks/${feedbackId}`, { method: 'DELETE' }),
     onSuccess: () => {
+      refetchFeedbacks();
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'feedbacks'] });
-      setFeedbackToDelete(null);
       toast({
         title: "Feedback excluído",
         description: "O feedback foi removido com sucesso."
@@ -114,19 +89,24 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
     },
     onError: () => {
       toast({
-        title: "Erro ao excluir",
+        title: "Erro ao excluir feedback",
         description: "Não foi possível excluir o feedback.",
         variant: "destructive"
       });
     }
   });
 
+  // Garantir que feedbacks seja sempre um array
+  const feedbacks: EventFeedback[] = Array.isArray(feedbacksData) ? feedbacksData : [];
+
   // Verificar se o evento terminou
   const eventEnded = useMemo(() => {
-    if (!event?.endDate) return false;
-    const endDate = new Date(event.endDate);
+    if (!event || typeof event !== 'object') return false;
+    const eventData = event as any;
+    if (!eventData.endDate) return false;
+    const endDate = new Date(eventData.endDate);
     const now = new Date();
-    return endDate < now || event.status === 'completed';
+    return endDate < now || eventData.status === 'completed';
   }, [event]);
 
   // Estatísticas dos feedbacks
@@ -174,251 +154,258 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
     return Array.from({ length: 5 }, (_, index) => (
       <Star
         key={index}
-        className={`w-4 h-4 ${
-          index < rating 
-            ? "fill-yellow-400 text-yellow-400" 
-            : "text-gray-300"
-        }`}
+        className={`w-4 h-4 ${index < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
       />
     ));
   };
 
-  if (feedbacksLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copiado!",
+        description: "Link copiado para a área de transferência."
+      });
+    } catch (err) {
+      toast({
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar o link.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const shareLink = async (url: string) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Link de Feedback - Symera',
+          text: 'Compartilhe seu feedback sobre o evento',
+          url: url,
+        });
+      } catch (err) {
+        copyToClipboard(url);
+      }
+    } else {
+      copyToClipboard(url);
+    }
+  };
+
+  const downloadCSV = () => {
+    const headers = ['Data', 'Nome', 'Email', 'Avaliação', 'Comentário', 'Anônimo'];
+    const csvContent = [
+      headers.join(','),
+      ...feedbacks.map(feedback => [
+        formatDate(feedback.createdAt),
+        feedback.name || 'N/A',
+        feedback.email || 'N/A',
+        feedback.rating,
+        `"${feedback.comment.replace(/"/g, '""')}"`,
+        feedback.isAnonymous ? 'Sim' : 'Não'
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `feedbacks_evento_${eventId}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Obter URL do link existente ou gerado
+  const currentFeedbackUrl = (linkData as any)?.feedbackUrl || generatedLink;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      {/* Header com botões de ação */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border">
         <div>
-          <h2 className="text-xl font-semibold font-sora">Feedback pós-evento</h2>
-          <p className="text-sm text-muted-foreground mt-1 font-work-sans">
-            Colete e gerencie feedbacks dos participantes
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Feedback Pós-Evento</h2>
+          <p className="text-gray-600">Gerencie e visualize os feedbacks do seu evento</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          {/* Botões de ação do link existente - sempre visíveis após gerar link */}
-          {(generatedLink || existingLinkData?.feedbackUrl) && (
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => copyToClipboard(generatedLink || existingLinkData?.feedbackUrl || '')}
-                title="Copiar link"
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.open(generatedLink || existingLinkData?.feedbackUrl || '', '_blank')}
-                title="Abrir link"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  const link = generatedLink || existingLinkData?.feedbackUrl || '';
-                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${link}`)}`;
-                  window.open(whatsappUrl, '_blank');
-                }}
-                title="Compartilhar no WhatsApp"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  const link = generatedLink || existingLinkData?.feedbackUrl || '';
-                  const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${link}`)}`;
-                  window.open(emailUrl, '_blank');
-                }}
-                title="Compartilhar por Email"
-              >
-                <Mail className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-          
-          {/* Botão de gerar link - sempre visível */}
-          <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+        <div className="flex flex-wrap gap-2">
+          {/* Botão Gerar Link - sempre visível */}
+          <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
             <DialogTrigger asChild>
-              <Button variant="default" className="w-full sm:w-auto">
-                <Link className="w-4 h-4 mr-2" />
-                {(generatedLink || existingLinkData?.feedbackUrl) ? 'Gerenciar Link' : 'Gerar Link de Feedback'}
+              <Button variant="outline" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Gerar Link de Feedback
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent>
               <DialogHeader>
                 <DialogTitle>Gerar Link de Feedback</DialogTitle>
+                <DialogDescription>
+                  Crie um link público para que os participantes possam deixar seus feedbacks sobre o evento.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Gere um link único para que os participantes possam enviar feedback sobre o evento.
+                <p className="text-sm text-gray-600">
+                  O link será válido permanentemente e pode ser compartilhado com todos os participantes do evento.
                 </p>
-                
-                {generatedLink ? (
-                  <div className="space-y-3">
-                    <Label>Link gerado:</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={generatedLink} 
-                        readOnly 
-                        className="font-mono text-xs"
-                      />
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => copyToClipboard(generatedLink)}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(generatedLink, '_blank')}
-                        title="Abrir link"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${generatedLink}`)}`;
-                          window.open(whatsappUrl, '_blank');
-                        }}
-                        className="flex-1"
-                      >
-                        <MessageCircle className="w-4 h-4 mr-1" />
-                        WhatsApp
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${generatedLink}`)}`;
-                          window.open(emailUrl, '_blank');
-                        }}
-                        className="flex-1"
-                      >
-                        <Mail className="w-4 h-4 mr-1" />
-                        Email
-                      </Button>
-                    </div>
-                    
-                    <p className="text-xs text-muted-foreground">
-                      Compartilhe este link com os participantes do evento para coletar feedbacks.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex justify-center">
-                    <Button 
-                      onClick={() => generateLinkMutation.mutate()}
-                      disabled={generateLinkMutation.isPending}
-                      className="w-full"
-                    >
-                      {generateLinkMutation.isPending ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Gerando...
-                        </>
-                      ) : (
-                        <>
-                          <Link className="w-4 h-4 mr-2" />
-                          Gerar Link
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowGenerateModal(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => generateLinkMutation.mutate()}
+                    disabled={generateLinkMutation.isPending}
+                  >
+                    {generateLinkMutation.isPending ? 'Gerando...' : 'Gerar Link'}
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Botões de ação - aparecem após gerar link */}
+          {currentFeedbackUrl && (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => shareLink(currentFeedbackUrl)}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Compartilhar
+              </Button>
+
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => copyToClipboard(currentFeedbackUrl)}
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copiar Link
+              </Button>
+
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(currentFeedbackUrl, '_blank')}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Abrir Link
+              </Button>
+
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={downloadCSV}
+                disabled={feedbacks.length === 0}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar CSV
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Indicadores no topo */}
-      {feedbacks.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground font-work-sans">
-                Média geral de estrelas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold font-sora">{stats.average.toFixed(1)}</span>
-                <div className="flex">
-                  {renderStars(Math.round(stats.average))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Feedbacks</CardTitle>
+            <MessageCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground font-work-sans">
-                Total de feedbacks
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-sora">{stats.total}</div>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.average.toFixed(1)}</div>
+            <div className="flex items-center mt-1">
+              {renderStars(Math.round(stats.average))}
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground font-work-sans">
-                % anônimos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-sora">{stats.anonymousPercent.toFixed(0)}%</div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Feedbacks Anônimos</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.anonymousPercent.toFixed(0)}%</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Link atual */}
+      {currentFeedbackUrl && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Link de Feedback Ativo</CardTitle>
+            <CardDescription>
+              Compartilhe este link com os participantes do evento
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
+              <code className="flex-1 text-sm break-all">{currentFeedbackUrl}</code>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyToClipboard(currentFeedbackUrl)}
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Filtros e busca */}
+      {/* Filtros */}
       {feedbacks.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="font-sora">Filtros e busca</CardTitle>
+            <CardTitle className="text-lg">Filtros</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar por nome ou comentário..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-8"
                   />
                 </div>
               </div>
               
               <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filtrar por nota" />
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por avaliação" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as notas</SelectItem>
+                  <SelectItem value="all">Todas as avaliações</SelectItem>
                   <SelectItem value="5">5 estrelas</SelectItem>
                   <SelectItem value="4">4 estrelas</SelectItem>
                   <SelectItem value="3">3 estrelas</SelectItem>
@@ -428,13 +415,13 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
               </Select>
 
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrar por tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="anonymous">Anônimos</SelectItem>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
                   <SelectItem value="identified">Identificados</SelectItem>
+                  <SelectItem value="anonymous">Anônimos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -445,178 +432,101 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
       {/* Lista de Feedbacks */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-sora">
-            Feedbacks Recebidos 
-            {filteredFeedbacks.length !== feedbacks.length && (
-              <span className="text-sm font-normal text-muted-foreground">
-                ({filteredFeedbacks.length} de {feedbacks.length})
-              </span>
-            )}
-          </CardTitle>
+          <CardTitle className="text-lg">Feedbacks Recebidos</CardTitle>
+          <CardDescription>
+            {filteredFeedbacks.length} de {feedbacks.length} feedbacks
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredFeedbacks.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl text-muted-foreground/30 mb-4">💬</div>
-              <h3 className="font-medium text-lg mb-2 font-sora">
-                {feedbacks.length === 0 ? "Nenhum feedback recebido" : "Nenhum resultado encontrado"}
+          {feedbacksLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Carregando feedbacks...</p>
+            </div>
+          ) : filteredFeedbacks.length === 0 ? (
+            <div className="text-center py-8">
+              <MessageCircle className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                {feedbacks.length === 0 ? 'Nenhum feedback recebido' : 'Nenhum feedback encontrado'}
               </h3>
-              <p className="text-sm text-muted-foreground mb-6 font-work-sans">
+              <p className="mt-1 text-sm text-gray-500">
                 {feedbacks.length === 0 
-                  ? "Gere um link de feedback e compartilhe com os participantes para começar a coletar avaliações."
-                  : "Tente ajustar os filtros para encontrar os feedbacks desejados."
+                  ? 'Os feedbacks aparecerão aqui conforme forem enviados.'
+                  : 'Tente ajustar os filtros para encontrar feedbacks.'
                 }
               </p>
             </div>
           ) : (
             <div className="space-y-4">
               {filteredFeedbacks.map((feedback: EventFeedback) => (
-                <div key={feedback.id} className="border border-border rounded-lg p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 bg-card">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex">
-                        {renderStars(feedback.rating)}
-                      </div>
-                      <Badge variant="secondary" className="font-work-sans">
-                        {feedback.rating}/5
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground font-work-sans">
-                        {formatDate(feedback.createdAt)}
-                      </span>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setSelectedFeedback(feedback)}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver detalhes
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => copyToClipboard(feedback.comment)}>
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copiar comentário
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => setFeedbackToDelete(feedback.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Excluir feedback
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-3 flex items-center gap-2">
-                    {feedback.isAnonymous || (!feedback.name && !feedback.email) ? (
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Lock className="w-4 h-4" />
-                        <span className="text-sm font-work-sans">Anônimo</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium font-work-sans">
-                          {feedback.name || "Participante"}
-                        </span>
-                        {feedback.email && (
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Mail className="w-3 h-3" />
-                            <span className="text-xs font-work-sans">{feedback.email}</span>
-                          </div>
+                <div
+                  key={feedback.id}
+                  className="border rounded-lg p-4 space-y-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center">
+                          {renderStars(feedback.rating)}
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {feedback.rating}/5
+                        </Badge>
+                        {(feedback.isAnonymous || (!feedback.name && !feedback.email)) && (
+                          <Badge variant="outline" className="text-xs">
+                            Anônimo
+                          </Badge>
                         )}
                       </div>
-                    )}
+                      
+                      <p className="text-gray-900 mb-2">{feedback.comment}</p>
+                      
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <div>
+                          {feedback.name ? (
+                            <span className="font-medium">{feedback.name}</span>
+                          ) : (
+                            <span className="italic">Usuário anônimo</span>
+                          )}
+                          {feedback.email && (
+                            <span className="ml-2">({feedback.email})</span>
+                          )}
+                        </div>
+                        <span>{formatDate(feedback.createdAt)}</span>
+                      </div>
+                    </div>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Excluir Feedback</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir este feedback? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteFeedbackMutation.mutate(feedback.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
-                  
-                  <p className="text-sm text-muted-foreground leading-relaxed font-work-sans">
-                    {feedback.comment}
-                  </p>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Modal de detalhes */}
-      <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Feedback</DialogTitle>
-          </DialogHeader>
-          {selectedFeedback && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="flex">
-                  {renderStars(selectedFeedback.rating)}
-                </div>
-                <Badge variant="secondary">
-                  {selectedFeedback.rating}/5
-                </Badge>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Participante:</Label>
-                <div className="flex items-center gap-2">
-                  {selectedFeedback.isAnonymous || (!selectedFeedback.name && !selectedFeedback.email) ? (
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Lock className="w-4 h-4" />
-                      <span>Anônimo</span>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="font-medium">{selectedFeedback.name || "Nome não informado"}</p>
-                      {selectedFeedback.email && (
-                        <p className="text-sm text-muted-foreground">{selectedFeedback.email}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Comentário:</Label>
-                <p className="text-sm bg-gray-50 p-3 rounded-md">
-                  {selectedFeedback.comment}
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Data de envio:</Label>
-                <p className="text-sm text-muted-foreground">
-                  {formatDate(selectedFeedback.createdAt)}
-                </p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de confirmação de exclusão */}
-      <AlertDialog open={!!feedbackToDelete} onOpenChange={() => setFeedbackToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir feedback</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este feedback? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => feedbackToDelete && deleteFeedbackMutation.mutate(feedbackToDelete)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
