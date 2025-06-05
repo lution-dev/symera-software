@@ -104,26 +104,6 @@ const Auth: React.FC = () => {
         {/* Form container */}
         <div className="relative z-20 w-full max-w-md">
           {isLogin ? <LoginForm /> : <RegisterForm />}
-          
-          {/* Development Login Button */}
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800 mb-3">Desenvolvimento: Login automático</p>
-            <button
-              onClick={async () => {
-                try {
-                  const response = await fetch('/api/dev-login');
-                  if (response.ok) {
-                    window.location.reload();
-                  }
-                } catch (error) {
-                  console.error('Erro no login de desenvolvimento:', error);
-                }
-              }}
-              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
-            >
-              Entrar como Admin (Dev)
-            </button>
-          </div>
         </div>
       </div>
     </div>
