@@ -5,6 +5,7 @@ import path from "path";
 import multer from "multer";
 import fs from "fs";
 import { storage as dbStorage } from "./storage";
+import { saveBase64Image, deleteImage } from "./utils/imageUpload";
 import { db } from "./db";
 import { events, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -409,6 +410,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only the event owner can update it" });
       }
       
+      // Processar upload de imagem se necessário
+      let coverImageUrl = formData.coverImageUrl;
+      
+      // Se a imagem é base64, salvar como arquivo
+      if (coverImageUrl && coverImageUrl.startsWith('data:image/')) {
+        try {
+          // Deletar imagem anterior se existir e for nossa
+          if (event.coverImageUrl && event.coverImageUrl.startsWith('/uploads/')) {
+            deleteImage(event.coverImageUrl);
+          }
+          
+          // Salvar nova imagem
+          coverImageUrl = saveBase64Image(coverImageUrl, eventId);
+          console.log('[Debug API] Nova imagem salva em:', coverImageUrl);
+        } catch (error) {
+          console.error('[Debug API] Erro ao processar upload de imagem:', error);
+          // Em caso de erro, manter a imagem original
+          coverImageUrl = event.coverImageUrl;
+        }
+      }
+
       // Preparar os dados para atualização com tipos corretos
       const updateData: any = {
         name: formData.name,
@@ -419,7 +441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         meetingUrl: formData.meetingUrl,
         budget: formData.budget,
         attendees: formData.attendees,
-        coverImageUrl: formData.coverImageUrl,
+        coverImageUrl: coverImageUrl,
         startTime: formData.startTime,
         endTime: formData.endTime,
         startDate: new Date(formData.startDate),
