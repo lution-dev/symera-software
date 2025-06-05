@@ -235,6 +235,13 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   if (currentFeedbackUrl && !currentFeedbackUrl.startsWith('http')) {
     currentFeedbackUrl = `https://${currentFeedbackUrl}`;
   }
+  
+  // Debug
+  console.log('DEBUG - eventFeedbackUrl:', eventFeedbackUrl);
+  console.log('DEBUG - linkFeedbackUrl:', linkFeedbackUrl);
+  console.log('DEBUG - generatedLink:', generatedLink);
+  console.log('DEBUG - currentFeedbackUrl final:', currentFeedbackUrl);
+  console.log('DEBUG - !!currentFeedbackUrl:', !!currentFeedbackUrl);
 
   return (
     <div className="space-y-6">
