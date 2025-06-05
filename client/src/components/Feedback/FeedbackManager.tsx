@@ -98,6 +98,9 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
     enabled: !!eventId
   });
 
+  // Link atual (gerado ou existente)
+  const currentLink = generatedLink || existingLinkData?.feedbackUrl;
+
   // Gerar link de feedback
   const generateLinkMutation = useMutation({
     mutationFn: async () => {
@@ -232,12 +235,12 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
         
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {/* Botões de ação do link existente */}
-          {eventEnded && generatedLink && (
+          {eventEnded && (generatedLink || existingLinkData?.feedbackUrl) && (
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => copyToClipboard(generatedLink)}
+                onClick={() => copyToClipboard(generatedLink || existingLinkData?.feedbackUrl || '')}
                 title="Copiar link"
               >
                 <Copy className="w-4 h-4" />
@@ -245,7 +248,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.open(generatedLink, '_blank')}
+                onClick={() => window.open(generatedLink || existingLinkData?.feedbackUrl || '', '_blank')}
                 title="Abrir link"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -254,7 +257,8 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
                 variant="outline" 
                 size="sm"
                 onClick={() => {
-                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${generatedLink}`)}`;
+                  const link = generatedLink || existingLinkData?.feedbackUrl || '';
+                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${link}`)}`;
                   window.open(whatsappUrl, '_blank');
                 }}
                 title="Compartilhar no WhatsApp"
@@ -265,7 +269,8 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
                 variant="outline" 
                 size="sm"
                 onClick={() => {
-                  const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${generatedLink}`)}`;
+                  const link = generatedLink || existingLinkData?.feedbackUrl || '';
+                  const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${link}`)}`;
                   window.open(emailUrl, '_blank');
                 }}
                 title="Compartilhar por Email"
