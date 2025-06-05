@@ -216,8 +216,9 @@ const MobileNavbar: React.FC = () => {
         location.match(/\/events\/\d+\/team\/add/) || 
         location.match(/\/events\/\d+\/vendors\/new/) || 
         location.match(/\/events\/\d+\/budget\/new/)) && (
-        <div className="fixed inset-x-0 bottom-0 h-16 bg-card md:hidden z-40 flex items-center justify-around shadow-lg border-t border-border">
-          {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
+        <div className="fixed inset-x-0 bottom-0 bg-card md:hidden z-40 shadow-lg border-t border-border">
+          <div className="h-16 flex items-center justify-around">
+            {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
           <div className="flex-1 flex justify-center touch-action-manipulation">
             <Link href="/" className="w-full flex justify-center">
               <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
@@ -311,6 +312,9 @@ const MobileNavbar: React.FC = () => {
               </div>
             </Link>
           </div>
+          </div>
+          {/* Safe area padding for web apps installed on mobile devices */}
+          <div className="h-4 bg-card"></div>
         </div>
       )}
     </>
