@@ -77,6 +77,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   // Estados para modais
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<any>(null);
+  const [isDeleteEventDialogOpen, setIsDeleteEventDialogOpen] = useState(false);
   
   // Filtering and sorting state
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -276,9 +277,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   });
   
   const handleDeleteEvent = () => {
-    if (window.confirm("Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.")) {
-      deleteEventMutation.mutate();
-    }
+    deleteEventMutation.mutate();
+    setIsDeleteEventDialogOpen(false);
   };
   
   const handleRegenerateChecklist = () => {
@@ -600,8 +600,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
                   
-                  {/* Botão de editar no canto superior direito */}
-                  <div className="absolute top-4 right-4 z-10">
+                  {/* Botões de ação no canto superior direito */}
+                  <div className="absolute top-4 right-4 z-10 flex gap-2">
                     <Button 
                       onClick={handleEditClick}
                       variant="secondary"
@@ -610,6 +610,27 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     >
                       <i className="fas fa-edit mr-2"></i> Editar Evento
                     </Button>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="secondary"
+                          className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-sm"
+                          size="sm"
+                        >
+                          <i className="fas fa-ellipsis-v"></i>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          className="text-destructive focus:text-destructive" 
+                          onClick={() => setIsDeleteEventDialogOpen(true)}
+                        >
+                          <i className="fas fa-trash mr-2"></i>
+                          Excluir Evento
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   
                   <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
@@ -1246,6 +1267,43 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {removeTeamMemberMutation.isPending ? "Removendo..." : "Remover da equipe"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de Confirmação de Exclusão do Evento */}
+      <AlertDialog open={isDeleteEventDialogOpen} onOpenChange={setIsDeleteEventDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Excluir Evento
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o evento <strong>{event?.name}</strong>?
+              <br /><br />
+              Esta ação não pode ser desfeita e todos os dados relacionados ao evento serão permanentemente removidos, incluindo:
+              <br />
+              • Todas as tarefas
+              <br />
+              • Membros da equipe
+              <br />
+              • Atividades e histórico
+              <br />
+              • Documentos e anexos
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteEventDialogOpen(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteEvent}
+              disabled={deleteEventMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteEventMutation.isPending ? "Excluindo..." : "Excluir Evento"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
