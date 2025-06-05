@@ -153,6 +153,7 @@ const EventForm: React.FC<EventFormProps> = ({
   };
 
   const onSubmit = async (data: any) => {
+    console.log("[Debug EventForm] Iniciando submit com dados:", data);
     setIsSubmitting(true);
     try {
       // Preparar os dados para envio com garantia de tipo correto
@@ -160,9 +161,9 @@ const EventForm: React.FC<EventFormProps> = ({
         ...data,
         // Garantir que o formato seja explicitamente definido
         format: data.format || 'in_person',
-        // Converter datas de string para Date objects
-        startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : undefined,
+        // Converter datas corretamente
+        startDate: data.startDate,
+        endDate: data.endDate || data.startDate,
         // Incluir a URL da imagem de capa
         coverImageUrl: data.coverImageUrl || "",
       };
@@ -176,8 +177,7 @@ const EventForm: React.FC<EventFormProps> = ({
       }
       
       console.log("[Debug EventForm] Dados finais para envio:", formData);
-      console.log("[Debug EventForm] Formato sendo enviado:", formData.format);
-      console.log("[Debug EventForm] MeetingUrl sendo enviado:", formData.meetingUrl);
+      console.log("[Debug EventForm] isEdit:", isEdit, "eventId:", eventId);
 
       if (isEdit && eventId) {
         // Update existing event
@@ -186,11 +186,18 @@ const EventForm: React.FC<EventFormProps> = ({
           `/api/events/${eventId}`, 
           { 
             method: "PUT", 
-            body: formData  // O apiRequest já faz a serialização correta
+            body: formData
           }
         );
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("[Debug EventForm] Erro na resposta:", response.status, errorData);
+          throw new Error(`Erro ${response.status}: ${errorData}`);
+        }
+        
         const updatedEvent = await response.json();
-        console.log("[Debug EventForm] Evento atualizado:", updatedEvent);
+        console.log("[Debug EventForm] Evento atualizado com sucesso:", updatedEvent);
         
         toast({
           title: "Evento atualizado",
@@ -199,16 +206,23 @@ const EventForm: React.FC<EventFormProps> = ({
         navigate(`/events/${eventId}`);
       } else {
         // Create new event
-        console.log("[Debug EventForm] Enviando dados para criação:", data);
+        console.log("[Debug EventForm] Enviando dados para criação:", formData);
         const response = await apiRequest(
           "/api/events", 
           { 
             method: "POST", 
-            body: data  // O apiRequest já faz a serialização correta
+            body: formData
           }
         );
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("[Debug EventForm] Erro na resposta:", response.status, errorData);
+          throw new Error(`Erro ${response.status}: ${errorData}`);
+        }
+        
         const newEvent = await response.json();
-        console.log("[Debug EventForm] Evento criado:", newEvent);
+        console.log("[Debug EventForm] Evento criado com sucesso:", newEvent);
         
         toast({
           title: "Evento criado",
@@ -217,10 +231,10 @@ const EventForm: React.FC<EventFormProps> = ({
         navigate(`/events/${newEvent.id}`);
       }
     } catch (error) {
-      console.error("Error saving event:", error);
+      console.error("[Debug EventForm] Erro detalhado ao salvar evento:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível salvar o evento. Tente novamente.",
+        title: "Erro ao salvar evento",
+        description: error instanceof Error ? error.message : "Não foi possível salvar o evento. Tente novamente.",
         variant: "destructive",
       });
     } finally {
