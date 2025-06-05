@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -52,172 +52,141 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
       await navigator.clipboard.writeText(text);
       toast({
         title: "Link copiado!",
-        description: "O link foi copiado para a área de transferência.",
+        description: "O link foi copiado para sua área de transferência."
       });
     } catch (error) {
       toast({
         title: "Erro ao copiar",
-        description: "Não foi possível copiar o link. Tente novamente.",
-        variant: "destructive",
+        description: "Não foi possível copiar o link.",
+        variant: "destructive"
       });
     }
   };
 
-  // Buscar evento para verificar status
-  const { data: event } = useQuery<Event>({
-    queryKey: ['/api/events', eventId],
-  });
-
-  // Buscar feedbacks do evento
-  const { data: feedbacks = [], isLoading: loadingFeedbacks, refetch } = useQuery<EventFeedback[]>({
+  // Query para buscar feedbacks
+  const { data: feedbacks = [], isLoading: feedbacksLoading, refetch: refetchFeedbacks } = useQuery({
     queryKey: ['/api/events', eventId, 'feedbacks'],
-    queryFn: async () => {
-      const response = await fetch(`/api/events/${eventId}/feedbacks`, {
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    },
-    enabled: !!eventId
+    queryFn: () => apiRequest(`/api/events/${eventId}/feedbacks`)
   });
 
-  // Buscar link existente
-  const { data: existingLinkData } = useQuery<{ feedbackUrl: string | null }>({
+  // Query para buscar evento
+  const { data: event } = useQuery({
+    queryKey: ['/api/events', eventId],
+    queryFn: () => apiRequest(`/api/events/${eventId}`)
+  });
+
+  // Query para buscar link existente
+  const { data: existingLinkData, refetch: refetchLink } = useQuery({
     queryKey: ['/api/events', eventId, 'feedback-link'],
-    queryFn: async () => {
-      const response = await fetch(`/api/events/${eventId}/feedback-link`, {
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    },
-    enabled: !!eventId
+    queryFn: () => apiRequest(`/api/events/${eventId}/feedback-link`)
   });
 
-  // Link atual (gerado ou existente)
-  const currentLink = generatedLink || existingLinkData?.feedbackUrl;
-
-  // Gerar link de feedback
+  // Mutation para gerar link de feedback
   const generateLinkMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/events/${eventId}/generate-feedback-link`, { 
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return response.json();
-    },
-    onSuccess: (data: { feedbackUrl: string }) => {
+    mutationFn: () => apiRequest(`/api/events/${eventId}/generate-feedback-link`, { method: 'POST', body: {} }),
+    onSuccess: (data) => {
       setGeneratedLink(data.feedbackUrl);
+      refetchLink();
       toast({
         title: "Link gerado com sucesso!",
-        description: "O link de feedback foi criado e está pronto para ser compartilhado.",
+        description: "O link de feedback está pronto para ser compartilhado."
       });
     },
-    onError: (error) => {
-      console.error('Erro ao gerar link:', error);
+    onError: () => {
       toast({
         title: "Erro ao gerar link",
-        description: "Não foi possível gerar o link de feedback. Tente novamente.",
-        variant: "destructive",
+        description: "Não foi possível gerar o link de feedback.",
+        variant: "destructive"
       });
-    },
+    }
   });
 
-  // Deletar feedback
+  // Mutation para deletar feedback
   const deleteFeedbackMutation = useMutation({
-    mutationFn: async (feedbackId: number) => {
-      const response = await apiRequest(`/api/events/${eventId}/feedbacks/${feedbackId}`, {
-        method: 'DELETE',
-      });
-      return response;
-    },
+    mutationFn: (feedbackId: number) => apiRequest(`/api/events/${eventId}/feedbacks/${feedbackId}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'feedbacks'] });
+      setFeedbackToDelete(null);
       toast({
         title: "Feedback excluído",
-        description: "O feedback foi removido com sucesso.",
+        description: "O feedback foi removido com sucesso."
       });
-      setFeedbackToDelete(null);
     },
     onError: () => {
       toast({
         title: "Erro ao excluir",
-        description: "Não foi possível excluir o feedback. Tente novamente.",
-        variant: "destructive",
+        description: "Não foi possível excluir o feedback.",
+        variant: "destructive"
       });
-    },
+    }
   });
+
+  // Verificar se o evento terminou
+  const eventEnded = useMemo(() => {
+    if (!event?.endDate) return false;
+    const endDate = new Date(event.endDate);
+    const now = new Date();
+    return endDate < now || event.status === 'completed';
+  }, [event]);
+
+  // Estatísticas dos feedbacks
+  const stats = useMemo(() => {
+    if (feedbacks.length === 0) {
+      return { total: 0, average: 0, anonymousPercent: 0 };
+    }
+
+    const total = feedbacks.length;
+    const sum = feedbacks.reduce((acc: number, feedback: EventFeedback) => acc + feedback.rating, 0);
+    const average = sum / total;
+    const anonymousCount = feedbacks.filter((feedback: EventFeedback) => 
+      feedback.isAnonymous || (!feedback.name && !feedback.email)
+    ).length;
+    const anonymousPercent = (anonymousCount / total) * 100;
+
+    return { total, average, anonymousPercent };
+  }, [feedbacks]);
 
   // Filtrar feedbacks
   const filteredFeedbacks = useMemo(() => {
-    return feedbacks.filter(feedback => {
-      const matchesSearch = searchTerm === "" || 
+    return feedbacks.filter((feedback: EventFeedback) => {
+      // Filtro de busca
+      const searchMatch = !searchTerm || 
         feedback.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (feedback.name && feedback.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchesRating = ratingFilter === "all" || 
-        feedback.rating.toString() === ratingFilter;
+      // Filtro de rating
+      const ratingMatch = ratingFilter === "all" || feedback.rating.toString() === ratingFilter;
 
-      const matchesType = typeFilter === "all" ||
-        (typeFilter === "anonymous" && (feedback.isAnonymous || (!feedback.name && !feedback.email))) ||
-        (typeFilter === "identified" && !feedback.isAnonymous && (feedback.name || feedback.email));
+      // Filtro de tipo
+      let typeMatch = true;
+      if (typeFilter === "anonymous") {
+        typeMatch = feedback.isAnonymous || (!feedback.name && !feedback.email);
+      } else if (typeFilter === "identified") {
+        typeMatch = !feedback.isAnonymous && (feedback.name || feedback.email);
+      }
 
-      return matchesSearch && matchesRating && matchesType;
+      return searchMatch && ratingMatch && typeMatch;
     });
   }, [feedbacks, searchTerm, ratingFilter, typeFilter]);
 
+  // Renderizar estrelas
   const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star 
-        key={i} 
-        className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+    return Array.from({ length: 5 }, (_, index) => (
+      <Star
+        key={index}
+        className={`w-4 h-4 ${
+          index < rating 
+            ? "fill-yellow-400 text-yellow-400" 
+            : "text-gray-300"
+        }`}
       />
     ));
   };
 
-  const calculateStats = () => {
-    if (feedbacks.length === 0) return { average: 0, total: 0, anonymousPercent: 0, distribution: {} };
-    
-    const total = feedbacks.length;
-    const sum = feedbacks.reduce((acc, feedback) => acc + feedback.rating, 0);
-    const average = sum / total;
-    
-    const anonymousCount = feedbacks.filter(f => f.isAnonymous || (!f.name && !f.email)).length;
-    const anonymousPercent = (anonymousCount / total) * 100;
-    
-    const distribution = feedbacks.reduce((acc, feedback) => {
-      acc[feedback.rating] = (acc[feedback.rating] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
-    
-    return { average, total, anonymousPercent, distribution };
-  };
-
-  const stats = calculateStats();
-
-  // Verificar se evento terminou
-  const eventEnded = event?.status === 'completed' || 
-    (event?.endDate && new Date(event.endDate) < new Date());
-
-  if (loadingFeedbacks) {
+  if (feedbacksLoading) {
     return (
-      <div className="space-y-4">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -234,154 +203,150 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          {eventEnded && (
-            <>
-              {/* Botões de ação do link existente */}
-              {(generatedLink || existingLinkData?.feedbackUrl) && (
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => copyToClipboard(generatedLink || existingLinkData?.feedbackUrl || '')}
-                    title="Copiar link"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.open(generatedLink || existingLinkData?.feedbackUrl || '', '_blank')}
-                    title="Abrir link"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      const link = generatedLink || existingLinkData?.feedbackUrl || '';
-                      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${link}`)}`;
-                      window.open(whatsappUrl, '_blank');
-                    }}
-                    title="Compartilhar no WhatsApp"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      const link = generatedLink || existingLinkData?.feedbackUrl || '';
-                      const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${link}`)}`;
-                      window.open(emailUrl, '_blank');
-                    }}
-                    title="Compartilhar por Email"
-                  >
-                    <Mail className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-              
-              <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="default" className="w-full sm:w-auto">
-                    <Link className="w-4 h-4 mr-2" />
-                    {(generatedLink || existingLinkData?.feedbackUrl) ? 'Gerenciar Link' : 'Gerar Link de Feedback'}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Gerar Link de Feedback</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Gere um link único para que os participantes possam enviar feedback sobre o evento.
-                    </p>
-                    
-                    {generatedLink ? (
-                      <div className="space-y-3">
-                        <Label>Link gerado:</Label>
-                        <div className="flex gap-2">
-                          <Input 
-                            value={generatedLink} 
-                            readOnly 
-                            className="font-mono text-xs"
-                          />
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => copyToClipboard(generatedLink)}
-                          >
-                            <Copy className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => window.open(generatedLink, '_blank')}
-                            title="Abrir link"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        
-                        {/* Opções de compartilhamento */}
-                        <div className="flex gap-2 pt-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${generatedLink}`)}`;
-                              window.open(whatsappUrl, '_blank');
-                            }}
-                            className="flex-1"
-                          >
-                            <MessageCircle className="w-4 h-4 mr-1" />
-                            WhatsApp
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${generatedLink}`)}`;
-                              window.open(emailUrl, '_blank');
-                            }}
-                            className="flex-1"
-                          >
-                            <Mail className="w-4 h-4 mr-1" />
-                            Email
-                          </Button>
-                        </div>
-                        
-                        <p className="text-xs text-muted-foreground">
-                          Compartilhe este link com os participantes do evento para coletar feedbacks.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="flex justify-center">
-                        <Button 
-                          onClick={() => generateLinkMutation.mutate()}
-                          disabled={generateLinkMutation.isPending}
-                          className="w-full"
-                        >
-                          {generateLinkMutation.isPending ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              Gerando...
-                            </>
-                          ) : (
-                            <>
-                              <Link className="w-4 h-4 mr-2" />
-                              Gerar Link
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </>
+          {/* Botões de ação do link existente - sempre visíveis após gerar link */}
+          {(generatedLink || existingLinkData?.feedbackUrl) && (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => copyToClipboard(generatedLink || existingLinkData?.feedbackUrl || '')}
+                title="Copiar link"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(generatedLink || existingLinkData?.feedbackUrl || '', '_blank')}
+                title="Abrir link"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const link = generatedLink || existingLinkData?.feedbackUrl || '';
+                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${link}`)}`;
+                  window.open(whatsappUrl, '_blank');
+                }}
+                title="Compartilhar no WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const link = generatedLink || existingLinkData?.feedbackUrl || '';
+                  const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${link}`)}`;
+                  window.open(emailUrl, '_blank');
+                }}
+                title="Compartilhar por Email"
+              >
+                <Mail className="w-4 h-4" />
+              </Button>
+            </div>
           )}
+          
+          {/* Botão de gerar link - sempre visível */}
+          <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+            <DialogTrigger asChild>
+              <Button variant="default" className="w-full sm:w-auto">
+                <Link className="w-4 h-4 mr-2" />
+                {(generatedLink || existingLinkData?.feedbackUrl) ? 'Gerenciar Link' : 'Gerar Link de Feedback'}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Gerar Link de Feedback</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Gere um link único para que os participantes possam enviar feedback sobre o evento.
+                </p>
+                
+                {generatedLink ? (
+                  <div className="space-y-3">
+                    <Label>Link gerado:</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={generatedLink} 
+                        readOnly 
+                        className="font-mono text-xs"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => copyToClipboard(generatedLink)}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(generatedLink, '_blank')}
+                        title="Abrir link"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Participe da avaliação do nosso evento! ${generatedLink}`)}`;
+                          window.open(whatsappUrl, '_blank');
+                        }}
+                        className="flex-1"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        WhatsApp
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const emailUrl = `mailto:?subject=${encodeURIComponent('Avaliação do Evento')}&body=${encodeURIComponent(`Olá! Gostaríamos da sua opinião sobre nosso evento. Por favor, acesse: ${generatedLink}`)}`;
+                          window.open(emailUrl, '_blank');
+                        }}
+                        className="flex-1"
+                      >
+                        <Mail className="w-4 h-4 mr-1" />
+                        Email
+                      </Button>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Compartilhe este link com os participantes do evento para coletar feedbacks.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={() => generateLinkMutation.mutate()}
+                      disabled={generateLinkMutation.isPending}
+                      className="w-full"
+                    >
+                      {generateLinkMutation.isPending ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Gerando...
+                        </>
+                      ) : (
+                        <>
+                          <Link className="w-4 h-4 mr-2" />
+                          Gerar Link
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -498,16 +463,14 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
               </h3>
               <p className="text-sm text-muted-foreground mb-6 font-work-sans">
                 {feedbacks.length === 0 
-                  ? eventEnded 
-                    ? "Gere um link de feedback e compartilhe com os participantes para começar a coletar avaliações."
-                    : "O link de feedback estará disponível após o evento terminar."
+                  ? "Gere um link de feedback e compartilhe com os participantes para começar a coletar avaliações."
                   : "Tente ajustar os filtros para encontrar os feedbacks desejados."
                 }
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredFeedbacks.map((feedback) => (
+              {filteredFeedbacks.map((feedback: EventFeedback) => (
                 <div key={feedback.id} className="border border-border rounded-lg p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 bg-card">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
