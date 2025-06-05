@@ -311,8 +311,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate event data using form schema and convert to backend format
       const formData = eventFormSchema.parse(req.body);
       
-      // Preparar os dados para criação do evento com tipos corretos
-      const createData: any = {
+      // Create event first to get ID for image processing
+      const tempCreateData: any = {
         name: formData.name,
         type: formData.type,
         format: formData.format,
@@ -321,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         meetingUrl: formData.meetingUrl,
         budget: formData.budget,
         attendees: formData.attendees,
-        coverImageUrl: formData.coverImageUrl,
+        coverImageUrl: "", // Will be updated after processing
         startTime: formData.startTime,
         endTime: formData.endTime,
         startDate: new Date(formData.startDate),
@@ -330,11 +330,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Adicionar endDate se disponível
       if (formData.endDate) {
-        createData.endDate = new Date(formData.endDate);
+        tempCreateData.endDate = new Date(formData.endDate);
       }
       
-      // Create event
-      const event = await dbStorage.createEvent(createData);
+      // Create event first
+      const event = await dbStorage.createEvent(tempCreateData);
+      
+      // Process image upload if necessary
+      let coverImageUrl = formData.coverImageUrl;
+      
+      if (coverImageUrl && coverImageUrl.startsWith('data:image/')) {
+        try {
+          coverImageUrl = saveBase64Image(coverImageUrl, event.id);
+          console.log('[Debug API] Nova imagem salva para evento criado em:', coverImageUrl);
+          
+          // Update event with new image URL
+          await dbStorage.updateEvent(event.id, { coverImageUrl });
+        } catch (error) {
+          console.error('[Debug API] Erro ao processar upload de imagem na criação:', error);
+          // Continue without image if there's an error
+        }
+      }
+      
+      // Event already created above, use the existing event variable
       
       // Adicionar o criador como membro da equipe (organizador)
       await dbStorage.addTeamMember({
