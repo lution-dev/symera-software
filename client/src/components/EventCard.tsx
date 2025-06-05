@@ -92,6 +92,28 @@ const EventCard: React.FC<EventCardProps> = ({
     }
   };
 
+  // Get the correct image URL, prioritizing database images
+  const getImageUrl = () => {
+    // Debug log to see what coverImage value we're receiving
+    console.log(`[Debug] EventCard ${id} - coverImage value:`, coverImage);
+    
+    // If we have a coverImage from database, use it
+    if (coverImage && coverImage.trim() !== '') {
+      // Ensure the URL is properly formatted
+      if (coverImage.startsWith('/')) {
+        return coverImage; // Relative URL, let the browser handle it
+      } else if (coverImage.startsWith('http')) {
+        return coverImage; // Absolute URL
+      } else {
+        // Assume it's a relative path without leading slash
+        return `/${coverImage}`;
+      }
+    }
+    
+    // Fall back to default cover based on event type
+    return getDefaultCover();
+  };
+
   // Calculate progress percentage considerando também a equipe
   const progressPercentage = calculateEventProgress(tasks, teamData);
   
@@ -104,9 +126,17 @@ const EventCard: React.FC<EventCardProps> = ({
         {/* Image container optimized for small screens */}
         <div className="relative">
           <img 
-            src={coverImage || getDefaultCover()} 
+            src={getImageUrl()} 
             alt={`${name} event`}
             className="w-full h-28 sm:h-36 object-cover"
+            onError={(e) => {
+              // If the database image fails to load, fall back to default
+              const target = e.target as HTMLImageElement;
+              if (target.src !== getDefaultCover()) {
+                console.log(`[Debug] EventCard ${id} - Image failed to load, falling back to default:`, target.src);
+                target.src = getDefaultCover();
+              }
+            }}
           />
           {/* Added gradient overlay with higher opacity to improve readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-background/95 to-background/30"></div>
