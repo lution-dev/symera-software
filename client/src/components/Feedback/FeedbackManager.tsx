@@ -229,13 +229,18 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   // Obter URL do link - primeiro do evento, depois do linkData, depois do gerado
   const eventFeedbackUrl = (event as any)?.feedbackUrl;
   const linkFeedbackUrl = (linkData as any)?.feedbackUrl;
-  const currentFeedbackUrl = eventFeedbackUrl || linkFeedbackUrl || generatedLink;
+  let currentFeedbackUrl = eventFeedbackUrl || linkFeedbackUrl || generatedLink;
+  
+  // Adicionar protocolo se não tiver
+  if (currentFeedbackUrl && !currentFeedbackUrl.startsWith('http')) {
+    currentFeedbackUrl = `https://${currentFeedbackUrl}`;
+  }
   
   // Debug para verificar se temos URL
   console.log('eventFeedbackUrl:', eventFeedbackUrl);
   console.log('linkFeedbackUrl:', linkFeedbackUrl);
   console.log('generatedLink:', generatedLink);
-  console.log('currentFeedbackUrl:', currentFeedbackUrl);
+  console.log('currentFeedbackUrl final:', currentFeedbackUrl);
 
   return (
     <div className="space-y-6">
@@ -284,70 +289,69 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
             </DialogContent>
           </Dialog>
 
-          {/* Botões de ação - aparecem após gerar link */}
-          {currentFeedbackUrl && (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => shareLink(currentFeedbackUrl)}
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Compartilhar
-              </Button>
+          {/* Botões de ação - sempre visíveis mas desabilitados se não há link */}
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => currentFeedbackUrl && shareLink(currentFeedbackUrl)}
+            disabled={!currentFeedbackUrl}
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Compartilhar
+          </Button>
 
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => copyToClipboard(currentFeedbackUrl)}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copiar Link
-              </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => currentFeedbackUrl && copyToClipboard(currentFeedbackUrl)}
+            disabled={!currentFeedbackUrl}
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            Copiar Link
+          </Button>
 
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.open(currentFeedbackUrl, '_blank')}
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Abrir Link
-              </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => currentFeedbackUrl && window.open(currentFeedbackUrl, '_blank')}
+            disabled={!currentFeedbackUrl}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Abrir Link
+          </Button>
 
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={downloadCSV}
-                disabled={feedbacks.length === 0}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Exportar CSV
-              </Button>
-            </>
-          )}
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={downloadCSV}
+            disabled={feedbacks.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar CSV
+          </Button>
         </div>
       </div>
 
       {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-white border shadow-sm">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">Total de Feedbacks</CardTitle>
-            <MessageCircle className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-semibold text-blue-800">Total de Feedbacks</CardTitle>
+            <MessageCircle className="h-5 w-5 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <p className="text-xs text-gray-600 mt-1">Feedbacks recebidos</p>
+            <div className="text-3xl font-bold text-blue-900">{stats.total}</div>
+            <p className="text-sm text-blue-700 mt-1 font-medium">Feedbacks recebidos</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border shadow-sm">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">Avaliação Média</CardTitle>
-            <BarChart3 className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-semibold text-green-800">Avaliação Média</CardTitle>
+            <BarChart3 className="h-5 w-5 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-green-900">
               {stats.total > 0 ? stats.average.toFixed(1) : '0.0'}
             </div>
             <div className="flex items-center mt-1">
@@ -356,16 +360,16 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-white border shadow-sm">
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">Feedbacks Anônimos</CardTitle>
-            <Users className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-semibold text-purple-800">Feedbacks Anônimos</CardTitle>
+            <Users className="h-5 w-5 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-purple-900">
               {stats.total > 0 ? `${stats.anonymousPercent.toFixed(0)}%` : '0%'}
             </div>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-sm text-purple-700 mt-1 font-medium">
               {stats.total > 0 ? `${Math.round((stats.anonymousPercent / 100) * stats.total)} de ${stats.total}` : 'Nenhum feedback anônimo'}
             </p>
           </CardContent>
