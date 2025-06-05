@@ -59,9 +59,18 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   const generateLinkMutation = useMutation({
     mutationFn: () => apiRequest(`/api/events/${eventId}/generate-feedback-link`, { method: 'POST' }),
     onSuccess: (data: any) => {
-      setGeneratedLink(data.feedbackUrl);
-      refetchLink();
+      let newUrl = data.feedbackUrl;
+      if (newUrl && !newUrl.startsWith('http')) {
+        newUrl = `https://${newUrl}`;
+      }
+      setGeneratedLink(newUrl);
       setShowGenerateModal(false);
+      
+      // Invalidar TODOS os caches relacionados
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'feedback-link'] });
+      refetchLink();
+      
       toast({
         title: "Link gerado com sucesso!",
         description: "O link de feedback está pronto para ser compartilhado."
@@ -226,22 +235,25 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
     document.body.removeChild(link);
   };
 
-  // Obter URL do link - primeiro do evento, depois do linkData, depois do gerado
+  // Obter URL do link - checkar em múltiplas fontes
   const eventFeedbackUrl = (event as any)?.feedbackUrl;
   const linkFeedbackUrl = (linkData as any)?.feedbackUrl;
-  let currentFeedbackUrl = eventFeedbackUrl || linkFeedbackUrl || generatedLink;
+  
+  // Usar a primeira URL válida encontrada
+  let currentFeedbackUrl = null;
+  
+  if (eventFeedbackUrl && eventFeedbackUrl.length > 0) {
+    currentFeedbackUrl = eventFeedbackUrl;
+  } else if (linkFeedbackUrl && linkFeedbackUrl.length > 0) {
+    currentFeedbackUrl = linkFeedbackUrl;
+  } else if (generatedLink && generatedLink.length > 0) {
+    currentFeedbackUrl = generatedLink;
+  }
   
   // Adicionar protocolo se não tiver
   if (currentFeedbackUrl && !currentFeedbackUrl.startsWith('http')) {
     currentFeedbackUrl = `https://${currentFeedbackUrl}`;
   }
-  
-  // Debug
-  console.log('DEBUG - eventFeedbackUrl:', eventFeedbackUrl);
-  console.log('DEBUG - linkFeedbackUrl:', linkFeedbackUrl);
-  console.log('DEBUG - generatedLink:', generatedLink);
-  console.log('DEBUG - currentFeedbackUrl final:', currentFeedbackUrl);
-  console.log('DEBUG - !!currentFeedbackUrl:', !!currentFeedbackUrl);
 
   return (
     <div className="space-y-6">
