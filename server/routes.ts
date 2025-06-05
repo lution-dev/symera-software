@@ -3413,20 +3413,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Buscar link de feedback existente
-  app.get('/api/events/:eventId/feedback-link', isAuthenticated, async (req, res) => {
+  app.get('/api/events/:eventId/feedback-link', async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
       const userId = req.session.userId;
 
-      const finalUserId = userId || req.user?.id;
-      if (!finalUserId) {
+      if (!userId) {
         return res.status(401).json({ message: "Unauthorized - Login Required" });
       }
 
-      console.log(`[DEBUG] Buscando link existente - EventId: ${eventId}, UserId: ${finalUserId}`);
+      console.log(`[DEBUG] Buscando link existente - EventId: ${eventId}, UserId: ${userId}`);
 
       // Verificar se o usuário tem acesso ao evento
-      const hasAccess = await dbStorage.hasUserAccessToEvent(finalUserId, eventId);
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
