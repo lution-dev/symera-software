@@ -12,12 +12,14 @@ export function formatDate(date: string | Date) {
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     
-    // Formato exato como mostrado na imagem
-    const day = dateObj.getDate();
-    // Pegar apenas a abreviação do mês em minúsculo sem o ponto
-    const monthFormat = new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(dateObj);
+    // Para lidar com datas UTC corretamente, vamos usar getUTCDate() em vez de getDate()
+    const day = dateObj.getUTCDate();
+    const monthFormat = new Intl.DateTimeFormat('pt-BR', { 
+      month: 'short',
+      timeZone: 'UTC'
+    }).format(dateObj);
     const month = monthFormat.replace('.', '');
-    const year = dateObj.getFullYear();
+    const year = dateObj.getUTCFullYear();
     
     return `${day} de ${month} de ${year}`;
   } catch (error) {

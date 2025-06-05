@@ -200,19 +200,19 @@ const EventCard: React.FC<EventCardProps> = ({
                     {/* Evento com múltiplos dias */}
                     {endDate && new Date(startDate).toDateString() !== new Date(endDate).toDateString() ? (
                       <>
-                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')}{startTime ? ` ${startTime.substring(0, 5)}` : ''} ➝ {new Date(endDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(endDate)).replace('.', '')}{endTime ? ` ${endTime.substring(0, 5)}` : ''}
+                        {new Date(startDate).getUTCDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'UTC' }).format(new Date(startDate)).replace('.', '')}{startTime ? ` ${startTime.substring(0, 5)}` : ''} ➝ {new Date(endDate).getUTCDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'UTC' }).format(new Date(endDate)).replace('.', '')}{endTime ? ` ${endTime.substring(0, 5)}` : ''}
                       </>
                     ) : 
                     /* Evento no mesmo dia com horários diferentes */
                     startTime && endTime && startTime !== endTime ? (
                       <>
-                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')} de {startTime.substring(0, 5)} às {endTime.substring(0, 5)}
+                        {new Date(startDate).getUTCDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'UTC' }).format(new Date(startDate)).replace('.', '')} de {startTime.substring(0, 5)} às {endTime.substring(0, 5)}
                       </>
                     ) : 
                     /* Evento no mesmo dia com um único horário */
                     (
                       <>
-                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')}{startTime ? ` às ${startTime.substring(0, 5)}` : ''}
+                        {new Date(startDate).getUTCDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'UTC' }).format(new Date(startDate)).replace('.', '')}{startTime ? ` às ${startTime.substring(0, 5)}` : ''}
                       </>
                     )}
                   </>
