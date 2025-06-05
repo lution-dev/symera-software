@@ -226,16 +226,24 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
     document.body.removeChild(link);
   };
 
-  // Obter URL do link existente ou gerado
-  const currentFeedbackUrl = (linkData as any)?.feedbackUrl || generatedLink;
+  // Obter URL do link - primeiro do evento, depois do linkData, depois do gerado
+  const eventFeedbackUrl = (event as any)?.feedbackUrl;
+  const linkFeedbackUrl = (linkData as any)?.feedbackUrl;
+  const currentFeedbackUrl = eventFeedbackUrl || linkFeedbackUrl || generatedLink;
+  
+  // Debug para verificar se temos URL
+  console.log('eventFeedbackUrl:', eventFeedbackUrl);
+  console.log('linkFeedbackUrl:', linkFeedbackUrl);
+  console.log('generatedLink:', generatedLink);
+  console.log('currentFeedbackUrl:', currentFeedbackUrl);
 
   return (
     <div className="space-y-6">
       {/* Header com botões de ação */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 bg-white rounded-lg border shadow-sm">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Feedback Pós-Evento</h2>
-          <p className="text-gray-600">Gerencie e visualize os feedbacks do seu evento</p>
+          <p className="text-gray-700">Gerencie e visualize os feedbacks do seu evento</p>
         </div>
         
         <div className="flex flex-wrap gap-2">
@@ -322,36 +330,44 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
 
       {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="bg-white border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Feedbacks</CardTitle>
-            <MessageCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700">Total de Feedbacks</CardTitle>
+            <MessageCircle className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+            <p className="text-xs text-gray-600 mt-1">Feedbacks recebidos</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700">Avaliação Média</CardTitle>
+            <BarChart3 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.average.toFixed(1)}</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {stats.total > 0 ? stats.average.toFixed(1) : '0.0'}
+            </div>
             <div className="flex items-center mt-1">
-              {renderStars(Math.round(stats.average))}
+              {stats.total > 0 ? renderStars(Math.round(stats.average)) : renderStars(0)}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Feedbacks Anônimos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700">Feedbacks Anônimos</CardTitle>
+            <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.anonymousPercent.toFixed(0)}%</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {stats.total > 0 ? `${stats.anonymousPercent.toFixed(0)}%` : '0%'}
+            </div>
+            <p className="text-xs text-gray-600 mt-1">
+              {stats.total > 0 ? `${Math.round((stats.anonymousPercent / 100) * stats.total)} de ${stats.total}` : 'Nenhum feedback anônimo'}
+            </p>
           </CardContent>
         </Card>
       </div>
