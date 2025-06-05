@@ -195,25 +195,24 @@ const EventCard: React.FC<EventCardProps> = ({
             <div className="flex items-center">
               <i className="fas fa-calendar-day text-primary mr-1.5 w-4 text-center text-xs"></i>
               <span className="text-muted-foreground text-xs truncate">
-                {/* Novo formato simplificado que usa sempre startDate/endDate */}
                 {startDate ? (
                   <>
-                    {/* Formato para eventos em dias diferentes com horários */}
-                    {startDate !== endDate && endDate && startTime && endTime ? (
+                    {/* Evento com múltiplos dias */}
+                    {endDate && new Date(startDate).toDateString() !== new Date(endDate).toDateString() ? (
                       <>
-                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')} às {startTime.substring(0, 2)}h ➝ {new Date(endDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(endDate)).replace('.', '')} às {endTime.substring(0, 2)}h
+                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')}{startTime ? ` ${startTime.substring(0, 5)}` : ''} ➝ {new Date(endDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(endDate)).replace('.', '')}{endTime ? ` ${endTime.substring(0, 5)}` : ''}
                       </>
                     ) : 
-                    /* Formato para eventos no mesmo dia, com horários diferentes */
+                    /* Evento no mesmo dia com horários diferentes */
                     startTime && endTime && startTime !== endTime ? (
                       <>
-                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')} às {startTime.substring(0, 2)}h ➝ {endTime.substring(0, 2)}h
+                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')} de {startTime.substring(0, 5)} às {endTime.substring(0, 5)}
                       </>
                     ) : 
-                    /* Formato para eventos no mesmo dia com um único horário ou sem horário */
+                    /* Evento no mesmo dia com um único horário */
                     (
                       <>
-                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')}{startTime ? ` às ${startTime.substring(0, 2)}h` : ''}
+                        {new Date(startDate).getDate()} de {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date(startDate)).replace('.', '')}{startTime ? ` às ${startTime.substring(0, 5)}` : ''}
                       </>
                     )}
                   </>

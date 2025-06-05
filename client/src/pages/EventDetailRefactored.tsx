@@ -677,18 +677,17 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                         <p className="text-xs text-muted-foreground mb-1">Data e Horário</p>
                         <p className="text-sm font-medium truncate">
                           {event.startDate ? (
-                            event.endDate && event.endDate === event.startDate && event.startTime && event.endTime ? (
+                            event.endDate && new Date(event.startDate).toDateString() !== new Date(event.endDate).toDateString() ? (
                               <span>
-                                {formatDate(event.startDate)} {event.startTime.substring(0, 5)} - {event.endTime.substring(0, 5)}
+                                {formatDate(event.startDate)}{event.startTime && ` às ${event.startTime.substring(0, 5)}`} até {formatDate(event.endDate)}{event.endTime && ` às ${event.endTime.substring(0, 5)}`}
+                              </span>
+                            ) : event.startTime && event.endTime && event.startTime !== event.endTime ? (
+                              <span>
+                                {formatDate(event.startDate)} de {event.startTime.substring(0, 5)} às {event.endTime.substring(0, 5)}
                               </span>
                             ) : (
                               <span>
-                                {formatDate(event.startDate)}
-                                {event.startTime && ` ${event.startTime.substring(0, 5)}`}
-                                {event.endDate && event.endDate !== event.startDate && 
-                                  ` até ${formatDate(event.endDate)}`}
-                                {event.endTime && event.endDate !== event.startDate && 
-                                  ` ${event.endTime.substring(0, 5)}`}
+                                {formatDate(event.startDate)}{event.startTime && ` às ${event.startTime.substring(0, 5)}`}
                               </span>
                             )
                           ) : (
