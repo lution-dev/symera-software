@@ -235,25 +235,17 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
     document.body.removeChild(link);
   };
 
-  // Obter URL do link - checkar em múltiplas fontes
+  // Obter URL do link - forçar detecção
   const eventFeedbackUrl = (event as any)?.feedbackUrl;
   const linkFeedbackUrl = (linkData as any)?.feedbackUrl;
   
-  // Usar a primeira URL válida encontrada
-  let currentFeedbackUrl = null;
+  // Detectar URL válida - qualquer uma que exista
+  const currentFeedbackUrl = eventFeedbackUrl || linkFeedbackUrl || generatedLink;
   
-  if (eventFeedbackUrl && eventFeedbackUrl.length > 0) {
-    currentFeedbackUrl = eventFeedbackUrl;
-  } else if (linkFeedbackUrl && linkFeedbackUrl.length > 0) {
-    currentFeedbackUrl = linkFeedbackUrl;
-  } else if (generatedLink && generatedLink.length > 0) {
-    currentFeedbackUrl = generatedLink;
-  }
-  
-  // Adicionar protocolo se não tiver
-  if (currentFeedbackUrl && !currentFeedbackUrl.startsWith('http')) {
-    currentFeedbackUrl = `https://${currentFeedbackUrl}`;
-  }
+  // Garantir protocolo HTTPS
+  const finalFeedbackUrl = currentFeedbackUrl && !currentFeedbackUrl.startsWith('http') 
+    ? `https://${currentFeedbackUrl}` 
+    : currentFeedbackUrl;
 
   return (
     <div className="space-y-6">
@@ -265,7 +257,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2">
-          {(!currentFeedbackUrl && !event?.feedbackUrl) ? (
+          {!finalFeedbackUrl ? (
             /* Botão Gerar Link - visível apenas quando não há link */
             <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
               <DialogTrigger asChild>
@@ -308,7 +300,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => shareLink(currentFeedbackUrl)}
+                onClick={() => shareLink(finalFeedbackUrl)}
                 className="flex-1 sm:flex-none"
               >
                 <Share2 className="w-4 h-4 mr-1" />
@@ -318,7 +310,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => copyToClipboard(currentFeedbackUrl)}
+                onClick={() => copyToClipboard(finalFeedbackUrl)}
                 className="flex-1 sm:flex-none"
               >
                 <Copy className="w-4 h-4 mr-1" />
@@ -328,7 +320,7 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.open(currentFeedbackUrl, '_blank')}
+                onClick={() => window.open(finalFeedbackUrl, '_blank')}
                 className="flex-1 sm:flex-none"
               >
                 <ExternalLink className="w-4 h-4 mr-1" />
