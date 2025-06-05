@@ -242,9 +242,15 @@ const EventForm: React.FC<EventFormProps> = ({
     }
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    console.log("[Debug EventForm] Form submit triggered");
+    e.preventDefault();
+    form.handleSubmit(onSubmit)(e);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         <FormField
           control={form.control}
           name="coverImageUrl"
