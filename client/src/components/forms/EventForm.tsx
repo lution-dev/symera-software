@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertEventSchema } from "@shared/schema";
+import { eventFormSchema } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,7 @@ const EventForm: React.FC<EventFormProps> = ({
   }, [savedDate]);
 
   const form = useForm({
-    resolver: zodResolver(insertEventSchema),
+    resolver: zodResolver(eventFormSchema),
     defaultValues,
   });
 
@@ -160,6 +160,9 @@ const EventForm: React.FC<EventFormProps> = ({
         ...data,
         // Garantir que o formato seja explicitamente definido
         format: data.format || 'in_person',
+        // Converter datas de string para Date objects
+        startDate: new Date(data.startDate),
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
       };
       
       // Garantir que o meetingUrl seja incluído quando o formato for online ou híbrido

@@ -230,6 +230,12 @@ export const feedbackMetricsRelations = relations(feedbackMetrics, ({ one }) => 
 // Schemas para inserção de dados
 export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
 export const insertEventSchema = createInsertSchema(events).omit({ createdAt: true, updatedAt: true });
+
+// Schema specifically for the form that handles date strings
+export const eventFormSchema = insertEventSchema.extend({
+  startDate: z.string().min(1, "Data de início é obrigatória"),
+  endDate: z.string().optional(),
+});
 export const insertTaskSchema = createInsertSchema(tasks).omit({ createdAt: true, updatedAt: true });
 export const insertTaskAssigneeSchema = createInsertSchema(taskAssignees).omit({ createdAt: true });
 export const insertEventActivitySchema = createInsertSchema(activityLogs).omit({ createdAt: true });
