@@ -142,12 +142,40 @@ export default function PublicFeedback() {
 
   const getEventTypeLabel = (type: string) => {
     const types: Record<string, string> = {
-      wedding: "Casamento",
-      birthday: "Aniversário",
-      corporate: "Corporativo",
-      conference: "Conferência",
-      social: "Social",
-      other: "Outro",
+      // Eventos Sociais
+      'wedding': 'Casamento',
+      'birthday': 'Aniversário',
+      'baby_shower': 'Chá Revelação',
+      'bachelor_party': 'Despedida de Solteiro(a)',
+      'kids_party': 'Festa Infantil',
+      'sweet_15': 'Festa de 15 Anos',
+      'graduation': 'Formatura',
+      'family_reunion': 'Encontro de Família',
+      'religious_celebration': 'Celebração Religiosa',
+      'special_dinner': 'Jantar Especial',
+      
+      // Eventos Profissionais
+      'corporate': 'Corporativo',
+      'conference': 'Conferência',
+      'convention': 'Convenção',
+      'workshop': 'Workshop',
+      'training': 'Treinamento',
+      'product_launch': 'Lançamento de Produto',
+      'trade_show': 'Feira / Exposição',
+      'hackathon': 'Hackathon',
+      'business_cocktail': 'Coquetel Empresarial',
+      'networking': 'Encontro de Networking',
+      
+      // Outros Eventos
+      'festival': 'Festival',
+      'show': 'Show / Espetáculo',
+      'sports_event': 'Evento Esportivo',
+      'academic_event': 'Evento Acadêmico',
+      'charity_event': 'Evento Beneficente',
+      'online_event': 'Evento Online',
+      'hybrid_event': 'Evento Híbrido',
+      'social': 'Social',
+      'other': 'Outro'
     };
     return types[type] || type;
   };

@@ -417,11 +417,47 @@ const EventForm: React.FC<EventFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    {/* Eventos Sociais */}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                      🎉 Eventos Sociais
+                    </div>
                     <SelectItem value="wedding">Casamento</SelectItem>
                     <SelectItem value="birthday">Aniversário</SelectItem>
+                    <SelectItem value="baby_shower">Chá Revelação</SelectItem>
+                    <SelectItem value="bachelor_party">Despedida de Solteiro(a)</SelectItem>
+                    <SelectItem value="kids_party">Festa Infantil</SelectItem>
+                    <SelectItem value="sweet_15">Festa de 15 Anos</SelectItem>
+                    <SelectItem value="graduation">Formatura</SelectItem>
+                    <SelectItem value="family_reunion">Encontro de Família</SelectItem>
+                    <SelectItem value="religious_celebration">Celebração Religiosa</SelectItem>
+                    <SelectItem value="special_dinner">Jantar Especial</SelectItem>
+                    
+                    {/* Eventos Profissionais */}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0 mt-1">
+                      🧑‍💼 Eventos Profissionais
+                    </div>
                     <SelectItem value="corporate">Corporativo</SelectItem>
                     <SelectItem value="conference">Conferência</SelectItem>
-                    <SelectItem value="social">Social</SelectItem>
+                    <SelectItem value="convention">Convenção</SelectItem>
+                    <SelectItem value="workshop">Workshop</SelectItem>
+                    <SelectItem value="training">Treinamento</SelectItem>
+                    <SelectItem value="product_launch">Lançamento de Produto</SelectItem>
+                    <SelectItem value="trade_show">Feira / Exposição</SelectItem>
+                    <SelectItem value="hackathon">Hackathon</SelectItem>
+                    <SelectItem value="business_cocktail">Coquetel Empresarial</SelectItem>
+                    <SelectItem value="networking">Encontro de Networking</SelectItem>
+                    
+                    {/* Outros Eventos */}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0 mt-1">
+                      🎭 Outros Eventos
+                    </div>
+                    <SelectItem value="festival">Festival</SelectItem>
+                    <SelectItem value="show">Show / Espetáculo</SelectItem>
+                    <SelectItem value="sports_event">Evento Esportivo</SelectItem>
+                    <SelectItem value="academic_event">Evento Acadêmico</SelectItem>
+                    <SelectItem value="charity_event">Evento Beneficente</SelectItem>
+                    <SelectItem value="online_event">Evento Online</SelectItem>
+                    <SelectItem value="hybrid_event">Evento Híbrido</SelectItem>
                     <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
