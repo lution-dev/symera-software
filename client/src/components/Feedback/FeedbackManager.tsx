@@ -235,123 +235,122 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
   if (currentFeedbackUrl && !currentFeedbackUrl.startsWith('http')) {
     currentFeedbackUrl = `https://${currentFeedbackUrl}`;
   }
-  
-  // Debug para verificar se temos URL
-  console.log('eventFeedbackUrl:', eventFeedbackUrl);
-  console.log('linkFeedbackUrl:', linkFeedbackUrl);
-  console.log('generatedLink:', generatedLink);
-  console.log('currentFeedbackUrl final:', currentFeedbackUrl);
 
   return (
     <div className="space-y-6">
       {/* Header com botões de ação */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 bg-white rounded-lg border shadow-sm">
+      <div className="flex flex-col gap-4 p-4 bg-card rounded-lg border">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Feedback Pós-Evento</h2>
-          <p className="text-gray-700">Gerencie e visualize os feedbacks do seu evento</p>
+          <h2 className="text-xl font-semibold">Feedback Pós-Evento</h2>
+          <p className="text-sm text-muted-foreground">Gerencie e visualize os feedbacks do seu evento</p>
         </div>
         
-        <div className="flex flex-wrap gap-2">
-          {/* Botão Gerar Link - sempre visível */}
-          <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Gerar Link de Feedback
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Gerar Link de Feedback</DialogTitle>
-                <DialogDescription>
-                  Crie um link público para que os participantes possam deixar seus feedbacks sobre o evento.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                  O link será válido permanentemente e pode ser compartilhado com todos os participantes do evento.
-                </p>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowGenerateModal(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    onClick={() => generateLinkMutation.mutate()}
-                    disabled={generateLinkMutation.isPending}
-                  >
-                    {generateLinkMutation.isPending ? 'Gerando...' : 'Gerar Link'}
-                  </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          {!currentFeedbackUrl ? (
+            /* Botão Gerar Link - visível apenas quando não há link */
+            <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Gerar Link de Feedback
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Gerar Link de Feedback</DialogTitle>
+                  <DialogDescription>
+                    Crie um link público para que os participantes possam deixar seus feedbacks sobre o evento.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    O link será válido permanentemente e pode ser compartilhado com todos os participantes do evento.
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowGenerateModal(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={() => generateLinkMutation.mutate()}
+                      disabled={generateLinkMutation.isPending}
+                    >
+                      {generateLinkMutation.isPending ? 'Gerando...' : 'Gerar Link'}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            /* Botões de ação - aparecem após gerar link */
+            <>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => shareLink(currentFeedbackUrl)}
+                className="flex-1 sm:flex-none"
+              >
+                <Share2 className="w-4 h-4 mr-1" />
+                Compartilhar
+              </Button>
 
-          {/* Botões de ação - sempre visíveis mas desabilitados se não há link */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => currentFeedbackUrl && shareLink(currentFeedbackUrl)}
-            disabled={!currentFeedbackUrl}
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Compartilhar
-          </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => copyToClipboard(currentFeedbackUrl)}
+                className="flex-1 sm:flex-none"
+              >
+                <Copy className="w-4 h-4 mr-1" />
+                Copiar
+              </Button>
 
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => currentFeedbackUrl && copyToClipboard(currentFeedbackUrl)}
-            disabled={!currentFeedbackUrl}
-          >
-            <Copy className="w-4 h-4 mr-2" />
-            Copiar Link
-          </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(currentFeedbackUrl, '_blank')}
+                className="flex-1 sm:flex-none"
+              >
+                <ExternalLink className="w-4 h-4 mr-1" />
+                Abrir
+              </Button>
 
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => currentFeedbackUrl && window.open(currentFeedbackUrl, '_blank')}
-            disabled={!currentFeedbackUrl}
-          >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Abrir Link
-          </Button>
-
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={downloadCSV}
-            disabled={feedbacks.length === 0}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
-          </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={downloadCSV}
+                disabled={feedbacks.length === 0}
+                className="flex-1 sm:flex-none"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Exportar
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
       {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 shadow-md">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-blue-800">Total de Feedbacks</CardTitle>
-            <MessageCircle className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-sm font-medium">Total de Feedbacks</CardTitle>
+            <MessageCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-900">{stats.total}</div>
-            <p className="text-sm text-blue-700 mt-1 font-medium">Feedbacks recebidos</p>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">Feedbacks recebidos</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 shadow-md">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-green-800">Avaliação Média</CardTitle>
-            <BarChart3 className="h-5 w-5 text-green-600" />
+            <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-900">
+            <div className="text-2xl font-bold">
               {stats.total > 0 ? stats.average.toFixed(1) : '0.0'}
             </div>
             <div className="flex items-center mt-1">
@@ -360,16 +359,16 @@ export function FeedbackManager({ eventId }: FeedbackManagerProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 shadow-md">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-purple-800">Feedbacks Anônimos</CardTitle>
-            <Users className="h-5 w-5 text-purple-600" />
+            <CardTitle className="text-sm font-medium">Feedbacks Anônimos</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-900">
+            <div className="text-2xl font-bold">
               {stats.total > 0 ? `${stats.anonymousPercent.toFixed(0)}%` : '0%'}
             </div>
-            <p className="text-sm text-purple-700 mt-1 font-medium">
+            <p className="text-xs text-muted-foreground">
               {stats.total > 0 ? `${Math.round((stats.anonymousPercent / 100) * stats.total)} de ${stats.total}` : 'Nenhum feedback anônimo'}
             </p>
           </CardContent>
