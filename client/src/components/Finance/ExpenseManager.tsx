@@ -46,6 +46,15 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
 
   // Garantir que expenses seja sempre um array
   const expenses = Array.isArray(expensesResponse) ? expensesResponse : [];
+  
+  // Debug: verificar dados recebidos
+  console.log('[ExpenseManager] Dados recebidos:', { 
+    expensesResponse, 
+    expenses, 
+    isLoading, 
+    isError,
+    length: expenses.length 
+  });
 
   // Handlers com useCallback para evitar re-renders
   const handleOpenForm = useCallback((expense?: any) => {
