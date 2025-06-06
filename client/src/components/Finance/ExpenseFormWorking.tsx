@@ -41,26 +41,36 @@ const expenseFormSchema = z.object({
 
 type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
 
-// Categorias de despesas
+// Categorias de despesas (mantendo as mesmas do sistema original)
 const EXPENSE_CATEGORIES = [
-  { value: 'venue', label: 'Local/Venue' },
-  { value: 'catering', label: 'Alimentação' },
+  { value: 'venue', label: 'Local' },
+  { value: 'catering', label: 'Buffet' },
   { value: 'decoration', label: 'Decoração' },
   { value: 'entertainment', label: 'Entretenimento' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'transport', label: 'Transporte' },
-  { value: 'equipment', label: 'Equipamentos' },
-  { value: 'staff', label: 'Pessoal' },
+  { value: 'photography_video', label: 'Fotografia e Vídeo' },
+  { value: 'staff', label: 'Equipe e Staff' },
+  { value: 'transportation', label: 'Transporte' },
+  { value: 'gifts', label: 'Brindes e Lembranças' },
+  { value: 'security', label: 'Segurança' },
+  { value: 'marketing', label: 'Divulgação e Mídia' },
+  { value: 'sound_lighting', label: 'Sonorização e Iluminação' },
+  { value: 'equipment_rental', label: 'Aluguel de Equipamentos' },
+  { value: 'licenses_taxes', label: 'Licenças e Taxas' },
+  { value: 'platform_software', label: 'Plataforma/Software' },
+  { value: 'accommodation_travel', label: 'Hospedagem e Viagem' },
+  { value: 'food_drinks', label: 'Alimentos e Bebidas' },
+  { value: 'graphic_materials', label: 'Materiais Gráficos' },
+  { value: 'contingency', label: 'Contingência' },
   { value: 'other', label: 'Outros' },
 ];
 
 // Categorias de receitas
 const INCOME_CATEGORIES = [
+  { value: 'client_payment', label: 'Pagamento de cliente' },
+  { value: 'sponsor', label: 'Patrocínio' },
   { value: 'ticket_sales', label: 'Venda de ingressos' },
-  { value: 'sponsorship', label: 'Patrocínio' },
-  { value: 'donations', label: 'Doações' },
-  { value: 'merchandise', label: 'Merchandising' },
-  { value: 'registration', label: 'Inscrições' },
+  { value: 'donation', label: 'Doação' },
+  { value: 'reimbursement', label: 'Reembolso' },
   { value: 'other', label: 'Outros' },
 ];
 
@@ -99,8 +109,10 @@ export const ExpenseFormWorking: React.FC<ExpenseFormWorkingProps> = ({
 
   const createExpenseMutation = useMutation({
     mutationFn: async (data: ExpenseFormValues) => {
+      // Converter valor para centavos (integer) como o sistema espera
       const amount = parseFloat(data.amount.replace(/[^\d.,]/g, '').replace(',', '.'));
-      const finalAmount = data.isIncome ? Math.abs(amount) : -Math.abs(amount);
+      const amountInCents = Math.round(amount * 100);
+      const finalAmount = data.isIncome ? Math.abs(amountInCents) : -Math.abs(amountInCents);
       
       const expenseData = {
         name: data.name,
