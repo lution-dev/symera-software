@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { ExpenseForm } from './ExpenseForm';
+import { ExpenseFormWorking } from './ExpenseFormWorking';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit, Plus, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import {
@@ -129,7 +129,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
   if (isFormOpen) {
     return (
       <div className="space-y-4">
-        <ExpenseForm 
+        <ExpenseFormWorking 
           eventId={eventId} 
           expense={editingExpense}
           onClose={handleCloseForm}
