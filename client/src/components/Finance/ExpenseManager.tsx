@@ -115,20 +115,46 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
 
   // Mapeamento de categorias para português
   const categoryNames = {
+    // Categorias de despesas
+    'venue': 'Local e Espaço',
+    'catering': 'Buffet e Alimentação',
+    'decoration': 'Decoração e Flores',
+    'entertainment': 'Entretenimento e Música',
+    'photography': 'Fotografia e Vídeo',
+    'photography_video': 'Fotografia e Vídeo',
+    'staff': 'Equipe e Staff',
+    'transportation': 'Transporte',
+    'gifts': 'Brindes e Lembranças',
+    'security': 'Segurança',
+    'marketing': 'Divulgação e Mídia',
+    'sound_lighting': 'Sonorização e Iluminação',
+    'equipment_rental': 'Aluguel de Equipamentos',
+    'licenses_taxes': 'Licenças e Taxas',
+    'platform_software': 'Plataforma/Software',
+    'accommodation_travel': 'Hospedagem e Viagem',
+    'food_drinks': 'Alimentos e Bebidas',
+    'graphic_materials': 'Materiais Gráficos',
+    'contingency': 'Contingência',
+    'other': 'Outros',
+    
+    // Categorias de receitas
+    'client_payment': 'Pagamento de cliente',
+    'sponsor': 'Patrocínio',
+    'ticket_sales': 'Venda de ingressos',
+    'donation': 'Doação',
+    'reimbursement': 'Reembolso',
+    
+    // Categorias antigas (compatibilidade)
     'venue_space': 'Local e Espaço',
     'catering_food': 'Buffet e Alimentação',
     'decoration_flowers': 'Decoração e Flores',
     'entertainment_music': 'Entretenimento e Música',
-    'photography_video': 'Fotografia e Vídeo',
-    'accommodation_travel': 'Hospedagem e Viagem',
     'marketing_promotion': 'Marketing e Promoção',
     'staff_services': 'Equipe e Serviços',
     'equipment_technology': 'Equipamentos e Tecnologia',
-    'transportation': 'Transporte',
     'insurance_security': 'Seguro e Segurança',
     'miscellaneous': 'Diversos',
     'sponsors_revenue': 'Patrocinadores',
-    'ticket_sales': 'Venda de Ingressos',
     'merchandise': 'Produtos',
     'other_income': 'Outras Receitas'
   };
