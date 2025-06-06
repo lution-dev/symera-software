@@ -196,9 +196,19 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
   // Manipular envio do formulário
   const onSubmit = (data: ExpenseFormValues) => {
+    console.log('[ExpenseForm] Dados do formulário submetidos:', data);
+    console.log('[ExpenseForm] Erros de validação:', form.formState.errors);
+    console.log('[ExpenseForm] Estado do formulário:', {
+      isValid: form.formState.isValid,
+      isSubmitting: form.formState.isSubmitting,
+      isDirty: form.formState.isDirty
+    });
+    
     if (isEditing) {
+      console.log('[ExpenseForm] Atualizando despesa existente');
       updateExpenseMutation.mutate(data);
     } else {
+      console.log('[ExpenseForm] Criando nova despesa');
       createExpenseMutation.mutate(data);
     }
   };
