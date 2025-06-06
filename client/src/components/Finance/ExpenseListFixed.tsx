@@ -77,6 +77,7 @@ export const ExpenseListFixed: React.FC<ExpenseListFixedProps> = ({ eventId, onA
   
   // Debug log para verificar os dados
   console.log(`[ExpenseListFixed] Total de despesas: ${expenses.length}`);
+  console.log(`[ExpenseListFixed] Estado do formulário: isFormOpen=${isFormOpen}`);
 
   // Mutação para excluir uma despesa
   const deleteExpenseMutation = useMutation({
@@ -107,7 +108,11 @@ export const ExpenseListFixed: React.FC<ExpenseListFixedProps> = ({ eventId, onA
     console.log('[ExpenseListFixed] handleOpenForm chamado', { expense, isFormOpen });
     setEditingExpense(expense || null);
     setIsFormOpen(true);
-    console.log('[ExpenseListFixed] Formulário deve estar aberto agora');
+    console.log('[ExpenseListFixed] Estado atualizado - isFormOpen agora deve ser true');
+    // Forçar re-render
+    setTimeout(() => {
+      console.log('[ExpenseListFixed] Verificando estado após timeout:', { isFormOpen });
+    }, 100);
   };
 
   const handleCloseForm = () => {
@@ -217,13 +222,21 @@ export const ExpenseListFixed: React.FC<ExpenseListFixedProps> = ({ eventId, onA
 
   return (
     <div className="space-y-4">
+      {/* Debug info */}
+      <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+        Debug: isFormOpen = {isFormOpen ? 'TRUE' : 'FALSE'}
+      </div>
+      
       {isFormOpen ? (
-        <ExpenseForm 
-          eventId={eventId} 
-          expense={editingExpense}
-          onClose={handleCloseForm}
-          onSuccess={handleAddSuccess}
-        />
+        <div>
+          <div className="text-sm text-green-600 mb-4">FORMULÁRIO DEVE APARECER AQUI!</div>
+          <ExpenseForm 
+            eventId={eventId} 
+            expense={editingExpense}
+            onClose={handleCloseForm}
+            onSuccess={handleAddSuccess}
+          />
+        </div>
       ) : (
         <>
           <div className="flex justify-between items-center">
