@@ -113,6 +113,31 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  // Mapeamento de categorias para português
+  const categoryNames = {
+    'venue_space': 'Local e Espaço',
+    'catering_food': 'Buffet e Alimentação',
+    'decoration_flowers': 'Decoração e Flores',
+    'entertainment_music': 'Entretenimento e Música',
+    'photography_video': 'Fotografia e Vídeo',
+    'accommodation_travel': 'Hospedagem e Viagem',
+    'marketing_promotion': 'Marketing e Promoção',
+    'staff_services': 'Equipe e Serviços',
+    'equipment_technology': 'Equipamentos e Tecnologia',
+    'transportation': 'Transporte',
+    'insurance_security': 'Seguro e Segurança',
+    'miscellaneous': 'Diversos',
+    'sponsors_revenue': 'Patrocinadores',
+    'ticket_sales': 'Venda de Ingressos',
+    'merchandise': 'Produtos',
+    'other_income': 'Outras Receitas'
+  };
+
+  // Função para traduzir categoria
+  const getCategoryName = (category: string) => {
+    return categoryNames[category as keyof typeof categoryNames] || category;
+  };
+
   // Cálculos (convertendo de centavos para reais)
   const totalExpenses = expenses.filter((e: any) => e.amount < 0).reduce((sum: number, e: any) => sum + Math.abs(e.amount), 0) / 100;
   const totalIncome = expenses.filter((e: any) => e.amount > 0).reduce((sum: number, e: any) => sum + e.amount, 0) / 100;
@@ -279,7 +304,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                             {expense.paid ? "Pago" : "Pendente"}
                           </Badge>
                           {expense.category && (
-                            <Badge variant="outline">{expense.category}</Badge>
+                            <Badge variant="outline">{getCategoryName(expense.category)}</Badge>
                           )}
                         </div>
                       </div>
