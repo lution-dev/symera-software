@@ -90,14 +90,14 @@ export const ExpenseFormWorking: React.FC<ExpenseFormWorkingProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>(
-    expense?.type === 'income' ? 'income' : 'expense'
+    expense?.amount > 0 ? 'income' : 'expense'
   );
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: {
       name: expense?.name || '',
-      amount: expense?.amount ? Math.abs(expense.amount).toString() : '',
+      amount: expense?.amount ? `R$ ${(Math.abs(expense.amount) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '',
       category: expense?.category || '',
       dueDate: expense?.dueDate ? new Date(expense.dueDate).toISOString().split('T')[0] : '',
       paymentDate: expense?.paymentDate ? new Date(expense.paymentDate).toISOString().split('T')[0] : '',

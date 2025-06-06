@@ -108,9 +108,9 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Cálculos
-  const totalExpenses = expenses.filter((e: any) => e.amount < 0).reduce((sum: number, e: any) => sum + Math.abs(e.amount), 0);
-  const totalIncome = expenses.filter((e: any) => e.amount > 0).reduce((sum: number, e: any) => sum + e.amount, 0);
+  // Cálculos (convertendo de centavos para reais)
+  const totalExpenses = expenses.filter((e: any) => e.amount < 0).reduce((sum: number, e: any) => sum + Math.abs(e.amount), 0) / 100;
+  const totalIncome = expenses.filter((e: any) => e.amount > 0).reduce((sum: number, e: any) => sum + e.amount, 0) / 100;
   const balance = totalIncome - totalExpenses;
 
   if (isLoading) {
@@ -284,7 +284,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
                       <p className={`font-semibold ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {expense.amount < 0 ? '-' : '+'}R$ {Math.abs(expense.amount).toFixed(2)}
+                        {expense.amount < 0 ? '-' : '+'}R$ {(Math.abs(expense.amount) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       {expense.dueDate && (
                         <p className="text-xs text-muted-foreground">
