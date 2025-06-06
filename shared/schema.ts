@@ -244,6 +244,12 @@ export const insertVendorSchema = createInsertSchema(vendors).omit({ createdAt: 
 export const insertScheduleItemSchema = createInsertSchema(scheduleItems).omit({ createdAt: true, updatedAt: true });
 export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({ createdAt: true, updatedAt: true });
 export const insertExpenseSchema = createInsertSchema(expenses).omit({ createdAt: true, updatedAt: true });
+
+// Schema specifically for the expense form that handles date strings
+export const expenseFormSchema = insertExpenseSchema.extend({
+  dueDate: z.string().optional(),
+  paymentDate: z.string().optional(),
+}).omit({ id: true });
 export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true, createdAt: true, updatedAt: true, uploadedAt: true });
 export const insertParticipantSchema = createInsertSchema(participants).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertEventFeedbackSchema = createInsertSchema(eventFeedbacks).omit({ id: true, createdAt: true });
@@ -260,6 +266,7 @@ export type InsertVendor = z.infer<typeof insertVendorSchema>;
 export type InsertScheduleItem = z.infer<typeof insertScheduleItemSchema>;
 export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type ExpenseFormData = z.infer<typeof expenseFormSchema>;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type InsertParticipant = z.infer<typeof insertParticipantSchema>;
 export type InsertEventFeedback = z.infer<typeof insertEventFeedbackSchema>;

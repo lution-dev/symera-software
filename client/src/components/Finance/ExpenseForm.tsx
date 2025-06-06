@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { expenseFormSchema } from '@shared/schema';
 import {
   Form,
   FormControl,
@@ -38,20 +39,13 @@ export const INCOME_CATEGORIES = [
   { value: 'other', label: 'Outros' },
 ];
 
-// Schema para validação do formulário
-const expenseFormSchema = z.object({
-  name: z.string().min(3, { message: 'O nome da transação deve ter pelo menos 3 caracteres' }),
+// Extend the shared schema to include form-specific fields
+const formSchema = expenseFormSchema.extend({
   amount: z.string().min(1, { message: 'Informe o valor da transação' }),
-  category: z.string().optional(),
-  dueDate: z.string().optional(),
-  paymentDate: z.string().optional(),
-  paid: z.boolean().default(false),
-  notes: z.string().optional(),
-  vendorId: z.number().optional(),
   isIncome: z.boolean().default(false), // Novo campo para diferenciar receitas
 });
 
-type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
+type ExpenseFormValues = z.infer<typeof formSchema>;
 
 interface Expense {
   id: number;

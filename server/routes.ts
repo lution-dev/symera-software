@@ -2113,11 +2113,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
       
-      const expenseSchema = insertExpenseSchema.omit({ id: true, createdAt: true, updatedAt: true });
-      const validatedData = expenseSchema.parse({
+      // Use the form schema to validate string dates first
+      const { expenseFormSchema } = await import('@shared/schema');
+      const formData = expenseFormSchema.parse({
         ...req.body,
         eventId,
       });
+      
+      // Convert string dates to Date objects for database insertion
+      const validatedData = {
+        ...formData,
+        dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+        paymentDate: formData.paymentDate ? new Date(formData.paymentDate) : null,
+      };
       
       const expense = await dbStorage.createExpense(validatedData);
       
