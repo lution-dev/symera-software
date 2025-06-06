@@ -141,7 +141,7 @@ export const ExpenseFormWorking: React.FC<ExpenseFormWorkingProps> = ({
     },
     onSuccess: () => {
       console.log('[ExpenseFormWorking] Sucesso ao salvar');
-      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
       toast({
         title: "Sucesso!",
         description: `${transactionType === 'income' ? 'Receita' : 'Despesa'} ${expense?.id ? 'atualizada' : 'adicionada'} com sucesso.`,

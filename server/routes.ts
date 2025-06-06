@@ -2149,9 +2149,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Atualizar despesa (suporta tanto PUT quanto PATCH)
+  // Atualizar despesa específica por ID (PUT)
   app.put('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("PUT /api/expenses/:id - Dados recebidos:", req.body);
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
       
@@ -2162,6 +2163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (req.isAuthenticated() && req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
+        console.log("Usando ID de autenticação Replit para atualizar despesa:", userId);
       } else {
         console.log("Erro na autenticação do usuário ao atualizar despesa");
         return res.status(401).json({ message: "User not authenticated properly" });
@@ -2187,8 +2189,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validação - só atualizamos os campos fornecidos
       const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
+      console.log("Dados validados para atualização:", validatedUpdates);
       
       const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
+      console.log("Despesa atualizada com sucesso:", updatedExpense);
+      
+      // Registrar atividade
+      await dbStorage.createActivityLog({
+        eventId: expense.eventId,
+        userId,
+        action: "expense_updated",
+        details: {
+          itemName: updatedExpense.name,
+          amount: updatedExpense.amount,
+          paid: updatedExpense.paid
+        }
+      });
+      
+      res.json(updatedExpense);
+    } catch (error) {
+      console.error("Erro ao atualizar despesa:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação" });
+    }
+  });
+
+  // Atualizar despesa por evento (PUT)
+  app.put('/api/events/:eventId/expenses/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log("PUT /api/events/:eventId/expenses/:id - Dados recebidos:", req.body);
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para atualizar despesa:", userId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+        console.log("Usando ID de autenticação Replit para atualizar despesa:", userId);
+      } else {
+        console.log("Erro na autenticação do usuário ao atualizar despesa");
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
+      const eventId = parseInt(req.params.eventId, 10);
+      const itemId = parseInt(req.params.id, 10);
+      
+      if (isNaN(itemId) || isNaN(eventId)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Verificar acesso ao evento
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Sem permissão para executar esta ação" });
+      }
+      
+      const expense = await dbStorage.getExpenseById(itemId);
+      
+      if (!expense || expense.eventId !== eventId) {
+        return res.status(404).json({ message: "Despesa não encontrada" });
+      }
+      
+      // Validação - só atualizamos os campos fornecidos
+      const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
+      console.log("Dados validados para atualização:", validatedUpdates);
+      
+      const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
+      console.log("Despesa atualizada com sucesso:", updatedExpense);
       
       // Registrar atividade
       await dbStorage.createActivityLog({
