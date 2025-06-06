@@ -33,11 +33,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
 
   // Query para buscar despesas
   const { data: expensesResponse = [], isLoading, isError, error } = useQuery({
-    queryKey: ['/api/events', eventId, 'expenses'],
-    queryFn: async () => {
-      const response = await apiRequest(`/api/events/${eventId}/expenses`);
-      return response;
-    },
+    queryKey: [`/api/events/${eventId}/expenses`],
     enabled: !!eventId,
     retry: 1,
     refetchOnMount: true,
@@ -71,7 +67,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
 
   const handleAddSuccess = useCallback(() => {
     console.log('[ExpenseManager] Despesa adicionada com sucesso');
-    queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'expenses'] });
+    queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
     handleCloseForm();
     toast({
       title: "Sucesso!",
@@ -87,7 +83,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
       toast({
         title: "Sucesso!",
         description: "Despesa excluída com sucesso.",
