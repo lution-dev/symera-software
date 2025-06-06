@@ -32,7 +32,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
 
   // Query para buscar despesas
-  const { data: expensesResponse = [], isLoading, error } = useQuery({
+  const { data: expensesResponse = [], isLoading, isError, error } = useQuery({
     queryKey: ['/api/events', eventId, 'expenses'],
     queryFn: async () => {
       const response = await apiRequest(`/api/events/${eventId}/expenses`);
