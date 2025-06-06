@@ -40,12 +40,12 @@ export const INCOME_CATEGORIES = [
 ];
 
 // Extend the shared schema to include form-specific fields
-const formSchema = expenseFormSchema.extend({
+const localFormSchema = expenseFormSchema.extend({
   amount: z.string().min(1, { message: 'Informe o valor da transação' }),
   isIncome: z.boolean().default(false), // Novo campo para diferenciar receitas
 });
 
-type ExpenseFormValues = z.infer<typeof formSchema>;
+type ExpenseFormValues = z.infer<typeof localFormSchema>;
 
 interface Expense {
   id: number;
@@ -85,7 +85,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
   // Configurar o formulário com os valores padrão
   const form = useForm<ExpenseFormValues>({
-    resolver: zodResolver(expenseFormSchema),
+    resolver: zodResolver(localFormSchema),
     defaultValues: {
       name: expense?.name || '',
       amount: expense?.amount ? String(expense.amount) : '',

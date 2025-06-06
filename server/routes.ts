@@ -9,7 +9,7 @@ import { saveBase64Image, deleteImage } from "./utils/imageUpload";
 import { db } from "./db";
 import { events, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupTempAuth, isAuthenticated } from "./tempAuth";
 
 import { 
   insertEventSchema,
@@ -90,8 +90,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Login de desenvolvimento ativo", userId: "8650891" });
   });
   
-  // Auth middleware
-  await setupAuth(app);
+  // Configurar autenticação temporária
+  setupTempAuth(app);
   
   // Desabilitado: autenticação de desenvolvimento automática
   // app.use(devModeAuth);
@@ -3499,6 +3499,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar link de feedback" });
     }
   });
-
+  
   return app;
 }
