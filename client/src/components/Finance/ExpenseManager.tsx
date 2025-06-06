@@ -273,80 +273,83 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
       </div>
 
       {/* Lista de lançamentos */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Lançamentos ({filteredExpenses.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredExpenses.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Nenhum lançamento encontrado</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Clique em "Novo Lançamento" para adicionar o primeiro
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredExpenses.map((expense: any) => (
-                <div 
-                  key={expense.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Histórico de Lançamentos ({filteredExpenses.length})</h3>
+        </div>
+        
+        {filteredExpenses.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <p className="text-lg">Nenhum lançamento encontrado</p>
+            <p className="text-sm mt-2">Clique em "Novo Lançamento" para adicionar o primeiro</p>
+          </div>
+        ) : (
+          <div className="space-y-0 border rounded-lg overflow-hidden bg-card">
+            {filteredExpenses.map((expense: any, index: number) => (
+              <div 
+                key={expense.id}
+                className={`p-4 border-b last:border-b-0 hover:bg-muted/30 transition-colors ${
+                  index % 2 === 0 ? 'bg-background/50' : 'bg-muted/10'
+                }`}
+              >
+                <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <h4 className="font-medium">{expense.name}</h4>
-                        {expense.description && (
-                          <p className="text-sm text-muted-foreground">{expense.description}</p>
-                        )}
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant={expense.paid ? "default" : "secondary"}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-foreground mb-2">{expense.name}</h4>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
                             {expense.paid ? "Pago" : "Pendente"}
                           </Badge>
                           {expense.category && (
-                            <Badge variant="outline">{getCategoryName(expense.category)}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {getCategoryName(expense.category)}
+                            </Badge>
                           )}
                         </div>
+                        {expense.notes && (
+                          <p className="text-sm text-muted-foreground">{expense.notes}</p>
+                        )}
+                      </div>
+                      
+                      <div className="text-right ml-6">
+                        <p className={`font-semibold text-lg ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {expense.amount < 0 ? '-' : '+'}R$ {(Math.abs(expense.amount) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                        {expense.dueDate && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Venc: {new Date(expense.dueDate).toLocaleDateString('pt-BR')}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex space-x-1 ml-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenForm(expense)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteExpenseMutation.mutate(expense.id)}
+                          disabled={deleteExpenseMutation.isPending}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <p className={`font-semibold ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {expense.amount < 0 ? '-' : '+'}R$ {(Math.abs(expense.amount) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      {expense.dueDate && (
-                        <p className="text-xs text-muted-foreground">
-                          Venc: {new Date(expense.dueDate).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="flex space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenForm(expense)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteExpenseMutation.mutate(expense.id)}
-                        disabled={deleteExpenseMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
