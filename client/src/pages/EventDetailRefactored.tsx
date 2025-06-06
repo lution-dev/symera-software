@@ -1083,12 +1083,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 </div>
                 <div className="bg-card rounded-lg border border-border p-4">
                   <p className="text-sm text-muted-foreground mb-1">Gastos Atuais</p>
-                  <p className="text-2xl font-bold mb-0">{formatCurrency(event.expenses || 0)}</p>
+                  <p className="text-2xl font-bold mb-0">{formatCurrency(Math.abs(event.expenses || 0) / 100)}</p>
                 </div>
                 <div className="bg-card rounded-lg border border-border p-4">
                   <p className="text-sm text-muted-foreground mb-1">Saldo</p>
                   <p className="text-2xl font-bold mb-0 text-green-500">
-                    {formatCurrency((event.budget || 0) - (event.expenses || 0))}
+                    {formatCurrency((event.budget || 0) - (Math.abs(event.expenses || 0) / 100))}
                   </p>
                 </div>
                 <div className="bg-card rounded-lg border border-border p-4">
