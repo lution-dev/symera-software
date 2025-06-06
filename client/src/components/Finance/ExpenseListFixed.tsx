@@ -222,27 +222,13 @@ export const ExpenseListFixed: React.FC<ExpenseListFixedProps> = ({ eventId, onA
 
   return (
     <div className="space-y-4">
-      {/* Debug info */}
-      <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
-        Debug: isFormOpen = {isFormOpen ? 'TRUE' : 'FALSE'}
-      </div>
-      
       {isFormOpen ? (
-        <div className="bg-white border-2 border-green-500 p-4 rounded">
-          <div className="text-lg text-green-600 mb-4 font-bold">✅ FORMULÁRIO FUNCIONANDO!</div>
-          <div className="text-sm text-gray-600 mb-4">Estado confirmado: isFormOpen = TRUE</div>
-          <Button onClick={handleCloseForm} variant="outline">
-            Fechar Formulário de Teste
-          </Button>
-          <div className="mt-4">
-            <ExpenseForm 
-              eventId={eventId} 
-              expense={editingExpense}
-              onClose={handleCloseForm}
-              onSuccess={handleAddSuccess}
-            />
-          </div>
-        </div>
+        <ExpenseForm 
+          eventId={eventId} 
+          expense={editingExpense}
+          onClose={handleCloseForm}
+          onSuccess={handleAddSuccess}
+        />
       ) : (
         <>
           <div className="flex justify-between items-center">
