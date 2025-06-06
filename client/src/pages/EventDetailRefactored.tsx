@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { ScheduleList } from "@/components/Schedule/ScheduleList";
-import { ExpenseList } from "@/components/Finance/ExpenseList";
 import { ExpenseListFixed } from "@/components/Finance/ExpenseListFixed";
 import { DocumentManager } from "@/components/Documents/DocumentManager";
 import { ParticipantsList } from "@/components/ParticipantsList";

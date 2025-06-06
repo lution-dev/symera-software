@@ -1,52 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExpenseForm } from './ExpenseForm';
-import { apiRequest } from '@/lib/queryClient';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { ExpenseForm } from './ExpenseForm';
 
-// Define as categorias de despesas
-export const EXPENSE_CATEGORIES = [
+const categoryOptions = [
+  { value: '', label: 'Todas as categorias' },
   { value: 'venue', label: 'Local' },
-  { value: 'catering', label: 'Buffet' },
+  { value: 'catering', label: 'Alimentação' },
   { value: 'decoration', label: 'Decoração' },
   { value: 'entertainment', label: 'Entretenimento' },
-  { value: 'photography_video', label: 'Fotografia e Vídeo' },
-  { value: 'staff', label: 'Equipe e Staff' },
-  { value: 'transportation', label: 'Transporte' },
-  { value: 'gifts', label: 'Brindes e Lembranças' },
-  { value: 'security', label: 'Segurança' },
-  { value: 'marketing', label: 'Divulgação e Mídia' },
-  { value: 'sound_lighting', label: 'Sonorização e Iluminação' },
-  { value: 'equipment_rental', label: 'Aluguel de Equipamentos' },
-  { value: 'licenses_taxes', label: 'Licenças e Taxas' },
-  { value: 'platform_software', label: 'Plataforma/Software' },
-  { value: 'accommodation_travel', label: 'Hospedagem e Viagem' },
-  { value: 'food_drinks', label: 'Alimentos e Bebidas' },
-  { value: 'graphic_materials', label: 'Materiais Gráficos' },
+  { value: 'photography', label: 'Fotografia' },
+  { value: 'transport', label: 'Transporte' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'staff', label: 'Pessoal' },
+  { value: 'equipment', label: 'Equipamentos' },
+  { value: 'materials', label: 'Materiais' },
   { value: 'contingency', label: 'Contingência' },
   { value: 'other', label: 'Outros' },
 ];
 
-interface ExpenseListProps {
+const getCategoryLabel = (category: string) => {
+  const option = categoryOptions.find(opt => opt.value === category);
+  return option ? option.label : category || 'Não categorizado';
+};
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(amount);
+};
+
+interface ExpenseListFixedProps {
   eventId: number;
   onAddSuccess?: () => void;
 }
 
-export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess }) => {
+export const ExpenseListFixed: React.FC<ExpenseListFixedProps> = ({ eventId, onAddSuccess }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -54,98 +51,138 @@ export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuc
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Buscar as despesas do evento diretamente
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      if (!eventId) return;
-      
+  // Buscar as despesas do evento
+  const { data: expensesResponse = [], isLoading, error } = useQuery({
+    queryKey: ['/api/events', eventId, 'expenses'],
+    queryFn: async () => {
+      console.log(`[ExpenseListFixed] Buscando despesas para evento ${eventId}`);
       try {
-        setIsLoading(true);
-        console.log(`[ExpenseListFixed] Buscando despesas para evento ${eventId}`);
-        
-        // Usar fetch diretamente para garantir que a resposta seja correta
-        const response = await fetch(`/api/events/${eventId}/expenses`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log(`[ExpenseListFixed] Despesas recebidas:`, data);
-        
-        // Garantir que sempre temos um array
-        const validExpenses = Array.isArray(data) ? data : [];
-        setExpenses(validExpenses);
-        console.log(`[ExpenseListFixed] Total de despesas: ${validExpenses.length}`);
+        const response = await apiRequest(`/api/events/${eventId}/expenses`);
+        console.log(`[ExpenseListFixed] Despesas recebidas:`, response);
+        return response;
       } catch (err) {
         console.error('[ExpenseListFixed] Erro ao buscar despesas:', err);
-        setExpenses([]);
-      } finally {
-        setIsLoading(false);
+        throw err;
       }
-    };
+    },
+    enabled: !!eventId,
+    retry: 1,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+  });
 
-    fetchExpenses();
-  }, [eventId]);
+  // Garantir que expenses seja sempre um array
+  const expenses = Array.isArray(expensesResponse) ? expensesResponse : [];
+  
+  // Debug log para verificar os dados
+  console.log(`[ExpenseListFixed] Total de despesas: ${expenses.length}`);
+
+  // Mutação para excluir uma despesa
+  const deleteExpenseMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest(`/api/expenses/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Despesa excluída",
+        description: "A despesa foi excluída com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao excluir despesa",
+        description: "Ocorreu um erro ao excluir a despesa.",
+        variant: "destructive",
+      });
+      console.error("Erro ao excluir despesa:", error);
+    },
+  });
 
   const handleOpenForm = (expense?: any) => {
+    console.log('[ExpenseListFixed] handleOpenForm chamado', { expense, isFormOpen });
     setEditingExpense(expense || null);
     setIsFormOpen(true);
+    console.log('[ExpenseListFixed] Formulário deve estar aberto agora');
   };
 
   const handleCloseForm = () => {
+    console.log('[ExpenseListFixed] handleCloseForm chamado');
     setIsFormOpen(false);
     setEditingExpense(null);
   };
 
   const handleAddSuccess = () => {
+    console.log('[ExpenseListFixed] handleAddSuccess chamado');
     handleCloseForm();
-    // Recarregar despesas
-    const fetchExpenses = async () => {
-      try {
-        const response = await apiRequest(`/api/events/${eventId}/expenses`);
-        const validExpenses = Array.isArray(response) ? response : [];
-        setExpenses(validExpenses);
-      } catch (err) {
-        console.error('Erro ao recarregar despesas:', err);
-      }
-    };
-    fetchExpenses();
-    
     if (onAddSuccess) {
       onAddSuccess();
     }
   };
 
-  const getCategoryLabel = (categoryValue: string | undefined): string => {
-    if (!categoryValue) return 'Não categorizado';
-    const category = EXPENSE_CATEGORIES.find(c => c.value === categoryValue);
-    return category ? category.label : categoryValue;
+  const handleDeleteExpense = (id: number) => {
+    if (confirm("Tem certeza que deseja excluir esta despesa?")) {
+      deleteExpenseMutation.mutate(id);
+    }
   };
 
-  // Função para filtrar as despesas conforme os filtros aplicados
+  const handleTogglePaidStatus = async (expense: any) => {
+    try {
+      const newPaidStatus = !expense.paid;
+      console.log(`Alterando status para: ${newPaidStatus ? 'pago' : 'não pago'}, ID: ${expense.id}`);
+      
+      const response = await fetch(`/api/expenses/${expense.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          paid: newPaidStatus
+        }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Erro na resposta: ${response.status}`, errorText);
+        throw new Error(`Erro na resposta: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Resposta do servidor:", data);
+      
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+      
+      toast({
+        title: "Status atualizado",
+        description: "O status de pagamento foi atualizado com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      toast({
+        title: "Erro ao atualizar status",
+        description: "Ocorreu um erro ao atualizar o status de pagamento.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Filtrar despesas baseado nos filtros
   const filteredExpenses = expenses.filter((expense: any) => {
-    // Filtro por texto de busca
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = 
       expense.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (expense.notes && expense.notes.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Filtro por status (pago/pendente)
     const matchesStatus = 
       statusFilter === 'all' || 
       (statusFilter === 'paid' && expense.paid) || 
       (statusFilter === 'pending' && !expense.paid);
     
-    // Filtro por tipo (entrada/saída)
     const matchesType = 
       typeFilter === 'all' || 
       (typeFilter === 'income' && expense.isIncome) || 
@@ -174,6 +211,10 @@ export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuc
     return <div className="p-4 text-center">Carregando despesas...</div>;
   }
 
+  if (error) {
+    return <div className="p-4 text-center text-red-500">Erro ao carregar despesas.</div>;
+  }
+
   return (
     <div className="space-y-4">
       {isFormOpen ? (
@@ -187,7 +228,13 @@ export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuc
         <>
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Financeiro do Evento</h3>
-            <Button onClick={() => handleOpenForm()} size="sm">
+            <Button 
+              onClick={() => {
+                console.log('[ExpenseListFixed] Botão clicado!');
+                handleOpenForm();
+              }} 
+              size="sm"
+            >
               <i className="fas fa-plus mr-2"></i> Novo Lançamento
             </Button>
           </div>
@@ -207,66 +254,70 @@ export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuc
             </Card>
             <Card className="bg-gray-600/10">
               <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground">Total Pendente</div>
-                <div className="text-2xl font-bold text-amber-500">R$ {totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gray-600/10">
-              <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Saldo</div>
-                <div className={`text-2xl font-bold ${balance >= 0 ? "text-green-500" : "text-red-500"}`}>
+                <div className={`text-2xl font-bold ${balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </CardContent>
             </Card>
+            <Card className="bg-gray-600/10">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground">Pendente</div>
+                <div className="text-2xl font-bold text-amber-500">R$ {totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              </CardContent>
+            </Card>
           </div>
-          
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <Input
-                placeholder="Buscar por nome ou descrição..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as any)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="income">Entradas</SelectItem>
-                  <SelectItem value="expense">Saídas</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="paid">Pagos</SelectItem>
-                  <SelectItem value="pending">Pendentes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <Input
+              placeholder="Buscar por nome ou descrição..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                <SelectItem value="paid">Pagos</SelectItem>
+                <SelectItem value="pending">Pendentes</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                <SelectItem value="income">Entradas</SelectItem>
+                <SelectItem value="expense">Saídas</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {expenses.length === 0 ? (
-            <div className="text-center p-8 bg-muted/30 rounded-lg">
-              <p className="text-muted-foreground">Nenhuma despesa registrada para este evento.</p>
-              <Button onClick={() => handleOpenForm()} variant="outline" className="mt-4">
-                <i className="fas fa-plus mr-2"></i> Adicionar Primeira Despesa
-              </Button>
-            </div>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center py-8">
+                  <i className="fas fa-receipt text-4xl text-muted-foreground mb-4"></i>
+                  <h3 className="text-lg font-semibold mb-2">Nenhuma movimentação financeira</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Comece adicionando suas primeiras despesas ou recebimentos para este evento.
+                  </p>
+                  <Button onClick={() => handleOpenForm()}>
+                    <i className="fas fa-plus mr-2"></i> Adicionar Primeiro Lançamento
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="rounded-md border">
+            <Card>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Descrição</TableHead>
+                    <TableHead>Nome</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Vencimento</TableHead>
                     <TableHead>Tipo</TableHead>
@@ -316,14 +367,35 @@ export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuc
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant={expense.paid ? "outline" : "default"} 
                             size="sm"
-                            variant="outline"
-                            onClick={() => handleOpenForm(expense)}
-                            className="h-8 px-2"
+                            className={expense.paid ? "border border-red-500 text-red-500 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600 border-0"}
+                            onClick={() => handleTogglePaidStatus(expense)}
                           >
-                            <i className="fas fa-edit mr-1"></i> Editar
+                            <i className={`fas fa-${expense.paid ? 'times' : 'check'} mr-1`}></i>
+                            {expense.paid ? 
+                              "Desmarcar" : 
+                              (expense.isIncome ? "Marcar recebido" : "Marcar pago")
+                            }
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleOpenForm(expense)}
+                            title="Editar"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteExpense(expense.id)}
+                            title="Excluir"
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <i className="fas fa-trash"></i>
                           </Button>
                         </div>
                       </TableCell>
@@ -331,12 +403,10 @@ export const ExpenseListFixed: React.FC<ExpenseListProps> = ({ eventId, onAddSuc
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </Card>
           )}
         </>
       )}
     </div>
   );
 };
-
-export default ExpenseListFixed;

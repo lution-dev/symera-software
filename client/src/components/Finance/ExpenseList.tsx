@@ -47,13 +47,13 @@ interface Expense {
   eventId: number;
   name: string;
   amount: number;
-  category?: string;
-  dueDate?: string;
-  paymentDate?: string;
+  category?: string | null;
+  dueDate?: string | null;
+  paymentDate?: string | null;
   paid: boolean;
-  notes?: string;
-  vendorId?: number;
-  isIncome?: boolean;
+  notes?: string | null;
+  vendorId?: number | null;
+  isIncome: boolean;
   createdAt: string;
   updatedAt: string;
 }
