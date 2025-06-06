@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { ScheduleList } from "@/components/Schedule/ScheduleList";
-import { ExpenseListFixed } from "@/components/Finance/ExpenseListFixed";
+import { ExpenseManager } from "@/components/Finance/ExpenseManager";
 import { DocumentManager } from "@/components/Documents/DocumentManager";
 import { ParticipantsList } from "@/components/ParticipantsList";
 import { FeedbackManager } from "@/components/Feedback/FeedbackManager";
@@ -1101,7 +1101,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               
               {/* Lista de despesas */}
               <div className="bg-card rounded-lg border border-border p-6">
-                <ExpenseListFixed eventId={Number(eventId)} />
+                <ExpenseManager eventId={Number(eventId)} />
               </div>
             </div>
           )}
