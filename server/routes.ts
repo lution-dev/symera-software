@@ -2253,8 +2253,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Despesa não encontrada" });
       }
       
+      // Converter strings de data para objetos Date antes da validação
+      const bodyWithDates = {
+        ...req.body,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined,
+        paymentDate: req.body.paymentDate ? new Date(req.body.paymentDate) : undefined,
+      };
+      
       // Validação - só atualizamos os campos fornecidos
-      const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
+      const validatedUpdates = insertExpenseSchema.partial().parse(bodyWithDates);
       console.log("Dados validados para atualização:", validatedUpdates);
       
       const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
