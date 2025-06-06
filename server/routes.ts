@@ -9,7 +9,7 @@ import { saveBase64Image, deleteImage } from "./utils/imageUpload";
 import { db } from "./db";
 import { events, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { setupTempAuth, isAuthenticated } from "./tempAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 import { 
   insertEventSchema,
@@ -90,8 +90,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Login de desenvolvimento ativo", userId: "8650891" });
   });
   
-  // Configurar autenticação temporária
-  setupTempAuth(app);
+  // Auth middleware
+  await setupAuth(app);
   
   // Desabilitado: autenticação de desenvolvimento automática
   // app.use(devModeAuth);
