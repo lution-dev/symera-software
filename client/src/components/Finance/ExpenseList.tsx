@@ -163,8 +163,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
   });
 
   const handleOpenForm = (expense?: Expense) => {
+    console.log('[ExpenseList] handleOpenForm chamado', { expense, isFormOpen });
     setEditingExpense(expense || null);
     setIsFormOpen(true);
+    console.log('[ExpenseList] Formulário deve estar aberto agora');
   };
 
   const handleCloseForm = () => {
@@ -299,7 +301,13 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ eventId, onAddSuccess 
         <>
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Financeiro do Evento</h3>
-            <Button onClick={() => handleOpenForm()} size="sm">
+            <Button 
+              onClick={() => {
+                console.log('[ExpenseList] Botão clicado!');
+                handleOpenForm();
+              }} 
+              size="sm"
+            >
               <i className="fas fa-plus mr-2"></i> Novo Lançamento
             </Button>
           </div>
