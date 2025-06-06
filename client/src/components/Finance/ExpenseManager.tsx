@@ -205,7 +205,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
               <TrendingDown className="h-4 w-4 text-red-500" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Despesas</p>
-                <p className="text-2xl font-bold text-red-600">R$ {totalExpenses.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-red-600">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             </div>
           </CardContent>
@@ -217,7 +217,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
               <TrendingUp className="h-4 w-4 text-green-500" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Receitas</p>
-                <p className="text-2xl font-bold text-green-600">R$ {totalIncome.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             </div>
           </CardContent>
@@ -230,7 +230,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Saldo</p>
                 <p className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  R$ {balance.toFixed(2)}
+                  R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
             </div>
