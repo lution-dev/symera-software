@@ -2086,7 +2086,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Adicionar nova despesa
   app.post('/api/events/:eventId/expenses', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para adicionar despesa:", userId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        console.log("Erro na autenticação do usuário ao adicionar despesa");
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
       const eventId = parseInt(req.params.eventId, 10);
       
       if (isNaN(eventId)) {
@@ -2130,7 +2144,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atualizar despesa (suporta tanto PUT quanto PATCH)
   app.put('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para atualizar despesa:", userId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        console.log("Erro na autenticação do usuário ao atualizar despesa");
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
       const itemId = parseInt(req.params.id, 10);
       
       if (isNaN(itemId)) {
@@ -2176,7 +2204,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atualizar despesa (mesma lógica, mas para o método PATCH)
   app.patch('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
+      let userId;
+      
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        // Usar ID da sessão de desenvolvimento
+        userId = req.session.devUserId;
+        console.log("Usando ID de desenvolvimento para atualizar despesa (PATCH):", userId);
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        // Usar ID da autenticação Replit
+        userId = req.user.claims.sub;
+      } else {
+        console.log("Erro na autenticação do usuário ao atualizar despesa (PATCH)");
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
       const itemId = parseInt(req.params.id, 10);
       
       if (isNaN(itemId)) {
