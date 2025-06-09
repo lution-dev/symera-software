@@ -8,6 +8,21 @@ import { Input } from "@/components/ui/input";
 import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
+
+// Utility function to calculate days remaining consistently
+const calculateDaysRemaining = (eventDate: string) => {
+  const targetDate = new Date(eventDate);
+  const today = new Date();
+  
+  // Reset both dates to midnight UTC to ensure accurate day calculation
+  today.setUTCHours(0, 0, 0, 0);
+  targetDate.setUTCHours(0, 0, 0, 0);
+  
+  const diffTime = targetDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays;
+};
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";

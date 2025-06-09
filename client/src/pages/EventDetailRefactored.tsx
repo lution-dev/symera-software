@@ -13,6 +13,21 @@ import { DocumentManager } from "@/components/Documents/DocumentManager";
 import { ParticipantsList } from "@/components/ParticipantsList";
 import { FeedbackManager } from "@/components/Feedback/FeedbackManager";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
+
+// Utility function to calculate days remaining consistently
+const calculateDaysRemaining = (eventDate: string) => {
+  const targetDate = new Date(eventDate);
+  const today = new Date();
+  
+  // Reset both dates to midnight UTC to ensure accurate day calculation
+  today.setUTCHours(0, 0, 0, 0);
+  targetDate.setUTCHours(0, 0, 0, 0);
+  
+  const diffTime = targetDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays;
+};
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -882,13 +897,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                         <span className="text-sm text-muted-foreground">Dias restantes:</span>
                         <span className="font-semibold">
                           {(() => {
-                            const eventDate = new Date(event.startDate);
-                            const today = new Date();
-                            // Reset time to midnight for accurate day calculation
-                            today.setHours(0, 0, 0, 0);
-                            eventDate.setHours(0, 0, 0, 0);
-                            const diffTime = eventDate.getTime() - today.getTime();
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            const diffDays = calculateDaysRemaining(event.startDate);
                             return diffDays > 0 ? `${diffDays} dias` : diffDays === 0 ? "Hoje" : "Evento passou";
                           })()}
                         </span>
@@ -912,13 +921,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           Você tem {todoTasks} {todoTasks === 1 ? 'tarefa pendente' : 'tarefas pendentes'} para este evento
                           {event.startDate ? (
                             (() => {
-                              const eventDate = new Date(event.startDate);
-                              const today = new Date();
-                              // Reset time to midnight for accurate day calculation
-                              today.setHours(0, 0, 0, 0);
-                              eventDate.setHours(0, 0, 0, 0);
-                              const diffTime = eventDate.getTime() - today.getTime();
-                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              const diffDays = calculateDaysRemaining(event.startDate);
                               return diffDays > 0 
                                 ? ` e faltam ${diffDays} dias para o evento acontecer.` 
                                 : diffDays === 0 
@@ -932,13 +935,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           Todas as tarefas foram concluídas! 
                           {event.startDate ? (
                             (() => {
-                              const eventDate = new Date(event.startDate);
-                              const today = new Date();
-                              // Reset time to midnight for accurate day calculation
-                              today.setHours(0, 0, 0, 0);
-                              eventDate.setHours(0, 0, 0, 0);
-                              const diffTime = eventDate.getTime() - today.getTime();
-                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              const diffDays = calculateDaysRemaining(event.startDate);
                               return diffDays > 0 
                                 ? ` Faltam ${diffDays} dias para o evento acontecer.` 
                                 : diffDays === 0 
