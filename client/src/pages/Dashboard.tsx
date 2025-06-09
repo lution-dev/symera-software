@@ -8,6 +8,21 @@ import TaskList from "@/components/Dashboard/TaskList";
 import TipsCard from "@/components/Dashboard/TipsCard";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { formatActivityTimestamp } from "@/lib/utils";
+
+// Utility function to calculate days remaining consistently
+const calculateDaysRemaining = (eventDate: string) => {
+  const targetDate = new Date(eventDate);
+  const today = new Date();
+  
+  // Reset both dates to midnight UTC to ensure accurate day calculation
+  today.setUTCHours(0, 0, 0, 0);
+  targetDate.setUTCHours(0, 0, 0, 0);
+  
+  const diffTime = targetDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays;
+};
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -63,9 +78,7 @@ const Dashboard: React.FC = () => {
   // Determine next upcoming event days
   const upcomingEventDays = React.useMemo(() => {
     if (upcomingEvents.length > 0) {
-      const today = new Date();
-      const nextEventDate = new Date(upcomingEvents[0].date);
-      return Math.ceil((nextEventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return calculateDaysRemaining(upcomingEvents[0].date);
     }
     return 0;
   }, [upcomingEvents]);

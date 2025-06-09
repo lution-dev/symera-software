@@ -875,11 +875,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                         <span className="text-sm text-muted-foreground">Dias restantes:</span>
                         <span className="font-semibold">
                           {(() => {
-                            const eventDate = new Date(event.startDate);
-                            const today = new Date();
-                            const diffTime = eventDate.getTime() - today.getTime();
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            return diffDays > 0 ? `${diffDays} dias` : "Hoje";
+                            const diffDays = calculateDaysRemaining(event.startDate);
+                            return diffDays > 0 ? `${diffDays} dias` : diffDays === 0 ? "Hoje" : "Evento passou";
                           })()}
                         </span>
                       </div>
@@ -902,13 +899,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           Você tem {todoTasks} {todoTasks === 1 ? 'tarefa pendente' : 'tarefas pendentes'} para este evento
                           {event.startDate ? (
                             (() => {
-                              const eventDate = new Date(event.startDate);
-                              const today = new Date();
-                              const diffTime = eventDate.getTime() - today.getTime();
-                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              const diffDays = calculateDaysRemaining(event.startDate);
                               return diffDays > 0 
                                 ? ` e faltam ${diffDays} dias para o evento acontecer.` 
-                                : `. O evento é hoje!`;
+                                : diffDays === 0 
+                                  ? `. O evento é hoje!`
+                                  : `. O evento já passou.`;
                             })()
                           ) : '.'}
                         </span>
@@ -917,13 +913,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           Todas as tarefas foram concluídas! 
                           {event.startDate ? (
                             (() => {
-                              const eventDate = new Date(event.startDate);
-                              const today = new Date();
-                              const diffTime = eventDate.getTime() - today.getTime();
-                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              const diffDays = calculateDaysRemaining(event.startDate);
                               return diffDays > 0 
                                 ? ` Faltam ${diffDays} dias para o evento acontecer.` 
-                                : ` O evento é hoje!`;
+                                : diffDays === 0 
+                                  ? ` O evento é hoje!`
+                                  : ` O evento já passou.`;
                             })()
                           ) : ''}
                         </span>
