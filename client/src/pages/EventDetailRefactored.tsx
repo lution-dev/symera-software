@@ -809,24 +809,19 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Gastos atuais:</span>
-                      <span className="font-semibold">{event.expenses ? formatCurrency(event.expenses) : "R$ 0,00"}</span>
+                      <span className="font-semibold">{formatCurrency(Math.abs(event.expenses || 0) / 100)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Saldo restante:</span>
                       <span className="font-semibold text-green-600">
-                        {event.budget && event.expenses
-                          ? formatCurrency(event.budget - event.expenses)
-                          : event.budget
-                            ? formatCurrency(event.budget)
-                            : "R$ 0,00"
-                        }
+                        {formatCurrency((event.budget || 0) - (Math.abs(event.expenses || 0) / 100))}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Gasto atual:</span>
                       <span className="font-semibold">
                         {event.budget && event.expenses && event.budget > 0
-                          ? `${Math.round((event.expenses / event.budget) * 100)}%` 
+                          ? `${Math.round(((Math.abs(event.expenses) / 100) / event.budget) * 100)}%` 
                           : "0%"
                         }
                       </span>
