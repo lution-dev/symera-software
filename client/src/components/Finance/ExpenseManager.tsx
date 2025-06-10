@@ -198,38 +198,44 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header com resumo financeiro */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingDown className="h-4 w-4 text-red-500 flex-shrink-0" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-3 md:p-5">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-red-500/10 rounded-lg">
+                <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-red-500 flex-shrink-0" />
+              </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Despesas</p>
-                <p className="text-lg md:text-2xl font-bold text-red-600 truncate">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground mb-1">Despesas</p>
+                <p className="text-lg md:text-3xl font-bold text-red-600 truncate">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4 text-green-500 flex-shrink-0" />
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-3 md:p-5">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-500 flex-shrink-0" />
+              </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Receitas</p>
-                <p className="text-lg md:text-2xl font-bold text-green-600 truncate">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground mb-1">Receitas</p>
+                <p className="text-lg md:text-3xl font-bold text-green-600 truncate">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="sm:col-span-2 lg:col-span-1">
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-4 w-4 text-blue-500 flex-shrink-0" />
+        <Card className="sm:col-span-2 lg:col-span-1 hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-3 md:p-5">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-blue-500 flex-shrink-0" />
+              </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Saldo</p>
-                <p className={`text-lg md:text-2xl font-bold truncate ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground mb-1">Saldo</p>
+                <p className={`text-lg md:text-3xl font-bold truncate ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
@@ -239,68 +245,71 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
       </div>
 
       {/* Controles e botões */}
-      <div className="flex flex-col gap-3 md:gap-4">
-        <h3 className="text-lg font-semibold">Lançamentos Financeiros</h3>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-6">
+        <h3 className="text-lg md:text-xl font-semibold">Lançamentos Financeiros</h3>
         
-        {/* Botões principais - empilhados no mobile */}
-        <div className="flex flex-col sm:flex-row gap-2">
+        {/* Botões principais - empilhados no mobile, alinhados no desktop */}
+        <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
           <Button 
             onClick={() => handleOpenForm()}
-            className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+            className="bg-primary hover:bg-primary/90 shadow-sm w-full sm:w-auto md:px-6"
+            size="default"
           >
             <Plus className="h-4 w-4 mr-2" />
             Novo Lançamento
           </Button>
-          <div className="grid grid-cols-2 sm:flex gap-2">
+          <div className="grid grid-cols-2 sm:flex gap-2 md:gap-3">
             <Button 
               onClick={() => handleOpenForm({ type: 'expense' })}
               variant="outline"
               size="sm"
-              className="text-xs"
+              className="text-xs md:text-sm md:px-4"
             >
-              <TrendingDown className="h-3 w-3 mr-1" />
-              Despesa
+              <TrendingDown className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+              <span className="md:inline">Adicionar Despesa</span>
+              <span className="md:hidden">Despesa</span>
             </Button>
             <Button 
               onClick={() => handleOpenForm({ type: 'income' })}
               variant="outline"
               size="sm"
-              className="text-xs"
+              className="text-xs md:text-sm md:px-4"
             >
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Receita
+              <TrendingUp className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+              <span className="md:inline">Adicionar Receita</span>
+              <span className="md:hidden">Receita</span>
             </Button>
           </div>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col gap-3 md:gap-4">
+      <div className="flex flex-col md:flex-row gap-3 md:gap-6 md:items-center">
         <Input
-          placeholder="Buscar..."
+          placeholder="Buscar por nome ou descrição..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full"
+          className="w-full md:max-w-md"
         />
         
         <div className="grid grid-cols-2 gap-2 md:flex md:gap-4">
           <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-            <SelectTrigger className="w-full md:max-w-xs">
+            <SelectTrigger className="w-full md:w-40">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="paid">Pagos</SelectItem>
               <SelectItem value="pending">Pendentes</SelectItem>
             </SelectContent>
           </Select>
           
           <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
-            <SelectTrigger className="w-full md:max-w-xs">
+            <SelectTrigger className="w-full md:w-40">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="all">Todos os tipos</SelectItem>
               <SelectItem value="expense">Despesas</SelectItem>
               <SelectItem value="income">Receitas</SelectItem>
             </SelectContent>
@@ -320,41 +329,80 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
             <p className="text-sm mt-2">Clique em "Novo Lançamento" para adicionar o primeiro</p>
           </div>
         ) : (
-          <div className="space-y-2 md:space-y-0 md:border md:rounded-lg md:overflow-hidden md:bg-card">
+          <div className="space-y-2 md:space-y-0 md:border md:rounded-lg md:overflow-hidden md:bg-card md:shadow-sm">
             {filteredExpenses.map((expense: any, index: number) => (
               <div 
                 key={expense.id}
                 className={`
-                  p-3 md:p-4 rounded-lg md:rounded-none border md:border-0 md:border-b md:last:border-b-0 
-                  hover:bg-muted/30 transition-colors bg-card md:bg-transparent
+                  p-3 md:p-5 rounded-lg md:rounded-none border md:border-0 md:border-b md:last:border-b-0 
+                  hover:bg-muted/30 md:hover:bg-muted/20 transition-all duration-200 bg-card md:bg-transparent
                   ${index % 2 === 0 ? 'md:bg-background/50' : 'md:bg-muted/10'}
                 `}
               >
-                {/* Layout mobile-first: empilhado */}
+                {/* Layout responsivo: empilhado no mobile, horizontal no desktop */}
                 <div className="space-y-3 md:space-y-0">
-                  {/* Cabeçalho com nome e valor */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0 pr-3">
-                      <h4 className="font-medium text-sm md:text-base text-foreground truncate">{expense.name}</h4>
-                      {expense.notes && (
-                        <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">{expense.notes}</p>
-                      )}
+                  {/* Desktop: Layout horizontal mais espaçoso */}
+                  <div className="md:flex md:items-center md:justify-between md:gap-6">
+                    {/* Informações principais */}
+                    <div className="flex items-start justify-between md:flex-1 md:justify-start md:gap-6">
+                      <div className="flex-1 min-w-0 pr-3 md:pr-0">
+                        <h4 className="font-medium text-sm md:text-lg text-foreground truncate mb-1">{expense.name}</h4>
+                        {expense.notes && (
+                          <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2 md:line-clamp-1">{expense.notes}</p>
+                        )}
+                        
+                        {/* Badges no desktop aparecem abaixo do nome */}
+                        <div className="hidden md:flex md:items-center md:space-x-2 md:mt-2">
+                          <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
+                            {expense.paid ? "Pago" : "Pendente"}
+                          </Badge>
+                          {expense.category && (
+                            <Badge variant="outline" className="text-xs">
+                              {getCategoryName(expense.category)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Valor e data */}
+                      <div className="text-right flex-shrink-0 md:min-w-[140px]">
+                        <p className={`font-semibold text-base md:text-xl ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {expense.amount < 0 ? '-' : '+'}R$ {(Math.abs(expense.amount) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                        {expense.dueDate && (
+                          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                            Venc: {new Date(expense.dueDate).toLocaleDateString('pt-BR')}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     
-                    <div className="text-right flex-shrink-0">
-                      <p className={`font-semibold text-base md:text-lg ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {expense.amount < 0 ? '-' : '+'}R$ {(Math.abs(expense.amount) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      {expense.dueDate && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Venc: {new Date(expense.dueDate).toLocaleDateString('pt-BR')}
-                        </p>
-                      )}
+                    {/* Ações - sempre à direita no desktop */}
+                    <div className="hidden md:flex md:space-x-2 md:flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenForm(expense)}
+                        className="h-9 w-9 p-0 hover:bg-blue-50 hover:text-blue-600"
+                        title="Editar lançamento"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteExpenseMutation.mutate(expense.id)}
+                        disabled={deleteExpenseMutation.isPending}
+                        className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Excluir lançamento"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                   
-                  {/* Badges e ações */}
-                  <div className="flex items-center justify-between">
+                  {/* Mobile: Badges e ações na linha inferior */}
+                  <div className="flex items-center justify-between md:hidden">
                     <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                       <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
                         {expense.paid ? "Pago" : "Pendente"}
@@ -371,18 +419,18 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleOpenForm(expense)}
-                        className="h-7 w-7 md:h-8 md:w-8 p-0"
+                        className="h-7 w-7 p-0"
                       >
-                        <Edit className="h-3 w-3 md:h-4 md:w-4" />
+                        <Edit className="h-3 w-3" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteExpenseMutation.mutate(expense.id)}
                         disabled={deleteExpenseMutation.isPending}
-                        className="h-7 w-7 md:h-8 md:w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
-                        <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
