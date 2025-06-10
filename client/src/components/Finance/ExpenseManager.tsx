@@ -248,39 +248,14 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-6">
         <h3 className="text-lg md:text-xl font-semibold">Lançamentos Financeiros</h3>
         
-        {/* Botões principais - empilhados no mobile, alinhados no desktop */}
-        <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
-          <Button 
-            onClick={() => handleOpenForm()}
-            className="bg-primary hover:bg-primary/90 shadow-sm w-full sm:w-auto md:px-6"
-            size="default"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Lançamento
-          </Button>
-          <div className="grid grid-cols-2 sm:flex gap-2 md:gap-3">
-            <Button 
-              onClick={() => handleOpenForm({ type: 'expense' })}
-              variant="outline"
-              size="sm"
-              className="text-xs md:text-sm md:px-4"
-            >
-              <TrendingDown className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-              <span className="md:inline">Adicionar Despesa</span>
-              <span className="md:hidden">Despesa</span>
-            </Button>
-            <Button 
-              onClick={() => handleOpenForm({ type: 'income' })}
-              variant="outline"
-              size="sm"
-              className="text-xs md:text-sm md:px-4"
-            >
-              <TrendingUp className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-              <span className="md:inline">Adicionar Receita</span>
-              <span className="md:hidden">Receita</span>
-            </Button>
-          </div>
-        </div>
+        <Button 
+          onClick={() => handleOpenForm()}
+          className="bg-primary hover:bg-primary/90 shadow-sm w-full sm:w-auto md:px-6"
+          size="default"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Lançamento
+        </Button>
       </div>
 
       {/* Filtros */}
