@@ -1114,31 +1114,51 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </div>
               
               {/* Cards de resumo financeiro */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="bg-card rounded-lg border border-border p-4">
-                  <p className="text-sm text-muted-foreground mb-1">Orçamento Total</p>
-                  <p className="text-2xl font-bold mb-0">{formatCurrency(event.budget || 0)}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+                <div className="bg-card rounded-lg border border-border p-3 md:p-4">
+                  <div className="flex items-center space-x-2">
+                    <i className="fas fa-wallet text-blue-500 text-sm flex-shrink-0"></i>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs md:text-sm text-muted-foreground mb-1">Orçamento Total</p>
+                      <p className="text-lg md:text-2xl font-bold mb-0 truncate">{formatCurrency(event.budget || 0)}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-card rounded-lg border border-border p-4">
-                  <p className="text-sm text-muted-foreground mb-1">Gastos Atuais</p>
-                  <p className="text-2xl font-bold mb-0">{formatCurrency(Math.abs(event.expenses || 0) / 100)}</p>
+                <div className="bg-card rounded-lg border border-border p-3 md:p-4">
+                  <div className="flex items-center space-x-2">
+                    <i className="fas fa-arrow-down text-red-500 text-sm flex-shrink-0"></i>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs md:text-sm text-muted-foreground mb-1">Gastos Atuais</p>
+                      <p className="text-lg md:text-2xl font-bold mb-0 text-red-600 truncate">{formatCurrency(Math.abs(event.expenses || 0) / 100)}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-card rounded-lg border border-border p-4">
-                  <p className="text-sm text-muted-foreground mb-1">Saldo</p>
-                  <p className="text-2xl font-bold mb-0 text-green-500">
-                    {formatCurrency((event.budget || 0) - (Math.abs(event.expenses || 0) / 100))}
-                  </p>
+                <div className="bg-card rounded-lg border border-border p-3 md:p-4">
+                  <div className="flex items-center space-x-2">
+                    <i className="fas fa-balance-scale text-green-500 text-sm flex-shrink-0"></i>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs md:text-sm text-muted-foreground mb-1">Saldo</p>
+                      <p className="text-lg md:text-2xl font-bold mb-0 text-green-500 truncate">
+                        {formatCurrency((event.budget || 0) - (Math.abs(event.expenses || 0) / 100))}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-card rounded-lg border border-border p-4">
-                  <p className="text-sm text-muted-foreground mb-1">Custo por Convidado</p>
-                  <p className="text-2xl font-bold mb-0">
-                    {event.attendees ? formatCurrency((event.budget || 0) / event.attendees) : 'R$ 0,00'}
-                  </p>
+                <div className="bg-card rounded-lg border border-border p-3 md:p-4 sm:col-span-2 lg:col-span-1">
+                  <div className="flex items-center space-x-2">
+                    <i className="fas fa-user-friends text-purple-500 text-sm flex-shrink-0"></i>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs md:text-sm text-muted-foreground mb-1">Custo por Convidado</p>
+                      <p className="text-lg md:text-2xl font-bold mb-0 truncate">
+                        {event.attendees ? formatCurrency((event.budget || 0) / event.attendees) : 'R$ 0,00'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
               
               {/* Lista de despesas */}
-              <div className="bg-card rounded-lg border border-border p-6">
+              <div className="bg-card rounded-lg border border-border p-3 md:p-6">
                 <ExpenseManager eventId={Number(eventId)} />
               </div>
             </div>
