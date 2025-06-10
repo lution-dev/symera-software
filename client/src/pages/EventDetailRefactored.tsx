@@ -857,18 +857,27 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 {/* Duração e datas */}
                 <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
                   <h3 className="text-sm font-medium mb-4 flex items-center">
-                    <i className="fas fa-clock text-primary mr-2"></i> Duração e prazos
+                    <i className="fas fa-clock text-primary mr-2"></i> Cronograma
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Data do evento:</span>
-                      <span className="font-semibold">
+                      <span className="text-sm text-muted-foreground">Data:</span>
+                      <span className="font-semibold text-right">
                         {event.startDate ? formatDate(event.startDate) : "A definir"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Horário:</span>
+                      <span className="font-semibold text-right">
+                        {event.startTime && event.endTime 
+                          ? `${event.startTime} - ${event.endTime}`
+                          : "A definir"
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Duração:</span>
-                      <span className="font-semibold">
+                      <span className="font-semibold text-right">
                         {event.startTime && event.endTime ? (
                           (() => {
                             const start = new Date(`2025-01-01T${event.startTime}`);
@@ -876,24 +885,18 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                             const diffMs = end.getTime() - start.getTime();
                             const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
                             const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                            return `${diffHours}h${diffMinutes > 0 ? ` ${diffMinutes}m` : ''}`;
+                            return `${diffHours}h${diffMinutes > 0 ? `${diffMinutes}m` : ''}`;
                           })()
                         ) : "A definir"}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Última atualização:</span>
-                      <span className="font-semibold">
-                        {formatDate(new Date())}
-                      </span>
-                    </div>
                     {event.startDate && (
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Dias restantes:</span>
-                        <span className="font-semibold">
+                        <span className="text-sm text-muted-foreground">Faltam:</span>
+                        <span className="font-semibold text-right">
                           {(() => {
                             const diffDays = calculateDaysRemaining(event.startDate);
-                            return diffDays > 0 ? `${diffDays} dias` : diffDays === 0 ? "Hoje" : "Evento passou";
+                            return diffDays > 0 ? `${diffDays} dias` : diffDays === 0 ? "Hoje" : "Finalizado";
                           })()}
                         </span>
                       </div>
