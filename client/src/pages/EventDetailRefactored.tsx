@@ -863,7 +863,29 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Data:</span>
                       <span className="font-semibold text-right">
-                        {event.startDate ? formatDate(event.startDate) : "A definir"}
+                        {event.startDate ? (
+                          (() => {
+                            const startDate = new Date(event.startDate);
+                            const endDate = event.endDate ? new Date(event.endDate) : null;
+                            
+                            // Verifica se o evento dura mais de um dia
+                            if (endDate && startDate.toDateString() !== endDate.toDateString()) {
+                              // Formato para múltiplos dias: "26 Jun - 29 Jun"
+                              const startFormatted = startDate.toLocaleDateString('pt-BR', { 
+                                day: 'numeric', 
+                                month: 'short' 
+                              });
+                              const endFormatted = endDate.toLocaleDateString('pt-BR', { 
+                                day: 'numeric', 
+                                month: 'short' 
+                              });
+                              return `${startFormatted} - ${endFormatted}`;
+                            } else {
+                              // Formato para um dia: inclui o ano
+                              return formatDate(event.startDate);
+                            }
+                          })()
+                        ) : "A definir"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -878,14 +900,28 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Duração:</span>
                       <span className="font-semibold text-right">
-                        {event.startTime && event.endTime ? (
+                        {event.startDate ? (
                           (() => {
-                            const start = new Date(`2025-01-01T${event.startTime}`);
-                            const end = new Date(`2025-01-01T${event.endTime}`);
-                            const diffMs = end.getTime() - start.getTime();
-                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                            const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                            return `${diffHours}h${diffMinutes > 0 ? `${diffMinutes}m` : ''}`;
+                            const startDate = new Date(event.startDate);
+                            const endDate = event.endDate ? new Date(event.endDate) : startDate;
+                            
+                            // Calcula diferença em dias
+                            const diffTime = endDate.getTime() - startDate.getTime();
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            if (diffDays > 1) {
+                              return `${diffDays} dias`;
+                            } else if (event.startTime && event.endTime) {
+                              // Para eventos de um dia, calcula duração em horas
+                              const start = new Date(`2025-01-01T${event.startTime}`);
+                              const end = new Date(`2025-01-01T${event.endTime}`);
+                              const diffMs = end.getTime() - start.getTime();
+                              const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                              const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                              return `${diffHours}h${diffMinutes > 0 ? `${diffMinutes}m` : ''}`;
+                            } else {
+                              return "1 dia";
+                            }
                           })()
                         ) : "A definir"}
                       </span>
