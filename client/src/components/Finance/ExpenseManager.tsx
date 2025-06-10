@@ -249,10 +249,10 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
         <h3 className="text-lg md:text-xl font-semibold">Lançamentos Financeiros</h3>
       </div>
 
-      {/* Barra de ferramentas: responsiva para todos os dispositivos */}
-      <div className="space-y-3">
-        {/* Campo de busca - sempre em linha separada no mobile, junto no desktop */}
-        <div className="w-full lg:hidden">
+      {/* Barra de ferramentas: layout otimizado */}
+      <div className="space-y-3 lg:space-y-0">
+        {/* Mobile: Campo de busca separado */}
+        <div className="lg:hidden">
           <Input
             placeholder="Buscar por nome ou descrição..."
             value={searchTerm}
@@ -261,10 +261,10 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
           />
         </div>
         
-        {/* Linha com filtros e botão */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+        {/* Desktop: Linha única com todos os elementos */}
+        <div className="flex flex-col sm:flex-row gap-3 lg:items-center lg:justify-between">
           {/* Busca no desktop */}
-          <div className="hidden lg:block lg:flex-1 lg:max-w-sm">
+          <div className="hidden lg:block lg:max-w-sm lg:flex-1">
             <Input
               placeholder="Buscar por nome ou descrição..."
               value={searchTerm}
@@ -273,12 +273,12 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
             />
           </div>
           
-          {/* Filtros e botão */}
-          <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 sm:items-center sm:flex-shrink-0">
-            {/* Filtros em grid no mobile, inline no tablet+ */}
-            <div className="grid grid-cols-2 gap-2 xs:flex xs:gap-2 sm:gap-3">
+          {/* Filtros e botão agrupados */}
+          <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 lg:items-center">
+            {/* Filtros */}
+            <div className="grid grid-cols-2 sm:flex gap-2 lg:gap-3">
               <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                <SelectTrigger className="w-full sm:w-32 lg:w-36">
+                <SelectTrigger className="w-full sm:w-28 lg:w-32">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -289,7 +289,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
               </Select>
               
               <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
-                <SelectTrigger className="w-full sm:w-32 lg:w-36">
+                <SelectTrigger className="w-full sm:w-28 lg:w-32">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -300,15 +300,14 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
               </Select>
             </div>
             
-            {/* Botão sempre visível e acessível */}
+            {/* Botão */}
             <Button 
               onClick={() => handleOpenForm()}
-              className="bg-primary hover:bg-primary/90 shadow-sm w-full xs:w-auto sm:ml-2 lg:ml-3"
+              className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
               size="default"
             >
               <Plus className="h-4 w-4 mr-2" />
-              <span className="xs:hidden sm:inline">Novo Lançamento</span>
-              <span className="hidden xs:inline sm:hidden">Novo</span>
+              Novo Lançamento
             </Button>
           </div>
         </div>
@@ -336,27 +335,24 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                   ${index % 2 === 0 ? 'md:bg-background/50' : 'md:bg-muted/10'}
                 `}
               >
-                {/* Layout totalmente responsivo para todos os dispositivos */}
+                {/* Layout responsivo otimizado */}
                 <div className="space-y-3 lg:space-y-0">
-                  {/* Layout adaptativo baseado no tamanho da tela */}
-                  <div className="lg:flex lg:items-center lg:justify-between lg:gap-6">
-                    {/* Seção principal com informações */}
-                    <div className="flex items-start justify-between lg:flex-1 lg:justify-start lg:gap-6">
-                      <div className="flex-1 min-w-0 pr-3 lg:pr-0">
-                        {/* Nome do lançamento */}
-                        <h4 className="font-medium text-sm sm:text-base lg:text-lg text-foreground truncate mb-1">
+                  {/* Desktop: Layout horizontal compacto */}
+                  <div className="lg:flex lg:items-center lg:gap-4">
+                    {/* Informações principais */}
+                    <div className="flex items-start justify-between lg:flex-1">
+                      <div className="flex-1 min-w-0 pr-3 lg:pr-4">
+                        <h4 className="font-medium text-sm lg:text-base text-foreground truncate mb-1">
                           {expense.name}
                         </h4>
-                        
-                        {/* Notas/descrição */}
                         {expense.notes && (
-                          <p className="text-xs sm:text-sm lg:text-sm text-muted-foreground mt-1 line-clamp-2 lg:line-clamp-1">
+                          <p className="text-xs lg:text-sm text-muted-foreground line-clamp-2 lg:line-clamp-1">
                             {expense.notes}
                           </p>
                         )}
                         
-                        {/* Badges - aparecem no desktop */}
-                        <div className="hidden lg:flex lg:items-center lg:space-x-2 lg:mt-2">
+                        {/* Badges no desktop inline */}
+                        <div className="hidden lg:flex lg:items-center lg:space-x-2 lg:mt-1">
                           <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
                             {expense.paid ? "Pago" : "Pendente"}
                           </Badge>
@@ -368,27 +364,27 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                         </div>
                       </div>
                       
-                      {/* Valor e data - sempre visível */}
-                      <div className="text-right flex-shrink-0 sm:min-w-[120px] lg:min-w-[140px]">
-                        <p className={`font-semibold text-sm sm:text-base lg:text-xl ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {/* Valor e data */}
+                      <div className="text-right flex-shrink-0 lg:min-w-[120px]">
+                        <p className={`font-semibold text-base lg:text-lg ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
                           {expense.amount < 0 ? '-' : '+'}R$ {(Math.abs(expense.amount) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         {expense.dueDate && (
-                          <p className="text-xs sm:text-xs lg:text-sm text-muted-foreground mt-1">
+                          <p className="text-xs text-muted-foreground">
                             Venc: {new Date(expense.dueDate).toLocaleDateString('pt-BR')}
                           </p>
                         )}
                       </div>
                     </div>
                     
-                    {/* Ações - desktop apenas */}
-                    <div className="hidden lg:flex lg:space-x-2 lg:flex-shrink-0">
+                    {/* Ações no desktop */}
+                    <div className="hidden lg:flex lg:space-x-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleOpenForm(expense)}
-                        className="h-9 w-9 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                        title="Editar lançamento"
+                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                        title="Editar"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -397,17 +393,16 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                         size="sm"
                         onClick={() => deleteExpenseMutation.mutate(expense.id)}
                         disabled={deleteExpenseMutation.isPending}
-                        className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                        title="Excluir lançamento"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Excluir"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   
-                  {/* Linha inferior - mobile e tablet */}
+                  {/* Mobile: Badges e ações */}
                   <div className="flex items-center justify-between lg:hidden">
-                    {/* Badges */}
                     <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                       <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
                         {expense.paid ? "Pago" : "Pendente"}
@@ -419,26 +414,23 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                       )}
                     </div>
                     
-                    {/* Ações */}
-                    <div className="flex space-x-1 flex-shrink-0">
+                    <div className="flex space-x-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleOpenForm(expense)}
-                        className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                        title="Editar"
+                        className="h-8 w-8 p-0"
                       >
-                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteExpenseMutation.mutate(expense.id)}
                         disabled={deleteExpenseMutation.isPending}
-                        className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                        title="Excluir"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
-                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
