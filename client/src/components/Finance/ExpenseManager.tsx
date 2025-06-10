@@ -249,48 +249,68 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
         <h3 className="text-lg md:text-xl font-semibold">Lançamentos Financeiros</h3>
       </div>
 
-      {/* Barra de ferramentas: filtros e botão */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-        <Input
-          placeholder="Buscar por nome ou descrição..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:flex-1 md:max-w-md"
-        />
+      {/* Barra de ferramentas: responsiva para todos os dispositivos */}
+      <div className="space-y-3">
+        {/* Campo de busca - sempre em linha separada no mobile, junto no desktop */}
+        <div className="w-full lg:hidden">
+          <Input
+            placeholder="Buscar por nome ou descrição..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
+          />
+        </div>
         
-        <div className="flex flex-col sm:flex-row gap-2 md:gap-3 md:items-center">
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2 md:gap-3">
-            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-              <SelectTrigger className="w-full md:w-36">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="paid">Pagos</SelectItem>
-                <SelectItem value="pending">Pendentes</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
-              <SelectTrigger className="w-full md:w-36">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os tipos</SelectItem>
-                <SelectItem value="expense">Despesas</SelectItem>
-                <SelectItem value="income">Receitas</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Linha com filtros e botão */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          {/* Busca no desktop */}
+          <div className="hidden lg:block lg:flex-1 lg:max-w-sm">
+            <Input
+              placeholder="Buscar por nome ou descrição..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
           </div>
           
-          <Button 
-            onClick={() => handleOpenForm()}
-            className="bg-primary hover:bg-primary/90 shadow-sm w-full sm:w-auto md:ml-2"
-            size="default"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Lançamento
-          </Button>
+          {/* Filtros e botão */}
+          <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 sm:items-center sm:flex-shrink-0">
+            {/* Filtros em grid no mobile, inline no tablet+ */}
+            <div className="grid grid-cols-2 gap-2 xs:flex xs:gap-2 sm:gap-3">
+              <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                <SelectTrigger className="w-full sm:w-32 lg:w-36">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="paid">Pagos</SelectItem>
+                  <SelectItem value="pending">Pendentes</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
+                <SelectTrigger className="w-full sm:w-32 lg:w-36">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="expense">Despesas</SelectItem>
+                  <SelectItem value="income">Receitas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Botão sempre visível e acessível */}
+            <Button 
+              onClick={() => handleOpenForm()}
+              className="bg-primary hover:bg-primary/90 shadow-sm w-full xs:w-auto sm:ml-2 lg:ml-3"
+              size="default"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="xs:hidden sm:inline">Novo Lançamento</span>
+              <span className="hidden xs:inline sm:hidden">Novo</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -316,20 +336,27 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                   ${index % 2 === 0 ? 'md:bg-background/50' : 'md:bg-muted/10'}
                 `}
               >
-                {/* Layout responsivo: empilhado no mobile, horizontal no desktop */}
-                <div className="space-y-3 md:space-y-0">
-                  {/* Desktop: Layout horizontal mais espaçoso */}
-                  <div className="md:flex md:items-center md:justify-between md:gap-6">
-                    {/* Informações principais */}
-                    <div className="flex items-start justify-between md:flex-1 md:justify-start md:gap-6">
-                      <div className="flex-1 min-w-0 pr-3 md:pr-0">
-                        <h4 className="font-medium text-sm md:text-lg text-foreground truncate mb-1">{expense.name}</h4>
+                {/* Layout totalmente responsivo para todos os dispositivos */}
+                <div className="space-y-3 lg:space-y-0">
+                  {/* Layout adaptativo baseado no tamanho da tela */}
+                  <div className="lg:flex lg:items-center lg:justify-between lg:gap-6">
+                    {/* Seção principal com informações */}
+                    <div className="flex items-start justify-between lg:flex-1 lg:justify-start lg:gap-6">
+                      <div className="flex-1 min-w-0 pr-3 lg:pr-0">
+                        {/* Nome do lançamento */}
+                        <h4 className="font-medium text-sm sm:text-base lg:text-lg text-foreground truncate mb-1">
+                          {expense.name}
+                        </h4>
+                        
+                        {/* Notas/descrição */}
                         {expense.notes && (
-                          <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2 md:line-clamp-1">{expense.notes}</p>
+                          <p className="text-xs sm:text-sm lg:text-sm text-muted-foreground mt-1 line-clamp-2 lg:line-clamp-1">
+                            {expense.notes}
+                          </p>
                         )}
                         
-                        {/* Badges no desktop aparecem abaixo do nome */}
-                        <div className="hidden md:flex md:items-center md:space-x-2 md:mt-2">
+                        {/* Badges - aparecem no desktop */}
+                        <div className="hidden lg:flex lg:items-center lg:space-x-2 lg:mt-2">
                           <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
                             {expense.paid ? "Pago" : "Pendente"}
                           </Badge>
@@ -341,26 +368,26 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                         </div>
                       </div>
                       
-                      {/* Valor e data */}
-                      <div className="text-right flex-shrink-0 md:min-w-[140px]">
-                        <p className={`font-semibold text-base md:text-xl ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {/* Valor e data - sempre visível */}
+                      <div className="text-right flex-shrink-0 sm:min-w-[120px] lg:min-w-[140px]">
+                        <p className={`font-semibold text-sm sm:text-base lg:text-xl ${expense.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
                           {expense.amount < 0 ? '-' : '+'}R$ {(Math.abs(expense.amount) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         {expense.dueDate && (
-                          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                          <p className="text-xs sm:text-xs lg:text-sm text-muted-foreground mt-1">
                             Venc: {new Date(expense.dueDate).toLocaleDateString('pt-BR')}
                           </p>
                         )}
                       </div>
                     </div>
                     
-                    {/* Ações - sempre à direita no desktop */}
-                    <div className="hidden md:flex md:space-x-2 md:flex-shrink-0">
+                    {/* Ações - desktop apenas */}
+                    <div className="hidden lg:flex lg:space-x-2 lg:flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleOpenForm(expense)}
-                        className="h-9 w-9 p-0 hover:bg-blue-50 hover:text-blue-600"
+                        className="h-9 w-9 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                         title="Editar lançamento"
                       >
                         <Edit className="h-4 w-4" />
@@ -370,7 +397,7 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                         size="sm"
                         onClick={() => deleteExpenseMutation.mutate(expense.id)}
                         disabled={deleteExpenseMutation.isPending}
-                        className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
                         title="Excluir lançamento"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -378,8 +405,9 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                     </div>
                   </div>
                   
-                  {/* Mobile: Badges e ações na linha inferior */}
-                  <div className="flex items-center justify-between md:hidden">
+                  {/* Linha inferior - mobile e tablet */}
+                  <div className="flex items-center justify-between lg:hidden">
+                    {/* Badges */}
                     <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                       <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
                         {expense.paid ? "Pago" : "Pendente"}
@@ -391,23 +419,26 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
                       )}
                     </div>
                     
+                    {/* Ações */}
                     <div className="flex space-x-1 flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleOpenForm(expense)}
-                        className="h-7 w-7 p-0"
+                        className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                        title="Editar"
                       >
-                        <Edit className="h-3 w-3" />
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteExpenseMutation.mutate(expense.id)}
                         disabled={deleteExpenseMutation.isPending}
-                        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                        title="Excluir"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </div>
