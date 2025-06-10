@@ -244,51 +244,53 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
         </Card>
       </div>
 
-      {/* Controles e botões */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-6">
+      {/* Título */}
+      <div className="mb-4">
         <h3 className="text-lg md:text-xl font-semibold">Lançamentos Financeiros</h3>
-        
-        <Button 
-          onClick={() => handleOpenForm()}
-          className="bg-primary hover:bg-primary/90 shadow-sm w-full sm:w-auto md:px-6"
-          size="default"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Lançamento
-        </Button>
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-col md:flex-row gap-3 md:gap-6 md:items-center">
+      {/* Barra de ferramentas: filtros e botão */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
         <Input
           placeholder="Buscar por nome ou descrição..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:max-w-md"
+          className="w-full md:flex-1 md:max-w-md"
         />
         
-        <div className="grid grid-cols-2 gap-2 md:flex md:gap-4">
-          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-            <SelectTrigger className="w-full md:w-40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os status</SelectItem>
-              <SelectItem value="paid">Pagos</SelectItem>
-              <SelectItem value="pending">Pendentes</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col sm:flex-row gap-2 md:gap-3 md:items-center">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2 md:gap-3">
+            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+              <SelectTrigger className="w-full md:w-36">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                <SelectItem value="paid">Pagos</SelectItem>
+                <SelectItem value="pending">Pendentes</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
+              <SelectTrigger className="w-full md:w-36">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                <SelectItem value="expense">Despesas</SelectItem>
+                <SelectItem value="income">Receitas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           
-          <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
-            <SelectTrigger className="w-full md:w-40">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os tipos</SelectItem>
-              <SelectItem value="expense">Despesas</SelectItem>
-              <SelectItem value="income">Receitas</SelectItem>
-            </SelectContent>
-          </Select>
+          <Button 
+            onClick={() => handleOpenForm()}
+            className="bg-primary hover:bg-primary/90 shadow-sm w-full sm:w-auto md:ml-2"
+            size="default"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Lançamento
+          </Button>
         </div>
       </div>
 
