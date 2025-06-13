@@ -1625,11 +1625,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.eventId, 10);
       const { userIds } = req.body;
       
+      console.log(`POST /api/events/${eventId}/team - Request body:`, JSON.stringify(req.body, null, 2));
+      console.log(`userIds received:`, userIds);
+      console.log(`userIds type:`, typeof userIds);
+      console.log(`userIds is array:`, Array.isArray(userIds));
+      
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
       
       if (!Array.isArray(userIds) || userIds.length === 0) {
+        console.log(`Validation failed - userIds: ${userIds}, isArray: ${Array.isArray(userIds)}, length: ${userIds?.length}`);
         return res.status(400).json({ message: "userIds array is required" });
       }
       
