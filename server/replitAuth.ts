@@ -138,44 +138,22 @@ export async function setupAuth(app: Express) {
     cb(null, user);
   });
 
-  // Rota principal de login (sem referência ao Replit)
+  // Rota principal de login
   app.get("/api/login", (req, res, next) => {
     const domain = req.hostname;
     const strategyName = `replitauth:${domain}`;
-    console.log("Tentando autenticar com:");
-    console.log("- Hostname:", req.hostname);
-    console.log("- Host header:", req.get('host'));
-    console.log("- X-Forwarded-Host:", req.get('x-forwarded-host'));
-    console.log("- Estratégia procurada:", strategyName);
-    console.log("- Estratégias registradas:", Object.keys(passport._strategies || {}));
-    
-    passport.authenticate(strategyName, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
+    passport.authenticate(strategyName)(req, res, next);
   });
 
   // Rotas específicas para provedores de login
   app.get("/api/login/google", (req, res, next) => {
-    // Esta rota usa a mesma autenticação, apenas é uma entrada dedicada para Google
     const domain = req.hostname;
-    // Redirecionar para autenticação principal com um parâmetro especial
-    passport.authenticate(`replitauth:${domain}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-      login_hint: "google" // Isso não faz nada no Replit Auth, mas mantemos por consistência
-    })(req, res, next);
+    passport.authenticate(`replitauth:${domain}`)(req, res, next);
   });
 
   app.get("/api/login/apple", (req, res, next) => {
-    // Esta rota usa a mesma autenticação, apenas é uma entrada dedicada para Apple
     const domain = req.hostname;
-    // Redirecionar para autenticação principal com um parâmetro especial
-    passport.authenticate(`replitauth:${domain}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-      login_hint: "apple" // Isso não faz nada no Replit Auth, mas mantemos por consistência
-    })(req, res, next);
+    passport.authenticate(`replitauth:${domain}`)(req, res, next);
   });
   
   app.get("/api/callback", (req, res, next) => {
@@ -184,9 +162,8 @@ export async function setupAuth(app: Express) {
     console.log("Parâmetros de callback:", req.query);
     
     passport.authenticate(`replitauth:${domain}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/auth",
-      failureMessage: true
+      successRedirect: "/",
+      failureRedirect: "/auth"
     })(req, res, next);
   });
   
