@@ -21,10 +21,16 @@ if (!allDomains) {
 
 const getOidcConfig = memoize(
   async () => {
-    return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
-    );
+    try {
+      console.log("Configurando OpenID com REPL_ID:", process.env.REPL_ID);
+      return await client.discovery(
+        new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+        process.env.REPL_ID!
+      );
+    } catch (error) {
+      console.error("Erro ao configurar OpenID:", error);
+      throw error;
+    }
   },
   { maxAge: 3600 * 1000 }
 );
@@ -135,8 +141,15 @@ export async function setupAuth(app: Express) {
   // Rota principal de login (sem referência ao Replit)
   app.get("/api/login", (req, res, next) => {
     const domain = req.hostname;
-    console.log("Autenticando com domínio:", domain);
-    passport.authenticate(`replitauth:${domain}`, {
+    const strategyName = `replitauth:${domain}`;
+    console.log("Tentando autenticar com:");
+    console.log("- Hostname:", req.hostname);
+    console.log("- Host header:", req.get('host'));
+    console.log("- X-Forwarded-Host:", req.get('x-forwarded-host'));
+    console.log("- Estratégia procurada:", strategyName);
+    console.log("- Estratégias registradas:", Object.keys(passport._strategies || {}));
+    
+    passport.authenticate(strategyName, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
