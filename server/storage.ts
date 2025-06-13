@@ -267,7 +267,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async findOrCreateUserByEmail(email: string): Promise<User> {
+  async findOrCreateUserByEmail(email: string, name?: string, phone?: string): Promise<User> {
     // Verificar cache pelo email
     const cacheKey = `user:email:${email}`;
     const cachedUser = userCache.get<User>(cacheKey);
@@ -285,13 +285,20 @@ export class DatabaseStorage implements IStorage {
         return user;
       }
       
+      // Parse name if provided
+      const nameParts = name ? name.trim().split(' ') : email.split('@')[0].split('.');
+      const firstName = nameParts[0] || email.split('@')[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      
       // Create new user
       const [newUser] = await db
         .insert(users)
         .values({
-          id: `local-${Date.now()}`, // Generate a temporary ID for non-OAuth users
+          id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           email,
-          firstName: email.split('@')[0], // Use part of email as name
+          firstName,
+          lastName: lastName || null,
+          phone: phone || null,
           createdAt: new Date(),
           updatedAt: new Date(),
         })

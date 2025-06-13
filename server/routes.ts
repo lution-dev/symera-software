@@ -1623,16 +1623,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const eventId = parseInt(req.params.eventId, 10);
-      console.log("Request body:", JSON.stringify(req.body));
-      const { userIds } = req.body;
+      const { userIds, email, role, name, phone } = req.body;
       
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
       
-      if (!Array.isArray(userIds) || userIds.length === 0) {
-        console.log("Validation error - userIds:", userIds, "Array?", Array.isArray(userIds));
-        return res.status(400).json({ message: "userIds array is required" });
+      // Support two formats: 
+      // 1. New format with userIds array (from EventTeam.tsx)
+      // 2. Legacy format with email (from Team.tsx)
+      
+      if (userIds && Array.isArray(userIds) && userIds.length > 0) {
+        // New format - handle userIds array
+        const addedMembers = [];
+        
+        for (const memberId of userIds) {
+          try {
+            console.log(`Tentando adicionar membro ${memberId} ao evento ${eventId}`);
+            
+            const teamMember = await dbStorage.addTeamMember({
+              eventId,
+              userId: memberId,
+              role: 'team_member',
+              permissions: {
+                canEdit: true,
+                canDelete: false,
+                canInvite: false
+              }
+            });
+            
+            if (teamMember) {
+              addedMembers.push(teamMember);
+              console.log(`Membro ${memberId} adicionado com sucesso ao evento ${eventId}`);
+            }
+            
+          } catch (memberError) {
+            console.error(`Error adding member ${memberId}:`, memberError);
+          }
+        }
+        
+        res.status(201).json({
+          message: `${addedMembers.length} member(s) added successfully`,
+          addedMembers
+        });
+        return;
+        
+      } else if (email && role) {
+        // Legacy format - handle email/role/name/phone
+        try {
+          // Find or create user by email
+          const member = await dbStorage.findOrCreateUserByEmail(email, name, phone);
+          
+          // Add team member
+          const teamMember = await dbStorage.addTeamMember({
+            eventId,
+            userId: member.id,
+            role: role,
+            permissions: role === 'organizer' ? {
+              canEdit: true,
+              canDelete: true,
+              canInvite: true
+            } : {
+              canEdit: true,
+              canDelete: false,
+              canInvite: false
+            }
+          });
+          
+          // Log activity
+          await dbStorage.createActivityLog({
+            eventId,
+            userId,
+            action: "added_team_member",
+            details: { memberEmail: email, memberRole: role }
+          });
+          
+          res.status(201).json({
+            message: "Team member added successfully",
+            teamMember
+          });
+          return;
+          
+        } catch (error) {
+          console.error("Error adding team member:", error);
+          return res.status(500).json({ message: "Failed to add team member" });
+        }
+        
+      } else {
+        return res.status(400).json({ 
+          message: "Either userIds array or email/role are required" 
+        });
       }
       
       // Check if user has access to this event
