@@ -1623,6 +1623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const eventId = parseInt(req.params.eventId, 10);
+      console.log("Request body:", JSON.stringify(req.body));
       const { userIds } = req.body;
       
       if (isNaN(eventId)) {
@@ -1630,6 +1631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (!Array.isArray(userIds) || userIds.length === 0) {
+        console.log("Validation error - userIds:", userIds, "Array?", Array.isArray(userIds));
         return res.status(400).json({ message: "userIds array is required" });
       }
       
