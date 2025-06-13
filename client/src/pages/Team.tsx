@@ -192,6 +192,7 @@ const Team: React.FC = () => {
     onSuccess: () => {
       // Invalidar cache para recarregar os membros da equipe
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.refetchQueries({ queryKey: ["/api/events"] });
       toast({
         title: "Membro adicionado",
         description: "O membro foi adicionado à equipe com sucesso.",
@@ -237,6 +238,7 @@ const Team: React.FC = () => {
     onSuccess: () => {
       // Invalidar cache para recarregar os membros da equipe
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.refetchQueries({ queryKey: ["/api/events"] });
       toast({
         title: "Membro adicionado a múltiplos eventos",
         description: "O membro foi adicionado aos eventos selecionados com sucesso.",
