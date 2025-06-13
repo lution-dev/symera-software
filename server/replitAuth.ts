@@ -10,8 +10,13 @@ import { storage } from "./storage";
 import memorystore from "memorystore";
 import "../shared/types";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+// Support both development and production domains
+const replitDomains = process.env.REPLIT_DOMAINS || '';
+const customDomains = 'app.symera.com.br';
+const allDomains = [replitDomains, customDomains].filter(Boolean).join(',');
+
+if (!allDomains) {
+  throw new Error("No domains configured for authentication");
 }
 
 const getOidcConfig = memoize(
@@ -97,11 +102,16 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  const domains = allDomains.split(",").map(d => d.trim()).filter(Boolean);
+  console.log("Configurando estratégias de autenticação para domínios:", domains);
+  
+  for (const domain of domains) {
+    const strategyName = `replitauth:${domain}`;
+    console.log(`Registrando estratégia: ${strategyName}`);
+    
     const strategy = new Strategy(
       {
-        name: `replitauth:${domain}`,
+        name: strategyName,
         config,
         scope: "openid email profile offline_access",
         callbackURL: `https://${domain}/api/callback`,
