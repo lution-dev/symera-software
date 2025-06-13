@@ -110,9 +110,26 @@ export const ExpenseFormWorking: React.FC<ExpenseFormWorkingProps> = ({
   const createExpenseMutation = useMutation({
     mutationFn: async (data: ExpenseFormValues) => {
       // Converter valor para centavos (integer) como o sistema espera
-      const amount = parseFloat(data.amount.replace(/[^\d.,]/g, '').replace(',', '.'));
+      let cleanAmount = data.amount.replace(/[^\d.,]/g, '');
+      // Se tem vírgula, trocar por ponto para decimal
+      if (cleanAmount.includes(',') && cleanAmount.includes('.')) {
+        // Formato como 1.234,50 - remover pontos e trocar vírgula por ponto
+        cleanAmount = cleanAmount.replace(/\./g, '').replace(',', '.');
+      } else if (cleanAmount.includes(',')) {
+        // Formato como 1234,50 - trocar vírgula por ponto
+        cleanAmount = cleanAmount.replace(',', '.');
+      }
+      const amount = parseFloat(cleanAmount);
       const amountInCents = Math.round(amount * 100);
       const finalAmount = data.isIncome ? Math.abs(amountInCents) : -Math.abs(amountInCents);
+      
+      console.log('[ExpenseFormWorking] Debug conversion:', {
+        originalAmount: data.amount,
+        cleanAmount,
+        amount,
+        amountInCents,
+        finalAmount
+      });
       
       const expenseData = {
         name: data.name,
