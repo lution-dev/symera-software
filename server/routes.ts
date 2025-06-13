@@ -109,23 +109,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.isAuthenticated() && req.user?.claims?.sub) {
         console.log("- Usuário autenticado via Replit Auth");
         const userId = req.user.claims.sub;
+        const userEmail = req.user.claims.email;
         console.log("- ID do usuário:", userId);
-        const user = await dbStorage.getUser(userId);
+        console.log("- Email do usuário:", userEmail);
+        
+        let user = await dbStorage.getUser(userId);
         
         if (user) {
           console.log("- Usuário encontrado no banco de dados");
           return res.json(user);
-        } else {
-          console.log("- Usuário não encontrado no banco de dados, criando novo usuário");
-          // Criar usuário se não existir
-          const newUser = await dbStorage.createUser({
-            id: userId,
-            name: req.user.claims.name || req.user.claims.email || 'Usuário',
-            email: req.user.claims.email || '',
-            role: 'user'
-          });
-          return res.json(newUser);
+        } 
+        
+        // Se não encontrou por ID, buscar por email para migrar conta local
+        if (userEmail) {
+          const existingUserByEmail = await dbStorage.getUserByEmail(userEmail);
+          if (existingUserByEmail && existingUserByEmail.id.startsWith('local-')) {
+            console.log("- Encontrado usuário local com mesmo email, migrando para Replit Auth");
+            
+            // Migrar todas as associações do usuário local para o novo ID do Replit
+            await dbStorage.migrateUserFromLocalToReplit(existingUserByEmail.id, userId);
+            
+            // Atualizar o usuário no banco com o novo ID
+            const migratedUser = await dbStorage.upsertUser({
+              id: userId,
+              email: userEmail,
+              firstName: req.user.claims.name?.split(' ')[0] || existingUserByEmail.firstName || userEmail.split('@')[0],
+              lastName: req.user.claims.name?.split(' ').slice(1).join(' ') || existingUserByEmail.lastName || '',
+              phone: existingUserByEmail.phone,
+              profileImageUrl: req.user.claims.picture || existingUserByEmail.profileImageUrl,
+              createdAt: existingUserByEmail.createdAt,
+              updatedAt: new Date()
+            });
+            
+            console.log("- Migração concluída para o usuário:", migratedUser.id);
+            return res.json(migratedUser);
+          }
         }
+        
+        console.log("- Usuário não encontrado no banco de dados, criando novo usuário");
+        // Criar usuário se não existir
+        const newUser = await dbStorage.upsertUser({
+          id: userId,
+          email: userEmail || '',
+          firstName: req.user.claims.name?.split(' ')[0] || userEmail?.split('@')[0] || 'Usuário',
+          lastName: req.user.claims.name?.split(' ').slice(1).join(' ') || '',
+          profileImageUrl: req.user.claims.picture || null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        return res.json(newUser);
       }
       
       // Se chegou aqui, não está autenticado

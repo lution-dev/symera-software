@@ -312,6 +312,51 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  async migrateUserFromLocalToReplit(localUserId: string, replitUserId: string): Promise<void> {
+    return executeWithRetry(async () => {
+      console.log(`Migrando usuário de ${localUserId} para ${replitUserId}`);
+      
+      // Atualizar todas as referências do usuário local para o novo ID do Replit
+      await Promise.all([
+        // Migrar memberships da equipe
+        db.update(eventTeamMembers)
+          .set({ userId: replitUserId })
+          .where(eq(eventTeamMembers.userId, localUserId)),
+        
+        // Migrar ownership de eventos
+        db.update(events)
+          .set({ ownerId: replitUserId })
+          .where(eq(events.ownerId, localUserId)),
+        
+        // Migrar assignments de tarefas
+        db.update(taskAssignees)
+          .set({ userId: replitUserId })
+          .where(eq(taskAssignees.userId, localUserId)),
+        
+        // Migrar documentos
+        db.update(documents)
+          .set({ uploadedById: replitUserId })
+          .where(eq(documents.uploadedById, localUserId)),
+        
+        // Migrar logs de atividade
+        db.update(activityLogs)
+          .set({ userId: replitUserId })
+          .where(eq(activityLogs.userId, localUserId))
+      ]);
+      
+      // Remover o usuário local após migração
+      await db.delete(users).where(eq(users.id, localUserId));
+      
+      // Invalidar caches relacionados
+      userCache.invalidate(`user:${localUserId}`);
+      userCache.invalidate(`user:${replitUserId}`);
+      eventCache.invalidate(`events:user:${localUserId}`);
+      eventCache.invalidate(`events:user:${replitUserId}`);
+      
+      console.log(`Migração concluída de ${localUserId} para ${replitUserId}`);
+    });
+  }
+
   // Event operations
   async getEventsByUser(userId: string): Promise<Event[]> {
     // Verificar cache
