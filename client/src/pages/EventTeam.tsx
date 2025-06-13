@@ -81,7 +81,7 @@ const EventTeam: React.FC = () => {
     mutationFn: async (data: { userId: string; role: string }) => {
       return apiRequest(`/api/events/${eventId}/team`, {
         method: "POST",
-        body: data
+        body: { userIds: [data.userId] }
       });
     },
     onSuccess: () => {
