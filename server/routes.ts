@@ -2115,10 +2115,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Use the form schema to validate string dates first
       const { expenseFormSchema } = await import('@shared/schema');
-      const formData = expenseFormSchema.parse({
+      
+      // Limpar campos nulos para strings vazias antes da validação
+      const cleanedBody = {
         ...req.body,
+        paymentDate: req.body.paymentDate === null ? '' : req.body.paymentDate,
+        dueDate: req.body.dueDate === null ? '' : req.body.dueDate,
         eventId,
-      });
+      };
+      
+      const formData = expenseFormSchema.parse(cleanedBody);
       
       // Convert string dates to Date objects for database insertion
       const validatedData = {
