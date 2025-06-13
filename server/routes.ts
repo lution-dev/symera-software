@@ -1818,12 +1818,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
       
-      // First, get the team member to find the actual userId
+      // Get current user's team member info to check permissions
       const teamMembers = await dbStorage.getTeamMembersByEventId(eventId);
+      const currentUserMember = teamMembers.find(member => member.userId === currentUserId);
+      
+      // Check if current user is organizer or event owner
+      const event = await dbStorage.getEventById(eventId);
+      const isOwner = event?.ownerId === currentUserId;
+      const isOrganizer = currentUserMember?.role === 'organizer';
+      
+      if (!isOwner && !isOrganizer) {
+        return res.status(403).json({ message: "Apenas organizadores podem remover membros da equipe" });
+      }
+      
+      // Find the member to remove
       const memberToRemove = teamMembers.find(member => member.id.toString() === userIdToRemove);
       
       if (!memberToRemove) {
         return res.status(404).json({ message: "Team member not found" });
+      }
+      
+      // Cannot remove event owner
+      if (event?.ownerId === memberToRemove.userId) {
+        return res.status(400).json({ message: "Não é possível remover o proprietário do evento" });
       }
       
       // Remove team member using the actual userId
@@ -3385,16 +3402,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
 
-      // Get team member to find the userId
+      // Get team members and current user's role
       const teamMembers = await dbStorage.getTeamMembersByEventId(eventId);
+      const currentUserMember = teamMembers.find(member => member.userId === userId);
       const teamMember = teamMembers.find(tm => tm.id === teamMemberId);
       
       if (!teamMember) {
         return res.status(404).json({ message: "Membro da equipe não encontrado" });
       }
 
-      // Cannot remove event owner
+      // Check if current user is organizer or event owner
       const event = await dbStorage.getEventById(eventId);
+      const isOwner = event?.ownerId === userId;
+      const isOrganizer = currentUserMember?.role === 'organizer';
+      
+      if (!isOwner && !isOrganizer) {
+        return res.status(403).json({ message: "Apenas organizadores podem remover membros da equipe" });
+      }
+
+      // Cannot remove event owner
       if (event?.ownerId === teamMember.userId) {
         return res.status(400).json({ message: "Não é possível remover o proprietário do evento" });
       }
