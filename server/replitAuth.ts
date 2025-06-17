@@ -36,7 +36,7 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
-  const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 dias
+  const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 dias em milissegundos
   
   // Usar MemoryStore temporariamente para garantir que a autenticação funcione
   const MemoryStore = memorystore(session);
@@ -49,12 +49,12 @@ export function getSession() {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    rolling: true, // Reset expiration on activity
+    rolling: true, // Reset expiration on activity - crítico para persistência
     cookie: {
-      httpOnly: true,
+      httpOnly: false, // Permitir acesso via JavaScript para localStorage
       secure: false, // Permitir em desenvolvimento
       sameSite: 'lax',
-      maxAge: sessionTtl,
+      maxAge: sessionTtl, // 30 dias
     },
   });
 }
@@ -179,6 +179,59 @@ export async function setupAuth(app: Express) {
       sessionId: req.sessionID,
       hasUser: !!req.user
     });
+  });
+
+  // Rota para verificar e renovar sessão automaticamente
+  app.post("/api/auth/refresh", async (req, res) => {
+    console.log("Tentativa de renovação de sessão:");
+    
+    const user = req.user as any;
+    
+    if (!req.isAuthenticated() || !user) {
+      console.log("- Usuário não autenticado para renovação");
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const now = Math.floor(Date.now() / 1000);
+      
+      // Se o token ainda é válido por mais de 5 minutos, não precisa renovar
+      if (user.expires_at && now < (user.expires_at - 300)) {
+        console.log("- Token ainda válido, não precisa renovar");
+        return res.json({ 
+          renewed: false, 
+          expiresAt: user.expires_at,
+          message: "Token still valid" 
+        });
+      }
+
+      // Tentar renovar com refresh token
+      if (user.refresh_token) {
+        console.log("- Tentando renovar token com refresh token");
+        const config = await getOidcConfig();
+        const tokenResponse = await client.refreshTokenGrant(config, user.refresh_token);
+        updateUserSession(user, tokenResponse);
+        
+        // Salvar sessão atualizada
+        await new Promise<void>((resolve) => {
+          req.session.save(() => resolve());
+        });
+        
+        console.log("- Token renovado com sucesso");
+        return res.json({ 
+          renewed: true, 
+          expiresAt: user.expires_at,
+          message: "Token refreshed successfully" 
+        });
+      }
+
+      console.log("- Sem refresh token disponível");
+      return res.status(401).json({ message: "No refresh token available" });
+
+    } catch (error) {
+      console.error("Erro ao renovar token:", error);
+      return res.status(401).json({ message: "Token refresh failed" });
+    }
   });
 
   app.get("/api/logout", (req, res) => {

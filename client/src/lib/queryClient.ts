@@ -1,12 +1,20 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { authManager } from "./auth";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     if (res.status === 401) {
-      // Forçar logout e reload da página
-      console.log("Session expired, redirecting to login");
-      window.location.href = '/login';
-      throw new Error("Session expired");
+      // Verificar se temos dados de auth válidos no localStorage
+      if (authManager.isAuthenticated()) {
+        console.log("[Auth] Token expirado mas temos dados válidos, tentando renovar sessão");
+        // Não redirecionar imediatamente, deixar o sistema tentar recuperar
+        throw new Error("Token expired - attempting renewal");
+      } else {
+        console.log("[Auth] Sem dados de autenticação válidos, redirecionando");
+        authManager.clearAuthData();
+        window.location.href = '/auth';
+        throw new Error("Session expired");
+      }
     }
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
