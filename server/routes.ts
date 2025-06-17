@@ -7,7 +7,7 @@ import fs from "fs";
 import { storage as dbStorage } from "./storage";
 import { saveBase64Image, deleteImage } from "./utils/imageUpload";
 import { db } from "./db";
-import { events, users } from "@shared/schema";
+import { events, users, scheduleItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 
@@ -1322,7 +1322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const itemData = insertScheduleItemSchema.omit({ id: true, eventId: true }).parse(req.body);
       
       // Criar item do cronograma
-      const newItem = await db.insert(schema.scheduleItems).values({
+      const newItem = await db.insert(scheduleItems).values({
         ...itemData,
         eventId,
       }).returning();
@@ -1362,8 +1362,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar item para verificar a qual evento pertence
-      const scheduleItem = await db.select().from(schema.scheduleItems)
-        .where(eq(schema.scheduleItems.id, itemId))
+      const scheduleItem = await db.select().from(scheduleItems)
+        .where(eq(scheduleItems.id, itemId))
         .limit(1);
       
       if (!scheduleItem || scheduleItem.length === 0) {
@@ -1384,12 +1384,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateData = updateSchema.parse(req.body);
       
       // Atualizar item
-      const updatedItem = await db.update(schema.scheduleItems)
+      const updatedItem = await db.update(scheduleItems)
         .set({
           ...updateData,
           updatedAt: new Date(),
         })
-        .where(eq(schema.scheduleItems.id, itemId))
+        .where(eq(scheduleItems.id, itemId))
         .returning();
       
       // Log da atividade
@@ -1427,8 +1427,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar item para verificar a qual evento pertence
-      const scheduleItem = await db.select().from(schema.scheduleItems)
-        .where(eq(schema.scheduleItems.id, itemId))
+      const scheduleItem = await db.select().from(scheduleItems)
+        .where(eq(scheduleItems.id, itemId))
         .limit(1);
       
       if (!scheduleItem || scheduleItem.length === 0) {
@@ -1445,8 +1445,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Excluir item
-      await db.delete(schema.scheduleItems)
-        .where(eq(schema.scheduleItems.id, itemId));
+      await db.delete(scheduleItems)
+        .where(eq(scheduleItems.id, itemId));
       
       // Log da atividade
       await dbStorage.createActivityLog({
