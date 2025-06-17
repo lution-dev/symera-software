@@ -1318,14 +1318,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
       
-      // Validar dados do item do cronograma
-      const itemData = insertScheduleItemSchema.omit({ id: true, eventId: true }).parse(req.body);
+      // Validar dados básicos
+      const { title, description, startTime, location, responsibles } = req.body;
       
-      // Criar item do cronograma
-      const newItem = await db.insert(scheduleItems).values({
-        ...itemData,
-        eventId,
-      }).returning();
+      if (!title || !startTime) {
+        return res.status(400).json({ 
+          message: "Título e horário de início são obrigatórios" 
+        });
+      }
+      
+      // Criar item do cronograma usando SQL direto
+      const result = await db.execute(
+        `INSERT INTO schedule_items (event_id, title, description, start_time, location, responsibles, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+         RETURNING *`,
+        [eventId, title, description || null, startTime, location || null, responsibles || null]
+      );
+      
+      const newItem = result.rows[0];
       
       // Log da atividade
       await dbStorage.createActivityLog({
@@ -1333,12 +1343,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         action: "schedule_item_created",
         details: { 
-          title: itemData.title,
-          startTime: itemData.startTime
+          title,
+          startTime
         }
       });
       
-      res.status(201).json(newItem[0]);
+      res.status(201).json(newItem);
     } catch (error) {
       console.error("Erro ao adicionar item ao cronograma:", error);
       if (error instanceof z.ZodError) {

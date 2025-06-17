@@ -72,7 +72,7 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
     if (!isOpen) {
       form.reset(defaultValues);
     }
-  }, [isOpen, form, defaultValues]);
+  }, [isOpen, form.reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
