@@ -1327,13 +1327,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Criar item do cronograma usando SQL direto
-      const result = await db.execute(
-        `INSERT INTO schedule_items (event_id, title, description, start_time, location, responsibles, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-         RETURNING *`,
-        [eventId, title, description || null, startTime, location || null, responsibles || null]
-      );
+      // Usar SQL direto para inserção confiável
+      const query = `
+        INSERT INTO schedule_items (event_id, title, description, start_time, location, responsibles, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        RETURNING *
+      `;
+      
+      const result = await db.execute(query, [
+        eventId,
+        title,
+        description || null,
+        startTime,
+        location || null,
+        responsibles || null
+      ]);
       
       const newItem = result.rows[0];
       
@@ -1389,18 +1397,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
       }
       
-      // Validar dados do item
-      const updateSchema = insertScheduleItemSchema.partial().omit({ id: true, eventId: true });
-      const updateData = updateSchema.parse(req.body);
+      // Validar dados básicos
+      const { title, description, startTime, location, responsibles } = req.body;
       
-      // Atualizar item
-      const updatedItem = await db.update(scheduleItems)
-        .set({
-          ...updateData,
-          updatedAt: new Date(),
-        })
-        .where(eq(scheduleItems.id, itemId))
-        .returning();
+      if (!title || !startTime) {
+        return res.status(400).json({ 
+          message: "Título e horário de início são obrigatórios" 
+        });
+      }
+      
+      // Usar SQL direto para atualização confiável
+      const updateQuery = `
+        UPDATE schedule_items 
+        SET title = $1, description = $2, start_time = $3, location = $4, responsibles = $5, updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `;
+      
+      const updateResult = await db.execute(updateQuery, [
+        title,
+        description || null,
+        startTime,
+        location || null,
+        responsibles || null,
+        itemId
+      ]);
+      
+      const updatedItem = updateResult.rows[0];
       
       // Log da atividade
       await dbStorage.createActivityLog({
