@@ -95,14 +95,69 @@ export class AuthManager {
     return authData?.userId || null;
   }
 
-  // Configura interceptor para atualizar atividade automaticamente
+  // Tenta renovar o token automaticamente
+  async refreshToken(): Promise<boolean> {
+    try {
+      console.log('[Auth] Tentando renovar token...');
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('[Auth] Token renovado:', result.message);
+        this.updateActivity(); // Atualiza a atividade após renovação bem-sucedida
+        return true;
+      } else {
+        console.log('[Auth] Falha na renovação do token');
+        return false;
+      }
+    } catch (error) {
+      console.error('[Auth] Erro ao renovar token:', error);
+      return false;
+    }
+  }
+
+  // Configura interceptor para atualizar atividade e renovar tokens automaticamente
   setupActivityTracker(): void {
-    // Atualiza atividade a cada requisição
+    // Intercepta todas as requisições fetch
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
       this.updateActivity();
-      return originalFetch.apply(window, args);
+      
+      try {
+        const response = await originalFetch.apply(window, args);
+        
+        // Se recebeu 401, tenta renovar token uma vez
+        if (response.status === 401 && this.isAuthenticated()) {
+          console.log('[Auth] 401 detectado, tentando renovar token...');
+          const renewed = await this.refreshToken();
+          
+          if (renewed) {
+            // Reexecuta a requisição original após renovação
+            console.log('[Auth] Token renovado, reexecutando requisição...');
+            return originalFetch.apply(window, args);
+          } else {
+            // Se não conseguiu renovar, limpa dados e redireciona
+            console.log('[Auth] Não foi possível renovar token, fazendo logout...');
+            this.clearAuthData();
+            window.location.href = '/auth';
+          }
+        }
+        
+        return response;
+      } catch (error) {
+        console.error('[Auth] Erro na requisição:', error);
+        throw error;
+      }
     };
+
+    // Configura renovação automática periódica
+    this.setupPeriodicTokenRefresh();
 
     // Atualiza atividade periodicamente enquanto o usuário está ativo
     let activityTimer: NodeJS.Timeout;
@@ -120,6 +175,32 @@ export class AuthManager {
     });
 
     resetTimer();
+  }
+
+  // Configura renovação automática de tokens
+  private setupPeriodicTokenRefresh(): void {
+    // Verifica e renova tokens a cada 10 minutos
+    setInterval(async () => {
+      if (this.isAuthenticated()) {
+        const authData = this.getAuthData();
+        if (authData) {
+          const now = Date.now();
+          const timeUntilExpiry = authData.expiresAt - now;
+          
+          // Se o token expira em menos de 15 minutos, tenta renovar
+          if (timeUntilExpiry < 15 * 60 * 1000) {
+            console.log('[Auth] Token expira em breve, renovando...');
+            const renewed = await this.refreshToken();
+            
+            if (!renewed) {
+              console.log('[Auth] Falha na renovação automática, fazendo logout...');
+              this.clearAuthData();
+              window.location.href = '/auth';
+            }
+          }
+        }
+      }
+    }, 10 * 60 * 1000); // A cada 10 minutos
   }
 }
 

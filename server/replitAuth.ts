@@ -281,24 +281,29 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     console.log("ID do usuário salvo na sessão:", user.claims.sub);
   }
   
-  // Se o token expirou, tente atualizar - mas para uploads de arquivo, pule por enquanto
+  // Verificar expiração do token e tentar renovação automática
   const now = Math.floor(Date.now() / 1000);
-  if (user.expires_at && now > user.expires_at) {
-    console.log("Token expirado, tentando atualizar");
+  const tokenExpired = user.expires_at && now > user.expires_at;
+  const tokenExpiringSoon = user.expires_at && now > (user.expires_at - 300); // 5 minutos antes
+  
+  if (tokenExpired || tokenExpiringSoon) {
+    const action = tokenExpired ? "expirado" : "expirando em breve";
+    console.log(`Token ${action}, tentando renovar automaticamente`);
     
-    // Para uploads de documentos, vamos temporariamente permitir o acesso mesmo com token expirado
-    // se o usuário tem claims válidos (isso evita problemas com uploads longos)
-    if (req.url.includes('/documents') && req.method === 'POST') {
-      console.log("Upload de documento detectado - permitindo com token expirado mas claims válidos");
+    // Para uploads de documentos, permitir acesso mesmo com token expirado se ainda temos claims válidos
+    if (req.url.includes('/documents') && req.method === 'POST' && !tokenExpired) {
+      console.log("Upload de documento - permitindo com token próximo ao vencimento");
       return next();
     }
     
     const refreshToken = user.refresh_token;
     if (!refreshToken) {
-      console.log("Refresh token não encontrado");
-      // Para requisições de API, retornar erro JSON ao invés de redirect
+      console.log("Refresh token não encontrado para renovação");
       if (req.path.startsWith('/api/')) {
-        return res.status(401).json({ message: "Session expired, please refresh the page" });
+        return res.status(401).json({ 
+          message: "Session expired - please login again", 
+          expired: true 
+        });
       }
       return res.redirect("/api/login");
     }
@@ -307,11 +312,17 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       const config = await getOidcConfig();
       const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
       updateUserSession(user, tokenResponse);
-      console.log("Token atualizado com sucesso");
-    } catch (error) {
-      console.error("Erro ao atualizar token:", error);
       
-      // Limpar completamente o usuário e sessão
+      // Salvar sessão atualizada
+      await new Promise<void>((resolve) => {
+        req.session.save(() => resolve());
+      });
+      
+      console.log("Token renovado automaticamente pelo middleware");
+    } catch (error) {
+      console.error("Erro ao renovar token no middleware:", error);
+      
+      // Limpar sessão completamente
       req.logout((logoutErr) => {
         if (logoutErr) console.error("Erro no logout:", logoutErr);
       });
@@ -320,9 +331,11 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
         if (err) console.error("Erro ao destruir sessão:", err);
       });
       
-      // Sempre retornar 401 JSON para APIs, exceto /api/login
       if (req.url.startsWith('/api/') && req.url !== '/api/login') {
-        return res.status(401).json({ message: "Authentication failed", expired: true });
+        return res.status(401).json({ 
+          message: "Authentication failed - please login again", 
+          expired: true 
+        });
       }
       return res.redirect("/api/login");
     }
