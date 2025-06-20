@@ -106,6 +106,25 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
               )}
             />
 
+            {eventStartDate !== eventEndDate && (
+              <FormField
+                control={form.control}
+                name="eventDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data do Evento</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Escolha o dia específico para esta atividade
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="startTime"

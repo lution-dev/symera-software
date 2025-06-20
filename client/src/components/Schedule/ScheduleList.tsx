@@ -19,6 +19,20 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Buscar dados do evento para obter as datas
+  const { data: event } = useQuery({
+    queryKey: ['/api/events', eventId],
+    queryFn: async () => {
+      const res = await fetch(`/api/events/${eventId}`, {
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    }
+  });
+
   // Buscar itens do cronograma da API
   const { data: scheduleItems, isLoading, error } = useQuery({
     queryKey: ['/api/events', eventId, 'schedule'],
@@ -223,10 +237,10 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
           </div>
         ) : (
           <div className="border-l-2 border-primary/30 pl-4 space-y-8 relative py-4">
-            {/* Título simples para o cronograma */}
+            {/* Título do cronograma */}
             <h3 className="font-medium text-lg mb-6 flex items-center">
               <i className="fas fa-calendar-day text-primary mr-2"></i>
-              Dia do Evento
+              {event && event.startDate !== event.endDate ? 'Cronograma Multi-dias' : 'Cronograma do Evento'}
             </h3>
             
             {/* Atividades do cronograma */}
@@ -234,9 +248,20 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
               {sortedItems.map((item) => (
                 <div key={item.id}>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center">
+                    <div className="flex items-center space-x-2">
                       <div className="absolute left-[-8px] w-4 h-4 rounded-full bg-primary"></div>
-                      <span className="text-sm font-medium text-primary">{item.startTime.substring(0, 5)}</span>
+                      <div className="flex items-center space-x-2">
+                        {/* Mostrar data se evento durar mais de 1 dia e item tiver data específica */}
+                        {event && event.startDate !== event.endDate && item.eventDate && (
+                          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                            {new Date(item.eventDate).toLocaleDateString('pt-BR', { 
+                              day: '2-digit', 
+                              month: '2-digit' 
+                            })}
+                          </span>
+                        )}
+                        <span className="text-sm font-medium text-primary">{item.startTime.substring(0, 5)}</span>
+                      </div>
                     </div>
                     <ScheduleItemActions 
                       item={item}
@@ -274,6 +299,8 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
         onSubmit={handleAddItem}
         title="Adicionar Atividade ao Cronograma"
         isSubmitting={addMutation.isPending}
+        eventStartDate={event?.startDate ? new Date(event.startDate).toISOString().split('T')[0] : undefined}
+        eventEndDate={event?.endDate ? new Date(event.endDate).toISOString().split('T')[0] : undefined}
       />
       
       {/* Modal para editar atividade */}
@@ -289,11 +316,14 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
           defaultValues={{
             title: selectedItem.title,
             description: selectedItem.description || '',
+            eventDate: selectedItem.eventDate ? new Date(selectedItem.eventDate).toISOString().split('T')[0] : '',
             startTime: selectedItem.startTime,
             location: selectedItem.location || '',
             responsibles: selectedItem.responsibles || '',
           }}
           isSubmitting={updateMutation.isPending}
+          eventStartDate={event?.startDate ? new Date(event.startDate).toISOString().split('T')[0] : undefined}
+          eventEndDate={event?.endDate ? new Date(event.endDate).toISOString().split('T')[0] : undefined}
         />
       )}
     </div>
