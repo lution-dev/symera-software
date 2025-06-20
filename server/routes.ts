@@ -1292,6 +1292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY start_time
       `);
       
+      console.log(`Cronograma evento ${eventId} - ${result.rows.length} itens encontrados:`, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error("Erro ao buscar itens do cronograma:", error);

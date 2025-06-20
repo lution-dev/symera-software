@@ -20,10 +20,20 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
   const queryClient = useQueryClient();
 
   // Buscar itens do cronograma da API
-  const { data: scheduleItems, isLoading } = useQuery({
+  const { data: scheduleItems, isLoading, error } = useQuery({
     queryKey: ['/api/events', eventId, 'schedule'],
     queryFn: () => apiRequest(`/api/events/${eventId}/schedule`)
   });
+
+  // Debug: log dos dados recebidos
+  useEffect(() => {
+    console.log('ScheduleList Debug - EventId:', eventId);
+    console.log('ScheduleList Debug - IsLoading:', isLoading);
+    console.log('ScheduleList Debug - Error:', error);
+    console.log('ScheduleList Debug - ScheduleItems:', scheduleItems);
+    console.log('ScheduleList Debug - ScheduleItems Type:', typeof scheduleItems);
+    console.log('ScheduleList Debug - ScheduleItems Array?:', Array.isArray(scheduleItems));
+  }, [eventId, isLoading, error, scheduleItems]);
 
   // Ordenar itens por horário
   const sortedItems = React.useMemo(() => {
