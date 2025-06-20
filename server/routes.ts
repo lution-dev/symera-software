@@ -1327,23 +1327,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Usar SQL direto para inserção confiável
-      const query = `
-        INSERT INTO schedule_items (event_id, title, description, start_time, location, responsibles, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-        RETURNING *
-      `;
-      
-      const result = await db.execute(query, [
-        eventId,
-        title,
-        description || null,
-        startTime,
-        location || null,
-        responsibles || null
-      ]);
-      
-      const newItem = result.rows[0];
+      // Usar Drizzle ORM com inserção manual dos valores
+      const now = new Date();
+      const newItem = await db.insert(scheduleItems).values({
+        eventId: Number(eventId),
+        title: String(title),
+        description: description || null,
+        startTime: String(startTime),
+        location: location || null,
+        responsibles: responsibles || null,
+        createdAt: now,
+        updatedAt: now,
+      }).returning().then(result => result[0]);
       
       // Log da atividade
       await dbStorage.createActivityLog({
@@ -1406,22 +1401,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Usar SQL direto para atualização confiável
-      const updateQuery = `
+      // Usar SQL com template literals para atualização
+      const updateResult = await db.execute(`
         UPDATE schedule_items 
-        SET title = $1, description = $2, start_time = $3, location = $4, responsibles = $5, updated_at = NOW()
-        WHERE id = $6
+        SET title = '${title.replace(/'/g, "''")}', 
+            description = ${description ? `'${description.replace(/'/g, "''")}'` : 'NULL'}, 
+            start_time = '${startTime}', 
+            location = ${location ? `'${location.replace(/'/g, "''")}'` : 'NULL'}, 
+            responsibles = ${responsibles ? `'${responsibles.replace(/'/g, "''")}'` : 'NULL'}, 
+            updated_at = NOW()
+        WHERE id = ${itemId}
         RETURNING *
-      `;
-      
-      const updateResult = await db.execute(updateQuery, [
-        title,
-        description || null,
-        startTime,
-        location || null,
-        responsibles || null,
-        itemId
-      ]);
+      `);
       
       const updatedItem = updateResult.rows[0];
       
