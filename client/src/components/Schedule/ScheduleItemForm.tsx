@@ -27,6 +27,7 @@ import {
 const scheduleItemFormSchema = z.object({
   title: z.string().min(3, { message: 'O título deve ter pelo menos 3 caracteres' }),
   description: z.string().optional(),
+  eventDate: z.string().optional(),
   startTime: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, { message: 'Formato de hora inválido. Use HH:MM' }),
   location: z.string().optional(),
   responsibles: z.string().optional(),
@@ -42,6 +43,8 @@ interface ScheduleItemFormProps {
   title: string;
   defaultValues?: ScheduleFormData;
   isSubmitting: boolean;
+  eventStartDate?: string;
+  eventEndDate?: string;
 }
 
 export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
@@ -52,11 +55,14 @@ export const ScheduleItemForm: React.FC<ScheduleItemFormProps> = ({
   defaultValues = {
     title: '',
     description: '',
+    eventDate: '',
     startTime: '',
     location: '',
     responsibles: '',
   },
   isSubmitting,
+  eventStartDate,
+  eventEndDate,
 }) => {
   const form = useForm<ScheduleFormData>({
     resolver: zodResolver(scheduleItemFormSchema),

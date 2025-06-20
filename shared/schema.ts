@@ -128,6 +128,7 @@ export const scheduleItems = pgTable('schedule_items', {
   eventId: integer('event_id').references(() => events.id).notNull(),
   title: text('title').notNull(),
   description: text('description'),
+  eventDate: timestamp('event_date'), // Data específica do item (para eventos multi-dias)
   startTime: text('start_time').notNull(),
   location: text('location'),
   responsibles: text('responsibles'),

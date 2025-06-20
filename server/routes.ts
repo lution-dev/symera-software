@@ -1285,11 +1285,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Usar SQL direto com template literals
       const result = await db.execute(`
-        SELECT id, event_id as "eventId", title, description, start_time as "startTime", 
-               location, responsibles, created_at as "createdAt", updated_at as "updatedAt" 
+        SELECT id, event_id as "eventId", title, description, event_date as "eventDate", 
+               start_time as "startTime", location, responsibles, 
+               created_at as "createdAt", updated_at as "updatedAt" 
         FROM schedule_items 
         WHERE event_id = ${eventId} 
-        ORDER BY start_time
+        ORDER BY event_date ASC, start_time ASC
       `);
       
       console.log(`Cronograma evento ${eventId} - ${result.rows.length} itens encontrados:`, result.rows);
@@ -1326,7 +1327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validar dados básicos
-      const { title, description, startTime, location, responsibles } = req.body;
+      const { title, description, eventDate, startTime, location, responsibles } = req.body;
       
       if (!title || !startTime) {
         return res.status(400).json({ 
@@ -1334,18 +1335,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Usar Drizzle ORM com inserção manual dos valores
-      const now = new Date();
-      const newItem = await db.insert(scheduleItems).values({
-        eventId: Number(eventId),
-        title: String(title),
-        description: description || null,
-        startTime: String(startTime),
-        location: location || null,
-        responsibles: responsibles || null,
-        createdAt: now,
-        updatedAt: now,
-      }).returning().then(result => result[0]);
+      // Usar SQL direto para evitar problemas com Drizzle
+      const eventDateValue = eventDate ? `'${eventDate}'` : 'NULL';
+      const result = await db.execute(`
+        INSERT INTO schedule_items (event_id, title, description, event_date, start_time, location, responsibles, created_at, updated_at)
+        VALUES (${eventId}, '${title}', ${description ? `'${description}'` : 'NULL'}, ${eventDateValue}, '${startTime}', ${location ? `'${location}'` : 'NULL'}, ${responsibles ? `'${responsibles}'` : 'NULL'}, NOW(), NOW())
+        RETURNING *
+      `);
+      
+      const newItem = result.rows[0];
       
       // Log da atividade
       await dbStorage.createActivityLog({
