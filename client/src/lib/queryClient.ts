@@ -86,12 +86,6 @@ export const getQueryFn: <T>(options: {
         }
       });
       
-      // Handle redirects (auth issues) - return empty array instead of throwing
-      if (res.status === 302) {
-        console.log(`[Debug] Redirecionamento detectado em ${url} - retornando array vazio`);
-        return []; // Always return empty array for redirects
-      }
-      
       console.log(`[Debug] Resposta da requisição ${url}: status=${res.status}`);
 
       if (res.status === 401) {
@@ -107,16 +101,16 @@ export const getQueryFn: <T>(options: {
       }
       
       if (!res.ok) {
-        console.log(`[Debug] Erro ${res.status} em ${url} - retornando array vazio`);
-        return []; // Return empty array for any non-ok status
+        console.log(`[Debug] Erro ${res.status} em ${url} - lançando erro`);
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
 
       const data = await res.json();
       console.log(`[Debug] Dados recebidos de ${url}:`, data);
       return data;
     } catch (error) {
-      console.log(`[Debug] Erro de rede em ${queryKey[0]} - retornando array vazio:`, error);
-      return []; // Return empty array on any network error
+      console.log(`[Debug] Erro de rede em ${queryKey[0]} - lançando erro:`, error);
+      throw error;
     }
   };
 

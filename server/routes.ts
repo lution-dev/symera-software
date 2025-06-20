@@ -1293,6 +1293,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `);
       
       console.log(`Cronograma evento ${eventId} - ${result.rows.length} itens encontrados:`, result.rows);
+      
+      // Desabilitar cache para garantir dados atualizados
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       res.json(result.rows);
     } catch (error) {
       console.error("Erro ao buscar itens do cronograma:", error);
