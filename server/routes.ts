@@ -1283,16 +1283,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
       
-      // Executar consulta SQL direta para evitar problemas com os esquemas
-      const query = `
+      // Usar SQL direto com template literals
+      const result = await db.execute(`
         SELECT id, event_id as "eventId", title, description, start_time as "startTime", 
                location, responsibles, created_at as "createdAt", updated_at as "updatedAt" 
         FROM schedule_items 
-        WHERE event_id = $1 
+        WHERE event_id = ${eventId} 
         ORDER BY start_time
-      `;
-      
-      const result = await db.execute(query, [eventId]);
+      `);
       
       res.json(result.rows);
     } catch (error) {

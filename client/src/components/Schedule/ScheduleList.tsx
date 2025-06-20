@@ -19,82 +19,11 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Dados para debug - TEMPORÁRIOS
-  // Obtendo itens direto do banco via SQL na tabela schedule_items
-  const mockScheduleItems = [
-    {
-      id: 7,
-      eventId: 10,
-      title: "Credenciamento",
-      description: "Registro e credenciamento dos participantes",
-      startTime: "08:00",
-      location: "Recepção",
-      responsibles: "Equipe de recepção"
-    },
-    {
-      id: 8,
-      eventId: 10,
-      title: "Abertura",
-      description: "Cerimônia de abertura com apresentação da agenda",
-      startTime: "09:00",
-      location: "Auditório principal",
-      responsibles: "Diretor e Gerentes"
-    },
-    {
-      id: 9,
-      eventId: 10,
-      title: "Palestra principal",
-      description: "Palestra com o convidado principal",
-      startTime: "10:00",
-      location: "Auditório principal",
-      responsibles: "Palestrante convidado"
-    },
-    {
-      id: 10,
-      eventId: 10, 
-      title: "Coffee break",
-      description: "Pausa para café e networking",
-      startTime: "11:30",
-      location: "Área de convivência",
-      responsibles: "Equipe de buffet"
-    },
-    {
-      id: 11,
-      eventId: 10,
-      title: "Workshops paralelos",
-      description: "Sessões de workshops em salas separadas",
-      startTime: "13:00",
-      location: "Salas de reunião",
-      responsibles: "Facilitadores e palestrantes"
-    },
-    {
-      id: 12,
-      eventId: 10,
-      title: "Encerramento",
-      description: "Encerramento e próximos passos",
-      startTime: "16:30",
-      location: "Auditório principal",
-      responsibles: "Diretor de Marketing"
-    }
-  ];
-  
-  // Utilizamos diretamente os dados obtidos do banco, apenas filtrando pelo ID do evento atual
-  const filteredItems = eventId === 10 ? mockScheduleItems : [];
-  
-  // Simulando isLoading
-  const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    // Simulando um delay de carregamento para parecer mais realista
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
-  
-  // Usando os dados filtrados em vez da query
-  const scheduleItems = filteredItems;
+  // Buscar itens do cronograma da API
+  const { data: scheduleItems, isLoading } = useQuery({
+    queryKey: ['/api/events', eventId, 'schedule'],
+    queryFn: () => apiRequest(`/api/events/${eventId}/schedule`)
+  });
 
   // Ordenar itens por horário
   const sortedItems = React.useMemo(() => {
