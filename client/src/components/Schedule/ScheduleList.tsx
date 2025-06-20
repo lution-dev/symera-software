@@ -37,11 +37,35 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
 
   // Ordenar itens por horário
   const sortedItems = React.useMemo(() => {
-    if (!scheduleItems || !Array.isArray(scheduleItems) || scheduleItems.length === 0) {
+    console.log('SortedItems - Raw scheduleItems:', scheduleItems);
+    console.log('SortedItems - Type:', typeof scheduleItems);
+    console.log('SortedItems - Is Array:', Array.isArray(scheduleItems));
+    
+    // Verificar se é um array ou se precisa ser extraído de uma propriedade
+    let items = scheduleItems;
+    if (scheduleItems && typeof scheduleItems === 'object' && !Array.isArray(scheduleItems)) {
+      // Se for um objeto, procurar pela propriedade que contém o array
+      if (scheduleItems.data && Array.isArray(scheduleItems.data)) {
+        items = scheduleItems.data;
+      } else if (scheduleItems.items && Array.isArray(scheduleItems.items)) {
+        items = scheduleItems.items;
+      } else {
+        // Converter object para array se tiver propriedades numéricas
+        const keys = Object.keys(scheduleItems);
+        if (keys.length > 0 && keys.some(key => !isNaN(Number(key)))) {
+          items = Object.values(scheduleItems);
+        }
+      }
+    }
+    
+    console.log('SortedItems - Processed items:', items);
+    
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      console.log('SortedItems - Returning empty array');
       return [];
     }
     
-    return [...scheduleItems].sort((a, b) => {
+    const sorted = [...items].sort((a, b) => {
       // Converte o tempo para minutos para facilitar a comparação
       const timeToMinutes = (time: string) => {
         const [hours, minutes] = time.split(':').map(Number);
@@ -50,6 +74,9 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
       
       return timeToMinutes(a.startTime) - timeToMinutes(b.startTime);
     });
+    
+    console.log('SortedItems - Final sorted items:', sorted);
+    return sorted;
   }, [scheduleItems]);
 
   // Adicionar um novo item
