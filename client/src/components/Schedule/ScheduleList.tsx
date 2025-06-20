@@ -96,7 +96,16 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ eventId }) => {
     }
     
     const sorted = [...items].sort((a, b) => {
-      // Converte o tempo para minutos para facilitar a comparação
+      // Primeiro ordenar por data (se existir)
+      if (a.eventDate && b.eventDate) {
+        const dateA = new Date(a.eventDate);
+        const dateB = new Date(b.eventDate);
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateA.getTime() - dateB.getTime();
+        }
+      }
+      
+      // Se as datas forem iguais ou não existirem, ordenar por horário
       const timeToMinutes = (time: string) => {
         const [hours, minutes] = time.split(':').map(Number);
         return hours * 60 + minutes;
