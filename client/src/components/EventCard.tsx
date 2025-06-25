@@ -262,29 +262,12 @@ const EventCard: React.FC<EventCardProps> = ({
                 <span className="text-muted-foreground text-xs truncate">{attendees} convidados</span>
               </div>
             )}
-
-            {/* Barra de progresso */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center flex-1">
-                <i className="fas fa-tasks text-primary mr-1.5 w-4 text-center text-xs"></i>
-                <div className="flex-1 flex items-center">
-                  <div className="w-16 sm:w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden mr-2">
-                    <div 
-                      className="h-full bg-gradient-to-r from-blue-500 to-purple-500" 
-                      style={{ width: `${progressPercentage}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-muted-foreground text-xs">{progressPercentage}%</span>
-                </div>
-              </div>
-              <span className="text-muted-foreground text-xs font-medium ml-2">{tasks.length}</span>
-            </div>
             
 
           </div>
           
-          {/* Team members */}
-          <div className="mt-3 flex items-center">
+          {/* Team members and progress bar in the same line */}
+          <div className="mt-3 flex items-center justify-between">
             <div className="flex">
               {teamData.slice(0, 3).map((member, idx) => (
                 <Avatar
@@ -309,6 +292,18 @@ const EventCard: React.FC<EventCardProps> = ({
                   </AvatarFallback>
                 </Avatar>
               )}
+            </div>
+            
+            {/* Progress bar positioned in the same column as the guest count above */}
+            <div className="flex items-center">
+              <div className="w-16 sm:w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden mr-2">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500" 
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              <span className="text-muted-foreground text-xs mr-1">{progressPercentage}%</span>
+              <span className="text-muted-foreground text-xs font-medium">{tasks.length}</span>
             </div>
           </div>
         </div>
