@@ -93,8 +93,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
   
-  // Desabilitado: autenticação de desenvolvimento automática
-  // app.use(devModeAuth);
+  // Habilitado: autenticação de desenvolvimento automática
+  const { devModeAuth } = await import('./devMode');
+  app.use(devModeAuth);
   
 
 

@@ -3,8 +3,8 @@ import type { Request, Response, NextFunction } from "express";
 
 // Middleware de login automático em desenvolvimento
 export const devModeAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // Desabilitado: login automático em desenvolvimento
-  if (false && !req.isAuthenticated() && process.env.NODE_ENV === 'development') {
+  // Habilitado: login automático em desenvolvimento
+  if (process.env.NODE_ENV === 'development' && !req.isAuthenticated()) {
     // Simular usuário logado
     const mockUser = {
       claims: {
@@ -26,6 +26,8 @@ export const devModeAuth = async (req: Request, res: Response, next: NextFunctio
         return next();
       }
       console.log('Login de desenvolvimento realizado para:', mockUser.claims.email);
+      // Salvar ID do usuário na sessão
+      (req.session as any).userId = mockUser.claims.sub;
       return next();
     });
   } else {

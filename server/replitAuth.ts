@@ -258,6 +258,12 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   
   const user = req.user as any;
   
+  // Em desenvolvimento, permitir acesso se o middleware de dev autenticou
+  if (process.env.NODE_ENV === 'development' && req.isAuthenticated()) {
+    console.log("- Usuário autenticado em modo desenvolvimento");
+    return next();
+  }
+  
   if (!req.isAuthenticated() || !user) {
     console.log("- Usuário não autenticado");
     return res.status(401).json({ message: "Unauthorized - Login Required" });
