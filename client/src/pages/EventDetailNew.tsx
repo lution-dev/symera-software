@@ -254,11 +254,22 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
   // Cálculos financeiros corretos baseados nas despesas reais
   const expenses = Array.isArray(expensesData) ? expensesData : [];
+  console.log('[EventDetailNew] Expenses data raw:', expenses);
+  
   const totalExpenses = expenses.filter((e: any) => e.amount < 0).reduce((sum: number, e: any) => sum + Math.abs(e.amount), 0) / 100;
   const totalIncome = expenses.filter((e: any) => e.amount > 0).reduce((sum: number, e: any) => sum + e.amount, 0) / 100;
   const currentExpenses = totalExpenses; // Gastos atuais são as despesas totais
   const remainingBudget = (event.budget || 0) - currentExpenses;
   const budgetUsedPercentage = event.budget ? Math.round((currentExpenses / event.budget) * 100) : 0;
+  
+  console.log('[EventDetailNew] Financial calculations:', {
+    totalExpenses,
+    totalIncome,
+    currentExpenses,
+    remainingBudget,
+    budgetUsedPercentage,
+    expensesRaw: expenses.map(e => ({ name: e.name, amount: e.amount }))
+  });
   
   // Função para ordenar tarefas por prioridade
   const orderByPriority = (tasks: any[], descending: boolean = true) => {
