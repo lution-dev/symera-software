@@ -119,7 +119,7 @@ export async function setupAuth(app: Express) {
       {
         name: strategyName,
         config,
-        scope: "openid profile",
+        scope: "openid email profile offline_access",
         callbackURL: `https://${domain}/api/callback`,
       },
       verify,

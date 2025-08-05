@@ -104,15 +104,6 @@ const LoginForm: React.FC = () => {
           </a>
           .
         </div>
-        
-        <div className="text-center">
-          <button 
-            onClick={() => navigate("/auth/verify-email")}
-            className="text-xs text-muted-foreground hover:text-primary underline underline-offset-4"
-          >
-            Problemas com verificação de email?
-          </button>
-        </div>
       </CardFooter>
     </Card>
   );
