@@ -1123,7 +1123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validar dados do item de orçamento
-      const budgetItemSchema = insertBudgetItemSchema.omit({ id: true, createdAt: true, updatedAt: true });
+      const budgetItemSchema = insertExpenseSchema.omit({ id: true, createdAt: true, updatedAt: true });
       const validatedData = budgetItemSchema.parse({
         ...req.body,
         eventId: eventId,
@@ -1184,7 +1184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validar dados do item
-      const updateSchema = insertBudgetItemSchema.partial().omit({ id: true, eventId: true, createdAt: true, updatedAt: true });
+      const updateSchema = insertExpenseSchema.partial().omit({ id: true, eventId: true, createdAt: true, updatedAt: true });
       
       const updateData = updateSchema.parse({
         ...req.body,
@@ -1428,8 +1428,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         action: "schedule_item_updated",
         details: { 
-          title: updateData.title || item.title,
-          startTime: updateData.startTime || item.startTime
+          title: title,
+          startTime: startTime
         }
       });
       
@@ -1513,7 +1513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate task data
-      const taskData: CreateTaskData = {
+      const taskData = {
         ...req.body,
         eventId
       };
@@ -2294,7 +2294,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentDate: formData.paymentDate ? new Date(formData.paymentDate) : null,
       };
       
-      const expense = await dbStorage.createExpense(validatedData);
+      // Remove id field for creation as it's auto-generated
+      const { id, ...createData } = validatedData as any;
+      const expense = await dbStorage.createExpense(createData);
       
       // Recalcular e atualizar o campo expenses do evento
       const allExpenses = await dbStorage.getExpensesByEventId(eventId);
@@ -3283,7 +3285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.eventId);
       const participantId = parseInt(req.params.participantId);
-      const userId = req.user!.id;
+      const userId = req.user!.claims?.sub || req.user!.id;
 
       // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -3325,7 +3327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.eventId);
       const participantId = parseInt(req.params.participantId);
-      const userId = req.user!.id;
+      const userId = req.user!.claims?.sub || req.user!.id;
 
       // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -3360,7 +3362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/events/:eventId/participants/stats", isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
-      const userId = req.user!.id;
+      const userId = req.user!.claims?.sub || req.user!.id;
 
       // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -3450,9 +3452,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({
         message: "Arquivo processado com sucesso",
-        stats: result.stats,
-        validParticipants: result.validParticipants,
-        invalidRecords: result.invalidRecords
+        stats: stats,
+        validParticipants: validParticipants,
+        invalidRecords: invalidRecords
       });
       
     } catch (error) {
@@ -3468,7 +3470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.eventId);
       const teamMemberId = parseInt(req.params.memberId);
-      const userId = req.user!.id;
+      const userId = req.user!.claims?.sub || req.user!.id;
 
       // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -3709,7 +3711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { feedbackId } = req.params;
       
-      const event = await storage.getEventByFeedbackId(feedbackId);
+      const event = await dbStorage.getEventByFeedbackId(feedbackId);
       if (!event) {
         return res.status(404).json({ message: "Link de feedback não encontrado ou expirado" });
       }
@@ -3719,7 +3721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const ipAddress = req.ip || req.connection.remoteAddress;
         const userAgent = req.get('User-Agent');
         
-        await storage.createFeedbackMetric({
+        await dbStorage.createFeedbackMetric({
           feedbackId,
           viewedAt: new Date(),
           ipAddress,
