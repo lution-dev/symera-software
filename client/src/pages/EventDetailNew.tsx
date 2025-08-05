@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import TaskList from "@/components/Dashboard/TaskList";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
+import { ExpenseManager } from "@/components/Finance/ExpenseManager";
 import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
 
 // Utility function to calculate days remaining consistently
@@ -117,6 +118,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const { data: activities, isLoading: activitiesLoading } = useQuery({
     queryKey: [`/api/events/${eventId}/activities`],
     enabled: !!eventId && !!event,
+  });
+
+  // Query para buscar despesas e calcular valores financeiros corretos
+  const { data: expensesData = [], isLoading: expensesLoading } = useQuery({
+    queryKey: [`/api/events/${eventId}/expenses`],
+    enabled: !!eventId && !!event,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
   
   const regenerateChecklistMutation = useMutation({
@@ -242,6 +251,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const completedTasks = tasks?.filter((task: any) => task.status === 'completed').length || 0;
   const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
   const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
+
+  // Cálculos financeiros corretos baseados nas despesas reais
+  const expenses = Array.isArray(expensesData) ? expensesData : [];
+  const totalExpenses = expenses.filter((e: any) => e.amount < 0).reduce((sum: number, e: any) => sum + Math.abs(e.amount), 0) / 100;
+  const totalIncome = expenses.filter((e: any) => e.amount > 0).reduce((sum: number, e: any) => sum + e.amount, 0) / 100;
+  const currentExpenses = totalExpenses; // Gastos atuais são as despesas totais
+  const remainingBudget = (event.budget || 0) - currentExpenses;
+  const budgetUsedPercentage = event.budget ? Math.round((currentExpenses / event.budget) * 100) : 0;
   
   // Função para ordenar tarefas por prioridade
   const orderByPriority = (tasks: any[], descending: boolean = true) => {
@@ -789,26 +806,18 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Gastos atuais:</span>
-                      <span className="font-semibold">{event.expenses ? formatCurrency(event.expenses) : "R$ 0,00"}</span>
+                      <span className="font-semibold text-red-600">{formatCurrency(currentExpenses)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Saldo restante:</span>
-                      <span className="font-semibold text-green-600">
-                        {event.budget && event.expenses
-                          ? formatCurrency(event.budget - event.expenses)
-                          : event.budget
-                            ? formatCurrency(event.budget)
-                            : "R$ 0,00"
-                        }
+                      <span className={`font-semibold ${remainingBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(remainingBudget)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Gasto atual:</span>
-                      <span className="font-semibold">
-                        {event.budget && event.expenses 
-                          ? `${Math.round((event.expenses / event.budget) * 100)}%` 
-                          : "0%"
-                        }
+                      <span className={`font-semibold ${budgetUsedPercentage > 100 ? 'text-red-600' : budgetUsedPercentage > 80 ? 'text-yellow-600' : 'text-green-600'}`}>
+                        {budgetUsedPercentage}%
                       </span>
                     </div>
                   </div>
@@ -1070,10 +1079,15 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             />
           )}
           
+          {activeSection === "financeiro" && (
+            <div className="space-y-4">
+              <ExpenseManager eventId={parseInt(eventId)} />
+            </div>
+          )}
+          
           {/* Placeholder para seções em desenvolvimento */}
           {(activeSection === "participantes" || 
             activeSection === "cronograma" || 
-            activeSection === "financeiro" || 
             activeSection === "documentos" ||
             activeSection === "feedback") && (
             <div className="bg-card rounded-lg p-8 text-center">

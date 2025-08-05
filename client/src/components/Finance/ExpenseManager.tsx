@@ -68,6 +68,8 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
   const handleAddSuccess = useCallback(() => {
     console.log('[ExpenseManager] Despesa adicionada com sucesso');
     queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
+    queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] }); // Invalidar dados do evento
+    queryClient.invalidateQueries({ queryKey: ['/api/events'] }); // Invalidar lista de eventos
     handleCloseForm();
     toast({
       title: "Sucesso!",
@@ -84,6 +86,8 @@ export const ExpenseManager: React.FC<ExpenseManagerProps> = ({ eventId }) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/expenses`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] }); // Invalidar dados do evento
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] }); // Invalidar lista de eventos
       toast({
         title: "Sucesso!",
         description: "Despesa excluída com sucesso.",
