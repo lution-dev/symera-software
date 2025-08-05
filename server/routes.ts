@@ -2296,6 +2296,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const expense = await dbStorage.createExpense(validatedData);
       
+      // Recalcular e atualizar o campo expenses do evento
+      const allExpenses = await dbStorage.getExpensesByEventId(eventId);
+      const totalExpenses = allExpenses
+        .filter(e => e.amount < 0)
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      // Atualizar campo expenses no evento
+      await db.update(events)
+        .set({ expenses: totalExpenses })
+        .where(eq(events.id, eventId));
+      
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId,
@@ -2360,6 +2371,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
       console.log("Despesa atualizada com sucesso:", updatedExpense);
+      
+      // Recalcular e atualizar o campo expenses do evento
+      const allExpenses = await dbStorage.getExpensesByEventId(expense.eventId);
+      const totalExpenses = allExpenses
+        .filter(e => e.amount < 0)
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      // Atualizar campo expenses no evento
+      await db.update(events)
+        .set({ expenses: totalExpenses })
+        .where(eq(events.id, expense.eventId));
       
       // Registrar atividade
       await dbStorage.createActivityLog({
@@ -2433,6 +2455,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
       console.log("Despesa atualizada com sucesso:", updatedExpense);
+      
+      // Recalcular e atualizar o campo expenses do evento
+      const allExpenses = await dbStorage.getExpensesByEventId(eventId);
+      const totalExpenses = allExpenses
+        .filter(e => e.amount < 0)
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      // Atualizar campo expenses no evento
+      await db.update(events)
+        .set({ expenses: totalExpenses })
+        .where(eq(events.id, eventId));
       
       // Registrar atividade
       await dbStorage.createActivityLog({
@@ -2536,6 +2569,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await dbStorage.deleteExpense(itemId);
+      
+      // Recalcular e atualizar o campo expenses do evento
+      const allExpenses = await dbStorage.getExpensesByEventId(expense.eventId);
+      const totalExpenses = allExpenses
+        .filter(e => e.amount < 0)
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      // Atualizar campo expenses no evento
+      await db.update(events)
+        .set({ expenses: totalExpenses })
+        .where(eq(events.id, expense.eventId));
       
       // Registrar atividade
       await dbStorage.createActivityLog({
