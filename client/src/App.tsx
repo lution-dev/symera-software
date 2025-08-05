@@ -30,6 +30,7 @@ import ProfileConfigNotificacoes from "@/pages/ProfileConfigNotificacoes";
 import ProfileConfigAparencia from "@/pages/ProfileConfigAparencia";
 import ProfileConfigSeguranca from "@/pages/ProfileConfigSeguranca";
 import Auth from "@/pages/Auth";
+import EmailVerification from "@/pages/EmailVerification";
 
 import PublicFeedback from "@/pages/PublicFeedback";
 import NotFound from "@/pages/not-found";
@@ -90,6 +91,7 @@ function Router() {
       <Route path="/feedback/:feedbackId" component={PublicFeedback} />
 
       <Route path="/auth" component={Auth} />
+      <Route path="/auth/verify-email" component={EmailVerification} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
       <Route path="/events/new" component={() => <ProtectedRoute component={CreateEvent} />} />

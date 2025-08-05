@@ -48,6 +48,22 @@ const Auth: React.FC = () => {
               Faz parte do seu dia-a-dia, faz parte do seu evento!
             </p>
             
+            {/* Important note about email verification */}
+            <div className="bg-blue-900/30 backdrop-blur-md p-4 rounded-xl border border-blue-400/20 mb-6">
+              <div className="flex items-start space-x-3">
+                <CheckCircle className="h-5 w-5 text-blue-300 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-100 text-sm mb-1">
+                    Verificação de Email Necessária
+                  </h4>
+                  <p className="text-xs text-blue-200 opacity-90">
+                    Após clicar em "Entrar", você receberá um email de verificação por segurança. 
+                    Verifique sua caixa de entrada e spam.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Feature Cards - Adjust for different screen sizes */}
             <div className="grid grid-cols-2 gap-3 lg:gap-4 w-full px-4 max-w-lg mx-auto">
               {/* Card 1 */}
