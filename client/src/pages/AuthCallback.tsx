@@ -10,19 +10,36 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        console.log("[AuthCallback] Iniciando processamento...");
+        console.log("[AuthCallback] URL atual:", window.location.href);
+        
         const supabase = await getSupabase();
+        
+        // Primeiro, tenta extrair sessão do hash (OAuth redirect)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        
+        if (accessToken) {
+          console.log("[AuthCallback] Token encontrado no hash");
+        }
+        
+        // O Supabase automaticamente processa o hash, então basta pegar a sessão
         const { data: { session }, error } = await supabase.auth.getSession();
         
+        console.log("[AuthCallback] Sessão:", session ? "encontrada" : "não encontrada");
+        
         if (error) {
-          console.error("Erro no callback:", error);
+          console.error("[AuthCallback] Erro:", error);
           setError("Erro ao processar login. Tente novamente.");
           setTimeout(() => navigate("/auth"), 3000);
           return;
         }
 
         if (session) {
+          console.log("[AuthCallback] Salvando dados de autenticação...");
           authManager.saveAuthData(session);
           
+          console.log("[AuthCallback] Provisionando usuário no backend...");
           const response = await fetch("/api/auth/user", {
             headers: {
               Authorization: `Bearer ${session.access_token}`,
@@ -30,23 +47,26 @@ export default function AuthCallback() {
           });
 
           if (response.ok) {
-            navigate("/");
+            console.log("[AuthCallback] Sucesso! Redirecionando...");
+            window.location.href = "/";
           } else {
-            console.error("Erro ao criar usuário no backend");
+            console.error("[AuthCallback] Erro ao criar usuário:", await response.text());
             setError("Erro ao criar conta. Tente novamente.");
             setTimeout(() => navigate("/auth"), 3000);
           }
         } else {
+          console.log("[AuthCallback] Sem sessão, redirecionando para login");
           navigate("/auth");
         }
       } catch (err) {
-        console.error("Erro no callback:", err);
+        console.error("[AuthCallback] Erro inesperado:", err);
         setError("Erro inesperado. Tente novamente.");
         setTimeout(() => navigate("/auth"), 3000);
       }
     };
 
-    handleCallback();
+    // Pequeno delay para garantir que o Supabase processe o hash
+    setTimeout(handleCallback, 100);
   }, [navigate]);
 
   if (error) {
