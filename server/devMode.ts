@@ -1,47 +1,9 @@
-// Configuração e utilidades para o modo de desenvolvimento
 import type { Request, Response, NextFunction } from "express";
 
-// Middleware de login automático em desenvolvimento
 export const devModeAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // Habilitado: login automático em desenvolvimento
-  if (process.env.NODE_ENV === 'development' && !req.isAuthenticated()) {
-    // Simular usuário logado
-    const mockUser = {
-      claims: {
-        sub: '8650891',
-        email: 'applution@gmail.com', 
-        first_name: 'Dev',
-        last_name: 'User',
-        profile_image_url: undefined
-      },
-      access_token: 'dev-token',
-      refresh_token: 'dev-refresh',
-      expires_at: Date.now() + 86400000
-    };
-
-    // Fazer login do usuário
-    req.logIn(mockUser, (err) => {
-      if (err) {
-        console.error('Erro no login de desenvolvimento:', err);
-        return next();
-      }
-      console.log('Login de desenvolvimento realizado para:', mockUser.claims.email);
-      // Salvar ID do usuário na sessão
-      (req.session as any).userId = mockUser.claims.sub;
-      return next();
-    });
-  } else {
-    return next();
-  }
+  return next();
 };
 
-// Middleware de autenticação que verifica se o usuário está logado
 export const ensureDevAuth = async (req: Request, res: Response, next: NextFunction) => {
-  // Verifica se o usuário está autenticado
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  
-  // Se não estiver autenticado, retorna 401
-  return res.status(401).json({ message: "Unauthorized - Login Required" });
+  return next();
 };

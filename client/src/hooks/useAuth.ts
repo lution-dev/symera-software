@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { authManager } from "../lib/auth";
-import { supabase } from "../lib/supabase";
+import { getSupabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 
 interface UserData {
@@ -18,24 +18,38 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        authManager.saveAuthData(session);
+    let unsubscribe: (() => void) | undefined;
+
+    const init = async () => {
+      try {
+        const supabase = await getSupabase();
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        setSession(currentSession);
+        if (currentSession) {
+          authManager.saveAuthData(currentSession);
+        }
+        
+        unsubscribe = await authManager.setupAuthListener((newSession) => {
+          setSession(newSession);
+          if (newSession) {
+            queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+          }
+        });
+        
+        authManager.setupActivityTracker();
+      } catch (error) {
+        console.error('[Auth] Erro na inicialização:', error);
+      } finally {
+        setIsInitialized(true);
       }
-      setIsInitialized(true);
-    });
+    };
 
-    const unsubscribe = authManager.setupAuthListener((newSession) => {
-      setSession(newSession);
-      if (newSession) {
-        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      }
-    });
+    init();
 
-    authManager.setupActivityTracker();
-
-    return unsubscribe;
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [queryClient]);
 
   const { data: user, isLoading: isLoadingUser, error, refetch } = useQuery<UserData>({

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { getSupabase } from './supabase';
 import type { User, Session } from '@supabase/supabase-js';
 
 const AUTH_STORAGE_KEY = 'symera_auth_data';
@@ -21,6 +21,7 @@ export class AuthManager {
   }
 
   async signInWithGoogle(): Promise<void> {
+    const supabase = await getSupabase();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -35,17 +36,20 @@ export class AuthManager {
   }
 
   async signOut(): Promise<void> {
+    const supabase = await getSupabase();
     await supabase.auth.signOut();
     this.clearAuthData();
     window.location.href = '/auth';
   }
 
   async getSession(): Promise<Session | null> {
+    const supabase = await getSupabase();
     const { data: { session } } = await supabase.auth.getSession();
     return session;
   }
 
   async getUser(): Promise<User | null> {
+    const supabase = await getSupabase();
     const { data: { user } } = await supabase.auth.getUser();
     return user;
   }
@@ -103,7 +107,8 @@ export class AuthManager {
     return authData?.accessToken || null;
   }
 
-  setupAuthListener(callback: (session: Session | null) => void): () => void {
+  async setupAuthListener(callback: (session: Session | null) => void): Promise<() => void> {
+    const supabase = await getSupabase();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[Auth] Estado mudou:', event);

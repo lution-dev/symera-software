@@ -32,6 +32,7 @@ import ProfileConfigSeguranca from "@/pages/ProfileConfigSeguranca";
 import Auth from "@/pages/Auth";
 
 import PublicFeedback from "@/pages/PublicFeedback";
+import AuthCallback from "@/pages/AuthCallback";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -88,7 +89,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/feedback/:feedbackId" component={PublicFeedback} />
-
+      <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/auth" component={Auth} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/events" component={() => <ProtectedRoute component={Events} />} />

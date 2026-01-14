@@ -1,10 +1,45 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabaseInstance: SupabaseClient | null = null;
+let initPromise: Promise<SupabaseClient> | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
+async function initSupabase(): Promise<SupabaseClient> {
+  if (supabaseInstance) return supabaseInstance;
+  
+  if (initPromise) return initPromise;
+  
+  initPromise = (async () => {
+    try {
+      const response = await fetch('/api/supabase-config');
+      const config = await response.json();
+      
+      console.log('[Supabase] Config received:', { 
+        hasUrl: !!config.url, 
+        hasKey: !!config.anonKey,
+        urlStart: config.url?.substring(0, 20)
+      });
+      
+      if (!config.url || !config.anonKey) {
+        throw new Error('Supabase configuration not available');
+      }
+      
+      if (!config.url.startsWith('http')) {
+        throw new Error('Invalid Supabase URL');
+      }
+      
+      supabaseInstance = createClient(config.url, config.anonKey);
+      return supabaseInstance;
+    } catch (error) {
+      console.error('Failed to initialize Supabase:', error);
+      throw error;
+    }
+  })();
+  
+  return initPromise;
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+export async function getSupabase(): Promise<SupabaseClient> {
+  return initSupabase();
+}
+
+export { supabaseInstance as supabase };

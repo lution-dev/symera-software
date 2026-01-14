@@ -9,7 +9,7 @@ import { saveBase64Image, deleteImage } from "./utils/imageUpload";
 import { db } from "./db";
 import { events, users, scheduleItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupSupabaseAuth, isAuthenticated } from "./supabaseAuth";
 
 import { 
   insertEventSchema,
@@ -91,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Auth middleware
-  await setupAuth(app);
+  await setupSupabaseAuth(app);
   
   // Habilitado: autenticação de desenvolvimento automática
   const { devModeAuth } = await import('./devMode');
@@ -102,70 +102,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes - Requer autenticação obrigatória
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      console.log("Verificando autenticação do usuário:");
-      console.log("- Session ID:", req.sessionID);
-      console.log("- Is Authenticated:", req.isAuthenticated());
+      const userId = req.user.claims.sub;
+      const userEmail = req.user.claims.email;
+      const userName = req.user.claims.name;
+      const userPicture = req.user.claims.picture;
       
-      // Verificar se o usuário está autenticado via Replit Auth
-      if (req.isAuthenticated() && req.user?.claims?.sub) {
-        console.log("- Usuário autenticado via Replit Auth");
-        const userId = req.user.claims.sub;
-        const userEmail = req.user.claims.email;
-        console.log("- ID do usuário:", userId);
-        console.log("- Email do usuário:", userEmail);
-        
-        let user = await dbStorage.getUser(userId);
-        
-        if (user) {
-          console.log("- Usuário encontrado no banco de dados");
-          return res.json(user);
-        } 
-        
-        // Se não encontrou por ID, buscar por email para migrar conta local
-        if (userEmail) {
-          const existingUserByEmail = await dbStorage.getUserByEmail(userEmail);
-          if (existingUserByEmail && existingUserByEmail.id.startsWith('local-')) {
-            console.log("- Encontrado usuário local com mesmo email, migrando para Replit Auth");
-            
-            // Migrar todas as associações do usuário local para o novo ID do Replit
-            await dbStorage.migrateUserFromLocalToReplit(existingUserByEmail.id, userId);
-            
-            // Atualizar o usuário no banco com o novo ID
-            const migratedUser = await dbStorage.upsertUser({
-              id: userId,
-              email: userEmail,
-              firstName: req.user.claims.name?.split(' ')[0] || existingUserByEmail.firstName || userEmail.split('@')[0],
-              lastName: req.user.claims.name?.split(' ').slice(1).join(' ') || existingUserByEmail.lastName || '',
-              phone: existingUserByEmail.phone,
-              profileImageUrl: req.user.claims.picture || existingUserByEmail.profileImageUrl,
-              createdAt: existingUserByEmail.createdAt,
-              updatedAt: new Date()
-            });
-            
-            console.log("- Migração concluída para o usuário:", migratedUser.id);
-            return res.json(migratedUser);
-          }
+      console.log("[Auth] Usuário autenticado:", userId, userEmail);
+      
+      let user = await dbStorage.getUser(userId);
+      
+      if (user) {
+        console.log("[Auth] Usuário encontrado no banco");
+        return res.json(user);
+      } 
+      
+      // Buscar por email para migrar conta existente
+      if (userEmail) {
+        const existingUserByEmail = await dbStorage.getUserByEmail(userEmail);
+        if (existingUserByEmail && existingUserByEmail.id !== userId) {
+          console.log("[Auth] Migrando usuário existente");
+          
+          await dbStorage.migrateUserFromLocalToReplit(existingUserByEmail.id, userId);
+          
+          const migratedUser = await dbStorage.upsertUser({
+            id: userId,
+            email: userEmail,
+            firstName: userName?.split(' ')[0] || existingUserByEmail.firstName || userEmail.split('@')[0],
+            lastName: userName?.split(' ').slice(1).join(' ') || existingUserByEmail.lastName || '',
+            phone: existingUserByEmail.phone,
+            profileImageUrl: userPicture || existingUserByEmail.profileImageUrl,
+            createdAt: existingUserByEmail.createdAt,
+            updatedAt: new Date()
+          });
+          
+          return res.json(migratedUser);
         }
-        
-        console.log("- Usuário não encontrado no banco de dados, criando novo usuário");
-        // Criar usuário se não existir
-        const newUser = await dbStorage.upsertUser({
-          id: userId,
-          email: userEmail || '',
-          firstName: req.user.claims.name?.split(' ')[0] || userEmail?.split('@')[0] || 'Usuário',
-          lastName: req.user.claims.name?.split(' ').slice(1).join(' ') || '',
-          profileImageUrl: req.user.claims.picture || null,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-        return res.json(newUser);
       }
       
-      // Se chegou aqui, não está autenticado
-      console.log("- Usuário não autenticado");
-      return res.status(401).json({ message: "Unauthorized - Login Required" });
+      console.log("[Auth] Criando novo usuário");
+      const newUser = await dbStorage.upsertUser({
+        id: userId,
+        email: userEmail || '',
+        firstName: userName?.split(' ')[0] || userEmail?.split('@')[0] || 'Usuário',
+        lastName: userName?.split(' ').slice(1).join(' ') || '',
+        profileImageUrl: userPicture || null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      return res.json(newUser);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("[Auth] Erro:", error);
       res.status(500).json({ message: "Error" });
     }
   });
@@ -609,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
       } else {
@@ -772,7 +758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para buscar tarefas:", userId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
         console.log("Usando ID de autenticação Replit para buscar tarefas:", userId);
@@ -847,7 +833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para acessar tarefas do evento:", req.params.eventId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
       } else {
@@ -1641,7 +1627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para acessar equipe do evento:", req.params.eventId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
       } else {
@@ -1678,7 +1664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         userId = req.session.devUserId;
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         userId = req.user.claims.sub;
       } else {
         return res.status(401).json({ message: "User not authenticated properly" });
@@ -1829,7 +1815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         currentUserId = req.session.devUserId;
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         currentUserId = req.user.claims.sub;
       } else {
         return res.status(401).json({ message: "User not authenticated properly" });
@@ -1992,10 +1978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Verificar autenticação
-  app.get('/api/auth/check', async (req: any, res) => {
-    if (!req.isAuthenticated() || !req.user?.claims?.sub) {
-      return res.status(401).json({ authenticated: false });
-    }
+  app.get('/api/auth/check', isAuthenticated, async (req: any, res) => {
     return res.json({ authenticated: true, userId: req.user.claims.sub });
   });
 
@@ -2009,7 +1992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log(`Buscando dados do dashboard para o usuário de desenvolvimento: ${userId}`);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
         console.log(`Buscando dados do dashboard para o usuário autenticado: ${userId}`);
@@ -2100,7 +2083,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para acessar atividades do evento:", req.params.eventId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
       } else {
@@ -2207,7 +2190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para acessar despesas do evento:", req.params.eventId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
       } else {
@@ -2254,7 +2237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para adicionar despesa:", userId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
       } else {
@@ -2340,7 +2323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para atualizar despesa:", userId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
         console.log("Usando ID de autenticação Replit para atualizar despesa:", userId);
@@ -2415,7 +2398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para atualizar despesa:", userId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
         console.log("Usando ID de autenticação Replit para atualizar despesa:", userId);
@@ -2498,7 +2481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para atualizar despesa (PATCH):", userId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
       } else {
@@ -2621,7 +2604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
         console.log("Usando ID de desenvolvimento para acessar documentos do evento:", req.params.eventId);
-      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
       } else {
@@ -2678,22 +2661,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Middleware específico para uploads de documento que não falha com token expirado
+  // Middleware específico para uploads de documento
   const documentUploadAuth = async (req: any, res: any, next: any) => {
     console.log("=== MIDDLEWARE DE UPLOAD DE DOCUMENTO ===");
     console.log("- URL:", req.url);
     console.log("- Method:", req.method);
-    console.log("- isAuthenticated:", req.isAuthenticated());
     
     const user = req.user as any;
     
-    if (!req.isAuthenticated() || !user) {
+    if (!user || !user.claims || !user.claims.sub) {
       console.log("Usuário não autenticado para upload");
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    
-    if (!user.claims || !user.claims.sub) {
-      console.log("Claims não encontrados para upload");
       return res.status(401).json({ message: "Unauthorized" });
     }
     
