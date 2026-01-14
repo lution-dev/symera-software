@@ -515,20 +515,37 @@
  INSERT INTO activity_logs (id, event_id, user_id, action, details, created_at) VALUES (122, 12, '8650891', 'expense_added', '{"amount": -3750, "category": "graphic_materials", "itemName": "Impressão das artes A4 para divulgação", "vendorId": null}', '2025-07-14 20:36:25.149791');
  INSERT INTO activity_logs (id, event_id, user_id, action, details, created_at) VALUES (123, 12, '8650891', 'expense_updated', '{"paid": true, "amount": -80000, "itemName": "Flávia Lima"}', '2025-08-05 15:23:33.139193');
 
- INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (1, 6, 'feedback_6_1748657091787_p6f3do84em', NULL, NULL, 0, '', true, '2025-05-31 02:04:51.876');
- INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (5, 6, 'feedback_6_1748657091787_p6f3do84em', 'João Silva', 'joao@exemplo.com', 5, 'Evento excelente, muito bem organizado!', false, '2025-05-31 18:27:55.327765');
- INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (6, 6, 'feedback_6_1748657091787_p6f3do84em', NULL, NULL, 4, 'Muito bom, só faltou mais música!', true, '2025-05-31 18:28:01.028996');
- INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (7, 6, 'fb_1748716362983_1', 'Maria Silva', 'maria@email.com', 5, 'Evento incrível! Organização perfeita e tudo saiu como planejado. Parabéns!', false, '2025-05-31 18:32:43.702666');
- INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (8, 6, 'fb_1748716362983_2', NULL, NULL, 4, 'Festa muito boa, música excelente. Só achei que poderia ter mais variedade de comida.', true, '2025-05-31 18:32:43.843497');
- INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (9, 6, 'fb_1748716362983_3', 'João Santos', 'joao@email.com', 5, 'Perfeito! A decoração estava linda e a festa foi inesquecível. Muito obrigado!', false, '2025-05-31 18:32:43.910793');
- INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (10, 6, 'feedback_6_1748657091787_p6f3do84em', NULL, NULL, 5, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit', true, '2025-06-02 18:51:00.813272');
 
- INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (1, 'feedback_6_1748657091787_p6f3do84em', NULL, '2025-05-31 18:27:55.364', '127.0.0.1', 'curl/8.11.1', '2025-05-31 18:27:55.400893');
- INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (2, 'feedback_6_1748657091787_p6f3do84em', NULL, '2025-05-31 18:28:01.06', '127.0.0.1', 'curl/8.11.1', '2025-05-31 18:28:01.096899');
- INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (3, 'fb_1748716362983_1', '2025-05-29 18:32:43.941', '2025-05-29 18:32:43.941', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', '2025-05-31 18:32:43.977814');
- INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (4, 'fb_1748716362983_2', '2025-05-30 18:32:43.941', '2025-05-30 18:32:43.941', '192.168.1.101', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X)', '2025-05-31 18:32:44.049038');
- INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (5, 'fb_1748716362983_3', '2025-05-31 06:32:43.941', '2025-05-31 06:32:43.941', '192.168.1.102', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36', '2025-05-31 18:32:44.115328');
- INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (6, 'feedback_6_1748657091787_p6f3do84em', NULL, '2025-06-02 18:51:00.857', '10.82.6.66', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36', '2025-06-02 18:51:00.894884');
+
+
+-- Reset all sequences
+SELECT setval('events_id_seq', COALESCE((SELECT MAX(id) FROM events), 1));
+SELECT setval('tasks_id_seq', COALESCE((SELECT MAX(id) FROM tasks), 1));
+SELECT setval('task_assignees_id_seq', COALESCE((SELECT MAX(id) FROM task_assignees), 1));
+SELECT setval('event_team_members_id_seq', COALESCE((SELECT MAX(id) FROM event_team_members), 1));
+SELECT setval('vendors_id_seq', COALESCE((SELECT MAX(id) FROM vendors), 1));
+SELECT setval('expenses_id_seq', COALESCE((SELECT MAX(id) FROM expenses), 1));
+SELECT setval('budget_items_id_seq', COALESCE((SELECT MAX(id) FROM budget_items), 1));
+SELECT setval('schedule_items_id_seq', COALESCE((SELECT MAX(id) FROM schedule_items), 1));
+SELECT setval('participants_id_seq', COALESCE((SELECT MAX(id) FROM participants), 1));
+SELECT setval('documents_id_seq', COALESCE((SELECT MAX(id) FROM documents), 1));
+SELECT setval('activity_logs_id_seq', COALESCE((SELECT MAX(id) FROM activity_logs), 1));
+SELECT setval('event_feedbacks_id_seq', COALESCE((SELECT MAX(id) FROM event_feedbacks), 1));
+SELECT setval('feedback_metrics_id_seq', COALESCE((SELECT MAX(id) FROM feedback_metrics), 1));
+ INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (1, 6, 'feedback_6_1748657091787_p6f3do84em_1', NULL, NULL, 0, '', true, '2025-05-31 02:04:51.876');
+ INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (5, 6, 'feedback_6_1748657091787_p6f3do84em_5', 'João Silva', 'joao@exemplo.com', 5, 'Evento excelente, muito bem organizado!', false, '2025-05-31 18:27:55.327765');
+ INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (6, 6, 'feedback_6_1748657091787_p6f3do84em_6', NULL, NULL, 4, 'Muito bom, só faltou mais música!', true, '2025-05-31 18:28:01.028996');
+ INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (7, 6, 'fb_1748716362983_1_7', 'Maria Silva', 'maria@email.com', 5, 'Evento incrível! Organização perfeita e tudo saiu como planejado. Parabéns!', false, '2025-05-31 18:32:43.702666');
+ INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (8, 6, 'fb_1748716362983_2_8', NULL, NULL, 4, 'Festa muito boa, música excelente. Só achei que poderia ter mais variedade de comida.', true, '2025-05-31 18:32:43.843497');
+ INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (9, 6, 'fb_1748716362983_3_9', 'João Santos', 'joao@email.com', 5, 'Perfeito! A decoração estava linda e a festa foi inesquecível. Muito obrigado!', false, '2025-05-31 18:32:43.910793');
+ INSERT INTO event_feedbacks (id, event_id, feedback_id, name, email, rating, comment, is_anonymous, created_at) VALUES (10, 6, 'feedback_6_1748657091787_p6f3do84em_10', NULL, NULL, 5, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit', true, '2025-06-02 18:51:00.813272');
+
+ INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (1, 'feedback_6_1748657091787_p6f3do84em_1', NULL, '2025-05-31 18:27:55.364', '127.0.0.1', 'curl/8.11.1', '2025-05-31 18:27:55.400893');
+ INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (2, 'feedback_6_1748657091787_p6f3do84em_1', NULL, '2025-05-31 18:28:01.06', '127.0.0.1', 'curl/8.11.1', '2025-05-31 18:28:01.096899');
+ INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (3, 'fb_1748716362983_1_7', '2025-05-29 18:32:43.941', '2025-05-29 18:32:43.941', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', '2025-05-31 18:32:43.977814');
+ INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (4, 'fb_1748716362983_2_8', '2025-05-30 18:32:43.941', '2025-05-30 18:32:43.941', '192.168.1.101', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X)', '2025-05-31 18:32:44.049038');
+ INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (5, 'fb_1748716362983_3_9', '2025-05-31 06:32:43.941', '2025-05-31 06:32:43.941', '192.168.1.102', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36', '2025-05-31 18:32:44.115328');
+ INSERT INTO feedback_metrics (id, feedback_id, viewed_at, submitted_at, ip_address, user_agent, created_at) VALUES (6, 'feedback_6_1748657091787_p6f3do84em_1', NULL, '2025-06-02 18:51:00.857', '10.82.6.66', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36', '2025-06-02 18:51:00.894884');
 
 
 -- Reset all sequences
