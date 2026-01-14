@@ -1,16 +1,14 @@
-// Sistema de autenticação com persistência de longa duração
-// Mantém o usuário logado por até 30 dias usando localStorage
-
-interface AuthData {
-  sessionId: string;
-  userId: string;
-  email: string;
-  expiresAt: number;
-  lastActivity: number;
-}
+import { supabase } from './supabase';
+import type { User, Session } from '@supabase/supabase-js';
 
 const AUTH_STORAGE_KEY = 'symera_auth_data';
-const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 dias em milissegundos
+
+interface AuthData {
+  userId: string;
+  email: string;
+  accessToken: string;
+  expiresAt: number;
+}
 
 export class AuthManager {
   private static instance: AuthManager;
@@ -22,27 +20,48 @@ export class AuthManager {
     return AuthManager.instance;
   }
 
-  // Salva dados de autenticação no localStorage
-  saveAuthData(authData: Partial<AuthData>): void {
-    const now = Date.now();
-    const existingData = this.getAuthData();
-    
-    const newAuthData: AuthData = {
-      sessionId: authData.sessionId || existingData?.sessionId || '',
-      userId: authData.userId || existingData?.userId || '',
-      email: authData.email || existingData?.email || '',
-      expiresAt: now + SESSION_DURATION,
-      lastActivity: now,
-    };
-
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newAuthData));
-    console.log('[Auth] Dados de autenticação salvos:', { 
-      userId: newAuthData.userId, 
-      expiresAt: new Date(newAuthData.expiresAt).toISOString() 
+  async signInWithGoogle(): Promise<void> {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/auth/callback'
+      }
     });
+
+    if (error) {
+      console.error('[Auth] Erro ao fazer login com Google:', error);
+      throw error;
+    }
   }
 
-  // Recupera dados de autenticação do localStorage
+  async signOut(): Promise<void> {
+    await supabase.auth.signOut();
+    this.clearAuthData();
+    window.location.href = '/auth';
+  }
+
+  async getSession(): Promise<Session | null> {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session;
+  }
+
+  async getUser(): Promise<User | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
+  }
+
+  saveAuthData(session: Session): void {
+    const authData: AuthData = {
+      userId: session.user.id,
+      email: session.user.email || '',
+      accessToken: session.access_token,
+      expiresAt: session.expires_at ? session.expires_at * 1000 : Date.now() + 3600000,
+    };
+
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    console.log('[Auth] Dados de autenticação salvos');
+  }
+
   getAuthData(): AuthData | null {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -51,102 +70,67 @@ export class AuthManager {
       const authData: AuthData = JSON.parse(stored);
       const now = Date.now();
 
-      // Verifica se o token expirou
       if (now > authData.expiresAt) {
-        console.log('[Auth] Token expirado, removendo dados');
+        console.log('[Auth] Token expirado');
         this.clearAuthData();
         return null;
       }
 
       return authData;
     } catch (error) {
-      console.error('[Auth] Erro ao recuperar dados de autenticação:', error);
+      console.error('[Auth] Erro ao recuperar dados:', error);
       this.clearAuthData();
       return null;
     }
   }
 
-  // Atualiza a última atividade para manter a sessão ativa
-  updateActivity(): void {
-    const authData = this.getAuthData();
-    if (authData) {
-      const now = Date.now();
-      authData.lastActivity = now;
-      authData.expiresAt = now + SESSION_DURATION; // Estende a expiração
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
-    }
-  }
-
-  // Verifica se o usuário está autenticado
   isAuthenticated(): boolean {
-    const authData = this.getAuthData();
-    return authData !== null;
+    return this.getAuthData() !== null;
   }
 
-  // Limpa dados de autenticação
   clearAuthData(): void {
     localStorage.removeItem(AUTH_STORAGE_KEY);
     console.log('[Auth] Dados de autenticação limpos');
   }
 
-  // Obtém o ID do usuário
   getUserId(): string | null {
     const authData = this.getAuthData();
     return authData?.userId || null;
   }
 
-  // Tenta renovar o token automaticamente
-  async refreshToken(): Promise<boolean> {
-    try {
-      console.log('[Auth] Tentando renovar token...');
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('[Auth] Token renovado:', result.message);
-        this.updateActivity(); // Atualiza a atividade após renovação bem-sucedida
-        return true;
-      } else {
-        console.log('[Auth] Falha na renovação do token');
-        return false;
-      }
-    } catch (error) {
-      console.error('[Auth] Erro ao renovar token:', error);
-      return false;
-    }
+  getAccessToken(): string | null {
+    const authData = this.getAuthData();
+    return authData?.accessToken || null;
   }
 
-  // Configura interceptor para atualizar atividade e renovar tokens automaticamente
+  setupAuthListener(callback: (session: Session | null) => void): () => void {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('[Auth] Estado mudou:', event);
+        
+        if (session) {
+          this.saveAuthData(session);
+        } else {
+          this.clearAuthData();
+        }
+        
+        callback(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }
+
   setupActivityTracker(): void {
-    // Intercepta todas as requisições fetch
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
-      this.updateActivity();
-      
       try {
         const response = await originalFetch.apply(window, args);
         
-        // Se recebeu 401, tenta renovar token uma vez
-        if (response.status === 401 && this.isAuthenticated()) {
-          console.log('[Auth] 401 detectado, tentando renovar token...');
-          const renewed = await this.refreshToken();
-          
-          if (renewed) {
-            // Reexecuta a requisição original após renovação
-            console.log('[Auth] Token renovado, reexecutando requisição...');
-            return originalFetch.apply(window, args);
-          } else {
-            // Se não conseguiu renovar, limpa dados e redireciona
-            console.log('[Auth] Não foi possível renovar token, fazendo logout...');
-            this.clearAuthData();
-            window.location.href = '/auth';
-          }
+        if (response.status === 401 && !window.location.pathname.includes('/auth')) {
+          console.log('[Auth] 401 detectado, redirecionando...');
+          this.clearAuthData();
+          window.location.href = '/auth';
         }
         
         return response;
@@ -155,52 +139,6 @@ export class AuthManager {
         throw error;
       }
     };
-
-    // Configura renovação automática periódica
-    this.setupPeriodicTokenRefresh();
-
-    // Atualiza atividade periodicamente enquanto o usuário está ativo
-    let activityTimer: NodeJS.Timeout;
-    
-    const resetTimer = () => {
-      clearTimeout(activityTimer);
-      activityTimer = setTimeout(() => {
-        this.updateActivity();
-      }, 5 * 60 * 1000); // A cada 5 minutos
-    };
-
-    // Eventos que indicam atividade do usuário
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
-      document.addEventListener(event, resetTimer, { passive: true });
-    });
-
-    resetTimer();
-  }
-
-  // Configura renovação automática de tokens
-  private setupPeriodicTokenRefresh(): void {
-    // Verifica e renova tokens a cada 10 minutos
-    setInterval(async () => {
-      if (this.isAuthenticated()) {
-        const authData = this.getAuthData();
-        if (authData) {
-          const now = Date.now();
-          const timeUntilExpiry = authData.expiresAt - now;
-          
-          // Se o token expira em menos de 15 minutos, tenta renovar
-          if (timeUntilExpiry < 15 * 60 * 1000) {
-            console.log('[Auth] Token expira em breve, renovando...');
-            const renewed = await this.refreshToken();
-            
-            if (!renewed) {
-              console.log('[Auth] Falha na renovação automática, fazendo logout...');
-              this.clearAuthData();
-              window.location.href = '/auth';
-            }
-          }
-        }
-      }
-    }, 10 * 60 * 1000); // A cada 10 minutos
   }
 }
 

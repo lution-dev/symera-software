@@ -1,6 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { authManager } from "../lib/auth";
+import { supabase } from "../lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 
 interface UserData {
   id: string;
@@ -11,53 +13,58 @@ interface UserData {
 }
 
 export function useAuth() {
-  const { data: user, isLoading, error, refetch } = useQuery({
-    queryKey: ["/api/auth/user"],
-    retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-  });
+  const [session, setSession] = useState<Session | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Configura o sistema de persistência de autenticação
   useEffect(() => {
-    // Inicializa o rastreador de atividade
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        authManager.saveAuthData(session);
+      }
+      setIsInitialized(true);
+    });
+
+    const unsubscribe = authManager.setupAuthListener((newSession) => {
+      setSession(newSession);
+      if (newSession) {
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      }
+    });
+
     authManager.setupActivityTracker();
 
-    // Se o usuário está autenticado, salva os dados no localStorage
-    if (user && !error) {
-      const userData = user as UserData;
-      if (userData.id && userData.email) {
-        authManager.saveAuthData({
-          userId: userData.id,
-          email: userData.email,
-          sessionId: document.cookie.split(';').find(c => c.trim().startsWith('connect.sid='))?.split('=')[1] || '',
-        });
-      }
-    }
+    return unsubscribe;
+  }, [queryClient]);
 
-    // Se houve erro 401 mas temos dados válidos no localStorage, tenta recuperar
-    if (error && authManager.isAuthenticated()) {
-      console.log('[Auth] Tentando recuperar sessão do localStorage');
-      setTimeout(() => {
-        refetch();
-      }, 1000);
-    }
-  }, [user, error, refetch]);
+  const { data: user, isLoading: isLoadingUser, error, refetch } = useQuery<UserData>({
+    queryKey: ["/api/auth/user"],
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!session,
+  });
 
-  // Função de logout - limpa localStorage e redireciona
-  const logout = () => {
-    authManager.clearAuthData();
-    window.location.href = "/api/logout";
+  const signInWithGoogle = async () => {
+    await authManager.signInWithGoogle();
   };
 
-  // Se houve erro 401, significa que não está autenticado
-  const isAuthenticated = !!user && !error;
+  const logout = async () => {
+    await authManager.signOut();
+    queryClient.clear();
+  };
+
+  const isAuthenticated = !!session && !!user && !error;
+  const isLoading = !isInitialized || (!!session && isLoadingUser);
 
   return {
     user,
+    session,
     isLoading,
     error,
     isAuthenticated,
     refetch,
+    signInWithGoogle,
     logout
   };
 }
