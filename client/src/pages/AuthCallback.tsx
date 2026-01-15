@@ -11,11 +11,51 @@ export default function AuthCallback() {
     const handleCallback = async () => {
       try {
         console.log("[AuthCallback] Iniciando processamento...");
-        console.log("[AuthCallback] URL atual:", window.location.href);
+        console.log("[AuthCallback] URL:", window.location.href);
+        console.log("[AuthCallback] Hash:", window.location.hash);
+        console.log("[AuthCallback] Search:", window.location.search);
         
         const supabase = await getSupabase();
         
-        // Primeiro, tenta extrair sessão do hash (OAuth redirect)
+        // Verifica se há código no query string (PKCE flow)
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        
+        if (code) {
+          console.log("[AuthCallback] Código PKCE encontrado, trocando por sessão...");
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (exchangeError) {
+            console.error("[AuthCallback] Erro ao trocar código:", exchangeError);
+            setError("Erro ao processar login. Tente novamente.");
+            setTimeout(() => navigate("/auth"), 3000);
+            return;
+          }
+          
+          if (data.session) {
+            console.log("[AuthCallback] Sessão obtida via PKCE!");
+            authManager.saveAuthData(data.session);
+            
+            const response = await fetch("/api/auth/user", {
+              headers: {
+                Authorization: `Bearer ${data.session.access_token}`,
+              },
+            });
+
+            if (response.ok) {
+              console.log("[AuthCallback] Sucesso! Redirecionando...");
+              window.location.href = "/";
+              return;
+            } else {
+              console.error("[AuthCallback] Erro ao criar usuário");
+              setError("Erro ao criar conta. Tente novamente.");
+              setTimeout(() => navigate("/auth"), 3000);
+              return;
+            }
+          }
+        }
+        
+        // Verifica tokens no hash (implicit flow)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         
@@ -23,7 +63,7 @@ export default function AuthCallback() {
           console.log("[AuthCallback] Token encontrado no hash");
         }
         
-        // O Supabase automaticamente processa o hash, então basta pegar a sessão
+        // Tenta pegar sessão existente
         const { data: { session }, error } = await supabase.auth.getSession();
         
         console.log("[AuthCallback] Sessão:", session ? "encontrada" : "não encontrada");
