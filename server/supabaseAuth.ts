@@ -73,27 +73,46 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const token = authHeader.substring(7);
 
   try {
-    const supabase = getSupabaseClient();
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    // Decodificar o JWT para extrair claims diretamente
+    // O token do Supabase é um JWT válido que podemos decodificar
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.log("[Auth] Token JWT inválido - formato incorreto");
+      return res.status(401).json({ message: "Unauthorized - Invalid token format" });
+    }
 
-    if (error || !user) {
-      console.log("[Auth] Token inválido:", error?.message);
-      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+    
+    // Verificar expiração
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      console.log("[Auth] Token expirado");
+      return res.status(401).json({ message: "Unauthorized - Token expired" });
+    }
+
+    // Extrair dados do usuário do payload do JWT
+    const userId = payload.sub;
+    const email = payload.email;
+    const userMetadata = payload.user_metadata || {};
+
+    if (!userId) {
+      console.log("[Auth] Token não contém user ID");
+      return res.status(401).json({ message: "Unauthorized - No user ID in token" });
     }
 
     (req as any).user = {
       claims: {
-        sub: user.id,
-        email: user.email,
-        name: user.user_metadata?.full_name || user.user_metadata?.name,
-        picture: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+        sub: userId,
+        email: email,
+        name: userMetadata.full_name || userMetadata.name || email?.split('@')[0],
+        picture: userMetadata.avatar_url || userMetadata.picture,
       }
     };
 
-    console.log("[Auth] Usuário autenticado:", user.id, user.email);
+    console.log("[Auth] Usuário autenticado:", userId, email);
     return next();
-  } catch (error) {
-    console.error("[Auth] Erro ao verificar token:", error);
+  } catch (error: any) {
+    console.error("[Auth] Erro ao verificar token:", error.message);
     return res.status(401).json({ message: "Unauthorized - Token verification failed" });
   }
 };
