@@ -258,11 +258,14 @@ export const insertFeedbackMetricsSchema = createInsertSchema(feedbackMetrics).o
 
 // Types para inserção
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = InsertUser & { id: string };
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type InsertTaskAssignee = z.infer<typeof insertTaskAssigneeSchema>;
 export type InsertEventActivity = z.infer<typeof insertEventActivitySchema>;
+export type InsertActivityLog = InsertEventActivity;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type InsertEventTeamMember = InsertTeamMember;
 export type InsertVendor = z.infer<typeof insertVendorSchema>;
 export type InsertScheduleItem = z.infer<typeof insertScheduleItemSchema>;
 export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
@@ -279,7 +282,9 @@ export type Event = typeof events.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 export type TaskAssignee = typeof taskAssignees.$inferSelect;
 export type EventActivity = typeof activityLogs.$inferSelect;
+export type ActivityLog = EventActivity;
 export type TeamMember = typeof eventTeamMembers.$inferSelect;
+export type EventTeamMember = TeamMember;
 export type Vendor = typeof vendors.$inferSelect;
 export type ScheduleItem = typeof scheduleItems.$inferSelect;
 export type BudgetItem = typeof budgetItems.$inferSelect;

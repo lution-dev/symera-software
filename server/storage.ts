@@ -17,6 +17,7 @@ import {
   type Event,
   type Task,
   type TeamMember,
+  type EventTeamMember,
   type Vendor,
   type ActivityLog,
   type BudgetItem,
@@ -39,8 +40,6 @@ import {
   type InsertParticipant,
   type InsertEventFeedback,
   type InsertFeedbackMetrics,
-  type TaskReminder,
-  type InsertTaskReminder,
 } from "@shared/schema";
 import { db, executeWithRetry } from "./db";
 import { eq, and, or, desc, gte, lte, sql, isNotNull } from "drizzle-orm";
