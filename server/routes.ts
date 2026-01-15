@@ -108,6 +108,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userPicture = req.user.claims.picture;
       
       console.log("[Auth] Usuário autenticado:", userId, userEmail);
+      console.log("[Auth] Claims completos:", JSON.stringify(req.user.claims));
+      
+      if (!userId) {
+        console.error("[Auth] userId está vazio!");
+        return res.status(400).json({ message: "User ID is required" });
+      }
       
       let user = await dbStorage.getUser(userId);
       
@@ -118,11 +124,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Buscar por email para migrar conta existente
       if (userEmail) {
+        console.log("[Auth] Buscando usuário por email:", userEmail);
         const existingUserByEmail = await dbStorage.getUserByEmail(userEmail);
         if (existingUserByEmail && existingUserByEmail.id !== userId) {
-          console.log("[Auth] Migrando usuário existente");
+          console.log("[Auth] Migrando usuário existente de", existingUserByEmail.id, "para", userId);
           
-          await dbStorage.migrateUserFromLocalToReplit(existingUserByEmail.id, userId);
+          try {
+            await dbStorage.migrateUserFromLocalToReplit(existingUserByEmail.id, userId);
+          } catch (migrationError) {
+            console.error("[Auth] Erro na migração:", migrationError);
+          }
           
           const migratedUser = await dbStorage.upsertUser({
             id: userId,
@@ -139,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      console.log("[Auth] Criando novo usuário");
+      console.log("[Auth] Criando novo usuário com ID:", userId);
       const newUser = await dbStorage.upsertUser({
         id: userId,
         email: userEmail || '',
@@ -149,10 +160,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date(),
         updatedAt: new Date()
       });
+      console.log("[Auth] Novo usuário criado:", newUser.id);
       return res.json(newUser);
-    } catch (error) {
-      console.error("[Auth] Erro:", error);
-      res.status(500).json({ message: "Error" });
+    } catch (error: any) {
+      console.error("[Auth] Erro detalhado:", error.message);
+      console.error("[Auth] Stack:", error.stack);
+      res.status(500).json({ message: error.message || "Internal server error" });
     }
   });
 
