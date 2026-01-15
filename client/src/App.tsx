@@ -41,86 +41,48 @@ import { authManager } from "@/lib/auth";
 function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processed, setProcessed] = useState(false);
-  const [status, setStatus] = useState("Finalizando login...");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   useEffect(() => {
-    // Fluxo implícito: token vem no hash (#access_token=xxx)
     const hash = window.location.hash;
     const hasAuthToken = hash.includes('access_token=');
     
     if (hasAuthToken && !processed) {
-      console.log('[OAuthHandler] Token OAuth detectado no hash');
       setIsProcessing(true);
       setProcessed(true);
       
       (async () => {
         try {
-          setStatus("Conectando...");
           const supabase = await getSupabase();
-          console.log('[OAuthHandler] Supabase inicializado');
-          
-          setStatus("Validando autenticação...");
-          
-          // O Supabase com detectSessionInUrl processa automaticamente o hash
-          // Aguardar um momento para o processamento
           await new Promise(resolve => setTimeout(resolve, 500));
           
           const { data: { session }, error } = await supabase.auth.getSession();
           
-          console.log('[OAuthHandler] Resultado:', { hasSession: !!session, error: error?.message });
-          
           if (error) {
-            console.error('[OAuthHandler] Erro:', error.message);
-            setErrorMsg(`Erro: ${error.message}`);
-            setTimeout(() => window.location.href = '/auth', 3000);
+            setErrorMsg("Falha na autenticação. Tente novamente.");
+            setTimeout(() => window.location.href = '/auth', 2000);
             return;
           }
           
           if (session) {
-            console.log('[OAuthHandler] Sessão obtida com sucesso!');
-            console.log('[OAuthHandler] User:', session.user.email);
-            
-            setStatus("Salvando sessão...");
             authManager.saveAuthData(session);
             
-            setStatus("Configurando conta...");
             try {
-              const response = await fetch('/api/auth/user', {
+              await fetch('/api/auth/user', {
                 headers: { Authorization: `Bearer ${session.access_token}` }
               });
-              
-              console.log('[OAuthHandler] Resposta API:', response.status);
-              
-              if (response.ok) {
-                const userData = await response.json();
-                console.log('[OAuthHandler] Usuário configurado:', userData.email);
-              } else {
-                const errorText = await response.text();
-                console.error('[OAuthHandler] Erro na API (ignorando):', errorText);
-              }
-            } catch (apiError) {
-              console.error('[OAuthHandler] Erro na chamada API (ignorando):', apiError);
-            }
+            } catch {}
             
-            // Continuar mesmo se a API falhar - a sessão Supabase é válida
-            setStatus("Login completo! Redirecionando...");
-            
-            // Limpar URL e redirecionar
             window.history.replaceState({}, '', '/');
-            setTimeout(() => {
-              window.location.reload();
-            }, 500);
+            setTimeout(() => window.location.reload(), 300);
             return;
           } else {
-            console.error('[OAuthHandler] Nenhuma sessão encontrada após processamento');
-            setErrorMsg("Erro ao processar autenticação");
-            setTimeout(() => window.location.href = '/auth', 3000);
+            setErrorMsg("Sessão não encontrada. Tente novamente.");
+            setTimeout(() => window.location.href = '/auth', 2000);
           }
-        } catch (err: any) {
-          console.error('[OAuthHandler] Erro inesperado:', err);
-          setErrorMsg(`Erro: ${err.message || 'Erro inesperado'}`);
-          setTimeout(() => window.location.href = '/auth', 3000);
+        } catch {
+          setErrorMsg("Erro inesperado. Tente novamente.");
+          setTimeout(() => window.location.href = '/auth', 2000);
         }
       })();
     }
@@ -128,10 +90,15 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
   
   if (errorMsg) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <p className="text-red-500 mb-2">{errorMsg}</p>
-          <p className="text-muted-foreground">Redirecionando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="text-center p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 shadow-xl max-w-sm mx-4">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-500/10 flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <p className="text-foreground font-medium mb-2">{errorMsg}</p>
+          <p className="text-sm text-muted-foreground">Redirecionando para login...</p>
         </div>
       </div>
     );
@@ -139,10 +106,19 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
   
   if (isProcessing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">{status}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="text-center p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 shadow-xl max-w-sm mx-4">
+          <div className="relative w-16 h-16 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+            <div className="absolute inset-3 rounded-full bg-primary/10 flex items-center justify-center">
+              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Entrando na sua conta</h3>
+          <p className="text-sm text-muted-foreground">Aguarde um momento...</p>
         </div>
       </div>
     );
