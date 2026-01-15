@@ -22,10 +22,23 @@ export class AuthManager {
 
   async signInWithGoogle(): Promise<void> {
     const supabase = await getSupabase();
+    
+    // Determinar a URL de callback correta
+    const origin = window.location.origin;
+    const redirectUrl = origin + '/auth/callback';
+    
+    console.log('[Auth] Iniciando login com Google');
+    console.log('[Auth] Origin:', origin);
+    console.log('[Auth] Redirect URL:', redirectUrl);
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/auth/callback'
+        redirectTo: redirectUrl,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        }
       }
     });
 

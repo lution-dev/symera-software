@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -35,6 +35,74 @@ import PublicFeedback from "@/pages/PublicFeedback";
 import AuthCallback from "@/pages/AuthCallback";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
+import { getSupabase } from "@/lib/supabase";
+import { authManager } from "@/lib/auth";
+
+function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processed, setProcessed] = useState(false);
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    
+    if (code && !processed) {
+      console.log('[OAuthHandler] Código OAuth detectado na URL');
+      setIsProcessing(true);
+      
+      (async () => {
+        try {
+          const supabase = await getSupabase();
+          console.log('[OAuthHandler] Trocando código por sessão...');
+          
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (error) {
+            console.error('[OAuthHandler] Erro:', error.message);
+            window.location.href = '/auth';
+            return;
+          }
+          
+          if (data.session) {
+            console.log('[OAuthHandler] Sessão obtida!');
+            authManager.saveAuthData(data.session);
+            
+            const response = await fetch('/api/auth/user', {
+              headers: { Authorization: `Bearer ${data.session.access_token}` }
+            });
+            
+            if (response.ok) {
+              console.log('[OAuthHandler] Login completo, redirecionando...');
+              window.history.replaceState({}, '', '/');
+              window.location.href = '/';
+              return;
+            }
+          }
+          
+          window.location.href = '/auth';
+        } catch (err) {
+          console.error('[OAuthHandler] Erro inesperado:', err);
+          window.location.href = '/auth';
+        }
+      })();
+      
+      setProcessed(true);
+    }
+  }, [processed]);
+  
+  if (isProcessing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Finalizando login...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  return <>{children}</>;
+}
 
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, [key: string]: any }) {
   const { isAuthenticated, isLoading, error } = useAuth();
@@ -155,12 +223,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Layout>
-            <Router />
-          </Layout>
-        </AuthProvider>
+        <OAuthCodeHandler>
+          <AuthProvider>
+            <Toaster />
+            <Layout>
+              <Router />
+            </Layout>
+          </AuthProvider>
+        </OAuthCodeHandler>
       </TooltipProvider>
     </QueryClientProvider>
   );
