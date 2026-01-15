@@ -177,27 +177,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
+      console.log("========================================");
       console.log("Buscando eventos para userId:", userId, "email:", userEmail);
+      console.log("Claims completos:", JSON.stringify(req.user.claims));
+      console.log("========================================");
+      
+      // CORREÇÃO: Sempre verificar se precisa migrar os dados do usuário antigo
+      if (userEmail) {
+        const oldUser = await dbStorage.getUserByEmail(userEmail);
+        console.log("Usuário encontrado por email:", oldUser?.id, "vs userId atual:", userId);
+        
+        if (oldUser && oldUser.id !== userId) {
+          console.log("IDs diferentes! Migrando dados de", oldUser.id, "para", userId);
+          try {
+            await dbStorage.migrateUserFromLocalToReplit(oldUser.id, userId);
+            console.log("Migração concluída com sucesso!");
+          } catch (migrationError: any) {
+            console.error("Erro na migração:", migrationError.message);
+          }
+        }
+      }
       
       // Buscar eventos pelo ID atual
       let events = await dbStorage.getEventsByUser(userId);
+      console.log("Eventos encontrados para userId", userId, ":", events.length);
       
-      // Se não encontrou eventos e temos email, buscar usuário antigo por email
+      // Fallback: Se não encontrou eventos, tentar buscar pelo email
       if (events.length === 0 && userEmail) {
-        console.log("Nenhum evento encontrado, buscando usuário antigo por email:", userEmail);
+        console.log("Nenhum evento encontrado, tentando fallback por email");
         const oldUser = await dbStorage.getUserByEmail(userEmail);
         if (oldUser && oldUser.id !== userId) {
-          console.log("Usuário antigo encontrado com ID:", oldUser.id);
-          // Migrar eventos do usuário antigo para o novo
-          try {
-            await dbStorage.migrateUserFromLocalToReplit(oldUser.id, userId);
-            console.log("Migração concluída, buscando eventos novamente");
-            events = await dbStorage.getEventsByUser(userId);
-          } catch (migrationError) {
-            console.error("Erro na migração:", migrationError);
-            // Se falhar a migração, pelo menos mostrar os eventos do usuário antigo
-            events = await dbStorage.getEventsByUser(oldUser.id);
-          }
+          console.log("Buscando eventos do usuário antigo:", oldUser.id);
+          events = await dbStorage.getEventsByUser(oldUser.id);
+          console.log("Eventos encontrados pelo ID antigo:", events.length);
         }
       }
       
