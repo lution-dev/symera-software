@@ -315,42 +315,82 @@ export class DatabaseStorage implements IStorage {
     return executeWithRetry(async () => {
       console.log(`Migrando usuário de ${localUserId} para ${replitUserId}`);
       
-      // Atualizar todas as referências do usuário local para o novo ID do Replit
-      await Promise.all([
-        // Migrar memberships da equipe
-        db.update(eventTeamMembers)
-          .set({ userId: replitUserId })
-          .where(eq(eventTeamMembers.userId, localUserId)),
-        
-        // Migrar ownership de eventos
-        db.update(events)
-          .set({ ownerId: replitUserId })
-          .where(eq(events.ownerId, localUserId)),
-        
-        // Migrar assignments de tarefas
-        db.update(taskAssignees)
-          .set({ userId: replitUserId })
-          .where(eq(taskAssignees.userId, localUserId)),
-        
-        // Migrar documentos
-        db.update(documents)
-          .set({ uploadedById: replitUserId })
-          .where(eq(documents.uploadedById, localUserId)),
-        
-        // Migrar logs de atividade
-        db.update(activityLogs)
-          .set({ userId: replitUserId })
-          .where(eq(activityLogs.userId, localUserId))
-      ]);
+      // Verificar se já existe um usuário com o novo ID (Supabase)
+      const existingNewUser = await db.select().from(users).where(eq(users.id, replitUserId));
       
-      // Remover o usuário local após migração
-      await db.delete(users).where(eq(users.id, localUserId));
+      if (existingNewUser.length > 0) {
+        console.log(`Usuário com ID ${replitUserId} já existe. Apenas migrando referências.`);
+        
+        // Apenas atualizar as referências para o novo ID
+        await Promise.all([
+          db.update(eventTeamMembers)
+            .set({ userId: replitUserId })
+            .where(eq(eventTeamMembers.userId, localUserId)),
+          
+          db.update(events)
+            .set({ ownerId: replitUserId })
+            .where(eq(events.ownerId, localUserId)),
+          
+          db.update(taskAssignees)
+            .set({ userId: replitUserId })
+            .where(eq(taskAssignees.userId, localUserId)),
+          
+          db.update(documents)
+            .set({ uploadedById: replitUserId })
+            .where(eq(documents.uploadedById, localUserId)),
+          
+          db.update(activityLogs)
+            .set({ userId: replitUserId })
+            .where(eq(activityLogs.userId, localUserId))
+        ]);
+        
+        // Deletar o usuário local antigo (não é mais necessário)
+        try {
+          await db.delete(users).where(eq(users.id, localUserId));
+          console.log(`Usuário antigo ${localUserId} removido.`);
+        } catch (deleteError) {
+          console.log(`Não foi possível deletar usuário antigo ${localUserId}:`, deleteError);
+        }
+      } else {
+        // Não existe usuário com o novo ID, atualizar o ID do usuário existente
+        console.log(`Atualizando ID do usuário de ${localUserId} para ${replitUserId}`);
+        
+        // Primeiro atualizar todas as referências
+        await Promise.all([
+          db.update(eventTeamMembers)
+            .set({ userId: replitUserId })
+            .where(eq(eventTeamMembers.userId, localUserId)),
+          
+          db.update(events)
+            .set({ ownerId: replitUserId })
+            .where(eq(events.ownerId, localUserId)),
+          
+          db.update(taskAssignees)
+            .set({ userId: replitUserId })
+            .where(eq(taskAssignees.userId, localUserId)),
+          
+          db.update(documents)
+            .set({ uploadedById: replitUserId })
+            .where(eq(documents.uploadedById, localUserId)),
+          
+          db.update(activityLogs)
+            .set({ userId: replitUserId })
+            .where(eq(activityLogs.userId, localUserId))
+        ]);
+        
+        // Atualizar o ID do próprio usuário
+        await db.update(users)
+          .set({ id: replitUserId, updatedAt: new Date() })
+          .where(eq(users.id, localUserId));
+      }
       
       // Invalidar caches relacionados
       userCache.invalidate(`user:${localUserId}`);
       userCache.invalidate(`user:${replitUserId}`);
+      userCache.invalidate(`user:email:`);
       eventCache.invalidate(`events:user:${localUserId}`);
       eventCache.invalidate(`events:user:${replitUserId}`);
+      eventCache.invalidate(`events:`);
       
       console.log(`Migração concluída de ${localUserId} para ${replitUserId}`);
     });
