@@ -111,15 +111,31 @@ export class AuthManager {
     const supabase = await getSupabase();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[Auth] Estado mudou:', event);
+        console.log('[Auth] Estado mudou:', event, session ? 'com sessão' : 'sem sessão');
         
         if (session) {
           this.saveAuthData(session);
-        } else {
+          callback(session);
+        } else if (event === 'SIGNED_OUT') {
+          // Só limpar dados quando o usuário faz logout explícito
+          console.log('[Auth] Usuário fez logout, limpando dados');
           this.clearAuthData();
+          callback(null);
+        } else if (event === 'INITIAL_SESSION') {
+          // INITIAL_SESSION sem sessão: verificar se temos dados salvos
+          const savedData = this.getAuthData();
+          if (savedData) {
+            console.log('[Auth] INITIAL_SESSION sem sessão mas temos dados salvos, mantendo');
+            // Não limpar - os dados foram salvos pelo callback
+          } else {
+            console.log('[Auth] INITIAL_SESSION sem sessão e sem dados salvos');
+            callback(null);
+          }
+        } else {
+          // Outros eventos sem sessão
+          console.log('[Auth] Evento', event, 'sem sessão');
+          callback(null);
         }
-        
-        callback(session);
       }
     );
 

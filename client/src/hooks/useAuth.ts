@@ -14,6 +14,7 @@ interface UserData {
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
+  const [hasValidAuthData, setHasValidAuthData] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const queryClient = useQueryClient();
   const initRef = useRef(false);
@@ -27,20 +28,34 @@ export function useAuth() {
     const init = async () => {
       try {
         console.log('[useAuth] Inicializando...');
+        
+        // Primeiro verificar se há dados de auth salvos no localStorage
+        const savedAuthData = authManager.getAuthData();
+        if (savedAuthData) {
+          console.log('[useAuth] Dados de auth encontrados no localStorage');
+          setHasValidAuthData(true);
+        }
+        
         const supabase = await getSupabase();
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
-        console.log('[useAuth] Sessão encontrada:', !!currentSession);
+        console.log('[useAuth] Sessão Supabase:', !!currentSession);
         
-        setSession(currentSession);
         if (currentSession) {
+          setSession(currentSession);
           authManager.saveAuthData(currentSession);
+          setHasValidAuthData(true);
+        } else if (savedAuthData) {
+          // Não temos sessão do Supabase mas temos dados salvos válidos
+          console.log('[useAuth] Usando dados salvos do localStorage');
+          setHasValidAuthData(true);
         }
         
         unsubscribe = await authManager.setupAuthListener((newSession) => {
           console.log('[useAuth] Auth state changed:', !!newSession);
           setSession(newSession);
           if (newSession) {
+            setHasValidAuthData(true);
             queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
           }
         });
@@ -62,14 +77,18 @@ export function useAuth() {
   const { data: user, isLoading: isLoadingUser, error, refetch } = useQuery<UserData>({
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
-      if (!session?.access_token) {
-        throw new Error("No session");
+      // Usar token da sessão Supabase ou do localStorage
+      const token = session?.access_token || authManager.getAccessToken();
+      
+      if (!token) {
+        console.log('[useAuth] Nenhum token disponível');
+        throw new Error("No token");
       }
       
       console.log('[useAuth] Buscando dados do usuário...');
       const res = await fetch("/api/auth/user", {
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       
@@ -77,6 +96,7 @@ export function useAuth() {
         if (res.status === 401) {
           console.log('[useAuth] 401 - não autorizado');
           authManager.clearAuthData();
+          setHasValidAuthData(false);
           throw new Error("Unauthorized");
         }
         throw new Error(`HTTP ${res.status}`);
@@ -88,7 +108,7 @@ export function useAuth() {
     },
     retry: false,
     staleTime: 5 * 60 * 1000,
-    enabled: !!session?.access_token,
+    enabled: hasValidAuthData || !!session?.access_token,
   });
 
   const signInWithGoogle = async () => {
@@ -97,11 +117,12 @@ export function useAuth() {
 
   const logout = async () => {
     await authManager.signOut();
+    setHasValidAuthData(false);
     queryClient.clear();
   };
 
-  const isAuthenticated = !!session && !!user && !error;
-  const isLoading = !isInitialized || (!!session && isLoadingUser);
+  const isAuthenticated = (hasValidAuthData || !!session) && !!user && !error;
+  const isLoading = !isInitialized || ((hasValidAuthData || !!session) && isLoadingUser);
 
   return {
     user,
