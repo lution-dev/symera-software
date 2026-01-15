@@ -86,25 +86,55 @@ export function useAuth() {
       }
       
       console.log('[useAuth] Buscando dados do usuário...');
-      const res = await fetch("/api/auth/user", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      if (!res.ok) {
-        if (res.status === 401) {
-          console.log('[useAuth] 401 - não autorizado');
-          authManager.clearAuthData();
-          setHasValidAuthData(false);
-          throw new Error("Unauthorized");
+      try {
+        const res = await fetch("/api/auth/user", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        if (!res.ok) {
+          if (res.status === 401) {
+            console.log('[useAuth] 401 - não autorizado');
+            authManager.clearAuthData();
+            setHasValidAuthData(false);
+            throw new Error("Unauthorized");
+          }
+          // Se a API falhar com outro erro, usar dados locais
+          console.log('[useAuth] API falhou, usando dados locais');
+          const authData = authManager.getAuthData();
+          if (authData) {
+            return {
+              id: authData.userId,
+              email: authData.email,
+              firstName: authData.name?.split(' ')[0] || authData.email.split('@')[0],
+              lastName: authData.name?.split(' ').slice(1).join(' ') || '',
+              profileImageUrl: authData.picture,
+            };
+          }
+          throw new Error(`HTTP ${res.status}`);
         }
-        throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        console.log('[useAuth] Dados do usuário recebidos:', !!data);
+        return data;
+      } catch (err: any) {
+        // Se der erro de rede ou outro, usar dados locais
+        if (err.message !== 'Unauthorized') {
+          const authData = authManager.getAuthData();
+          if (authData) {
+            console.log('[useAuth] Usando dados locais após erro:', err.message);
+            return {
+              id: authData.userId,
+              email: authData.email,
+              firstName: authData.name?.split(' ')[0] || authData.email.split('@')[0],
+              lastName: authData.name?.split(' ').slice(1).join(' ') || '',
+              profileImageUrl: authData.picture,
+            };
+          }
+        }
+        throw err;
       }
-      
-      const data = await res.json();
-      console.log('[useAuth] Dados do usuário recebidos:', !!data);
-      return data;
     },
     retry: false,
     staleTime: 5 * 60 * 1000,
