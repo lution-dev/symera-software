@@ -33,7 +33,6 @@ async function initSupabase(): Promise<SupabaseClient> {
           detectSessionInUrl: true,
           flowType: 'pkce',
           autoRefreshToken: true,
-          storageKey: 'symera-supabase-auth',
         }
       });
       return supabaseInstance;
