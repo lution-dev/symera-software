@@ -27,7 +27,15 @@ async function initSupabase(): Promise<SupabaseClient> {
         throw new Error('Invalid Supabase URL');
       }
       
-      supabaseInstance = createClient(config.url, config.anonKey);
+      supabaseInstance = createClient(config.url, config.anonKey, {
+        auth: {
+          persistSession: true,
+          detectSessionInUrl: true,
+          flowType: 'pkce',
+          autoRefreshToken: true,
+          storageKey: 'symera-supabase-auth',
+        }
+      });
       return supabaseInstance;
     } catch (error) {
       console.error('Failed to initialize Supabase:', error);

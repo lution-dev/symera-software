@@ -1,73 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useLocation } from "wouter";
 import LoginForm from "@/components/forms/LoginForm";
 import RegisterForm from "@/components/forms/RegisterForm";
 import Logo from "@/components/ui/logo";
 import { CheckCircle, Calendar, FileText, BarChart3, Sparkles, Users, DollarSign } from "lucide-react";
-import { getSupabase } from "@/lib/supabase";
-import { authManager } from "@/lib/auth";
 
 const Auth: React.FC = () => {
   const [, navigate] = useLocation();
   const [isLogin, setIsLogin] = React.useState(true);
-  const [isProcessingCallback, setIsProcessingCallback] = useState(false);
-
-  useEffect(() => {
-    const processAuthCallback = async () => {
-      const hash = window.location.hash;
-      if (hash && (hash.includes('access_token') || hash.includes('error'))) {
-        console.log("[Auth] Detectado callback OAuth no hash");
-        setIsProcessingCallback(true);
-        
-        try {
-          const supabase = await getSupabase();
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error("[Auth] Erro ao processar callback:", error);
-            window.location.hash = '';
-            setIsProcessingCallback(false);
-            return;
-          }
-          
-          if (session) {
-            console.log("[Auth] Sessão encontrada, salvando...");
-            authManager.saveAuthData(session);
-            
-            const response = await fetch("/api/auth/user", {
-              headers: {
-                Authorization: `Bearer ${session.access_token}`,
-              },
-            });
-            
-            if (response.ok) {
-              console.log("[Auth] Login completo!");
-              window.location.href = "/";
-              return;
-            }
-          }
-        } catch (err) {
-          console.error("[Auth] Erro no callback:", err);
-        }
-        
-        window.location.hash = '';
-        setIsProcessingCallback(false);
-      }
-    };
-    
-    processAuthCallback();
-  }, []);
-
-  if (isProcessingCallback) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Processando login...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
