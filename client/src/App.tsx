@@ -41,6 +41,8 @@ import { authManager } from "@/lib/auth";
 function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processed, setProcessed] = useState(false);
+  const [status, setStatus] = useState("Finalizando login...");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -48,54 +50,95 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
     
     if (code && !processed) {
       console.log('[OAuthHandler] Código OAuth detectado na URL');
+      console.log('[OAuthHandler] Código:', code.substring(0, 20) + '...');
       setIsProcessing(true);
+      setProcessed(true);
       
       (async () => {
         try {
+          setStatus("Conectando...");
           const supabase = await getSupabase();
+          console.log('[OAuthHandler] Supabase inicializado');
+          
+          setStatus("Validando autenticação...");
           console.log('[OAuthHandler] Trocando código por sessão...');
           
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           
+          console.log('[OAuthHandler] Resultado:', { hasData: !!data, hasSession: !!data?.session, error: error?.message });
+          
           if (error) {
-            console.error('[OAuthHandler] Erro:', error.message);
-            window.location.href = '/auth';
+            console.error('[OAuthHandler] Erro ao trocar código:', error.message);
+            setErrorMsg(`Erro: ${error.message}`);
+            setTimeout(() => {
+              window.location.href = '/auth';
+            }, 3000);
             return;
           }
           
-          if (data.session) {
-            console.log('[OAuthHandler] Sessão obtida!');
+          if (data?.session) {
+            console.log('[OAuthHandler] Sessão obtida com sucesso!');
+            console.log('[OAuthHandler] User:', data.session.user.email);
+            
+            setStatus("Salvando sessão...");
             authManager.saveAuthData(data.session);
             
+            setStatus("Configurando conta...");
             const response = await fetch('/api/auth/user', {
               headers: { Authorization: `Bearer ${data.session.access_token}` }
             });
             
+            console.log('[OAuthHandler] Resposta API:', response.status);
+            
             if (response.ok) {
-              console.log('[OAuthHandler] Login completo, redirecionando...');
+              const userData = await response.json();
+              console.log('[OAuthHandler] Usuário configurado:', userData.email);
+              setStatus("Login completo! Redirecionando...");
+              
+              // Limpar URL e redirecionar
               window.history.replaceState({}, '', '/');
-              window.location.href = '/';
+              setTimeout(() => {
+                window.location.reload();
+              }, 500);
+              return;
+            } else {
+              const errorText = await response.text();
+              console.error('[OAuthHandler] Erro na API:', errorText);
+              setErrorMsg(`Erro ao configurar conta: ${response.status}`);
+              setTimeout(() => window.location.href = '/auth', 3000);
               return;
             }
+          } else {
+            console.error('[OAuthHandler] Nenhuma sessão retornada');
+            setErrorMsg("Nenhuma sessão retornada");
+            setTimeout(() => window.location.href = '/auth', 3000);
           }
-          
-          window.location.href = '/auth';
-        } catch (err) {
+        } catch (err: any) {
           console.error('[OAuthHandler] Erro inesperado:', err);
-          window.location.href = '/auth';
+          setErrorMsg(`Erro: ${err.message || 'Erro inesperado'}`);
+          setTimeout(() => window.location.href = '/auth', 3000);
         }
       })();
-      
-      setProcessed(true);
     }
   }, [processed]);
+  
+  if (errorMsg) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-red-500 mb-2">{errorMsg}</p>
+          <p className="text-muted-foreground">Redirecionando...</p>
+        </div>
+      </div>
+    );
+  }
   
   if (isProcessing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Finalizando login...</p>
+          <p className="text-muted-foreground">{status}</p>
         </div>
       </div>
     );
