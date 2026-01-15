@@ -151,15 +151,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("[Auth] Criando novo usuário com ID:", userId);
-      const newUser = await dbStorage.upsertUser({
+      const userData: any = {
         id: userId,
         email: userEmail || '',
         firstName: userName?.split(' ')[0] || userEmail?.split('@')[0] || 'Usuário',
         lastName: userName?.split(' ').slice(1).join(' ') || '',
-        profileImageUrl: userPicture || null,
         createdAt: new Date(),
         updatedAt: new Date()
-      });
+      };
+      if (userPicture) {
+        userData.profileImageUrl = userPicture;
+      }
+      const newUser = await dbStorage.upsertUser(userData);
       console.log("[Auth] Novo usuário criado:", newUser.id);
       return res.json(newUser);
     } catch (error: any) {
@@ -172,16 +175,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Events routes
   app.get('/api/events', isAuthenticated, async (req: any, res) => {
     try {
-      // Obter ID do usuário da autenticação Replit
       const userId = req.user.claims.sub;
-      console.log("Usando ID de autenticação Replit para buscar eventos:", userId);
+      const userEmail = req.user.claims.email;
+      console.log("Buscando eventos para userId:", userId, "email:", userEmail);
       
-      const events = await dbStorage.getEventsByUser(userId);
+      // Buscar eventos pelo ID atual
+      let events = await dbStorage.getEventsByUser(userId);
+      
+      // Se não encontrou eventos e temos email, buscar usuário antigo por email
+      if (events.length === 0 && userEmail) {
+        console.log("Nenhum evento encontrado, buscando usuário antigo por email:", userEmail);
+        const oldUser = await dbStorage.getUserByEmail(userEmail);
+        if (oldUser && oldUser.id !== userId) {
+          console.log("Usuário antigo encontrado com ID:", oldUser.id);
+          // Migrar eventos do usuário antigo para o novo
+          try {
+            await dbStorage.migrateUserFromLocalToReplit(oldUser.id, userId);
+            console.log("Migração concluída, buscando eventos novamente");
+            events = await dbStorage.getEventsByUser(userId);
+          } catch (migrationError) {
+            console.error("Erro na migração:", migrationError);
+            // Se falhar a migração, pelo menos mostrar os eventos do usuário antigo
+            events = await dbStorage.getEventsByUser(oldUser.id);
+          }
+        }
+      }
       
       // Para cada evento, buscar os fornecedores e adicionar a contagem
       for (const event of events) {
         const eventVendors = await dbStorage.getVendorsByEventId(event.id);
-        // Adicionar contagem de fornecedores ao evento
         (event as any).vendorCount = eventVendors.length;
       }
       
