@@ -45,12 +45,12 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
+    // Fluxo implícito: token vem no hash (#access_token=xxx)
+    const hash = window.location.hash;
+    const hasAuthToken = hash.includes('access_token=');
     
-    if (code && !processed) {
-      console.log('[OAuthHandler] Código OAuth detectado na URL');
-      console.log('[OAuthHandler] Código:', code.substring(0, 20) + '...');
+    if (hasAuthToken && !processed) {
+      console.log('[OAuthHandler] Token OAuth detectado no hash');
       setIsProcessing(true);
       setProcessed(true);
       
@@ -61,31 +61,32 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
           console.log('[OAuthHandler] Supabase inicializado');
           
           setStatus("Validando autenticação...");
-          console.log('[OAuthHandler] Trocando código por sessão...');
           
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          // O Supabase com detectSessionInUrl processa automaticamente o hash
+          // Aguardar um momento para o processamento
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          console.log('[OAuthHandler] Resultado:', { hasData: !!data, hasSession: !!data?.session, error: error?.message });
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          console.log('[OAuthHandler] Resultado:', { hasSession: !!session, error: error?.message });
           
           if (error) {
-            console.error('[OAuthHandler] Erro ao trocar código:', error.message);
+            console.error('[OAuthHandler] Erro:', error.message);
             setErrorMsg(`Erro: ${error.message}`);
-            setTimeout(() => {
-              window.location.href = '/auth';
-            }, 3000);
+            setTimeout(() => window.location.href = '/auth', 3000);
             return;
           }
           
-          if (data?.session) {
+          if (session) {
             console.log('[OAuthHandler] Sessão obtida com sucesso!');
-            console.log('[OAuthHandler] User:', data.session.user.email);
+            console.log('[OAuthHandler] User:', session.user.email);
             
             setStatus("Salvando sessão...");
-            authManager.saveAuthData(data.session);
+            authManager.saveAuthData(session);
             
             setStatus("Configurando conta...");
             const response = await fetch('/api/auth/user', {
-              headers: { Authorization: `Bearer ${data.session.access_token}` }
+              headers: { Authorization: `Bearer ${session.access_token}` }
             });
             
             console.log('[OAuthHandler] Resposta API:', response.status);
@@ -109,8 +110,8 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
               return;
             }
           } else {
-            console.error('[OAuthHandler] Nenhuma sessão retornada');
-            setErrorMsg("Nenhuma sessão retornada");
+            console.error('[OAuthHandler] Nenhuma sessão encontrada após processamento');
+            setErrorMsg("Erro ao processar autenticação");
             setTimeout(() => window.location.href = '/auth', 3000);
           }
         } catch (err: any) {

@@ -31,7 +31,7 @@ async function initSupabase(): Promise<SupabaseClient> {
         auth: {
           persistSession: true,
           detectSessionInUrl: true,
-          flowType: 'pkce',
+          flowType: 'implicit',
           autoRefreshToken: true,
         }
       });
