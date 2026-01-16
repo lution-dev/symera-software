@@ -45,15 +45,69 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     const hash = window.location.hash;
-    const hasAuthToken = hash.includes('access_token=');
+    const search = window.location.search;
+    const pathname = window.location.pathname;
     
-    if (hasAuthToken && !processed) {
+    const hasAuthToken = hash.includes('access_token=');
+    const hasCode = search.includes('code=') && pathname === '/auth/callback';
+    
+    if ((hasAuthToken || hasCode) && !processed) {
       setIsProcessing(true);
       setProcessed(true);
       
       (async () => {
         try {
           const supabase = await getSupabase();
+          
+          if (hasCode) {
+            console.log('[OAuthCodeHandler] Processando código PKCE...');
+            const urlParams = new URLSearchParams(search);
+            const code = urlParams.get('code');
+            
+            if (code) {
+              const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+              
+              if (exchangeError) {
+                console.error('[OAuthCodeHandler] Erro ao trocar código:', exchangeError.message);
+                
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                  console.log('[OAuthCodeHandler] Sessão encontrada após erro');
+                  authManager.saveAuthData(session);
+                  
+                  try {
+                    await fetch('/api/auth/user', {
+                      headers: { Authorization: `Bearer ${session.access_token}` }
+                    });
+                  } catch {}
+                  
+                  window.history.replaceState({}, '', '/');
+                  window.location.href = '/';
+                  return;
+                }
+                
+                setErrorMsg("Falha na autenticação. Tente novamente.");
+                setTimeout(() => window.location.href = '/auth', 2000);
+                return;
+              }
+              
+              if (data?.session) {
+                console.log('[OAuthCodeHandler] Sessão obtida com sucesso!');
+                authManager.saveAuthData(data.session);
+                
+                try {
+                  await fetch('/api/auth/user', {
+                    headers: { Authorization: `Bearer ${data.session.access_token}` }
+                  });
+                } catch {}
+                
+                window.history.replaceState({}, '', '/');
+                window.location.href = '/';
+                return;
+              }
+            }
+          }
+          
           await new Promise(resolve => setTimeout(resolve, 500));
           
           const { data: { session }, error } = await supabase.auth.getSession();
@@ -74,13 +128,14 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
             } catch {}
             
             window.history.replaceState({}, '', '/');
-            setTimeout(() => window.location.reload(), 300);
+            window.location.href = '/';
             return;
           } else {
             setErrorMsg("Sessão não encontrada. Tente novamente.");
             setTimeout(() => window.location.href = '/auth', 2000);
           }
-        } catch {
+        } catch (err: any) {
+          console.error('[OAuthCodeHandler] Erro:', err);
           setErrorMsg("Erro inesperado. Tente novamente.");
           setTimeout(() => window.location.href = '/auth', 2000);
         }
