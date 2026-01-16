@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useEffect, useRef } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import DashboardMetrics from "@/components/Dashboard/DashboardMetrics";
@@ -8,6 +8,7 @@ import TaskList from "@/components/Dashboard/TaskList";
 import TipsCard from "@/components/Dashboard/TipsCard";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { formatActivityTimestamp } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
 
 // Utility function to calculate days remaining consistently
 const calculateDaysRemaining = (eventDate: string) => {
@@ -44,9 +45,37 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const migrationAttempted = useRef(false);
+  const queryClient = useQueryClient();
+  
   const { data, isLoading } = useQuery({
     queryKey: ["/api/dashboard"],
   });
+
+  const migrationMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/force-migration', { method: 'POST' });
+    },
+    onSuccess: (result) => {
+      console.log("Migração executada:", result);
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    },
+    onError: (error) => {
+      console.error("Erro na migração:", error);
+    }
+  });
+
+  useEffect(() => {
+    if (!isLoading && data && !migrationAttempted.current) {
+      const totalEvents = data?.totalEvents || 0;
+      if (totalEvents === 0 && user) {
+        console.log("Nenhum evento encontrado, tentando migração automática...");
+        migrationAttempted.current = true;
+        migrationMutation.mutate();
+      }
+    }
+  }, [isLoading, data, user]);
 
   const upcomingEvents = data?.upcomingEvents || [];
   // Get events list and sort by start date (upcoming first)

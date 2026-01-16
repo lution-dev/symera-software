@@ -97,7 +97,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { devModeAuth } = await import('./devMode');
   app.use(devModeAuth);
   
-
+  // ROTA ESPECIAL: Forçar migração de eventos para usuário Supabase
+  app.post('/api/force-migration', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userEmail = req.user.claims.email;
+      const OLD_USER_ID = "8650891";
+      
+      console.log("========== FORÇA MIGRAÇÃO ==========");
+      console.log("Novo userId (Supabase):", userId);
+      console.log("Email:", userEmail);
+      console.log("ID antigo (local):", OLD_USER_ID);
+      
+      // Verificar eventos do usuário antigo
+      const oldEvents = await dbStorage.getEventsByUser(OLD_USER_ID);
+      console.log("Eventos do usuário antigo:", oldEvents.length);
+      
+      if (oldEvents.length > 0) {
+        console.log("Executando migração...");
+        await dbStorage.migrateUserFromLocalToReplit(OLD_USER_ID, userId);
+        console.log("Migração concluída!");
+        
+        // Buscar eventos novamente
+        const newEvents = await dbStorage.getEventsByUser(userId);
+        console.log("Eventos após migração:", newEvents.length);
+        
+        return res.json({ 
+          success: true, 
+          message: "Migração concluída!",
+          oldEventsCount: oldEvents.length,
+          newEventsCount: newEvents.length
+        });
+      } else {
+        // Verificar se já existe eventos no novo ID
+        const existingEvents = await dbStorage.getEventsByUser(userId);
+        console.log("Eventos já existentes para novo ID:", existingEvents.length);
+        
+        return res.json({
+          success: true,
+          message: "Nenhum evento para migrar do ID antigo",
+          existingEventsCount: existingEvents.length
+        });
+      }
+    } catch (error: any) {
+      console.error("Erro na migração forçada:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
 
   // Auth routes - Requer autenticação obrigatória
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
