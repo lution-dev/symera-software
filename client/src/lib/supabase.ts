@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 let supabaseInstance: SupabaseClient | null = null;
 let initPromise: Promise<SupabaseClient> | null = null;
+let supabaseConfig: { url: string; anonKey: string } | null = null;
 
 async function initSupabase(): Promise<SupabaseClient> {
   if (supabaseInstance) return supabaseInstance;
@@ -27,13 +28,13 @@ async function initSupabase(): Promise<SupabaseClient> {
         throw new Error('Invalid Supabase URL');
       }
       
+      supabaseConfig = { url: config.url, anonKey: config.anonKey };
+      
       supabaseInstance = createClient(config.url, config.anonKey, {
         auth: {
           persistSession: true,
           detectSessionInUrl: true,
           autoRefreshToken: true,
-          storage: window.localStorage,
-          storageKey: 'sb-auth-token',
         }
       });
       return supabaseInstance;
@@ -48,6 +49,10 @@ async function initSupabase(): Promise<SupabaseClient> {
 
 export async function getSupabase(): Promise<SupabaseClient> {
   return initSupabase();
+}
+
+export function getSupabaseConfig() {
+  return supabaseConfig;
 }
 
 export { supabaseInstance as supabase };

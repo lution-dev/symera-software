@@ -22,62 +22,89 @@ export default function AuthCallback() {
         const supabase = await getSupabase();
         console.log("[AuthCallback] Supabase inicializado");
         
-        // Verifica se há código na URL (PKCE flow)
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
-        console.log("[AuthCallback] Código PKCE na URL:", code ? "SIM" : "NÃO");
+        const errorParam = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
         
-        // Verifica se há tokens no hash (implicit flow)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        console.log("[AuthCallback] Access token no hash:", accessToken ? "SIM" : "NÃO");
+        console.log("[AuthCallback] Código na URL:", code ? "SIM" : "NÃO");
+        console.log("[AuthCallback] Erro na URL:", errorParam || "Nenhum");
+        
+        if (errorParam) {
+          console.error("[AuthCallback] Erro do OAuth:", errorParam, errorDescription);
+          setError(`Erro de autenticação: ${errorDescription || errorParam}`);
+          setTimeout(() => window.location.href = "/auth", 3000);
+          return;
+        }
         
         if (code) {
-          console.log("[AuthCallback] Trocando código por sessão...");
+          console.log("[AuthCallback] Processando código de autorização...");
           setStatus("Finalizando login...");
           
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           
           if (exchangeError) {
             console.error("[AuthCallback] Erro ao trocar código:", exchangeError.message);
-            setError(`Erro: ${exchangeError.message}`);
-            setTimeout(() => window.location.href = "/auth", 3000);
-            return;
+            
+            if (exchangeError.message.includes('code verifier')) {
+              console.log("[AuthCallback] Código já foi usado ou expirou, verificando sessão existente...");
+            } else {
+              setError(`Erro ao processar login: ${exchangeError.message}`);
+              setTimeout(() => window.location.href = "/auth", 3000);
+              return;
+            }
           }
           
-          if (data.session) {
+          if (data?.session) {
+            console.log("[AuthCallback] Sessão obtida via code exchange!");
             await processSession(data.session);
             return;
           }
         }
         
-        // Aguarda um pouco para o Supabase processar o hash (implicit flow)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        console.log("[AuthCallback] Access token no hash:", accessToken ? "SIM" : "NÃO");
+        
         if (accessToken) {
-          console.log("[AuthCallback] Aguardando Supabase processar tokens...");
+          console.log("[AuthCallback] Tokens encontrados no hash, configurando sessão...");
           setStatus("Processando autenticação...");
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const { data, error: setSessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || '',
+          });
+          
+          if (setSessionError) {
+            console.error("[AuthCallback] Erro ao definir sessão:", setSessionError.message);
+          } else if (data.session) {
+            console.log("[AuthCallback] Sessão obtida via hash tokens!");
+            await processSession(data.session);
+            return;
+          }
         }
         
-        // Tenta obter sessão existente
-        console.log("[AuthCallback] Verificando sessão existente...");
+        console.log("[AuthCallback] Verificando sessão existente no Supabase...");
         setStatus("Verificando sessão...");
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         console.log("[AuthCallback] Sessão existente:", session ? "SIM" : "NÃO");
         
         if (sessionError) {
-          console.error("[AuthCallback] Erro ao obter sessão:", sessionError);
-          setError(`Erro: ${sessionError.message}`);
-          setTimeout(() => window.location.href = "/auth", 3000);
-          return;
+          console.error("[AuthCallback] Erro ao obter sessão:", sessionError.message);
         }
 
         if (session) {
+          console.log("[AuthCallback] Usando sessão existente do Supabase");
           await processSession(session);
           return;
         }
         
-        console.log("[AuthCallback] Nenhuma sessão encontrada");
+        console.log("[AuthCallback] Nenhuma sessão encontrada após todas as tentativas");
         setError("Login não completado. Tente novamente.");
         setTimeout(() => window.location.href = "/auth", 3000);
         
@@ -89,36 +116,46 @@ export default function AuthCallback() {
     };
     
     const processSession = async (session: any) => {
-      console.log("[AuthCallback] Sessão obtida com sucesso!");
-      console.log("[AuthCallback] User ID:", session.user.id);
-      console.log("[AuthCallback] Email:", session.user.email);
-      
-      setStatus("Salvando sessão...");
-      authManager.saveAuthData(session);
-      
-      setStatus("Configurando conta...");
-      const response = await fetch("/api/auth/user", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      console.log("[AuthCallback] Resposta /api/auth/user:", response.status);
-      
-      if (response.ok) {
-        console.log("[AuthCallback] SUCESSO! Redirecionando para home...");
-        setStatus("Login concluído!");
+      try {
+        console.log("[AuthCallback] === PROCESSANDO SESSÃO ===");
+        console.log("[AuthCallback] User ID:", session.user.id);
+        console.log("[AuthCallback] Email:", session.user.email);
         
-        // Limpa a URL e redireciona
-        window.history.replaceState({}, '', '/');
-        window.location.href = "/";
-        return;
-      } else {
-        const errorText = await response.text();
-        console.error("[AuthCallback] Erro ao criar usuário:", errorText);
-        setError("Erro ao configurar conta.");
+        setStatus("Salvando sessão...");
+        authManager.saveAuthData(session);
+        
+        setStatus("Configurando conta...");
+        const response = await fetch("/api/auth/user", {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        console.log("[AuthCallback] Resposta /api/auth/user:", response.status);
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("[AuthCallback] Usuário configurado:", userData.id, userData.email);
+          console.log("[AuthCallback] SUCESSO! Redirecionando para home...");
+          setStatus("Login concluído!");
+          
+          window.history.replaceState({}, '', '/');
+          window.location.href = "/";
+        } else {
+          const errorText = await response.text();
+          console.error("[AuthCallback] Erro ao criar usuário:", response.status, errorText);
+          
+          if (response.status === 401) {
+            setError("Sessão inválida. Tente fazer login novamente.");
+          } else {
+            setError("Erro ao configurar conta. Tente novamente.");
+          }
+          setTimeout(() => window.location.href = "/auth", 3000);
+        }
+      } catch (err: any) {
+        console.error("[AuthCallback] Erro ao processar sessão:", err);
+        setError(`Erro: ${err.message}`);
         setTimeout(() => window.location.href = "/auth", 3000);
-        return;
       }
     };
 
@@ -128,7 +165,7 @@ export default function AuthCallback() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
+        <div className="text-center max-w-md px-4">
           <p className="text-red-500 mb-2">{error}</p>
           <p className="text-muted-foreground">Redirecionando...</p>
         </div>
