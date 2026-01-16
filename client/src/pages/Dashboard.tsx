@@ -205,6 +205,16 @@ const Dashboard: React.FC = () => {
           ) : (
             <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
               Você não tem eventos ativos no momento. {pendingTasks.length > 0 && `Você tem ${pendingTasks.length} tarefas pendentes.`}
+              {totalEvents === 0 && (
+                <Button 
+                  variant="link" 
+                  className="text-primary p-0 h-auto ml-2"
+                  onClick={() => migrationMutation.mutate()}
+                  disabled={migrationMutation.isPending}
+                >
+                  {migrationMutation.isPending ? "Recuperando..." : "Recuperar eventos anteriores"}
+                </Button>
+              )}
             </div>
           )}
 
