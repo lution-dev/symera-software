@@ -31,8 +31,9 @@ async function initSupabase(): Promise<SupabaseClient> {
         auth: {
           persistSession: true,
           detectSessionInUrl: true,
-          flowType: 'pkce',
           autoRefreshToken: true,
+          storage: window.localStorage,
+          storageKey: 'sb-auth-token',
         }
       });
       return supabaseInstance;

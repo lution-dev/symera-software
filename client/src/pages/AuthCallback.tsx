@@ -27,6 +27,11 @@ export default function AuthCallback() {
         const code = urlParams.get('code');
         console.log("[AuthCallback] Código PKCE na URL:", code ? "SIM" : "NÃO");
         
+        // Verifica se há tokens no hash (implicit flow)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        console.log("[AuthCallback] Access token no hash:", accessToken ? "SIM" : "NÃO");
+        
         if (code) {
           console.log("[AuthCallback] Trocando código por sessão...");
           setStatus("Finalizando login...");
@@ -41,38 +46,16 @@ export default function AuthCallback() {
           }
           
           if (data.session) {
-            console.log("[AuthCallback] Sessão obtida com sucesso!");
-            console.log("[AuthCallback] User ID:", data.session.user.id);
-            console.log("[AuthCallback] Email:", data.session.user.email);
-            
-            setStatus("Salvando sessão...");
-            authManager.saveAuthData(data.session);
-            
-            setStatus("Configurando conta...");
-            const response = await fetch("/api/auth/user", {
-              headers: {
-                Authorization: `Bearer ${data.session.access_token}`,
-              },
-            });
-
-            console.log("[AuthCallback] Resposta /api/auth/user:", response.status);
-            
-            if (response.ok) {
-              console.log("[AuthCallback] SUCESSO! Redirecionando para home...");
-              setStatus("Login concluído!");
-              
-              // Limpa a URL e redireciona
-              window.history.replaceState({}, '', '/');
-              window.location.href = "/";
-              return;
-            } else {
-              const errorText = await response.text();
-              console.error("[AuthCallback] Erro ao criar usuário:", errorText);
-              setError("Erro ao configurar conta.");
-              setTimeout(() => window.location.href = "/auth", 3000);
-              return;
-            }
+            await processSession(data.session);
+            return;
           }
+        }
+        
+        // Aguarda um pouco para o Supabase processar o hash (implicit flow)
+        if (accessToken) {
+          console.log("[AuthCallback] Aguardando Supabase processar tokens...");
+          setStatus("Processando autenticação...");
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
         
         // Tenta obter sessão existente
@@ -90,19 +73,8 @@ export default function AuthCallback() {
         }
 
         if (session) {
-          console.log("[AuthCallback] Usando sessão existente");
-          authManager.saveAuthData(session);
-          
-          const response = await fetch("/api/auth/user", {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          });
-
-          if (response.ok) {
-            window.location.href = "/";
-            return;
-          }
+          await processSession(session);
+          return;
         }
         
         console.log("[AuthCallback] Nenhuma sessão encontrada");
@@ -113,6 +85,40 @@ export default function AuthCallback() {
         console.error("[AuthCallback] Erro inesperado:", err);
         setError(`Erro: ${err.message || "Erro inesperado"}`);
         setTimeout(() => window.location.href = "/auth", 3000);
+      }
+    };
+    
+    const processSession = async (session: any) => {
+      console.log("[AuthCallback] Sessão obtida com sucesso!");
+      console.log("[AuthCallback] User ID:", session.user.id);
+      console.log("[AuthCallback] Email:", session.user.email);
+      
+      setStatus("Salvando sessão...");
+      authManager.saveAuthData(session);
+      
+      setStatus("Configurando conta...");
+      const response = await fetch("/api/auth/user", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      console.log("[AuthCallback] Resposta /api/auth/user:", response.status);
+      
+      if (response.ok) {
+        console.log("[AuthCallback] SUCESSO! Redirecionando para home...");
+        setStatus("Login concluído!");
+        
+        // Limpa a URL e redireciona
+        window.history.replaceState({}, '', '/');
+        window.location.href = "/";
+        return;
+      } else {
+        const errorText = await response.text();
+        console.error("[AuthCallback] Erro ao criar usuário:", errorText);
+        setError("Erro ao configurar conta.");
+        setTimeout(() => window.location.href = "/auth", 3000);
+        return;
       }
     };
 
