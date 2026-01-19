@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventFormSchema } from "@shared/schema";
@@ -23,10 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Image, Upload, Users, Video, UserCog } from "lucide-react";
+import { Image, Upload, Users, Video, UserCog, Cloud, CloudOff, Loader2 } from "lucide-react";
 
 interface EventFormProps {
   defaultValues?: {
@@ -100,10 +100,165 @@ const EventForm: React.FC<EventFormProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(defaultValues.coverImageUrl || null);
   const [imageUploading, setImageUploading] = useState(false);
   // Inicializar o estado do formato com o valor do evento ou "in_person" como padrão
-  // Usar console.log para depuração do formato
   const initialFormat = defaultValues.format || "in_person";
   console.log("[Debug EventForm] Formato recebido:", defaultValues.format);
   const [eventFormat, setEventFormat] = useState<string>(initialFormat);
+  
+  // Auto-save states
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [draftId, setDraftId] = useState<number | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedDataRef = useRef<string>('');
+  
+  // Load draft on mount (only for new events)
+  useEffect(() => {
+    if (!isEdit && !inputDefaultValues) {
+      loadDraft();
+    }
+  }, [isEdit, inputDefaultValues]);
+  
+  const loadDraft = async () => {
+    try {
+      console.log("[AutoSave] Buscando rascunho existente...");
+      const response = await fetch('/api/events/draft', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const draft = await response.json();
+        console.log("[AutoSave] Rascunho encontrado:", draft);
+        
+        // Formatar datas para o formato do formulário
+        const startDate = draft.startDate ? new Date(draft.startDate).toISOString().split('T')[0] : defaultDate;
+        const endDate = draft.endDate ? new Date(draft.endDate).toISOString().split('T')[0] : startDate;
+        
+        // Preencher formulário com dados do rascunho
+        form.reset({
+          name: draft.name || '',
+          type: draft.type || '',
+          format: draft.format || 'in_person',
+          date: startDate,
+          startDate: startDate,
+          endDate: endDate,
+          startTime: draft.startTime || '09:00',
+          endTime: draft.endTime || '18:00',
+          location: draft.location || '',
+          meetingUrl: draft.meetingUrl || '',
+          description: draft.description || '',
+          budget: draft.budget || undefined,
+          attendees: draft.attendees || undefined,
+          coverImageUrl: draft.coverImageUrl || '',
+          generateAIChecklist: true,
+        });
+        
+        setEventFormat(draft.format || 'in_person');
+        if (draft.coverImageUrl) {
+          setImagePreview(draft.coverImageUrl);
+        }
+        setDraftId(draft.id);
+        setDraftLoaded(true);
+        setSaveStatus('saved');
+        
+        // Salvar referência dos dados carregados
+        lastSavedDataRef.current = JSON.stringify(form.getValues());
+      } else if (response.status === 404) {
+        console.log("[AutoSave] Nenhum rascunho encontrado");
+      }
+    } catch (error) {
+      console.error("[AutoSave] Erro ao carregar rascunho:", error);
+    }
+  };
+  
+  // Save draft function
+  const saveDraft = useCallback(async (data: any) => {
+    // Não salvar se estiver editando um evento existente
+    if (isEdit) return;
+    
+    // Verificar se os dados mudaram
+    const currentDataStr = JSON.stringify(data);
+    if (currentDataStr === lastSavedDataRef.current) {
+      console.log("[AutoSave] Dados não mudaram, pulando salvamento");
+      return;
+    }
+    
+    // Não salvar se o formulário estiver praticamente vazio
+    if (!data.name && !data.description && !data.type) {
+      console.log("[AutoSave] Formulário muito vazio para salvar");
+      return;
+    }
+    
+    try {
+      setSaveStatus('saving');
+      console.log("[AutoSave] Salvando rascunho...", data);
+      
+      const response = await apiRequest('/api/events/draft', {
+        method: 'POST',
+        body: {
+          name: data.name,
+          type: data.type,
+          format: data.format,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          location: data.location,
+          meetingUrl: data.meetingUrl,
+          description: data.description,
+          budget: data.budget,
+          attendees: data.attendees,
+          coverImageUrl: data.coverImageUrl,
+        }
+      });
+      
+      if (response.ok) {
+        const savedDraft = await response.json();
+        setDraftId(savedDraft.id);
+        lastSavedDataRef.current = currentDataStr;
+        setSaveStatus('saved');
+        console.log("[AutoSave] Rascunho salvo com sucesso");
+      } else {
+        throw new Error('Falha ao salvar rascunho');
+      }
+    } catch (error) {
+      console.error("[AutoSave] Erro ao salvar rascunho:", error);
+      setSaveStatus('error');
+    }
+  }, [isEdit]);
+  
+  // Debounced auto-save on form changes
+  useEffect(() => {
+    if (isEdit) return;
+    
+    const subscription = form.watch((data) => {
+      // Limpar timer anterior
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      // Configurar novo timer de 2 segundos
+      debounceTimerRef.current = setTimeout(() => {
+        saveDraft(data);
+      }, 2000);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [form, saveDraft, isEdit]);
+  
+  // Delete draft after successful event creation
+  const deleteDraft = async () => {
+    try {
+      await apiRequest('/api/events/draft', { method: 'DELETE' });
+      console.log("[AutoSave] Rascunho deletado após criação do evento");
+    } catch (error) {
+      console.error("[AutoSave] Erro ao deletar rascunho:", error);
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -224,6 +379,9 @@ const EventForm: React.FC<EventFormProps> = ({
         const newEvent = await response.json();
         console.log("[Debug EventForm] Evento criado com sucesso:", newEvent);
         
+        // Deletar o rascunho após criar o evento
+        await deleteDraft();
+        
         toast({
           title: "Evento criado",
           description: "O evento foi criado com sucesso!",
@@ -253,9 +411,48 @@ const EventForm: React.FC<EventFormProps> = ({
     })(e);
   };
 
+  // Render save status indicator
+  const renderSaveStatus = () => {
+    if (isEdit) return null;
+    
+    return (
+      <div className="flex items-center gap-2 text-sm">
+        {saveStatus === 'saving' && (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            <span className="text-muted-foreground">Salvando...</span>
+          </>
+        )}
+        {saveStatus === 'saved' && (
+          <>
+            <Cloud className="w-4 h-4 text-green-500" />
+            <span className="text-green-500">Salvo automaticamente</span>
+          </>
+        )}
+        {saveStatus === 'error' && (
+          <>
+            <CloudOff className="w-4 h-4 text-red-500" />
+            <span className="text-red-500">Erro ao salvar</span>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={handleFormSubmit} className="space-y-6">
+        {/* Auto-save status indicator */}
+        {!isEdit && (
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Cloud className="w-4 h-4" />
+              <span>Salvamento automático ativado</span>
+            </div>
+            {renderSaveStatus()}
+          </div>
+        )}
+        
         <FormField
           control={form.control}
           name="coverImageUrl"
