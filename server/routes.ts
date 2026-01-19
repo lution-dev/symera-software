@@ -97,12 +97,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { devModeAuth } = await import('./devMode');
   app.use(devModeAuth);
   
+  // ROTA DE DIAGNÓSTICO: Verificar eventos existentes no banco
+  app.get('/api/debug/check-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userEmail = req.user.claims.email;
+      
+      console.log("========== DIAGNÓSTICO ==========");
+      console.log("Usuário atual (Supabase):", userId);
+      console.log("Email:", userEmail);
+      
+      // Buscar todos os usuários com este email
+      const userByEmail = await dbStorage.getUserByEmail(userEmail);
+      console.log("Usuário encontrado por email:", userByEmail);
+      
+      // Buscar eventos do usuário atual
+      const eventsCurrentUser = await dbStorage.getEventsByUser(userId);
+      console.log("Eventos do usuário atual:", eventsCurrentUser.length);
+      
+      // Buscar todos os eventos no sistema para debug
+      const allEventsQuery = await db.select().from(events).limit(20);
+      console.log("Primeiros 20 eventos no sistema:", allEventsQuery.map(e => ({ id: e.id, name: e.name, ownerId: e.ownerId })));
+      
+      // Buscar todos os usuários
+      const allUsersQuery = await db.select().from(users).limit(20);
+      console.log("Primeiros 20 usuários:", allUsersQuery.map(u => ({ id: u.id, email: u.email })));
+      
+      return res.json({
+        currentUserId: userId,
+        currentUserEmail: userEmail,
+        userFoundByEmail: userByEmail ? { id: userByEmail.id, email: userByEmail.email } : null,
+        eventsForCurrentUser: eventsCurrentUser.length,
+        allEvents: allEventsQuery.map(e => ({ id: e.id, name: e.name, ownerId: e.ownerId })),
+        allUsers: allUsersQuery.map(u => ({ id: u.id, email: u.email }))
+      });
+    } catch (error: any) {
+      console.error("Erro no diagnóstico:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   // ROTA ESPECIAL: Forçar migração de eventos para usuário Supabase
   app.post('/api/force-migration', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
-      const OLD_USER_ID = "8650891";
+      
+      // Buscar usuário antigo pelo email para descobrir o ID correto
+      const oldUser = await dbStorage.getUserByEmail(userEmail);
+      const OLD_USER_ID = oldUser?.id || "8650891";
       
       console.log("========== FORÇA MIGRAÇÃO ==========");
       console.log("Novo userId (Supabase):", userId);
