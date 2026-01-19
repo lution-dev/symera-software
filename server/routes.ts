@@ -189,61 +189,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - Requer autenticação obrigatória
+  // NOVA LÓGICA: Priorizar usuário existente pelo email para manter IDs originais
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const supabaseUserId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
       const userName = req.user.claims.name;
       const userPicture = req.user.claims.picture;
       
-      console.log("[Auth] Usuário autenticado:", userId, userEmail);
-      console.log("[Auth] Claims completos:", JSON.stringify(req.user.claims));
+      console.log("[Auth] Login via Supabase - UUID:", supabaseUserId, "Email:", userEmail);
       
-      if (!userId) {
-        console.error("[Auth] userId está vazio!");
-        return res.status(400).json({ message: "User ID is required" });
+      if (!userEmail) {
+        console.error("[Auth] Email não fornecido pelo Supabase!");
+        return res.status(400).json({ message: "Email is required" });
       }
       
-      let user = await dbStorage.getUser(userId);
+      // PRIORIDADE 1: Buscar usuário existente pelo email (mantém ID original)
+      const existingUser = await dbStorage.getUserByEmail(userEmail);
       
-      if (user) {
-        console.log("[Auth] Usuário encontrado no banco");
-        return res.json(user);
-      } 
-      
-      // Buscar por email para migrar conta existente
-      if (userEmail) {
-        console.log("[Auth] Buscando usuário por email:", userEmail);
-        const existingUserByEmail = await dbStorage.getUserByEmail(userEmail);
-        if (existingUserByEmail && existingUserByEmail.id !== userId) {
-          console.log("[Auth] Migrando usuário existente de", existingUserByEmail.id, "para", userId);
-          
-          try {
-            await dbStorage.migrateUserFromLocalToReplit(existingUserByEmail.id, userId);
-          } catch (migrationError) {
-            console.error("[Auth] Erro na migração:", migrationError);
-          }
-          
-          const migratedUser = await dbStorage.upsertUser({
-            id: userId,
-            email: userEmail,
-            firstName: userName?.split(' ')[0] || existingUserByEmail.firstName || userEmail.split('@')[0],
-            lastName: userName?.split(' ').slice(1).join(' ') || existingUserByEmail.lastName || '',
-            phone: existingUserByEmail.phone,
-            profileImageUrl: userPicture || existingUserByEmail.profileImageUrl,
-            createdAt: existingUserByEmail.createdAt,
+      if (existingUser) {
+        console.log("[Auth] Usuário existente encontrado! Usando ID original:", existingUser.id);
+        
+        // Atualizar foto de perfil se necessário
+        if (userPicture && existingUser.profileImageUrl !== userPicture) {
+          await dbStorage.upsertUser({
+            ...existingUser,
+            profileImageUrl: userPicture,
             updatedAt: new Date()
           });
-          
-          return res.json(migratedUser);
+          existingUser.profileImageUrl = userPicture;
         }
+        
+        // Retorna o usuário com ID ORIGINAL (não o UUID do Supabase)
+        return res.json(existingUser);
       }
       
-      console.log("[Auth] Criando novo usuário com ID:", userId);
+      // PRIORIDADE 2: Se não existe usuário com este email, criar novo com UUID do Supabase
+      console.log("[Auth] Usuário novo! Criando com UUID do Supabase:", supabaseUserId);
       const userData: any = {
-        id: userId,
-        email: userEmail || '',
-        firstName: userName?.split(' ')[0] || userEmail?.split('@')[0] || 'Usuário',
+        id: supabaseUserId,
+        email: userEmail,
+        firstName: userName?.split(' ')[0] || userEmail.split('@')[0] || 'Usuário',
         lastName: userName?.split(' ').slice(1).join(' ') || '',
         createdAt: new Date(),
         updatedAt: new Date()

@@ -84,6 +84,22 @@ export class AuthManager {
     console.log('[Auth] Dados de autenticação salvos:', authData.email);
   }
 
+  // Salvar dados de autenticação usando o ID do servidor (ID original do banco)
+  saveAuthDataWithServerId(session: Session, serverId: string): void {
+    const userMetadata = session.user.user_metadata || {};
+    const authData: AuthData = {
+      userId: serverId, // Usar o ID retornado pelo servidor, não o UUID do Supabase
+      email: session.user.email || '',
+      accessToken: session.access_token,
+      expiresAt: session.expires_at ? session.expires_at * 1000 : Date.now() + 3600000,
+      name: userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0],
+      picture: userMetadata.avatar_url || userMetadata.picture,
+    };
+
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    console.log('[Auth] Dados salvos com ID do servidor:', serverId, 'Email:', authData.email);
+  }
+
   getAuthData(): AuthData | null {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);

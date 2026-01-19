@@ -52,11 +52,21 @@ export default function AuthCallback() {
         }
         
         if (mounted) setStatus("Configurando conta...");
-        authManager.saveAuthData(session);
         
-        await fetch("/api/auth/user", {
+        // Buscar dados do usuário do servidor (que retorna o ID original do banco)
+        const userResponse = await fetch("/api/auth/user", {
           headers: { Authorization: `Bearer ${session.access_token}` }
         });
+        
+        if (!userResponse.ok) {
+          throw new Error("Falha ao buscar dados do usuário");
+        }
+        
+        const serverUser = await userResponse.json();
+        console.log("[AuthCallback] Usuário retornado pelo servidor:", serverUser);
+        
+        // Salvar dados de autenticação com o ID ORIGINAL do banco (não o UUID do Supabase)
+        authManager.saveAuthDataWithServerId(session, serverUser.id);
         
         window.history.replaceState({}, '', '/');
         window.location.href = "/";
