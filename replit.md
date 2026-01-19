@@ -126,6 +126,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### January 19, 2026 - Auto-save Event Draft Feature
+- **Data Loss Prevention**: Implemented automatic saving of event form data to prevent data loss when users switch browser tabs
+- **Auto-save System**: Form data is automatically saved as a draft after 2 seconds of inactivity
+- **Draft Recovery**: When returning to the event creation form, previously entered data is automatically restored
+- **Visual Feedback**: Added status indicator showing "Saving...", "Saved automatically", or error states
+- **API Endpoints**: Added GET/POST/DELETE `/api/events/draft` for draft management
+- **Validation**: Draft data validated with Zod schema before saving
+
 ### August 5, 2025 - Critical TypeScript Error Resolution
 - **Server Stability Fix**: Eliminated all 81 TypeScript/LSP compilation errors
 - **Authentication Patterns**: Standardized user access across all routes (`req.user!.claims?.sub || req.user!.id`)
