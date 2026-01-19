@@ -111,12 +111,12 @@ const EventForm: React.FC<EventFormProps> = ({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string>('');
   
-  // Load draft on mount (only for new events)
+  // Load draft on mount (only for new events, not editing existing ones)
   useEffect(() => {
-    if (!isEdit && !inputDefaultValues) {
+    if (!isEdit) {
       loadDraft();
     }
-  }, [isEdit, inputDefaultValues]);
+  }, [isEdit]);
   
   const loadDraft = async () => {
     try {
@@ -192,23 +192,27 @@ const EventForm: React.FC<EventFormProps> = ({
       setSaveStatus('saving');
       console.log("[AutoSave] Salvando rascunho...", data);
       
-      const response = await apiRequest('/api/events/draft', {
+      const draftPayload = {
+        name: data.name,
+        type: data.type,
+        format: data.format,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        location: data.location,
+        meetingUrl: data.meetingUrl,
+        description: data.description,
+        budget: data.budget,
+        attendees: data.attendees,
+        coverImageUrl: data.coverImageUrl,
+      };
+      
+      const response = await fetch('/api/events/draft', {
         method: 'POST',
-        body: {
-          name: data.name,
-          type: data.type,
-          format: data.format,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          location: data.location,
-          meetingUrl: data.meetingUrl,
-          description: data.description,
-          budget: data.budget,
-          attendees: data.attendees,
-          coverImageUrl: data.coverImageUrl,
-        }
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(draftPayload),
       });
       
       if (response.ok) {

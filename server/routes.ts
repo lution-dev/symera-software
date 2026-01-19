@@ -573,13 +573,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("[Draft] Salvando rascunho para usuário:", userId);
       
+      // Schema parcial para validação de rascunhos (campos opcionais)
+      const draftSchema = z.object({
+        name: z.string().optional(),
+        type: z.string().optional(),
+        format: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        startTime: z.string().optional(),
+        endTime: z.string().optional(),
+        location: z.string().optional(),
+        meetingUrl: z.string().optional(),
+        description: z.string().optional(),
+        budget: z.number().optional().nullable(),
+        attendees: z.number().optional().nullable(),
+        coverImageUrl: z.string().optional(),
+      });
+      
+      const validatedData = draftSchema.parse(draftData);
+      
       // Converter strings de data para Date se fornecidas
-      const processedData: any = { ...draftData };
-      if (draftData.startDate) {
-        processedData.startDate = new Date(draftData.startDate);
+      const processedData: any = { ...validatedData };
+      if (validatedData.startDate) {
+        processedData.startDate = new Date(validatedData.startDate);
       }
-      if (draftData.endDate) {
-        processedData.endDate = new Date(draftData.endDate);
+      if (validatedData.endDate) {
+        processedData.endDate = new Date(validatedData.endDate);
       }
       
       const draft = await dbStorage.saveDraftEvent(userId, processedData);
@@ -588,6 +607,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(draft);
     } catch (error) {
       console.error("Error saving draft:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid draft data", 
+          errors: error.errors 
+        });
+      }
       res.status(500).json({ message: "Failed to save draft" });
     }
   });
