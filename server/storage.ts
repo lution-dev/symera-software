@@ -187,6 +187,11 @@ export interface IStorage {
   // Feedback metrics operations
   createFeedbackMetric(metric: InsertFeedbackMetrics): Promise<FeedbackMetrics>;
   updateFeedbackMetricSubmission(feedbackId: string, ipAddress?: string, userAgent?: string): Promise<void>;
+  
+  // Draft event operations
+  getDraftEventByUser(userId: string): Promise<Event | undefined>;
+  saveDraftEvent(userId: string, draftData: Partial<InsertEvent>): Promise<Event>;
+  deleteDraftEvent(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1601,6 +1606,78 @@ export class DatabaseStorage implements IStorage {
         .where(eq(events.id, eventId));
 
       return event?.feedbackUrl || null;
+    });
+  }
+
+  async getDraftEventByUser(userId: string): Promise<Event | undefined> {
+    return executeWithRetry(async () => {
+      const [draft] = await db
+        .select()
+        .from(events)
+        .where(and(
+          eq(events.ownerId, userId),
+          eq(events.status, 'draft')
+        ))
+        .orderBy(desc(events.updatedAt))
+        .limit(1);
+      
+      return draft;
+    });
+  }
+
+  async saveDraftEvent(userId: string, draftData: Partial<InsertEvent>): Promise<Event> {
+    return executeWithRetry(async () => {
+      const existingDraft = await this.getDraftEventByUser(userId);
+      
+      if (existingDraft) {
+        const [updated] = await db
+          .update(events)
+          .set({
+            ...draftData,
+            status: 'draft',
+            updatedAt: new Date(),
+          })
+          .where(eq(events.id, existingDraft.id))
+          .returning();
+        
+        eventCache.invalidate(`event:${existingDraft.id}`);
+        return updated;
+      } else {
+        const [created] = await db
+          .insert(events)
+          .values({
+            name: draftData.name || 'Rascunho',
+            type: draftData.type || 'other',
+            format: draftData.format || 'in_person',
+            startDate: draftData.startDate || new Date(),
+            endDate: draftData.endDate,
+            startTime: draftData.startTime,
+            endTime: draftData.endTime,
+            location: draftData.location,
+            meetingUrl: draftData.meetingUrl,
+            description: draftData.description,
+            budget: draftData.budget,
+            attendees: draftData.attendees,
+            coverImageUrl: draftData.coverImageUrl,
+            status: 'draft',
+            ownerId: userId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+        
+        return created;
+      }
+    });
+  }
+
+  async deleteDraftEvent(userId: string): Promise<void> {
+    return executeWithRetry(async () => {
+      const draft = await this.getDraftEventByUser(userId);
+      if (draft) {
+        await db.delete(events).where(eq(events.id, draft.id));
+        eventCache.invalidate(`event:${draft.id}`);
+      }
     });
   }
 }

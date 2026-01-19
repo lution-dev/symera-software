@@ -546,6 +546,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Draft event routes - Auto-save functionality
+  app.get('/api/events/draft', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      console.log("[Draft] Buscando rascunho para usuário:", userId);
+      
+      const draft = await dbStorage.getDraftEventByUser(userId);
+      
+      if (!draft) {
+        return res.status(404).json({ message: "No draft found" });
+      }
+      
+      console.log("[Draft] Rascunho encontrado:", draft.id);
+      res.json(draft);
+    } catch (error) {
+      console.error("Error fetching draft:", error);
+      res.status(500).json({ message: "Failed to fetch draft" });
+    }
+  });
+
+  app.post('/api/events/draft', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const draftData = req.body;
+      
+      console.log("[Draft] Salvando rascunho para usuário:", userId);
+      
+      // Converter strings de data para Date se fornecidas
+      const processedData: any = { ...draftData };
+      if (draftData.startDate) {
+        processedData.startDate = new Date(draftData.startDate);
+      }
+      if (draftData.endDate) {
+        processedData.endDate = new Date(draftData.endDate);
+      }
+      
+      const draft = await dbStorage.saveDraftEvent(userId, processedData);
+      
+      console.log("[Draft] Rascunho salvo com ID:", draft.id);
+      res.json(draft);
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      res.status(500).json({ message: "Failed to save draft" });
+    }
+  });
+
+  app.delete('/api/events/draft', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      console.log("[Draft] Deletando rascunho para usuário:", userId);
+      
+      await dbStorage.deleteDraftEvent(userId);
+      
+      res.json({ message: "Draft deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting draft:", error);
+      res.status(500).json({ message: "Failed to delete draft" });
+    }
+  });
+
   app.put('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
