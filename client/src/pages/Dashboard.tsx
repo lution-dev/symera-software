@@ -9,6 +9,7 @@ import TipsCard from "@/components/Dashboard/TipsCard";
 import ActivityFeed from "@/components/Dashboard/ActivityFeed";
 import { formatActivityTimestamp } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Utility function to calculate days remaining consistently
 const calculateDaysRemaining = (eventDate: string) => {
