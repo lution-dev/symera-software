@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { authManager } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Image, Upload, Users, Video, UserCog, Cloud, CloudOff, Loader2 } from "lucide-react";
@@ -121,8 +122,17 @@ const EventForm: React.FC<EventFormProps> = ({
   const loadDraft = async () => {
     try {
       console.log("[AutoSave] Buscando rascunho existente...");
+      const token = authManager.getAccessToken();
+      if (!token) {
+        console.log("[AutoSave] Sem token de autenticação, pulando carregamento de rascunho");
+        return;
+      }
+      
       const response = await fetch('/api/events/draft', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       
       if (response.ok) {
@@ -208,9 +218,19 @@ const EventForm: React.FC<EventFormProps> = ({
         coverImageUrl: data.coverImageUrl,
       };
       
+      const token = authManager.getAccessToken();
+      if (!token) {
+        console.log("[AutoSave] Sem token de autenticação, pulando salvamento");
+        setSaveStatus('idle');
+        return;
+      }
+      
       const response = await fetch('/api/events/draft', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         credentials: 'include',
         body: JSON.stringify(draftPayload),
       });
