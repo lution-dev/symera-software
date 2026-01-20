@@ -174,6 +174,8 @@ const EventForm: React.FC<EventFormProps> = ({
         lastSavedDataRef.current = JSON.stringify(form.getValues());
       } else if (response.status === 404) {
         console.log("[AutoSave] Nenhum rascunho encontrado");
+      } else if (response.status === 401) {
+        console.log("[AutoSave] Não autenticado, ignorando carregamento de rascunho");
       }
     } catch (error) {
       console.error("[AutoSave] Erro ao carregar rascunho:", error);
@@ -241,6 +243,9 @@ const EventForm: React.FC<EventFormProps> = ({
         lastSavedDataRef.current = currentDataStr;
         setSaveStatus('saved');
         console.log("[AutoSave] Rascunho salvo com sucesso");
+      } else if (response.status === 401) {
+        console.log("[AutoSave] Não autenticado, ignorando salvamento de rascunho");
+        setSaveStatus('idle');
       } else {
         throw new Error('Falha ao salvar rascunho');
       }

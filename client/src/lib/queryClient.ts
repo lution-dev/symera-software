@@ -3,12 +3,6 @@ import { authManager } from "./auth";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    if (res.status === 401) {
-      console.log("[Auth] Não autorizado, redirecionando...");
-      authManager.clearAuthData();
-      window.location.href = '/auth';
-      throw new Error("Session expired");
-    }
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }
@@ -41,16 +35,35 @@ export async function apiRequest(
     }
   }
   
-  const res = await fetch(endpoint, {
-    ...options,
-    headers: {
-      ...(contentType ? { "Content-Type": contentType } : {}),
-      ...getAuthHeaders(),
-      ...options?.headers,
-    },
-    body: processedBody,
-    credentials: "include",
-  });
+  const makeRequest = async () => {
+    return fetch(endpoint, {
+      ...options,
+      headers: {
+        ...(contentType ? { "Content-Type": contentType } : {}),
+        ...getAuthHeaders(),
+        ...options?.headers,
+      },
+      body: processedBody,
+      credentials: "include",
+    });
+  };
+  
+  let res = await makeRequest();
+  
+  // Se receber 401, tentar renovar token e repetir
+  if (res.status === 401) {
+    console.log("[apiRequest] 401 recebido, tentando renovar token...");
+    const refreshed = await authManager.refreshToken();
+    if (refreshed) {
+      console.log("[apiRequest] Token renovado, repetindo requisição...");
+      res = await makeRequest();
+    } else if (!window.location.pathname.includes('/auth')) {
+      console.log("[apiRequest] Não foi possível renovar, redirecionando...");
+      authManager.clearAuthData();
+      window.location.href = '/auth';
+      throw new Error("Session expired");
+    }
+  }
 
   await throwIfResNotOk(res);
   return res;
@@ -75,6 +88,22 @@ export const getQueryFn: <T>(options: {
       });
 
       if (res.status === 401) {
+        console.log("[Auth] 401 em query, tentando renovar token...");
+        const refreshed = await authManager.refreshToken();
+        if (refreshed) {
+          const newRes = await fetch(url, {
+            credentials: "include",
+            headers: {
+              "Cache-Control": "no-cache",
+              "Pragma": "no-cache",
+              ...getAuthHeaders(),
+            }
+          });
+          if (newRes.ok) {
+            return await newRes.json();
+          }
+        }
+        
         if (!window.location.pathname.includes('/auth')) {
           authManager.clearAuthData();
           window.location.replace('/auth');
