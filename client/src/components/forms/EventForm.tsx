@@ -112,6 +112,60 @@ const EventForm: React.FC<EventFormProps> = ({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string>('');
   
+  // Chave do localStorage para backup do rascunho
+  const DRAFT_STORAGE_KEY = 'symera_event_draft_backup';
+  
+  // Salvar no localStorage imediatamente (backup local)
+  const saveToLocalStorage = useCallback((data: any) => {
+    try {
+      const draftData = {
+        name: data.name,
+        type: data.type,
+        format: data.format,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        location: data.location,
+        meetingUrl: data.meetingUrl,
+        description: data.description,
+        budget: data.budget,
+        attendees: data.attendees,
+        coverImageUrl: data.coverImageUrl,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftData));
+      console.log("[AutoSave] Backup local salvo");
+    } catch (error) {
+      console.error("[AutoSave] Erro ao salvar backup local:", error);
+    }
+  }, []);
+  
+  // Carregar do localStorage
+  const loadFromLocalStorage = useCallback(() => {
+    try {
+      const stored = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        console.log("[AutoSave] Backup local encontrado:", data);
+        return data;
+      }
+    } catch (error) {
+      console.error("[AutoSave] Erro ao carregar backup local:", error);
+    }
+    return null;
+  }, []);
+  
+  // Limpar localStorage
+  const clearLocalStorage = useCallback(() => {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      console.log("[AutoSave] Backup local removido");
+    } catch (error) {
+      console.error("[AutoSave] Erro ao remover backup local:", error);
+    }
+  }, []);
+  
   // Load draft on mount (only for new events, not editing existing ones)
   useEffect(() => {
     if (!isEdit) {
@@ -121,65 +175,97 @@ const EventForm: React.FC<EventFormProps> = ({
   
   const loadDraft = async () => {
     try {
-      console.log("[AutoSave] Buscando rascunho existente...");
-      const token = authManager.getAccessToken();
-      if (!token) {
-        console.log("[AutoSave] Sem token de autenticação, pulando carregamento de rascunho");
+      console.log("[AutoSave] Buscando rascunho...");
+      
+      // PRIORIDADE 1: localStorage (backup local - mais recente e confiável)
+      const localDraft = loadFromLocalStorage();
+      
+      if (localDraft) {
+        console.log("[AutoSave] Restaurando do localStorage:", localDraft);
+        applyDraftToForm(localDraft);
+        
+        // Buscar servidor em background para sincronizar draftId
+        const token = authManager.getAccessToken();
+        if (token) {
+          fetch('/api/events/draft', {
+            credentials: 'include',
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).then(response => {
+            if (response.ok) {
+              response.json().then(serverDraft => {
+                if (serverDraft?.id) {
+                  setDraftId(serverDraft.id);
+                }
+              });
+            }
+          }).catch(() => {});
+        }
         return;
       }
       
-      const response = await fetch('/api/events/draft', {
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${token}`
+      // PRIORIDADE 2: Servidor (se não tiver local)
+      const token = authManager.getAccessToken();
+      if (token) {
+        try {
+          const response = await fetch('/api/events/draft', {
+            credentials: 'include',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (response.ok) {
+            const serverDraft = await response.json();
+            console.log("[AutoSave] Restaurando do servidor:", serverDraft);
+            applyDraftToForm(serverDraft);
+            setDraftId(serverDraft.id);
+            return;
+          } else if (response.status === 404) {
+            console.log("[AutoSave] Nenhum rascunho no servidor");
+          }
+        } catch (error) {
+          console.error("[AutoSave] Erro ao buscar rascunho do servidor:", error);
         }
-      });
-      
-      if (response.ok) {
-        const draft = await response.json();
-        console.log("[AutoSave] Rascunho encontrado:", draft);
-        
-        // Formatar datas para o formato do formulário
-        const startDate = draft.startDate ? new Date(draft.startDate).toISOString().split('T')[0] : defaultDate;
-        const endDate = draft.endDate ? new Date(draft.endDate).toISOString().split('T')[0] : startDate;
-        
-        // Preencher formulário com dados do rascunho
-        form.reset({
-          name: draft.name || '',
-          type: draft.type || '',
-          format: draft.format || 'in_person',
-          date: startDate,
-          startDate: startDate,
-          endDate: endDate,
-          startTime: draft.startTime || '09:00',
-          endTime: draft.endTime || '18:00',
-          location: draft.location || '',
-          meetingUrl: draft.meetingUrl || '',
-          description: draft.description || '',
-          budget: draft.budget || undefined,
-          attendees: draft.attendees || undefined,
-          coverImageUrl: draft.coverImageUrl || '',
-          generateAIChecklist: true,
-        });
-        
-        setEventFormat(draft.format || 'in_person');
-        if (draft.coverImageUrl) {
-          setImagePreview(draft.coverImageUrl);
-        }
-        setDraftId(draft.id);
-        setDraftLoaded(true);
-        setSaveStatus('saved');
-        
-        // Salvar referência dos dados carregados
-        lastSavedDataRef.current = JSON.stringify(form.getValues());
-      } else if (response.status === 404) {
-        console.log("[AutoSave] Nenhum rascunho encontrado");
-      } else if (response.status === 401) {
-        console.log("[AutoSave] Não autenticado, ignorando carregamento de rascunho");
       }
+      
+      console.log("[AutoSave] Nenhum rascunho encontrado");
     } catch (error) {
       console.error("[AutoSave] Erro ao carregar rascunho:", error);
     }
+  };
+  
+  // Aplicar dados do rascunho ao formulário
+  const applyDraftToForm = (draft: any) => {
+    // Formatar datas para o formato do formulário
+    const startDate = draft.startDate ? new Date(draft.startDate).toISOString().split('T')[0] : defaultDate;
+    const endDate = draft.endDate ? new Date(draft.endDate).toISOString().split('T')[0] : startDate;
+    
+    // Preencher formulário com dados do rascunho
+    form.reset({
+      name: draft.name || '',
+      type: draft.type || '',
+      format: draft.format || 'in_person',
+      date: startDate,
+      startDate: startDate,
+      endDate: endDate,
+      startTime: draft.startTime || '09:00',
+      endTime: draft.endTime || '18:00',
+      location: draft.location || '',
+      meetingUrl: draft.meetingUrl || '',
+      description: draft.description || '',
+      budget: draft.budget || undefined,
+      attendees: draft.attendees || undefined,
+      coverImageUrl: draft.coverImageUrl || '',
+      generateAIChecklist: true,
+    });
+    
+    setEventFormat(draft.format || 'in_person');
+    if (draft.coverImageUrl) {
+      setImagePreview(draft.coverImageUrl);
+    }
+    setDraftLoaded(true);
+    setSaveStatus('saved');
+    
+    // Salvar referência dos dados carregados
+    lastSavedDataRef.current = JSON.stringify(form.getValues());
   };
   
   // Save draft function
@@ -266,12 +352,17 @@ const EventForm: React.FC<EventFormProps> = ({
       // Atualizar referência dos dados
       formDataRef.current = data;
       
+      // Salvar imediatamente no localStorage (backup local instantâneo)
+      if (data.name || data.description || data.type) {
+        saveToLocalStorage(data);
+      }
+      
       // Limpar timer anterior
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
       
-      // Configurar novo timer de 2 segundos
+      // Configurar novo timer de 2 segundos para salvar no servidor
       debounceTimerRef.current = setTimeout(() => {
         saveDraft(data);
       }, 2000);
@@ -283,7 +374,7 @@ const EventForm: React.FC<EventFormProps> = ({
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [form, saveDraft, isEdit]);
+  }, [form, saveDraft, isEdit, saveToLocalStorage]);
   
   // Salvamento síncrono para uso no beforeunload (usa sendBeacon)
   const saveDraftSync = useCallback(() => {
@@ -370,6 +461,10 @@ const EventForm: React.FC<EventFormProps> = ({
   // Delete draft after successful event creation
   const deleteDraft = async () => {
     try {
+      // Limpar localStorage primeiro
+      clearLocalStorage();
+      
+      // Depois deletar do servidor
       await apiRequest('/api/events/draft', { method: 'DELETE' });
       console.log("[AutoSave] Rascunho deletado após criação do evento");
     } catch (error) {
