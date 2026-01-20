@@ -57,10 +57,9 @@ export async function apiRequest(
     if (refreshed) {
       console.log("[apiRequest] Token renovado, repetindo requisição...");
       res = await makeRequest();
-    } else if (!window.location.pathname.includes('/auth')) {
-      console.log("[apiRequest] Não foi possível renovar, redirecionando...");
-      authManager.clearAuthData();
-      window.location.href = '/auth';
+    } else {
+      console.log("[apiRequest] Não foi possível renovar token");
+      // Não redirecionar aqui - deixar ProtectedRoute cuidar do redirect
       throw new Error("Session expired");
     }
   }
@@ -104,12 +103,11 @@ export const getQueryFn: <T>(options: {
           }
         }
         
-        if (!window.location.pathname.includes('/auth')) {
-          authManager.clearAuthData();
-          window.location.replace('/auth');
-          throw new Error('Unauthorized - redirecting to auth');
+        // Não redirecionar aqui - deixar ProtectedRoute cuidar
+        if (unauthorizedBehavior === "returnNull") {
+          return null;
         }
-        return [];
+        throw new Error('Unauthorized');
       }
       
       if (!res.ok) {

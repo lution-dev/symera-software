@@ -17,18 +17,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const initializeAuth = async () => {
       console.log('[AuthProvider] Inicializando sistema de autenticação...');
       
+      const supabase = await getSupabase();
+      
       // Verificar se há dados de autenticação válidos no localStorage
       let authData = authManager.getAuthData();
       
       if (authData) {
-        console.log('[AuthProvider] Dados de autenticação encontrados');
-        console.log('[AuthProvider] Usuario:', authData.userId);
+        console.log('[AuthProvider] Dados locais encontrados, verificando Supabase...');
+        
+        // Mesmo com dados locais, verificar se Supabase tem sessão válida
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session) {
+            console.log('[AuthProvider] Sessão Supabase válida, atualizando tokens...');
+            // Atualizar tokens locais com os mais recentes do Supabase
+            const existingServerId = authData.userId;
+            authManager.saveAuthDataWithServerId(session, existingServerId);
+            authData = authManager.getAuthData();
+          } else {
+            // Sem sessão Supabase, tentar refresh
+            console.log('[AuthProvider] Sem sessão Supabase, tentando refresh...');
+            const refreshed = await authManager.refreshToken();
+            if (!refreshed) {
+              console.log('[AuthProvider] Refresh falhou, dados locais podem estar desatualizados');
+              // Não limpar dados locais aqui - deixar o backend decidir
+            }
+          }
+        } catch (error) {
+          console.log('[AuthProvider] Erro ao verificar Supabase, usando dados locais');
+        }
       } else {
         console.log('[AuthProvider] Nenhum dado local encontrado, verificando Supabase...');
         
         // Tentar recuperar sessão do Supabase
         try {
-          const supabase = await getSupabase();
           const { data: { session } } = await supabase.auth.getSession();
           
           if (session) {
@@ -46,11 +69,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 authData = authManager.getAuthData();
                 console.log('[AuthProvider] Dados sincronizados com server ID:', serverUser.id);
               } else {
-                // Não salvar dados se não conseguir obter o server ID
                 console.log('[AuthProvider] API falhou, aguardando login completo');
               }
             } catch (apiError) {
-              // Não salvar dados se não conseguir obter o server ID
               console.log('[AuthProvider] Erro na API, aguardando login completo');
             }
           } else {

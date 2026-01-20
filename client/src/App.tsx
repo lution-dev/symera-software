@@ -35,7 +35,6 @@ import PublicFeedback from "@/pages/PublicFeedback";
 import AuthCallback from "@/pages/AuthCallback";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
-import { getSupabase } from "@/lib/supabase";
 import { authManager } from "@/lib/auth";
 
 function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
@@ -45,14 +44,17 @@ function OAuthCodeHandler({ children }: { children: React.ReactNode }) {
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, [key: string]: any }) {
   const { isAuthenticated, isLoading, error } = useAuth();
   const [, navigate] = useLocation();
+  const hasLocalAuth = authManager.getAuthData() !== null;
 
-  // Force redirect on authentication error
+  // Redirect only if definitely not authenticated (not loading and no local data)
   React.useEffect(() => {
-    if (!isLoading && (!isAuthenticated || error)) {
-      window.location.href = "/auth";
+    if (!isLoading && !isAuthenticated && !hasLocalAuth) {
+      console.log('[ProtectedRoute] Redirecionando para /auth');
+      navigate("/auth");
     }
-  }, [isAuthenticated, isLoading, error]);
+  }, [isAuthenticated, isLoading, hasLocalAuth, navigate]);
 
+  // Show loading while checking auth
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-purple-900">
@@ -61,41 +63,21 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
     );
   }
 
-  if (!isAuthenticated || error) {
-    // Force immediate redirect
-    window.location.href = "/auth";
-    return null;
+  // Allow access if we have local auth data (trust local storage)
+  if (isAuthenticated || hasLocalAuth) {
+    return <Component {...rest} />;
   }
 
-  return <Component {...rest} />;
+  // Not authenticated and no local data - show loading (redirect will happen via useEffect)
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-purple-900">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>
+  );
 }
 
 function Router() {
-  const [, setLocation] = useLocation();
-  const isFeedbackRoute = window.location.pathname.startsWith('/feedback/');
-  
-  const { isAuthenticated, isLoading } = useAuth();
-
-  // Force redirect for unauthenticated users (except feedback routes and auth routes)
-  const isAuthRoute = window.location.pathname === '/auth' || 
-                      window.location.pathname === '/auth/callback' || 
-                      window.location.pathname === '/login';
-  
-  React.useEffect(() => {
-    if (!isFeedbackRoute && !isLoading && !isAuthenticated && !isAuthRoute) {
-      window.location.href = '/auth';
-    }
-  }, [isAuthenticated, isLoading, isFeedbackRoute, isAuthRoute]);
-
-  // Show loading only for protected routes (not feedback or auth routes)
-  if (!isFeedbackRoute && !isAuthRoute && isLoading) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-purple-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
+  // ProtectedRoute handles auth redirects - no need to duplicate here
   return (
     <Switch>
       <Route path="/feedback/:feedbackId" component={PublicFeedback} />
