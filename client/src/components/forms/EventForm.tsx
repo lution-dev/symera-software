@@ -255,11 +255,17 @@ const EventForm: React.FC<EventFormProps> = ({
     }
   }, [isEdit]);
   
+  // Referência para os dados atuais do formulário (para usar no beforeunload)
+  const formDataRef = useRef<any>(null);
+  
   // Debounced auto-save on form changes
   useEffect(() => {
     if (isEdit) return;
     
     const subscription = form.watch((data) => {
+      // Atualizar referência dos dados
+      formDataRef.current = data;
+      
       // Limpar timer anterior
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -278,6 +284,88 @@ const EventForm: React.FC<EventFormProps> = ({
       }
     };
   }, [form, saveDraft, isEdit]);
+  
+  // Salvamento síncrono para uso no beforeunload (usa sendBeacon)
+  const saveDraftSync = useCallback(() => {
+    if (isEdit || !formDataRef.current) return;
+    
+    const data = formDataRef.current;
+    const currentDataStr = JSON.stringify(data);
+    
+    // Não salvar se os dados não mudaram
+    if (currentDataStr === lastSavedDataRef.current) return;
+    
+    // Não salvar se o formulário estiver vazio
+    if (!data.name && !data.description && !data.type) return;
+    
+    const token = authManager.getAccessToken();
+    if (!token) return;
+    
+    const draftPayload = {
+      name: data.name,
+      type: data.type,
+      format: data.format,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      location: data.location,
+      meetingUrl: data.meetingUrl,
+      description: data.description,
+      budget: data.budget,
+      attendees: data.attendees,
+      coverImageUrl: data.coverImageUrl,
+    };
+    
+    // Usar sendBeacon para garantir envio mesmo ao fechar a página
+    const blob = new Blob([JSON.stringify(draftPayload)], { type: 'application/json' });
+    navigator.sendBeacon('/api/events/draft?token=' + token, blob);
+    console.log("[AutoSave] Rascunho enviado via sendBeacon");
+  }, [isEdit]);
+  
+  // Salvamento imediato (para navegação SPA)
+  const saveImmediately = useCallback(async () => {
+    if (isEdit || !formDataRef.current) return;
+    
+    const data = formDataRef.current;
+    
+    // Não salvar se o formulário estiver vazio
+    if (!data.name && !data.description && !data.type) return;
+    
+    // Cancelar debounce pendente
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    
+    // Salvar imediatamente
+    await saveDraft(data);
+  }, [isEdit, saveDraft]);
+  
+  // Salvar ao sair da página (recarregar ou fechar)
+  useEffect(() => {
+    if (isEdit) return;
+    
+    const handleBeforeUnload = () => {
+      saveDraftSync();
+    };
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        saveDraftSync();
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      // Salvar ao desmontar o componente (navegação SPA)
+      saveImmediately();
+    };
+  }, [isEdit, saveDraftSync, saveImmediately]);
   
   // Delete draft after successful event creation
   const deleteDraft = async () => {

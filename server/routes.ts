@@ -566,7 +566,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/events/draft', isAuthenticated, async (req: any, res) => {
+  // Rota POST para draft que aceita autenticação via query string (para sendBeacon)
+  app.post('/api/events/draft', async (req: any, res, next) => {
+    // Verificar se há token na query string (usado pelo sendBeacon)
+    const queryToken = req.query.token;
+    if (queryToken && !req.headers.authorization) {
+      req.headers.authorization = `Bearer ${queryToken}`;
+    }
+    // Continuar para o middleware de autenticação
+    next();
+  }, isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const draftData = req.body;
