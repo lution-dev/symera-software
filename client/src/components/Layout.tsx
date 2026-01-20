@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import MobileNavbar from "./MobileNavbar";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import { authManager } from "@/lib/auth";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,7 +11,8 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
+  const hasLocalAuth = authManager.getAuthData() !== null;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Load sidebar collapsed state from localStorage and setup event listeners
@@ -44,6 +46,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       window.removeEventListener('sidebarStateChange', handleSidebarChange as EventListener);
     };
   }, []);
+
+  // Redirect to auth page only if definitely not authenticated (no local data)
+  // This useEffect MUST be before any conditional returns
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !hasLocalAuth && location !== "/auth") {
+      console.log('[Layout] Redirecionando para /auth via navigate');
+      navigate("/auth");
+    }
+  }, [isLoading, isAuthenticated, hasLocalAuth, location, navigate]);
   
   // Skip layout when on auth page
   if (location === "/auth") {
@@ -59,10 +70,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     );
   }
   
-  // Redirect to auth page if not authenticated
-  if (!isAuthenticated && location !== "/auth") {
-    window.location.href = "/auth";
-    return null;
+  // Allow access if we have local auth data (trust localStorage)
+  if (!isAuthenticated && !hasLocalAuth && location !== "/auth") {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   // Verificar se estamos em páginas de formulário que precisam de tratamento especial
