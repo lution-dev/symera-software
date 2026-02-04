@@ -993,8 +993,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 <div className="flex flex-wrap w-full sm:w-auto gap-2">
                   <Button 
                     onClick={handleRegenerateChecklist} 
-                    variant="outline" 
-                    className="flex-1 sm:flex-auto"
+                    variant="secondary" 
+                    className="flex-1 sm:flex-auto bg-purple-600 hover:bg-purple-700 text-white"
                     disabled={regenerateChecklistMutation.isPending}
                   >
                     {regenerateChecklistMutation.isPending ? (
@@ -1003,7 +1003,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       </>
                     ) : (
                       <>
-                        <i className="fas fa-magic mr-2"></i> Gerar Tarefas com IA
+                        <i className="fas fa-wand-magic-sparkles mr-2"></i> Gerar com IA
                       </>
                     )}
                   </Button>
