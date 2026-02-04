@@ -991,6 +991,22 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
                 <h2 className="text-xl font-semibold">Checklist do Evento</h2>
                 <div className="flex flex-wrap w-full sm:w-auto gap-2">
+                  <Button 
+                    onClick={handleRegenerateChecklist} 
+                    variant="outline" 
+                    className="flex-1 sm:flex-auto"
+                    disabled={regenerateChecklistMutation.isPending}
+                  >
+                    {regenerateChecklistMutation.isPending ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin mr-2"></i> Gerando...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-magic mr-2"></i> Gerar Tarefas com IA
+                      </>
+                    )}
+                  </Button>
                   <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
                     <i className="fas fa-plus mr-2"></i> Nova Tarefa
                   </Button>
