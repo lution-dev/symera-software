@@ -88,6 +88,25 @@ export async function setupSupabaseAuth(app: Express) {
   });
 }
 
+// Token especial para desenvolvimento - só funciona quando NODE_ENV !== 'production'
+const DEV_TOKEN_PREFIX = 'dev-token-';
+const DEV_USER_ID = '8650891';
+const DEV_USER_EMAIL = 'dev@symera.test';
+const DEV_USER_NAME = 'Usuário de Teste';
+
+export function generateDevToken(): string {
+  const payload = {
+    sub: DEV_USER_ID,
+    email: DEV_USER_EMAIL,
+    name: DEV_USER_NAME,
+    exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 dias
+    iat: Math.floor(Date.now() / 1000),
+    is_dev: true
+  };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString('base64');
+  return `${DEV_TOKEN_PREFIX}${payloadBase64}`;
+}
+
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   
@@ -97,6 +116,40 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 
   const token = authHeader.substring(7);
+
+  // Verificar se é um token de desenvolvimento
+  if (token.startsWith(DEV_TOKEN_PREFIX)) {
+    if (process.env.NODE_ENV === 'production') {
+      console.log("[Auth] Token de desenvolvimento rejeitado em produção");
+      return res.status(401).json({ message: "Unauthorized - Dev tokens not allowed in production" });
+    }
+    
+    try {
+      const payloadBase64 = token.substring(DEV_TOKEN_PREFIX.length);
+      const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
+      
+      if (!payload.is_dev) {
+        return res.status(401).json({ message: "Unauthorized - Invalid dev token" });
+      }
+      
+      console.log("[Auth] 🔧 Token de DESENVOLVIMENTO aceito - UserId:", payload.sub);
+      
+      (req as any).user = {
+        claims: {
+          sub: payload.sub,
+          supabaseId: payload.sub,
+          email: payload.email,
+          name: payload.name,
+          picture: null,
+        }
+      };
+      
+      return next();
+    } catch (error) {
+      console.log("[Auth] Token de desenvolvimento inválido");
+      return res.status(401).json({ message: "Unauthorized - Invalid dev token format" });
+    }
+  }
 
   try {
     // Decodificar o JWT para extrair claims diretamente

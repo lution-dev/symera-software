@@ -81,13 +81,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files statically
   app.use('/uploads', express.static(uploadDir));
 
-  // ROTA DE DESENVOLVIMENTO - LOGIN AUTOMÁTICO
-  app.get('/api/dev-login', (req: any, res) => {
-    req.session.devIsAuthenticated = true;
-    req.session.devUserId = "8650891";
-    req.session.userId = "8650891";
-    console.log("🔧 LOGIN DE DESENVOLVIMENTO ATIVO - UserId: 8650891");
-    res.json({ message: "Login de desenvolvimento ativo", userId: "8650891" });
+  // ROTA DE DESENVOLVIMENTO - LOGIN AUTOMÁTICO (só funciona fora de produção)
+  app.post('/api/auth/dev-login', async (req: any, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ message: "Dev login não disponível em produção" });
+    }
+    
+    const { generateDevToken } = await import('./supabaseAuth');
+    const token = generateDevToken();
+    
+    console.log("🔧 LOGIN DE DESENVOLVIMENTO - Token gerado");
+    res.json({ 
+      success: true,
+      accessToken: token,
+      userId: "8650891",
+      email: "dev@symera.test",
+      name: "Usuário de Teste"
+    });
+  });
+  
+  // Endpoint para verificar se dev login está disponível
+  app.get('/api/auth/dev-available', (req, res) => {
+    res.json({ available: process.env.NODE_ENV !== 'production' });
   });
   
   // Auth middleware

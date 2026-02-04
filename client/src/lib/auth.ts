@@ -24,6 +24,44 @@ export class AuthManager {
     return AuthManager.instance;
   }
 
+  async isDevLoginAvailable(): Promise<boolean> {
+    try {
+      const response = await fetch('/api/auth/dev-available');
+      const data = await response.json();
+      return data.available === true;
+    } catch {
+      return false;
+    }
+  }
+
+  async signInWithDevToken(): Promise<boolean> {
+    try {
+      const response = await fetch('/api/auth/dev-login', { method: 'POST' });
+      if (!response.ok) {
+        console.error('[Auth] Dev login falhou:', response.status);
+        return false;
+      }
+      
+      const data = await response.json();
+      
+      const authData: AuthData = {
+        userId: data.userId,
+        email: data.email,
+        accessToken: data.accessToken,
+        expiresAt: Date.now() + THIRTY_DAYS_MS,
+        name: data.name,
+        picture: undefined,
+      };
+      
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+      console.log('[Auth] 🔧 Login de desenvolvimento ativo');
+      return true;
+    } catch (error) {
+      console.error('[Auth] Erro no dev login:', error);
+      return false;
+    }
+  }
+
   async signInWithGoogle(): Promise<void> {
     const supabase = await getSupabase();
     

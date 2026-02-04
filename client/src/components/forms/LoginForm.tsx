@@ -10,12 +10,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Logo from "@/components/ui/logo";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Bug } from "lucide-react";
 
 const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isDevLoading, setIsDevLoading] = useState(false);
+  const [showDevLogin, setShowDevLogin] = useState(false);
   const { toast } = useToast();
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signInWithDevToken, isDevLoginAvailable } = useAuth();
+
+  useEffect(() => {
+    isDevLoginAvailable().then(setShowDevLogin);
+  }, []);
 
   const handleGoogleLogin = async () => {
     try {
@@ -29,6 +36,29 @@ const LoginForm = () => {
         variant: "destructive",
       });
       setIsLoading(false);
+    }
+  };
+
+  const handleDevLogin = async () => {
+    try {
+      setIsDevLoading(true);
+      const success = await signInWithDevToken();
+      if (!success) {
+        toast({
+          title: "Erro no login de teste",
+          description: "Não foi possível fazer login de desenvolvimento.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro no dev login:", error);
+      toast({
+        title: "Erro no login de teste",
+        description: "Não foi possível fazer login de desenvolvimento.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDevLoading(false);
     }
   };
 
@@ -81,6 +111,17 @@ const LoginForm = () => {
           </svg>
           {isLoading ? "Conectando..." : "Continuar com Google"}
         </Button>
+
+        {showDevLogin && (
+          <Button
+            onClick={handleDevLogin}
+            className="w-full h-10 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white"
+            disabled={isDevLoading}
+          >
+            <Bug className="h-4 w-4" />
+            {isDevLoading ? "Entrando..." : "Entrar como Teste (Dev)"}
+          </Button>
+        )}
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-center text-sm text-muted-foreground">
