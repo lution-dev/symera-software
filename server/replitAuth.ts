@@ -6,7 +6,7 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import memorystore from "memorystore";
 import { storage } from "./storage";
 import "../shared/types";
 
@@ -35,21 +35,43 @@ const getOidcConfig = memoize(
   { maxAge: 3600 * 1000 }
 );
 
-export function getSession() {
+function createSessionStore() {
   const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 dias em milissegundos
   
-  // Usar PostgreSQL para persistir sessões - sobrevive a reinícios do servidor
-  const PgSession = connectPg(session);
-  const sessionStore = new PgSession({
-    pool: pool as any, // Pool do Neon/Supabase
-    tableName: 'session',
-    createTableIfMissing: true, // Cria a tabela automaticamente
-    pruneSessionInterval: 60 * 15, // Limpa sessões expiradas a cada 15 minutos
+  // Tentar usar PostgreSQL para persistir sessões (sobrevive a reinícios)
+  if (process.env.DATABASE_URL) {
+    try {
+      // Importar pool dinamicamente para evitar crash se DB não existir
+      const { pool } = require("./db");
+      const PgSession = connectPg(session);
+      const sessionStore = new PgSession({
+        pool: pool as any,
+        tableName: 'session',
+        createTableIfMissing: true,
+        pruneSessionInterval: 60 * 15, // Limpa sessões expiradas a cada 15 min
+      });
+      console.log("📦 Sessões persistentes configuradas (PostgreSQL) - login sobrevive a reinícios");
+      return { store: sessionStore, ttl: sessionTtl };
+    } catch (error) {
+      console.warn("⚠️ Falha ao configurar sessões PostgreSQL, usando memória:", error);
+    }
+  }
+  
+  // Fallback para MemoryStore (não sobrevive a reinícios)
+  console.log("⚠️ Usando MemoryStore para sessões - login NÃO sobrevive a reinícios do servidor");
+  const MemoryStore = memorystore(session);
+  const sessionStore = new MemoryStore({
+    checkPeriod: 86400000, // Limpa sessões expiradas a cada 24h
   });
+  return { store: sessionStore, ttl: sessionTtl };
+}
+
+export function getSession() {
+  const { store, ttl } = createSessionStore();
   
   return session({
     secret: process.env.SESSION_SECRET || 'replit-session-secret-dev',
-    store: sessionStore,
+    store,
     resave: false,
     saveUninitialized: false,
     rolling: true, // Reset expiration on activity - crítico para persistência
@@ -57,7 +79,7 @@ export function getSession() {
       httpOnly: true, // Mais seguro - sessões não precisam ser acessadas via JS
       secure: process.env.NODE_ENV === 'production', // HTTPS apenas em produção
       sameSite: 'lax',
-      maxAge: sessionTtl, // 30 dias
+      maxAge: ttl, // 30 dias
     },
   });
 }
