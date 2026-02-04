@@ -504,9 +504,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Generate AI checklist if requested
+      console.log("[AI Checklist] generateAIChecklist value:", formData.generateAIChecklist, "type:", typeof formData.generateAIChecklist);
       if (formData.generateAIChecklist) {
+        console.log("[AI Checklist] Iniciando geração de tarefas para evento:", event.id);
         try {
           const checklistItems = await generateEventChecklist(formData);
+          console.log("[AI Checklist] Tarefas geradas:", checklistItems.length);
           
           // Create tasks from checklist
           for (const item of checklistItems) {
