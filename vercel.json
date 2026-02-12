@@ -1,5 +1,5 @@
 {
-  "buildCommand": "vite build && node build-api.mjs",
+  "buildCommand": "vite build",
   "outputDirectory": "dist/public",
   "installCommand": "npm install",
   "rewrites": [
