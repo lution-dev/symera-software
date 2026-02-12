@@ -255,24 +255,17 @@ export class AuthManager {
           this.saveAuthData(session);
           callback(session);
         } else if (event === 'SIGNED_OUT') {
-          // Só limpar dados quando o usuário faz logout explícito
           console.log('[Auth] Usuário fez logout, limpando dados');
           this.clearAuthData();
           callback(null);
-        } else if (event === 'INITIAL_SESSION') {
-          // INITIAL_SESSION sem sessão: verificar se temos dados salvos
+        } else {
           const savedData = this.getAuthData();
           if (savedData) {
-            console.log('[Auth] INITIAL_SESSION sem sessão mas temos dados salvos, mantendo');
-            // Não limpar - os dados foram salvos pelo callback
+            console.log('[Auth] Evento', event, 'sem sessão, mas temos dados locais - mantendo login');
           } else {
-            console.log('[Auth] INITIAL_SESSION sem sessão e sem dados salvos');
+            console.log('[Auth] Evento', event, 'sem sessão e sem dados salvos');
             callback(null);
           }
-        } else {
-          // Outros eventos sem sessão
-          console.log('[Auth] Evento', event, 'sem sessão');
-          callback(null);
         }
       }
     );

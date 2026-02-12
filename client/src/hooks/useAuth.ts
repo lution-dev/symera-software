@@ -77,7 +77,6 @@ export function useAuth() {
   const { data: user, isLoading: isLoadingUser, error, refetch } = useQuery<UserData>({
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
-      // Usar token da sessão Supabase ou do localStorage
       const token = session?.access_token || authManager.getAccessToken();
       
       if (!token) {
@@ -95,13 +94,25 @@ export function useAuth() {
         
         if (!res.ok) {
           if (res.status === 401) {
-            console.log('[useAuth] 401 - não autorizado');
+            console.log('[useAuth] 401 - tentando renovar token...');
+            const refreshed = await authManager.refreshToken();
+            if (refreshed) {
+              const newToken = authManager.getAccessToken();
+              if (newToken) {
+                const retryRes = await fetch("/api/auth/user", {
+                  headers: { Authorization: `Bearer ${newToken}` },
+                });
+                if (retryRes.ok) {
+                  return await retryRes.json();
+                }
+              }
+            }
+            console.log('[useAuth] 401 confirmado após retry - limpando auth');
             authManager.clearAuthData();
             setHasValidAuthData(false);
             throw new Error("Unauthorized");
           }
-          // Se a API falhar com outro erro, usar dados locais
-          console.log('[useAuth] API falhou, usando dados locais');
+          console.log('[useAuth] Erro HTTP', res.status, '- usando dados locais (servidor pode estar reiniciando)');
           const authData = authManager.getAuthData();
           if (authData) {
             return {
@@ -119,24 +130,28 @@ export function useAuth() {
         console.log('[useAuth] Dados do usuário recebidos:', !!data);
         return data;
       } catch (err: any) {
-        // Se der erro de rede ou outro, usar dados locais
-        if (err.message !== 'Unauthorized') {
-          const authData = authManager.getAuthData();
-          if (authData) {
-            console.log('[useAuth] Usando dados locais após erro:', err.message);
-            return {
-              id: authData.userId,
-              email: authData.email,
-              firstName: authData.name?.split(' ')[0] || authData.email.split('@')[0],
-              lastName: authData.name?.split(' ').slice(1).join(' ') || '',
-              profileImageUrl: authData.picture,
-            };
-          }
+        if (err.message === 'Unauthorized') {
+          throw err;
+        }
+        console.log('[useAuth] Erro de rede/transitório:', err.message, '- mantendo login com dados locais');
+        const authData = authManager.getAuthData();
+        if (authData) {
+          return {
+            id: authData.userId,
+            email: authData.email,
+            firstName: authData.name?.split(' ')[0] || authData.email.split('@')[0],
+            lastName: authData.name?.split(' ').slice(1).join(' ') || '',
+            profileImageUrl: authData.picture,
+          };
         }
         throw err;
       }
     },
-    retry: false,
+    retry: (failureCount, error) => {
+      if (error?.message === 'Unauthorized' || error?.message === 'No token') return false;
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     staleTime: 5 * 60 * 1000,
     enabled: hasValidAuthData || !!session?.access_token,
   });

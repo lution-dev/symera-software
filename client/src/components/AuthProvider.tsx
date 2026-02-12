@@ -14,65 +14,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (initRef.current) return;
     initRef.current = true;
     
+    const fetchServerIdWithRetry = async (session: any, maxRetries = 3): Promise<string | null> => {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const response = await fetch('/api/auth/user', {
+            headers: { Authorization: `Bearer ${session.access_token}` }
+          });
+          if (response.ok) {
+            const serverUser = await response.json();
+            return serverUser.id;
+          }
+          if (response.status === 401) return null;
+        } catch {
+        }
+        if (attempt < maxRetries - 1) {
+          const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+          console.log(`[AuthProvider] Servidor indisponível, tentando novamente em ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+      return null;
+    };
+
     const initializeAuth = async () => {
       console.log('[AuthProvider] Inicializando sistema de autenticação...');
       
       const supabase = await getSupabase();
-      
-      // Verificar se há dados de autenticação válidos no localStorage
       let authData = authManager.getAuthData();
       
       if (authData) {
         console.log('[AuthProvider] Dados locais encontrados, verificando Supabase...');
-        
-        // Mesmo com dados locais, verificar se Supabase tem sessão válida
         try {
           const { data: { session } } = await supabase.auth.getSession();
-          
           if (session) {
             console.log('[AuthProvider] Sessão Supabase válida, atualizando tokens...');
-            // Atualizar tokens locais com os mais recentes do Supabase
             const existingServerId = authData.userId;
             authManager.saveAuthDataWithServerId(session, existingServerId);
-            authData = authManager.getAuthData();
           } else {
-            // Sem sessão Supabase, tentar refresh
             console.log('[AuthProvider] Sem sessão Supabase, tentando refresh...');
-            const refreshed = await authManager.refreshToken();
-            if (!refreshed) {
-              console.log('[AuthProvider] Refresh falhou, dados locais podem estar desatualizados');
-              // Não limpar dados locais aqui - deixar o backend decidir
-            }
+            await authManager.refreshToken();
           }
         } catch (error) {
-          console.log('[AuthProvider] Erro ao verificar Supabase, usando dados locais');
+          console.log('[AuthProvider] Erro ao verificar Supabase, mantendo dados locais (servidor pode estar reiniciando)');
         }
       } else {
         console.log('[AuthProvider] Nenhum dado local encontrado, verificando Supabase...');
-        
-        // Tentar recuperar sessão do Supabase
         try {
           const { data: { session } } = await supabase.auth.getSession();
-          
           if (session) {
-            console.log('[AuthProvider] Sessão Supabase encontrada, buscando server ID...');
-            
-            // Buscar server ID da API - obrigatório para consistência
-            try {
-              const response = await fetch('/api/auth/user', {
-                headers: { Authorization: `Bearer ${session.access_token}` }
-              });
-              
-              if (response.ok) {
-                const serverUser = await response.json();
-                authManager.saveAuthDataWithServerId(session, serverUser.id);
-                authData = authManager.getAuthData();
-                console.log('[AuthProvider] Dados sincronizados com server ID:', serverUser.id);
-              } else {
-                console.log('[AuthProvider] API falhou, aguardando login completo');
-              }
-            } catch (apiError) {
-              console.log('[AuthProvider] Erro na API, aguardando login completo');
+            console.log('[AuthProvider] Sessão Supabase encontrada, buscando server ID com retry...');
+            const serverId = await fetchServerIdWithRetry(session);
+            if (serverId) {
+              authManager.saveAuthDataWithServerId(session, serverId);
+              console.log('[AuthProvider] Dados sincronizados com server ID:', serverId);
+            } else {
+              authManager.saveAuthData(session);
+              console.log('[AuthProvider] Salvando com Supabase ID (server indisponível temporariamente)');
             }
           } else {
             console.log('[AuthProvider] Nenhuma sessão Supabase encontrada');

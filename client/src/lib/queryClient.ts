@@ -1,6 +1,20 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { authManager } from "./auth";
 
+class NetworkError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NetworkError';
+  }
+}
+
+class AuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -48,9 +62,14 @@ export async function apiRequest(
     });
   };
   
-  let res = await makeRequest();
+  let res: Response;
+  try {
+    res = await makeRequest();
+  } catch (err) {
+    console.log("[apiRequest] Erro de rede (servidor pode estar reiniciando):", err);
+    throw new NetworkError("Server temporarily unavailable");
+  }
   
-  // Se receber 401, tentar renovar token e repetir
   if (res.status === 401) {
     console.log("[apiRequest] 401 recebido, tentando renovar token...");
     const refreshed = await authManager.refreshToken();
@@ -59,8 +78,7 @@ export async function apiRequest(
       res = await makeRequest();
     } else {
       console.log("[apiRequest] Não foi possível renovar token");
-      // Não redirecionar aqui - deixar ProtectedRoute cuidar do redirect
-      throw new Error("Session expired");
+      throw new AuthError("Session expired");
     }
   }
 
@@ -74,10 +92,11 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const url = queryKey[0] as string;
+    
+    let res: Response;
     try {
-      const url = queryKey[0] as string;
-      
-      const res = await fetch(url, {
+      res = await fetch(url, {
         credentials: "include",
         headers: {
           "Cache-Control": "no-cache",
@@ -85,11 +104,16 @@ export const getQueryFn: <T>(options: {
           ...getAuthHeaders(),
         }
       });
+    } catch (err) {
+      console.log("[getQueryFn] Erro de rede (servidor pode estar reiniciando):", url);
+      throw new NetworkError("Server temporarily unavailable");
+    }
 
-      if (res.status === 401) {
-        console.log("[Auth] 401 em query, tentando renovar token...");
-        const refreshed = await authManager.refreshToken();
-        if (refreshed) {
+    if (res.status === 401) {
+      console.log("[Auth] 401 em query, tentando renovar token...");
+      const refreshed = await authManager.refreshToken();
+      if (refreshed) {
+        try {
           const newRes = await fetch(url, {
             credentials: "include",
             headers: {
@@ -101,25 +125,34 @@ export const getQueryFn: <T>(options: {
           if (newRes.ok) {
             return await newRes.json();
           }
+        } catch {
+          throw new NetworkError("Server temporarily unavailable after token refresh");
         }
-        
-        // Não redirecionar aqui - deixar ProtectedRoute cuidar
-        if (unauthorizedBehavior === "returnNull") {
-          return null;
-        }
-        throw new Error('Unauthorized');
       }
       
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      if (unauthorizedBehavior === "returnNull") {
+        return null;
       }
-
-      const data = await res.json();
-      return data;
-    } catch (error) {
-      throw error;
+      throw new AuthError('Unauthorized');
     }
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   };
+
+function isTransientError(error: unknown): boolean {
+  if (error instanceof NetworkError) return true;
+  if (error instanceof AuthError) return false;
+  if (error instanceof Error) {
+    const msg = error.message;
+    if (msg.startsWith('5') || msg.includes('fetch') || msg.includes('network') || msg.includes('unavailable')) return true;
+  }
+  return false;
+}
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -128,7 +161,12 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
-      retry: false,
+      retry: (failureCount, error) => {
+        if (error instanceof AuthError) return false;
+        if (isTransientError(error) && failureCount < 3) return true;
+        return false;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
     mutations: {
       retry: false,
