@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "cross-env NODE_ENV=production node dist/index.js",
-    "check": "tsc",
+    "check": "tsc",cl
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
@@ -49,7 +49,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "connect-pg-simple": "^10.0.0",
-    "cross-env": "^10.1.0",
     "csv-parser": "^3.2.0",
     "date-fns": "^3.6.0",
     "dotenv": "^17.2.4",
