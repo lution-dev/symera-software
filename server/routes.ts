@@ -2278,13 +2278,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
       
-      // Get upcoming events (next 30 days)
+      // Sort active events by startDate ascending (closest first)
+      activeEventsWithDetails.sort((a, b) => {
+        const dateA = new Date(a.startDate || "2099-12-31");
+        const dateB = new Date(b.startDate || "2099-12-31");
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      // Get upcoming events (next 30 days) using startDate
       const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
       const thirtyDaysFromNow = new Date(today);
       thirtyDaysFromNow.setDate(today.getDate() + 30);
       
       const upcomingEvents = events.filter(event => {
-        const eventDate = new Date(event.date);
+        const eventDate = new Date(event.startDate);
         return eventDate >= today && eventDate <= thirtyDaysFromNow;
       });
       

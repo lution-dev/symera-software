@@ -79,39 +79,50 @@ const Dashboard: React.FC = () => {
   }, [isLoading, data, user]);
 
   const upcomingEvents = data?.upcomingEvents || [];
-  // Get events list and sort by start date (upcoming first)
   const activeEventsList = React.useMemo(() => {
     const events = data?.activeEventsList || [];
-    return [...events].sort((a, b) => {
-      const dateA = new Date(a.start_date || a.startDate || "2099-12-31");
-      const dateB = new Date(b.start_date || b.startDate || "2099-12-31");
-      return dateA.getTime() - dateB.getTime();
-    });
+    const now = new Date();
+    now.setUTCHours(0, 0, 0, 0);
+    return [...events]
+      .sort((a, b) => {
+        const dateA = new Date(a.startDate || a.start_date || "2099-12-31");
+        const dateB = new Date(b.startDate || b.start_date || "2099-12-31");
+        return dateA.getTime() - dateB.getTime();
+      })
+      .filter(event => {
+        const eventDate = new Date(event.startDate || event.start_date || "2099-12-31");
+        return eventDate >= now;
+      });
   }, [data?.activeEventsList]);
+  
+  const allActiveEventsList = data?.activeEventsList || [];
   
   const totalEvents = data?.totalEvents || 0;
   const pendingTasks = data?.pendingTasks || [];
   const recentActivities = data?.recentActivities || [];
   
   // Filter active events (with status planning, confirmed, or in_progress)
-  const activeEvents = activeEventsList.filter(event => 
+  const activeEvents = allActiveEventsList.filter(event => 
     event.status === 'planning' || 
     event.status === 'confirmed' || 
     event.status === 'in_progress'
   ).length;
   
   // Count events by status
-  const planningEvents = activeEventsList.filter(event => event.status === 'planning').length;
-  const confirmedEvents = activeEventsList.filter(event => event.status === 'confirmed').length;
-  const inProgressEvents = activeEventsList.filter(event => event.status === 'in_progress').length;
+  const planningEvents = allActiveEventsList.filter(event => event.status === 'planning').length;
+  const confirmedEvents = allActiveEventsList.filter(event => event.status === 'confirmed').length;
+  const inProgressEvents = allActiveEventsList.filter(event => event.status === 'in_progress').length;
 
   // Determine next upcoming event days
   const upcomingEventDays = React.useMemo(() => {
     if (upcomingEvents.length > 0) {
-      return calculateDaysRemaining(upcomingEvents[0].date);
+      return calculateDaysRemaining(upcomingEvents[0].startDate || upcomingEvents[0].start_date || upcomingEvents[0].date);
+    }
+    if (activeEventsList.length > 0) {
+      return calculateDaysRemaining(activeEventsList[0].startDate || activeEventsList[0].start_date || activeEventsList[0].date);
     }
     return 0;
-  }, [upcomingEvents]);
+  }, [upcomingEvents, activeEventsList]);
 
   return (
     <div className="container mx-auto px-4 py-4 sm:py-6 mobile-spacing">
@@ -273,7 +284,7 @@ const Dashboard: React.FC = () => {
       {/* Card de dicas/recursos com sistema de rotação e interação */}
       <TipsCard 
         isCreatingFirstEvent={totalEvents === 0} 
-        hasTeamMembers={activeEventsList.some(event => event.team && event.team.length > 0)} 
+        hasTeamMembers={allActiveEventsList.some(event => event.team && event.team.length > 0)} 
         hasVendors={true} // Assumimos que alguns eventos já têm fornecedores
         hasTasks={pendingTasks.length > 0}
       />
@@ -321,10 +332,10 @@ const Dashboard: React.FC = () => {
                       name={event.name}
                       type={event.type}
                       format={event.format}
-                      startDate={event.start_date || event.startDate}
-                      endDate={event.end_date || event.endDate}
-                      startTime={event.start_time || event.startTime || "19:00"}
-                      endTime={event.end_time || event.endTime || "23:00"}
+                      startDate={event.startDate || event.start_date}
+                      endDate={event.endDate || event.end_date}
+                      startTime={event.startTime || event.start_time || "19:00"}
+                      endTime={event.endTime || event.end_time || "23:00"}
                       location={event.location}
                       status={event.status}
                       attendees={event.attendees}
@@ -346,10 +357,10 @@ const Dashboard: React.FC = () => {
                   name={event.name}
                   type={event.type}
                   format={event.format}
-                  startDate={event.start_date || event.startDate}
-                  endDate={event.end_date || event.endDate}
-                  startTime={event.start_time || event.startTime || "19:00"}
-                  endTime={event.end_time || event.endTime || "23:00"}
+                  startDate={event.startDate || event.start_date}
+                  endDate={event.endDate || event.end_date}
+                  startTime={event.startTime || event.start_time || "19:00"}
+                  endTime={event.endTime || event.end_time || "23:00"}
                   location={event.location}
                   status={event.status}
                   attendees={event.attendees}
@@ -473,7 +484,7 @@ const Dashboard: React.FC = () => {
                   };
                   
                   // Pegar o nome do evento da API ou dos detalhes
-                  const eventName = activeEventsList.find(e => e.id === activity.eventId)?.name || activity.details?.eventName || '';
+                  const eventName = allActiveEventsList.find(e => e.id === activity.eventId)?.name || activity.details?.eventName || '';
                   
                   // Determinar cor do ícone e bolinha com base no tipo de ação
                   const getActivityColorClass = () => {
