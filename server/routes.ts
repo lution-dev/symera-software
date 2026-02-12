@@ -230,7 +230,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await dbStorage.upsertUser({
             ...existingUser,
             profileImageUrl: userPicture,
-            updatedAt: new Date()
           });
           existingUser.profileImageUrl = userPicture;
         }
@@ -248,7 +247,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await dbStorage.upsertUser({
             ...existingUserById,
             profileImageUrl: userPicture,
-            updatedAt: new Date()
           });
           existingUserById.profileImageUrl = userPicture;
         }
@@ -263,8 +261,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: userEmail,
         firstName: userName?.split(' ')[0] || userEmail.split('@')[0] || 'Usuário',
         lastName: userName?.split(' ').slice(1).join(' ') || '',
-        createdAt: new Date(),
-        updatedAt: new Date()
       };
       if (userPicture) {
         userData.profileImageUrl = userPicture;
@@ -371,106 +367,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Retornando evento com feedbackUrl: ${event.feedbackUrl || 'null'}`);
       return res.json(event);
-      
-      // Verificação automática de status baseado nas tarefas e datas
-      // Verificamos os logs de atividade para determinar se o status atual foi definido manualmente
-      const activities = await dbStorage.getActivityLogsByEventId(eventId);
-      
-      // Encontramos o último log de atividade relacionado ao status
-      const lastStatusActivity = activities
-        .filter(log => log.action === "status_updated" || log.action === "status_auto_updated")
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        
-      // Se o último status foi definido manualmente, não devemos alterar automaticamente
-      const statusWasSetManually = lastStatusActivity && lastStatusActivity.action === "status_updated";
-      
-      // Só alteramos automaticamente o status se ele NÃO foi definido manualmente por último
-      if (!statusWasSetManually && event.status !== "cancelled") {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const eventDate = new Date(event.date);
-        eventDate.setHours(0, 0, 0, 0);
-        
-        // Buscar todas as tarefas do evento
-        const tasks = await dbStorage.getTasksByEventId(eventId);
-        
-        // Só aplicamos automação se o status NÃO foi definido manualmente
-        if (!statusWasSetManually) {
-          // Verificar se o evento está acontecendo hoje: status = em andamento
-          if (eventDate.getTime() === today.getTime() && event.status !== "in_progress" && event.status !== "completed") {
-            await dbStorage.updateEvent(eventId, { status: "in_progress" });
-            await dbStorage.createActivityLog({
-              eventId,
-              userId,
-              action: "status_auto_updated",
-              details: { 
-                oldStatus: event.status,
-                newStatus: "in_progress",
-                reason: "O evento está acontecendo hoje"
-              }
-            });
-            event.status = "in_progress";
-          }
-          
-          // Verificar se o evento já passou e todas as tarefas estão concluídas: status = concluído
-          const eventPassed = eventDate < today;
-          const allTasksCompleted = tasks.length > 0 && tasks.every(task => task.status === "completed");
-          
-          if (eventPassed && allTasksCompleted && event.status !== "completed") {
-            await dbStorage.updateEvent(eventId, { status: "completed" });
-            await dbStorage.createActivityLog({
-              eventId,
-              userId,
-              action: "status_auto_updated",
-              details: { 
-                oldStatus: event.status,
-                newStatus: "completed",
-                reason: "O evento já passou e todas as tarefas foram concluídas"
-              }
-            });
-            event.status = "completed";
-          }
-        }
-        
-        // Verificar se faltam 3 dias ou menos para o evento e mais de 80% das tarefas estão pendentes
-        const threeDaysFromNow = new Date();
-        threeDaysFromNow.setDate(today.getDate() + 3);
-        
-        const isApproaching = eventDate <= threeDaysFromNow && eventDate >= today;
-        const pendingTasks = tasks.filter(task => task.status !== "completed");
-        const pendingPercentage = tasks.length > 0 ? (pendingTasks.length / tasks.length) * 100 : 0;
-        
-        // Adicionar alerta ao evento se necessário
-        if (isApproaching && pendingPercentage > 80) {
-          event.warningMessage = "⚠️ Atenção! A maioria das tarefas ainda não foi concluída e o evento está próximo.";
-        } else {
-          event.warningMessage = undefined;
-        }
-      }
-      
-      // Garantir que o formato esteja correto na resposta (correção do bug)
-      // Consultar diretamente o banco para obter o formato atualizado
-      const formatResult = await db.execute(`
-        SELECT format FROM events WHERE id = $1
-      `, [eventId]);
-      
-      // Se encontrarmos o formato no banco, usá-lo na resposta
-      if (formatResult && formatResult.rows && formatResult.rows.length > 0) {
-        const format = formatResult.rows[0].format;
-        console.log(`[Debug] Formato do evento ${eventId} obtido diretamente do banco:`, format);
-        // Atualizar o formato no objeto do evento para que seja exibido corretamente na interface
-        event.format = format;
-      }
-      
-      console.log(`[Debug] Objeto evento completo:`, JSON.stringify({
-        id: event.id,
-        name: event.name,
-        format: event.format
-      }));
-      
-      console.log(`Retornando dados do evento ${eventId} para usuário ${userId}`);
-      res.json(event);
     } catch (error) {
       console.error("Error fetching event:", error);
       res.status(500).json({ message: "Failed to fetch event" });
@@ -532,7 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: event.id,
         userId: userId,
         role: "organizer",
-        permissions: { canDelete: true, canEdit: true, canInvite: true }
+        permissions: JSON.stringify({ canDelete: true, canEdit: true, canInvite: true })
       });
       
       // Generate AI checklist if requested
@@ -565,7 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: event.id,
         userId,
         action: "created_event",
-        details: { eventName: event.name }
+        details: JSON.stringify({ eventName: event.name })
       });
       
       res.status(201).json(event);
@@ -715,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.error('[Debug API] Erro ao processar upload de imagem:', error);
           // Em caso de erro, manter a imagem original
-          coverImageUrl = event.coverImageUrl;
+          coverImageUrl = event.coverImageUrl || undefined;
         }
       }
 
@@ -760,7 +656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "updated_event",
-        details: { eventName: updatedEvent.name }
+        details: JSON.stringify({ eventName: updatedEvent.name })
       });
       
       res.json(updatedEvent);
@@ -824,11 +720,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "status_updated",
-        details: { 
+        details: JSON.stringify({ 
           eventName: event.name,
           oldStatus: event.status,
           newStatus: req.body.status
-        }
+        })
       });
       
       res.json(updatedEvent);
@@ -988,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: task.eventId,
         userId,
         action: "updated_task",
-        details: { taskTitle: updatedTask.title }
+        details: JSON.stringify({ taskTitle: updatedTask.title })
       });
       
       res.json(updatedTask);
@@ -1021,7 +917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const events = await dbStorage.getEventsByUser(userId);
       
       // Para cada evento, buscar as tarefas
-      let allTasks = [];
+      let allTasks: any[] = [];
       for (const event of events) {
         const eventTasks = await dbStorage.getTasksByEventId(event.id);
         
@@ -1215,7 +1111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "vendor_added",
-        details: { vendorName: vendor.name, service: vendor.service }
+        details: JSON.stringify({ vendorName: vendor.name, service: vendor.service })
       });
       
       res.status(201).json(vendor);
@@ -1263,7 +1159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: vendor.eventId,
         userId,
         action: "vendor_updated",
-        details: { vendorName: updatedVendor.name, service: updatedVendor.service }
+        details: JSON.stringify({ vendorName: updatedVendor.name, service: updatedVendor.service })
       });
       
       res.json(updatedVendor);
@@ -1305,7 +1201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: vendor.eventId,
         userId,
         action: "vendor_deleted",
-        details: { vendorName: vendor.name, service: vendor.service }
+        details: JSON.stringify({ vendorName: vendor.name, service: vendor.service })
       });
       
       res.status(200).json({ success: true });
@@ -1360,7 +1256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validar dados do item de orçamento
-      const budgetItemSchema = insertExpenseSchema.omit({ id: true, createdAt: true, updatedAt: true });
+      const budgetItemSchema = insertExpenseSchema;
       const validatedData = budgetItemSchema.parse({
         ...req.body,
         eventId: eventId,
@@ -1376,11 +1272,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "budget_item_added",
-        details: { 
+        details: JSON.stringify({ 
           itemName: budgetItem.name, 
           category: budgetItem.category,
           amount: budgetItem.amount
-        }
+        })
       });
       
       res.status(201).json(budgetItem);
@@ -1421,7 +1317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validar dados do item
-      const updateSchema = insertExpenseSchema.partial().omit({ id: true, eventId: true, createdAt: true, updatedAt: true });
+      const updateSchema = insertExpenseSchema.partial();
       
       const updateData = updateSchema.parse({
         ...req.body,
@@ -1436,11 +1332,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: budgetItem.eventId,
         userId,
         action: "budget_item_updated",
-        details: { 
+        details: JSON.stringify({ 
           itemName: updatedItem.name, 
           category: updatedItem.category,
           amount: updatedItem.amount
-        }
+        })
       });
       
       res.json(updatedItem);
@@ -1488,11 +1384,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: budgetItem.eventId,
         userId,
         action: "budget_item_deleted",
-        details: { 
+        details: JSON.stringify({ 
           itemName: budgetItem.name, 
           category: budgetItem.category,
           amount: budgetItem.amount
-        }
+        })
       });
       
       res.status(200).json({ success: true });
@@ -1588,10 +1484,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "schedule_item_created",
-        details: { 
+        details: JSON.stringify({ 
           title,
           startTime
-        }
+        })
       });
       
       res.status(201).json(newItem);
@@ -1664,10 +1560,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: item.eventId,
         userId,
         action: "schedule_item_updated",
-        details: { 
+        details: JSON.stringify({ 
           title: title,
           startTime: startTime
-        }
+        })
       });
       
       res.json(updatedItem[0]);
@@ -1720,10 +1616,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: item.eventId,
         userId,
         action: "schedule_item_deleted",
-        details: { 
+        details: JSON.stringify({ 
           title: item.title,
           startTime: item.startTime
-        }
+        })
       });
       
       res.status(200).json({ success: true });
@@ -1775,7 +1671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "created_task",
-        details: { taskTitle: task.title }
+        details: JSON.stringify({ taskTitle: task.title })
       });
       
       res.status(201).json(task);
@@ -1822,10 +1718,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: task.eventId,
         userId,
         action: "updated_task",
-        details: { 
+        details: JSON.stringify({ 
           taskTitle: updatedTask.title,
           changes: req.body.status ? { status: req.body.status } : {}
-        }
+        })
       });
       
       res.json(updatedTask);
@@ -1944,11 +1840,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               eventId,
               userId: memberId,
               role: 'team_member',
-              permissions: {
+              permissions: JSON.stringify({
                 canEdit: true,
                 canDelete: false,
                 canInvite: false
-              }
+              })
             });
             
             if (teamMember) {
@@ -1978,7 +1874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eventId,
             userId: member.id,
             role: role,
-            permissions: role === 'organizer' ? {
+            permissions: JSON.stringify(role === 'organizer' ? {
               canEdit: true,
               canDelete: true,
               canInvite: true
@@ -1986,7 +1882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               canEdit: true,
               canDelete: false,
               canInvite: false
-            }
+            })
           });
           
           // Log activity
@@ -1994,7 +1890,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eventId,
             userId,
             action: "added_team_member",
-            details: { memberEmail: email, memberRole: role }
+            details: JSON.stringify({ memberEmail: email, memberRole: role })
           });
           
           res.status(201).json({
@@ -2031,11 +1927,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eventId,
             userId: memberId,
             role: 'team_member',
-            permissions: {
+            permissions: JSON.stringify({
               canEdit: true,
               canDelete: false,
               canInvite: false
-            }
+            })
           });
           
           if (teamMember) {
@@ -2118,7 +2014,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId: currentUserId,
         action: "removed_team_member",
-        details: { removedUserId: userIdToRemove }
+        details: JSON.stringify({ removedUserId: userIdToRemove })
       });
       
       res.status(204).send();
@@ -2162,7 +2058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId: member.id,
         role: req.body.role,
-        permissions: req.body.permissions || {}
+        permissions: typeof req.body.permissions === 'object' ? JSON.stringify(req.body.permissions || {}) : (req.body.permissions || '{}')
       });
       
       // Log activity
@@ -2170,7 +2066,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "added_team_member",
-        details: { memberEmail: req.body.email, role: req.body.role }
+        details: JSON.stringify({ memberEmail: req.body.email, role: req.body.role })
       });
       
       res.status(201).json(teamMember);
@@ -2297,7 +2193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Get pending tasks
-      let pendingTasks = [];
+      let pendingTasks: any[] = [];
       for (const event of events) {
         const tasks = await dbStorage.getTasksByEventId(event.id);
         pendingTasks = pendingTasks.concat(
@@ -2306,7 +2202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get recent activities
-      let recentActivities = [];
+      let recentActivities: any[] = [];
       for (const event of events) {
         const activities = await dbStorage.getActivityLogsByEventId(event.id);
         recentActivities = recentActivities.concat(activities);
@@ -2399,8 +2295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const checklistItems = await generateEventChecklist({
         name: event.name,
         type: event.type,
-        startDate: event.date,
-        date: event.date,
+        startDate: event.startDate ? event.startDate.toISOString() : '',
         location: event.location || undefined,
         description: event.description || undefined,
         budget: event.budget || undefined,
@@ -2428,7 +2323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "generated_ai_checklist",
-        details: { taskCount: tasks.length }
+        details: JSON.stringify({ taskCount: tasks.length })
       });
       
       res.status(201).json(tasks);
@@ -2557,12 +2452,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: "expense_added",
-        details: {
+        details: JSON.stringify({
           itemName: expense.name, 
           category: expense.category,
           amount: expense.amount,
           vendorId: expense.vendorId
-        }
+        })
       });
       
       res.status(201).json(expense);
@@ -2633,11 +2528,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: expense.eventId,
         userId,
         action: "expense_updated",
-        details: {
+        details: JSON.stringify({
           itemName: updatedExpense.name,
           amount: updatedExpense.amount,
           paid: updatedExpense.paid
-        }
+        })
       });
       
       res.json(updatedExpense);
@@ -2717,11 +2612,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: expense.eventId,
         userId,
         action: "expense_updated",
-        details: {
+        details: JSON.stringify({
           itemName: updatedExpense.name,
           amount: updatedExpense.amount,
           paid: updatedExpense.paid
-        }
+        })
       });
       
       res.json(updatedExpense);
@@ -2777,11 +2672,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: expense.eventId,
         userId,
         action: "expense_updated",
-        details: {
+        details: JSON.stringify({
           itemName: updatedExpense.name,
           amount: updatedExpense.amount,
           paid: updatedExpense.paid
-        }
+        })
       });
       
       res.json(updatedExpense);
@@ -2831,11 +2726,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId: expense.eventId,
         userId,
         action: "expense_deleted",
-        details: {
+        details: JSON.stringify({
           itemName: expense.name, 
           category: expense.category,
           amount: expense.amount
-        }
+        })
       });
       
       res.status(200).json({ message: "Despesa excluída com sucesso" });
@@ -3001,10 +2896,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: 'document_added',
-        details: { 
+        details: JSON.stringify({ 
           filename: document.name,
           category: document.category
-        }
+        })
       });
       
       res.status(201).json(document);
@@ -3053,10 +2948,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await dbStorage.createActivityLog({
         eventId,
         userId,
-        action: 'update',
-        entityType: 'document',
-        entityId: documentId.toString(),
-        description: `Documento "${updatedDocument.filename}" atualizado`
+        action: 'document_updated',
+        details: JSON.stringify({
+          entityType: 'document',
+          entityId: documentId.toString(),
+          documentName: updatedDocument.name
+        })
       });
       
       res.json(updatedDocument);
@@ -3099,10 +2996,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await dbStorage.createActivityLog({
         eventId,
         userId,
-        action: 'delete',
-        entityType: 'document',
-        entityId: documentId.toString(),
-        description: `Documento "${documentInfo.filename}" removido`
+        action: 'document_deleted',
+        details: JSON.stringify({
+          entityType: 'document',
+          entityId: documentId.toString(),
+          documentName: documentInfo.name
+        })
       });
       
       res.status(204).send();
@@ -3113,18 +3012,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // === PARTICIPANTS ROUTES (Lista de Participantes) ===
-
-  // Helper function to validate email
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Helper function to validate phone
-  const isValidPhone = (phone: string): boolean => {
-    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-    return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
-  };
 
   // Helper function to process CSV/XLSX data
   const processParticipantFile = async (filePath: string, eventId: number): Promise<{
@@ -3344,7 +3231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: 'create_participant',
-        details: { participantName: participant.name }
+        details: JSON.stringify({ participantName: participant.name })
       });
 
       res.status(201).json(participant);
@@ -3451,7 +3338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       return res.status(500).json({ 
-        message: `Erro ao processar arquivo: ${error.message}` 
+        message: `Erro ao processar arquivo: ${(error as any).message}` 
       });
     }
   });
@@ -3499,7 +3386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: 'import_participants',
-        details: { count: createdParticipants.length, origin: 'csv' }
+        details: JSON.stringify({ count: createdParticipants.length, origin: 'csv' })
       });
 
       res.status(201).json({
@@ -3522,7 +3409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.eventId);
       const participantId = parseInt(req.params.participantId);
-      const userId = req.user!.claims?.sub || req.user!.id;
+      const userId = (req as any).user?.claims?.sub || (req as any).user?.id;
 
       // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -3546,7 +3433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: 'update_participant',
-        details: { participantName: updatedParticipant.name }
+        details: JSON.stringify({ participantName: updatedParticipant.name })
       });
 
       res.json(updatedParticipant);
@@ -3564,7 +3451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.eventId);
       const participantId = parseInt(req.params.participantId);
-      const userId = req.user!.claims?.sub || req.user!.id;
+      const userId = (req as any).user?.claims?.sub || (req as any).user?.id;
 
       // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -3585,7 +3472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: 'delete_participant',
-        details: { participantName: existingParticipant.name }
+        details: JSON.stringify({ participantName: existingParticipant.name })
       });
 
       res.status(204).send();
@@ -3599,7 +3486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/events/:eventId/participants/stats", isAuthenticated, async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
-      const userId = req.user!.claims?.sub || req.user!.id;
+      const userId = (req as any).user?.claims?.sub || (req as any).user?.id;
 
       // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -3707,7 +3594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.eventId);
       const teamMemberId = parseInt(req.params.memberId);
-      const userId = req.user!.claims?.sub || req.user!.id;
+      const userId = (req as any).user?.claims?.sub || (req as any).user?.id;
 
       // Check access
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
@@ -3746,7 +3633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventId,
         userId,
         action: 'team_member_removed',
-        details: { removedUserId: teamMember.userId }
+        details: JSON.stringify({ removedUserId: teamMember.userId })
       });
 
       res.status(204).send();
@@ -3989,7 +3876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[DEBUG] Gerando link - EventId: ${eventId}, UserId: ${userId}`);
 
-      const finalUserId = userId || req.user?.id;
+      const finalUserId = userId || (req as any).user?.id;
       if (!finalUserId) {
         return res.status(401).json({ message: "Unauthorized - Login Required" });
       }
@@ -4036,5 +3923,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  return app;
+  return httpServer;
 }

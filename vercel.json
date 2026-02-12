@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npx vite build --config vite.config.ts",
+  "outputDirectory": "dist/public",
+  "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.ts" }
+  ],
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 30
+    }
+  }
+}

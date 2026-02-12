@@ -118,13 +118,6 @@ export interface IStorage {
   removeTaskAssignee(taskId: number, userId: string): Promise<void>;
   replaceTaskAssignees(taskId: number, userIds: string[]): Promise<TaskAssignee[]>;
   
-  // Task reminder operations
-  getTaskReminders(taskId: number): Promise<TaskReminder[]>;
-  getTaskRemindersByUser(userId: string): Promise<TaskReminder[]>;
-  createTaskReminder(reminder: InsertTaskReminder): Promise<TaskReminder>;
-  markReminderAsSent(id: number): Promise<TaskReminder>;
-  deleteTaskReminder(id: number): Promise<void>;
-  
   // Team member operations
   getTeamMembersByEventId(eventId: number): Promise<(EventTeamMember & { user: User })[]>;
   addTeamMember(teamMember: InsertEventTeamMember): Promise<EventTeamMember>;
@@ -301,8 +294,8 @@ export class DatabaseStorage implements IStorage {
           id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           email,
           firstName,
-          lastName: lastName || null,
-          phone: phone || null,
+          lastName: lastName || '',
+          phone: phone || undefined,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
@@ -475,10 +468,9 @@ export class DatabaseStorage implements IStorage {
         }
       }
       
-      // Sort by startDate (com fallback para date se necessário)
       const sortedEvents = allEvents.sort((a, b) => {
-        const dateA = a.startDate || a.date;
-        const dateB = b.startDate || b.date;
+        const dateA = a.startDate;
+        const dateB = b.startDate;
         return new Date(dateB).getTime() - new Date(dateA).getTime();
       });
       
@@ -686,7 +678,6 @@ export class DatabaseStorage implements IStorage {
       .from(eventTeamMembers)
       .where(eq(eventTeamMembers.eventId, eventId));
     
-    // Get user details for each team member
     return Promise.all(
       teamMembers.map(async (member) => {
         const [user] = await db
@@ -694,8 +685,14 @@ export class DatabaseStorage implements IStorage {
           .from(users)
           .where(eq(users.id, member.userId));
         
+        let parsedPermissions: any = member.permissions;
+        if (typeof parsedPermissions === 'string') {
+          try { parsedPermissions = JSON.parse(parsedPermissions); } catch { parsedPermissions = {}; }
+        }
+        
         return {
           ...member,
+          permissions: parsedPermissions,
           user,
         };
       })
@@ -868,11 +865,19 @@ export class DatabaseStorage implements IStorage {
 
   // Activity log operations
   async getActivityLogsByEventId(eventId: number): Promise<ActivityLog[]> {
-    return db
+    const logs = await db
       .select()
       .from(activityLogs)
       .where(eq(activityLogs.eventId, eventId))
       .orderBy(desc(activityLogs.createdAt));
+    
+    return logs.map(log => {
+      let parsedDetails: any = log.details;
+      if (typeof parsedDetails === 'string') {
+        try { parsedDetails = JSON.parse(parsedDetails); } catch { parsedDetails = {}; }
+      }
+      return { ...log, details: parsedDetails };
+    });
   }
 
   async createActivityLog(activityLogData: InsertActivityLog): Promise<ActivityLog> {
@@ -1132,41 +1137,6 @@ export class DatabaseStorage implements IStorage {
     });
   }
   
-  // Task reminder operations
-  async getTaskReminders(taskId: number): Promise<TaskReminder[]> {
-    return executeWithRetry(async () => {
-      // NOTA: Esta funcionalidade será implementada posteriormente
-      return [];
-    });
-  }
-  
-  async getTaskRemindersByUser(userId: string): Promise<TaskReminder[]> {
-    return executeWithRetry(async () => {
-      // NOTA: Esta funcionalidade será implementada posteriormente
-      return [];
-    });
-  }
-  
-  async createTaskReminder(reminderData: InsertTaskReminder): Promise<TaskReminder> {
-    return executeWithRetry(async () => {
-      // NOTA: Esta funcionalidade será implementada posteriormente
-      return { id: 0, taskId: reminderData.taskId, userId: reminderData.userId, scheduledTime: new Date(), sent: false, createdAt: new Date() } as TaskReminder;
-    });
-  }
-  
-  async markReminderAsSent(id: number): Promise<TaskReminder> {
-    return executeWithRetry(async () => {
-      // NOTA: Esta funcionalidade será implementada posteriormente
-      return { id: id, taskId: 0, userId: '', scheduledTime: new Date(), sent: true, sentAt: new Date(), createdAt: new Date(), updatedAt: new Date() } as TaskReminder;
-    });
-  }
-  
-  async deleteTaskReminder(id: number): Promise<void> {
-    return executeWithRetry(async () => {
-      // NOTA: Esta funcionalidade será implementada posteriormente
-    });
-  }
-
   // Document operations
   async getDocumentsByEventId(eventId: number): Promise<Document[]> {
     // Verificar cache
@@ -1336,7 +1306,7 @@ export class DatabaseStorage implements IStorage {
       const createdParticipants = await db.insert(participants).values(participantsData).returning();
       
       // Invalidar cache para todos os eventos afetados
-      const eventIds = [...new Set(participantsData.map(p => p.eventId))];
+      const eventIds = Array.from(new Set(participantsData.map(p => p.eventId)));
       eventIds.forEach(eventId => {
         participantCache.invalidate(`participants:event:${eventId}`);
       });
@@ -1563,40 +1533,6 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async deleteFeedback(feedbackId: number): Promise<void> {
-    return executeWithRetry(async () => {
-      await db
-        .delete(eventFeedbacks)
-        .where(eq(eventFeedbacks.id, feedbackId));
-    });
-  }
-
-  async generateFeedbackLink(eventId: number): Promise<string> {
-    return executeWithRetry(async () => {
-      // Verificar se já existe um link
-      const [existingEvent] = await db
-        .select({ feedbackUrl: events.feedbackUrl })
-        .from(events)
-        .where(eq(events.id, eventId));
-
-      if (existingEvent?.feedbackUrl) {
-        return existingEvent.feedbackUrl;
-      }
-
-      // Gerar novo link único
-      const feedbackId = `feedback_${eventId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const feedbackUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://symera.replit.app'}/feedback/${feedbackId}`;
-
-      // Salvar o link no evento
-      await db
-        .update(events)
-        .set({ feedbackUrl })
-        .where(eq(events.id, eventId));
-
-      console.log(`[DEBUG] Link de feedback gerado: ${feedbackUrl} para evento ${eventId}`);
-      return feedbackUrl;
-    });
-  }
 
   async getExistingFeedbackLink(eventId: number): Promise<string | null> {
     return executeWithRetry(async () => {

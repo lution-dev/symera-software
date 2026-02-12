@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { text, integer, pgTable, timestamp, boolean, uniqueIndex } from 'drizzle-orm/pg-core';
+import { text, integer, pgTable, timestamp, boolean, serial } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -15,7 +15,7 @@ export const users = pgTable('users', {
 });
 
 export const events = pgTable('events', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   name: text('name').notNull(),
   type: text('type').notNull(),
   format: text('format').notNull(),
@@ -37,11 +37,8 @@ export const events = pgTable('events', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Declaração das relações será feita após a definição de todas as tabelas
-// para evitar referências a tabelas ainda não definidas
-
 export const tasks = pgTable('tasks', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description'),
   dueDate: timestamp('due_date'),
@@ -54,32 +51,32 @@ export const tasks = pgTable('tasks', {
 });
 
 export const taskAssignees = pgTable('task_assignees', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   taskId: integer('task_id').references(() => tasks.id).notNull(),
   userId: text('user_id').references(() => users.id).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const activityLogs = pgTable('activity_logs', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id).notNull(),
   userId: text('user_id').references(() => users.id).notNull(),
   action: text('action').notNull(),
-  details: text('details', { mode: 'json' }).default('{}'),
+  details: text('details'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const eventTeamMembers = pgTable('event_team_members', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id).notNull(),
   userId: text('user_id').references(() => users.id).notNull(),
   role: text('role').notNull(),
-  permissions: text('permissions', { mode: 'json' }).default('{}'),
+  permissions: text('permissions'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const vendors = pgTable('vendors', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   name: text('name').notNull(),
   contactName: text('contact_name'),
   contactEmail: text('contact_email'),
@@ -92,9 +89,8 @@ export const vendors = pgTable('vendors', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Tabela para itens de orçamento
 export const budgetItems = pgTable('budget_items', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id).notNull(),
   name: text('name').notNull(),
   amount: integer('amount').notNull(),
@@ -106,9 +102,8 @@ export const budgetItems = pgTable('budget_items', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Tabela para despesas
 export const expenses = pgTable('expenses', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id).notNull(),
   name: text('name').notNull(),
   amount: integer('amount').notNull(),
@@ -122,13 +117,12 @@ export const expenses = pgTable('expenses', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Nova tabela para itens do cronograma
 export const scheduleItems = pgTable('schedule_items', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id).notNull(),
   title: text('title').notNull(),
   description: text('description'),
-  eventDate: timestamp('event_date'), // Data específica do item (para eventos multi-dias)
+  eventDate: timestamp('event_date'),
   startTime: text('start_time').notNull(),
   location: text('location'),
   responsibles: text('responsibles'),
@@ -136,12 +130,11 @@ export const scheduleItems = pgTable('schedule_items', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Tabela para documentos
 export const documents = pgTable('documents', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id).notNull(),
   name: text('name').notNull(),
-  category: text('category').notNull(), // Contrato, Orçamento, Licença, Roteiro, Outros
+  category: text('category').notNull(),
   description: text('description'),
   fileUrl: text('file_url').notNull(),
   fileType: text('file_type').notNull(),
@@ -151,35 +144,32 @@ export const documents = pgTable('documents', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Tabela para participantes
 export const participants = pgTable('participants', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id).notNull(),
   name: text('name').notNull(),
   email: text('email'),
   phone: text('phone'),
-  status: text('status').default('pending').notNull(), // pending, confirmed
-  origin: text('origin').default('manual').notNull(), // manual, csv, sympla
+  status: text('status').default('pending').notNull(),
+  origin: text('origin').default('manual').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Tabela para feedbacks dos eventos
 export const eventFeedbacks = pgTable('event_feedbacks', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id).notNull(),
-  feedbackId: text('feedback_id').notNull().unique(), // ID público único para acesso via link
-  name: text('name'), // opcional
-  email: text('email'), // opcional
-  rating: integer('rating').notNull(), // 1 a 5 estrelas
+  feedbackId: text('feedback_id').notNull().unique(),
+  name: text('name'),
+  email: text('email'),
+  rating: integer('rating').notNull(),
   comment: text('comment').notNull(),
   isAnonymous: boolean('is_anonymous').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Tabela para métricas de feedback
 export const feedbackMetrics = pgTable('feedback_metrics', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   feedbackId: text('feedback_id').references(() => eventFeedbacks.feedbackId).notNull(),
   viewedAt: timestamp('viewed_at'),
   submittedAt: timestamp('submitted_at'),
@@ -228,36 +218,46 @@ export const feedbackMetricsRelations = relations(feedbackMetrics, ({ one }) => 
   }),
 }));
 
-// Schemas para inserção de dados
 export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
-export const insertEventSchema = createInsertSchema(events).omit({ createdAt: true, updatedAt: true });
+export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true, updatedAt: true });
 
-// Schema specifically for the form that handles date strings
-export const eventFormSchema = insertEventSchema.extend({
+export const eventFormSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  type: z.string().min(1, "Tipo é obrigatório"),
+  format: z.string().min(1, "Formato é obrigatório"),
   startDate: z.string().min(1, "Data de início é obrigatória"),
   endDate: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  location: z.string().optional(),
+  meetingUrl: z.string().optional(),
+  description: z.string().optional(),
+  budget: z.number().optional(),
+  attendees: z.number().optional(),
+  coverImageUrl: z.string().optional(),
+  status: z.string().optional(),
+  feedbackUrl: z.string().optional(),
   generateAIChecklist: z.boolean().optional(),
-}).omit({ id: true, ownerId: true, createdAt: true, updatedAt: true });
-export const insertTaskSchema = createInsertSchema(tasks).omit({ createdAt: true, updatedAt: true });
-export const insertTaskAssigneeSchema = createInsertSchema(taskAssignees).omit({ createdAt: true });
-export const insertEventActivitySchema = createInsertSchema(activityLogs).omit({ createdAt: true });
-export const insertTeamMemberSchema = createInsertSchema(eventTeamMembers).omit({ createdAt: true });
-export const insertVendorSchema = createInsertSchema(vendors).omit({ createdAt: true, updatedAt: true });
-export const insertScheduleItemSchema = createInsertSchema(scheduleItems).omit({ createdAt: true, updatedAt: true });
-export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({ createdAt: true, updatedAt: true });
-export const insertExpenseSchema = createInsertSchema(expenses).omit({ createdAt: true, updatedAt: true });
+});
 
-// Schema specifically for the expense form that handles date strings
+export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTaskAssigneeSchema = createInsertSchema(taskAssignees).omit({ id: true, createdAt: true });
+export const insertEventActivitySchema = createInsertSchema(activityLogs).omit({ id: true, createdAt: true });
+export const insertTeamMemberSchema = createInsertSchema(eventTeamMembers).omit({ id: true, createdAt: true });
+export const insertVendorSchema = createInsertSchema(vendors).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertScheduleItemSchema = createInsertSchema(scheduleItems).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true, createdAt: true, updatedAt: true });
+
 export const expenseFormSchema = insertExpenseSchema.extend({
   dueDate: z.string().optional(),
   paymentDate: z.string().optional(),
-}).omit({ id: true });
+});
 export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true, createdAt: true, updatedAt: true, uploadedAt: true });
 export const insertParticipantSchema = createInsertSchema(participants).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertEventFeedbackSchema = createInsertSchema(eventFeedbacks).omit({ id: true, createdAt: true });
 export const insertFeedbackMetricsSchema = createInsertSchema(feedbackMetrics).omit({ id: true, createdAt: true });
 
-// Types para inserção
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = InsertUser & { id: string };
 export type InsertEvent = z.infer<typeof insertEventSchema>;
@@ -277,7 +277,6 @@ export type InsertParticipant = z.infer<typeof insertParticipantSchema>;
 export type InsertEventFeedback = z.infer<typeof insertEventFeedbackSchema>;
 export type InsertFeedbackMetrics = z.infer<typeof insertFeedbackMetricsSchema>;
 
-// Types para seleção
 export type User = typeof users.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
@@ -295,7 +294,6 @@ export type Participant = typeof participants.$inferSelect;
 export type EventFeedback = typeof eventFeedbacks.$inferSelect;
 export type FeedbackMetrics = typeof feedbackMetrics.$inferSelect;
 
-// Adicionar as relações de eventos no final do arquivo após todas as definições de tabelas
 export const eventsRelations = relations(events, ({ one, many }) => ({
   owner: one(users, {
     fields: [events.ownerId],

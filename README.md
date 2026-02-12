@@ -2,7 +2,7 @@
 
 Symera é uma plataforma inteligente de gestão de eventos projetada para otimizar a colaboração em equipe através de gerenciamento sofisticado de tarefas e planejamento financeiro. A aplicação apresenta um design mobile-first, responsivo, com foco em experiência do usuário aprimorada.
 
-## 🚀 Funcionalidades
+## Funcionalidades
 
 - **Planejamento Assistido por IA**: Priorização e acompanhamento inteligente de tarefas
 - **Gerenciamento Colaborativo de Tarefas**: Recursos de planejamento colaborativo de tarefas em tempo real
@@ -13,159 +13,139 @@ Symera é uma plataforma inteligente de gestão de eventos projetada para otimiz
 - **Visualização Dinâmica**: Acompanhamento e visualização do formato do evento
 - **Filtragem Avançada**: Recursos poderosos de filtragem e classificação para eventos e tarefas
 
-## 📋 Stack Tecnológica
+## Stack Tecnológica
 
 ### Frontend
-- **React**: Biblioteca principal de UI
-- **Tailwind CSS**: Framework CSS utilitário
-- **shadcn/ui**: Componentes de UI de alta qualidade construídos sobre Radix UI
-- **Wouter**: Roteamento leve para React
-- **TanStack Query (React Query)**: Busca de dados e gerenciamento de estado
-- **React Hook Form**: Validação e manipulação de formulários
-- **Zod**: Validação de esquemas
-- **Framer Motion**: Animações e transições
+- **React 18** + **TypeScript**
+- **Tailwind CSS** + **shadcn/ui**
+- **Wouter** (roteamento)
+- **TanStack Query** (gerenciamento de estado)
+- **React Hook Form** + **Zod** (formulários e validação)
+- **Framer Motion** (animações)
 
 ### Backend
-- **Express.js**: Framework de servidor web
-- **Drizzle ORM**: ORM de banco de dados para PostgreSQL
-- **PostgreSQL**: Banco de dados relacional
-- **Passport.js**: Middleware de autenticação
-- **Replit Auth**: Integração de autenticação
+- **Express.js** (servidor)
+- **Drizzle ORM** (banco de dados)
+- **Neon Serverless** (driver PostgreSQL)
+- **Supabase Auth** (autenticação JWT)
 
-## 🗄️ Esquema do Banco de Dados
+### Banco de Dados
+- **PostgreSQL** hospedado no **Supabase**
 
-A aplicação utiliza um banco de dados PostgreSQL com Drizzle ORM. As principais entidades incluem:
+## Configuração Local
 
-- **Usuários**: Contas e perfis de usuários
-- **Eventos**: Detalhes do evento, incluindo tipo, formato, data e localização
-- **Tarefas**: Tarefas associadas aos eventos
-- **Membros da Equipe**: Colaboradores para eventos
-- **Fornecedores**: Prestadores de serviços para eventos
-- **Itens de Orçamento**: Planejamento financeiro para eventos
+### Pré-requisitos
+- Node.js v18+
+- npm
 
-## 📁 Estrutura do Projeto
-
-```
-/
-├── client/               # Código do Frontend
-│   ├── src/
-│   │   ├── assets/       # Imagens e recursos estáticos
-│   │   ├── components/   # Componentes React reutilizáveis
-│   │   ├── hooks/        # Hooks React personalizados
-│   │   ├── lib/          # Funções utilitárias
-│   │   ├── pages/        # Componentes de página
-│   │   ├── App.tsx       # Componente principal da aplicação
-│   │   └── main.tsx      # Ponto de entrada da aplicação
-│   └── index.html        # Template HTML
-├── server/               # Código do Backend
-│   ├── db.ts             # Conexão com o banco de dados
-│   ├── routes.ts         # Rotas da API
-│   ├── storage.ts        # Camada de acesso a dados
-│   ├── index.ts          # Ponto de entrada do servidor
-│   ├── replitAuth.ts     # Autenticação Replit
-│   └── openai.ts         # Integração com OpenAI
-├── shared/               # Código compartilhado entre frontend e backend
-│   ├── schema.ts         # Definições de esquema do banco de dados
-│   └── types.ts          # Definições de tipos TypeScript
-├── .replit               # Configuração do Replit
-├── drizzle.config.ts     # Configuração do Drizzle ORM
-├── package.json          # Dependências do projeto
-└── vite.config.ts        # Configuração do bundler Vite
+### 1. Clone o repositório
+```bash
+git clone https://github.com/seu-usuario/symera.git
+cd symera
 ```
 
-## 🚀 Executando o Projeto
-
-### Desenvolvimento
-
-1. Certifique-se de ter o Node.js instalado (v18 ou mais recente recomendado)
-2. Instale as dependências:
-   ```
-   npm install
-   ```
-3. Inicie o servidor de desenvolvimento:
-   ```
-   npm run dev
-   ```
-   Isso iniciará tanto o servidor Express do backend quanto o servidor de desenvolvimento Vite do frontend.
-
-### Gerenciamento do Banco de Dados
-
-Para aplicar alterações de esquema ao banco de dados:
-
+### 2. Instale as dependências
+```bash
+npm install
 ```
+
+### 3. Configure as variáveis de ambiente
+Copie o arquivo de exemplo e preencha com seus valores:
+```bash
+cp .env.example .env
+```
+
+Variáveis necessárias:
+| Variável | Descrição | Obrigatória |
+|----------|-----------|-------------|
+| `DATABASE_URL` | String de conexão PostgreSQL (Supabase) | Sim |
+| `SESSION_SECRET` | Chave secreta para sessões | Sim |
+| `SUPABASE_URL` | URL do projeto Supabase | Sim |
+| `SUPABASE_ANON_KEY` | Chave anônima do Supabase | Sim |
+| `OPENAI_API_KEY` | Chave da API OpenAI (para IA) | Não |
+
+### 4. Sincronize o banco de dados
+```bash
 npm run db:push
 ```
 
-Nota: Sempre use o ORM para operações de banco de dados em vez de escrever SQL bruto.
+### 5. Inicie o servidor de desenvolvimento
+```bash
+npm run dev
+```
+A aplicação estará disponível em `http://localhost:5000`.
 
-## 📱 Design Mobile e Responsivo
+## Deploy na Vercel
 
-Symera é projetada para ser mobile-first com layouts responsivos:
-- Barra lateral adaptativa que se transforma em uma barra de navegação inferior em dispositivos móveis
-- Navegação contextual baseada no tamanho da tela
-- Elementos de UI amigáveis ao toque
-- Formulários e interações otimizados para dispositivos móveis
+### 1. Conecte ao GitHub
+Faça push do código para um repositório no GitHub.
 
-## 🔧 Estrutura da API
+### 2. Importe no Vercel
+1. Acesse [vercel.com](https://vercel.com) e faça login
+2. Clique em "Import Project"
+3. Selecione o repositório do GitHub
+4. Configure as variáveis de ambiente (mesmas da seção acima)
+5. Clique em "Deploy"
 
-A API segue convenções RESTful com os seguintes endpoints principais:
+O `vercel.json` já está configurado para:
+- Build do frontend com Vite
+- API serverless via `/api`
 
-- `/api/auth/*`: Endpoints de autenticação
-- `/api/events/*`: Endpoints de gerenciamento de eventos
-- `/api/tasks/*`: Endpoints de gerenciamento de tarefas
-- `/api/team/*`: Endpoints de gerenciamento de equipe
-- `/api/vendors/*`: Endpoints de gerenciamento de fornecedores
-- `/api/budget/*`: Endpoints de gerenciamento de orçamento
+### Notas importantes sobre Vercel
+- **Uploads**: Os uploads de arquivos usam o disco local (`public/uploads`). Na Vercel (serverless), o disco é temporário. Para produção, migre para Supabase Storage ou outro serviço de armazenamento em nuvem.
+- **vite.config.ts**: Após clonar, remova os plugins do Replit (`@replit/vite-plugin-runtime-error-modal` e `@replit/vite-plugin-cartographer`) e suas dependências do `package.json`.
+- **Alternativa**: Se preferir um servidor persistente (para uploads e WebSocket), considere hospedar o backend no Railway, Render ou Fly.io, e usar a Vercel apenas para o frontend.
 
-## 👥 Autenticação
+## Estrutura do Projeto
 
-A aplicação utiliza Replit Auth para produção e um modo de autenticação de desenvolvimento para desenvolvimento. O estado de autenticação é gerenciado através de cookies de sessão.
+```
+/
+├── client/               # Frontend React
+│   ├── src/
+│   │   ├── components/   # Componentes reutilizáveis
+│   │   ├── hooks/        # Hooks personalizados
+│   │   ├── lib/          # Utilitários
+│   │   ├── pages/        # Páginas da aplicação
+│   │   ├── App.tsx       # Componente principal
+│   │   └── main.tsx      # Ponto de entrada
+│   └── index.html
+├── server/               # Backend Express
+│   ├── db.ts             # Conexão com banco de dados
+│   ├── routes.ts         # Rotas da API
+│   ├── storage.ts        # Camada de acesso a dados
+│   ├── supabaseAuth.ts   # Autenticação Supabase
+│   └── openai.ts         # Integração OpenAI
+├── shared/               # Código compartilhado
+│   └── schema.ts         # Schema do banco (Drizzle)
+├── api/                  # Serverless functions (Vercel)
+│   └── index.ts          # API entry point
+├── vercel.json           # Configuração Vercel
+├── drizzle.config.ts     # Configuração Drizzle
+└── vite.config.ts        # Configuração Vite
+```
 
-## 📊 Visualização de Dados
+## Scripts
 
-O progresso e as estatísticas dos eventos são visualizados através de:
-- Indicadores de progresso
-- Gráficos de conclusão de tarefas
-- Visualização de alocação de orçamento
-- Agendamento de eventos baseado em tempo
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Inicia servidor de desenvolvimento |
+| `npm run build` | Build para produção |
+| `npm run start` | Inicia servidor de produção |
+| `npm run db:push` | Sincroniza schema com o banco |
 
-## 🚀 Implantação
+## API
 
-A aplicação está configurada para implantação no Replit. Para implantar:
-
-1. Construa a aplicação:
-   ```
-   npm run build
-   ```
-2. Inicie o servidor de produção:
-   ```
-   npm run start
-   ```
-
-## 📝 Diretrizes de Desenvolvimento
-
-- Atualize o esquema do banco de dados em `shared/schema.ts` ao adicionar novos modelos de dados
-- Use React Query para busca de dados no frontend
-- Siga a estrutura de componentes estabelecida para consistência
-- Implemente validação de formulário usando esquemas Zod
-- Mantenha o código modular e de fácil manutenção
-- Use componentes shadcn para consistência da UI
-
-## 🌐 Variáveis de Ambiente
-
-As seguintes variáveis de ambiente são utilizadas:
-
-- `DATABASE_URL`: String de conexão PostgreSQL
-- `NODE_ENV`: Ambiente (desenvolvimento ou produção)
-- `OPENAI_API_KEY`: Para recursos assistidos por IA (opcional)
-
-## ⚙️ Dependências
-
-Veja `package.json` para a lista completa de dependências.
-
-## 📅 Última Atualização
-
-23 de Maio de 2025
+Endpoints principais:
+- `POST /api/auth/*` - Autenticação
+- `GET/POST /api/events/*` - Eventos
+- `GET/POST /api/events/:id/tasks/*` - Tarefas
+- `GET/POST /api/events/:id/team/*` - Equipe
+- `GET/POST /api/events/:id/vendors/*` - Fornecedores
+- `GET/POST /api/events/:id/budget/*` - Orçamento
+- `GET/POST /api/events/:id/expenses/*` - Despesas
+- `GET/POST /api/events/:id/schedule/*` - Cronograma
+- `GET/POST /api/events/:id/documents/*` - Documentos
+- `GET/POST /api/events/:id/participants/*` - Participantes
 
 ---
 
