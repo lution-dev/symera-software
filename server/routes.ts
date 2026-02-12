@@ -2391,6 +2391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const checklistItems = await generateEventChecklist({
         name: event.name,
         type: event.type,
+        startDate: event.date,
         date: event.date,
         location: event.location || undefined,
         description: event.description || undefined,

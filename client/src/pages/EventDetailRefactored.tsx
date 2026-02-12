@@ -92,6 +92,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<any>(null);
   const [isDeleteEventDialogOpen, setIsDeleteEventDialogOpen] = useState(false);
+  const [isGenerateChecklistDialogOpen, setIsGenerateChecklistDialogOpen] = useState(false);
   
   // Filtering and sorting state
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -296,9 +297,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   };
   
   const handleRegenerateChecklist = () => {
-    if (window.confirm("Tem certeza que deseja regenerar o checklist? Isso criará novas tarefas baseadas na IA.")) {
-      regenerateChecklistMutation.mutate();
-    }
+    setIsGenerateChecklistDialogOpen(true);
+  };
+
+  const confirmRegenerateChecklist = () => {
+    regenerateChecklistMutation.mutate();
+    setIsGenerateChecklistDialogOpen(false);
   };
   
   if (isLoading) {
@@ -1339,6 +1343,51 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {removeTeamMemberMutation.isPending ? "Removendo..." : "Remover da equipe"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de Confirmação de Geração de Checklist com IA */}
+      <AlertDialog open={isGenerateChecklistDialogOpen} onOpenChange={setIsGenerateChecklistDialogOpen}>
+        <AlertDialogContent className="sm:max-w-[480px]">
+          <AlertDialogHeader>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30 mb-2">
+              <i className="fas fa-wand-magic-sparkles text-purple-600 dark:text-purple-400 text-xl"></i>
+            </div>
+            <AlertDialogTitle className="text-center text-lg">
+              Gerar Checklist com Inteligência Artificial
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center space-y-3">
+              <p>
+                A IA irá analisar os detalhes do seu evento e criar automaticamente uma lista de tarefas personalizadas.
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-left text-sm text-amber-800 dark:text-amber-300">
+                <div className="flex items-start gap-2">
+                  <i className="fas fa-triangle-exclamation mt-0.5 flex-shrink-0"></i>
+                  <span>As tarefas existentes serão mantidas. Novas tarefas geradas pela IA serão adicionadas ao checklist atual.</span>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center gap-2 mt-2">
+            <AlertDialogCancel className="sm:min-w-[120px]">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRegenerateChecklist}
+              disabled={regenerateChecklistMutation.isPending}
+              className="bg-purple-600 text-white hover:bg-purple-700 sm:min-w-[120px]"
+            >
+              {regenerateChecklistMutation.isPending ? (
+                <>
+                  <i className="fas fa-spinner fa-spin mr-2"></i> Gerando...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-wand-magic-sparkles mr-2"></i> Gerar Tarefas
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
