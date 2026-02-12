@@ -277,40 +277,38 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  console.log("Verificando autenticação do usuário:");
-  console.log("- Session ID:", req.sessionID);
-  console.log("- Is Authenticated:", req.isAuthenticated());
-  
   const user = req.user as any;
   
   // Em desenvolvimento, permitir acesso se o middleware de dev autenticou
   if (process.env.NODE_ENV === 'development' && req.isAuthenticated()) {
-    console.log("- Usuário autenticado em modo desenvolvimento");
     return next();
   }
   
   if (!req.isAuthenticated() || !user) {
-    console.log("- Usuário não autenticado");
     return res.status(401).json({ message: "Unauthorized - Login Required" });
   }
 
-  // Verificar se o usuário tem claims válidos
   if (!user.claims || !user.claims.sub) {
-    console.log("- Claims do usuário inválidos ou ausentes");
     return res.status(401).json({ message: "Unauthorized - Invalid Session" });
   }
 
-  console.log("- Usuário autenticado:", user.claims.sub);
-
-  // Garantir que o ID do usuário seja salvo na sessão
-  if (user.claims.sub) {
-    // @ts-ignore - Ignorar o erro de tipos, pois já definimos o tipo em shared/types.ts
-    req.session.userId = user.claims.sub;
-    await new Promise<void>((resolve) => {
-      req.session.save(() => resolve());
-    });
-    console.log("ID do usuário salvo na sessão:", user.claims.sub);
+  // Resolver o ID interno do usuário baseado no email
+  // O Supabase retorna um UUID como claims.sub, mas o banco pode ter um ID diferente
+  if (user.claims.email && !user._resolvedInternalId) {
+    try {
+      const existingUser = await storage.getUserByEmail(user.claims.email);
+      if (existingUser && existingUser.id !== user.claims.sub) {
+        console.log(`[Auth] Mapeando UUID Supabase ${user.claims.sub} -> ID interno ${existingUser.id} (${user.claims.email})`);
+        user.claims.sub = existingUser.id;
+      }
+      user._resolvedInternalId = true;
+    } catch (err) {
+      console.error("[Auth] Erro ao resolver ID interno:", err);
+    }
   }
+
+  // @ts-ignore
+  req.session.userId = user.claims.sub;
   
   // Verificar expiração do token e tentar renovação automática
   const now = Math.floor(Date.now() / 1000);
