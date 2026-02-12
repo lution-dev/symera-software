@@ -239,7 +239,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(existingUser);
       }
       
-      // PRIORIDADE 2: Se não existe usuário com este email, criar novo com UUID do Supabase
+      // PRIORIDADE 2: Buscar pelo ID (pode existir com email diferente, ex: dev token)
+      const existingUserById = await dbStorage.getUser(supabaseUserId);
+      if (existingUserById) {
+        console.log("[Auth] Usuário encontrado pelo ID:", existingUserById.id, "Email no banco:", existingUserById.email);
+        
+        if (userPicture && existingUserById.profileImageUrl !== userPicture) {
+          await dbStorage.upsertUser({
+            ...existingUserById,
+            profileImageUrl: userPicture,
+            updatedAt: new Date()
+          });
+          existingUserById.profileImageUrl = userPicture;
+        }
+        
+        return res.json(existingUserById);
+      }
+      
+      // PRIORIDADE 3: Usuário realmente novo - criar com UUID do Supabase
       console.log("[Auth] Usuário novo! Criando com UUID do Supabase:", supabaseUserId);
       const userData: any = {
         id: supabaseUserId,
