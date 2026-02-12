@@ -1,9 +1,13 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "../server/routes";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('public/uploads'));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -33,7 +37,9 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// Initialize routes before exporting
+// Vercel will await this promise on cold start
+const initPromise = (async () => {
   await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -43,4 +49,10 @@ app.use((req, res, next) => {
   });
 })();
 
-export default app;
+// Wrapper handler that ensures routes are initialized before handling requests
+const handler = async (req: Request, res: Response) => {
+  await initPromise;
+  app(req, res);
+};
+
+export default handler;
