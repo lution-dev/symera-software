@@ -11,7 +11,7 @@ import { events, users, scheduleItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupSupabaseAuth, isAuthenticated } from "./supabaseAuth";
 
-import { 
+import {
   insertEventSchema,
   eventFormSchema,
   insertTaskSchema,
@@ -43,8 +43,13 @@ const isValidPhone = (phone: string): boolean => {
 
 // Configure multer for file uploads - storing in public/uploads for external access
 const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (e) {
+  // In serverless (Vercel), filesystem is read-only — skip directory creation
+  console.log('Skipping upload directory creation (serverless environment)');
 }
 
 const multerStorage = multer.diskStorage({
@@ -61,14 +66,14 @@ const multerStorage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: multerStorage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for documents
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|mp4|mov|avi|mp3|wav/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-    
+
     if (mimetype && extname) {
       return cb(null, true);
     } else {
@@ -77,7 +82,7 @@ const upload = multer({
   }
 });
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<Server | null> {
   // Serve uploaded files statically
   app.use('/uploads', express.static(uploadDir));
 
@@ -86,12 +91,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (process.env.NODE_ENV === 'production') {
       return res.status(403).json({ message: "Dev login não disponível em produção" });
     }
-    
+
     const { generateDevToken } = await import('./supabaseAuth');
     const token = generateDevToken();
-    
+
     console.log("🔧 LOGIN DE DESENVOLVIMENTO - Token gerado");
-    res.json({ 
+    res.json({
       success: true,
       accessToken: token,
       userId: "8650891",
@@ -99,45 +104,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       name: "Usuário de Teste"
     });
   });
-  
+
   // Endpoint para verificar se dev login está disponível
   app.get('/api/auth/dev-available', (req, res) => {
     res.json({ available: process.env.NODE_ENV !== 'production' });
   });
-  
+
   // Auth middleware
   await setupSupabaseAuth(app);
-  
+
   // Habilitado: autenticação de desenvolvimento automática
   const { devModeAuth } = await import('./devMode');
   app.use(devModeAuth);
-  
+
   // ROTA DE DIAGNÓSTICO: Verificar eventos existentes no banco
   app.get('/api/debug/check-events', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
-      
+
       console.log("========== DIAGNÓSTICO ==========");
       console.log("Usuário atual (Supabase):", userId);
       console.log("Email:", userEmail);
-      
+
       // Buscar todos os usuários com este email
       const userByEmail = await dbStorage.getUserByEmail(userEmail);
       console.log("Usuário encontrado por email:", userByEmail);
-      
+
       // Buscar eventos do usuário atual
       const eventsCurrentUser = await dbStorage.getEventsByUser(userId);
       console.log("Eventos do usuário atual:", eventsCurrentUser.length);
-      
+
       // Buscar todos os eventos no sistema para debug
       const allEventsQuery = await db.select().from(events).limit(20);
       console.log("Primeiros 20 eventos no sistema:", allEventsQuery.map(e => ({ id: e.id, name: e.name, ownerId: e.ownerId })));
-      
+
       // Buscar todos os usuários
       const allUsersQuery = await db.select().from(users).limit(20);
       console.log("Primeiros 20 usuários:", allUsersQuery.map(u => ({ id: u.id, email: u.email })));
-      
+
       return res.json({
         currentUserId: userId,
         currentUserEmail: userEmail,
@@ -157,31 +162,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
-      
+
       // Buscar usuário antigo pelo email para descobrir o ID correto
       const oldUser = await dbStorage.getUserByEmail(userEmail);
       const OLD_USER_ID = oldUser?.id || "8650891";
-      
+
       console.log("========== FORÇA MIGRAÇÃO ==========");
       console.log("Novo userId (Supabase):", userId);
       console.log("Email:", userEmail);
       console.log("ID antigo (local):", OLD_USER_ID);
-      
+
       // Verificar eventos do usuário antigo
       const oldEvents = await dbStorage.getEventsByUser(OLD_USER_ID);
       console.log("Eventos do usuário antigo:", oldEvents.length);
-      
+
       if (oldEvents.length > 0) {
         console.log("Executando migração...");
         await dbStorage.migrateUserFromLocalToReplit(OLD_USER_ID, userId);
         console.log("Migração concluída!");
-        
+
         // Buscar eventos novamente
         const newEvents = await dbStorage.getEventsByUser(userId);
         console.log("Eventos após migração:", newEvents.length);
-        
-        return res.json({ 
-          success: true, 
+
+        return res.json({
+          success: true,
           message: "Migração concluída!",
           oldEventsCount: oldEvents.length,
           newEventsCount: newEvents.length
@@ -190,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Verificar se já existe eventos no novo ID
         const existingEvents = await dbStorage.getEventsByUser(userId);
         console.log("Eventos já existentes para novo ID:", existingEvents.length);
-        
+
         return res.json({
           success: true,
           message: "Nenhum evento para migrar do ID antigo",
@@ -211,20 +216,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userEmail = req.user.claims.email;
       const userName = req.user.claims.name;
       const userPicture = req.user.claims.picture;
-      
+
       console.log("[Auth] Login via Supabase - UUID:", supabaseUserId, "Email:", userEmail);
-      
+
       if (!userEmail) {
         console.error("[Auth] Email não fornecido pelo Supabase!");
         return res.status(400).json({ message: "Email is required" });
       }
-      
+
       // PRIORIDADE 1: Buscar usuário existente pelo email (mantém ID original)
       const existingUser = await dbStorage.getUserByEmail(userEmail);
-      
+
       if (existingUser) {
         console.log("[Auth] Usuário existente encontrado! Usando ID original:", existingUser.id);
-        
+
         // Atualizar foto de perfil se necessário
         if (userPicture && existingUser.profileImageUrl !== userPicture) {
           await dbStorage.upsertUser({
@@ -233,16 +238,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           existingUser.profileImageUrl = userPicture;
         }
-        
+
         // Retorna o usuário com ID ORIGINAL (não o UUID do Supabase)
         return res.json(existingUser);
       }
-      
+
       // PRIORIDADE 2: Buscar pelo ID (pode existir com email diferente, ex: dev token)
       const existingUserById = await dbStorage.getUser(supabaseUserId);
       if (existingUserById) {
         console.log("[Auth] Usuário encontrado pelo ID:", existingUserById.id, "Email no banco:", existingUserById.email);
-        
+
         if (userPicture && existingUserById.profileImageUrl !== userPicture) {
           await dbStorage.upsertUser({
             ...existingUserById,
@@ -250,10 +255,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           existingUserById.profileImageUrl = userPicture;
         }
-        
+
         return res.json(existingUserById);
       }
-      
+
       // PRIORIDADE 3: Usuário realmente novo - criar com UUID do Supabase
       console.log("[Auth] Usuário novo! Criando com UUID do Supabase:", supabaseUserId);
       const userData: any = {
@@ -284,12 +289,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Buscando eventos para userId:", userId, "email:", userEmail);
       console.log("Claims completos:", JSON.stringify(req.user.claims));
       console.log("========================================");
-      
+
       // CORREÇÃO: Sempre verificar se precisa migrar os dados do usuário antigo
       if (userEmail) {
         const oldUser = await dbStorage.getUserByEmail(userEmail);
         console.log("Usuário encontrado por email:", oldUser?.id, "vs userId atual:", userId);
-        
+
         if (oldUser && oldUser.id !== userId) {
           console.log("IDs diferentes! Migrando dados de", oldUser.id, "para", userId);
           try {
@@ -300,11 +305,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
+
       // Buscar eventos pelo ID atual
       let events = await dbStorage.getEventsByUser(userId);
       console.log("Eventos encontrados para userId", userId, ":", events.length);
-      
+
       // Fallback: Se não encontrou eventos, tentar buscar pelo email
       if (events.length === 0 && userEmail) {
         console.log("Nenhum evento encontrado, tentando fallback por email");
@@ -315,13 +320,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("Eventos encontrados pelo ID antigo:", events.length);
         }
       }
-      
+
       // Para cada evento, buscar os fornecedores e adicionar a contagem
       for (const event of events) {
         const eventVendors = await dbStorage.getVendorsByEventId(event.id);
         (event as any).vendorCount = eventVendors.length;
       }
-      
+
       res.json(events);
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -334,37 +339,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Obter ID do usuário da autenticação Replit
       const userId = req.user.claims.sub;
       console.log("Usando ID de autenticação Replit para acessar evento:", req.params.id);
-      
+
       const eventId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(eventId)) {
         console.log("ID de evento inválido:", req.params.id);
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       console.log(`Buscando evento ${eventId} para usuário ${userId}`);
-      
+
       // Obter dados do evento do storage (que inclui feedbackUrl)
       const event = await dbStorage.getEventById(eventId);
-      
+
       if (!event) {
         console.log(`Evento ${eventId} não encontrado`);
         return res.status(404).json({ message: "Event not found" });
       }
-      
+
       // Verificar se o usuário é o proprietário
       const isOwner = event.ownerId === userId;
       console.log(`O usuário é o proprietário do evento? ${isOwner}`);
-      
+
       // Verificar se o usuário é membro da equipe
       const isTeamMember = await dbStorage.isUserTeamMember(userId, eventId);
       console.log(`O usuário é membro da equipe do evento? ${isTeamMember}`);
-      
+
       if (!isOwner && !isTeamMember) {
         console.log(`Usuário ${userId} não tem acesso ao evento ${eventId}`);
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       console.log(`Retornando evento com feedbackUrl: ${event.feedbackUrl || 'null'}`);
       return res.json(event);
     } catch (error) {
@@ -376,10 +381,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // Validate event data using form schema and convert to backend format
       const formData = eventFormSchema.parse(req.body);
-      
+
       // Create event first to get ID for image processing
       const tempCreateData: any = {
         name: formData.name,
@@ -396,23 +401,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startDate: new Date(formData.startDate),
         ownerId: userId,
       };
-      
+
       // Adicionar endDate se disponível
       if (formData.endDate) {
         tempCreateData.endDate = new Date(formData.endDate);
       }
-      
+
       // Create event first
       const event = await dbStorage.createEvent(tempCreateData);
-      
+
       // Process image upload if necessary
       let coverImageUrl = formData.coverImageUrl;
-      
+
       if (coverImageUrl && coverImageUrl.startsWith('data:image/')) {
         try {
           coverImageUrl = saveBase64Image(coverImageUrl, event.id);
           console.log('[Debug API] Nova imagem salva para evento criado em:', coverImageUrl);
-          
+
           // Update event with new image URL
           await dbStorage.updateEvent(event.id, { coverImageUrl });
         } catch (error) {
@@ -420,9 +425,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue without image if there's an error
         }
       }
-      
+
       // Event already created above, use the existing event variable
-      
+
       // Adicionar o criador como membro da equipe (organizador)
       await dbStorage.addTeamMember({
         eventId: event.id,
@@ -430,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "organizer",
         permissions: JSON.stringify({ canDelete: true, canEdit: true, canInvite: true })
       });
-      
+
       // Generate AI checklist if requested
       console.log("[AI Checklist] generateAIChecklist value:", formData.generateAIChecklist, "type:", typeof formData.generateAIChecklist);
       if (formData.generateAIChecklist) {
@@ -438,7 +443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const checklistItems = await generateEventChecklist(formData);
           console.log("[AI Checklist] Tarefas geradas:", checklistItems.length);
-          
+
           // Create tasks from checklist
           for (const item of checklistItems) {
             await dbStorage.createTask({
@@ -455,7 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue even if checklist generation fails
         }
       }
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId: event.id,
@@ -463,14 +468,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "created_event",
         details: JSON.stringify({ eventName: event.name })
       });
-      
+
       res.status(201).json(event);
     } catch (error) {
       console.error("Error creating event:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Invalid event data", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Invalid event data",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Failed to create event" });
@@ -482,13 +487,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       console.log("[Draft] Buscando rascunho para usuário:", userId);
-      
+
       const draft = await dbStorage.getDraftEventByUser(userId);
-      
+
       if (!draft) {
         return res.status(404).json({ message: "No draft found" });
       }
-      
+
       console.log("[Draft] Rascunho encontrado:", draft.id);
       res.json(draft);
     } catch (error) {
@@ -510,9 +515,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const draftData = req.body;
-      
+
       console.log("[Draft] Salvando rascunho para usuário:", userId);
-      
+
       // Schema parcial para validação de rascunhos (campos opcionais)
       const draftSchema = z.object({
         name: z.string().optional(),
@@ -529,9 +534,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         attendees: z.number().optional().nullable(),
         coverImageUrl: z.string().optional(),
       });
-      
+
       const validatedData = draftSchema.parse(draftData);
-      
+
       // Converter strings de data para Date se fornecidas
       const processedData: any = { ...validatedData };
       if (validatedData.startDate) {
@@ -540,17 +545,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validatedData.endDate) {
         processedData.endDate = new Date(validatedData.endDate);
       }
-      
+
       const draft = await dbStorage.saveDraftEvent(userId, processedData);
-      
+
       console.log("[Draft] Rascunho salvo com ID:", draft.id);
       res.json(draft);
     } catch (error) {
       console.error("Error saving draft:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Invalid draft data", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Invalid draft data",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Failed to save draft" });
@@ -561,9 +566,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       console.log("[Draft] Deletando rascunho para usuário:", userId);
-      
+
       await dbStorage.deleteDraftEvent(userId);
-      
+
       res.json({ message: "Draft deleted successfully" });
     } catch (error) {
       console.error("Error deleting draft:", error);
@@ -575,28 +580,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Validate event data using form schema and convert to backend format
       const formData = eventFormSchema.parse(req.body);
-      
+
       // Check if user is the owner
       const event = await dbStorage.getEventById(eventId);
-      
+
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
-      
+
       if (event.ownerId !== userId) {
         return res.status(403).json({ message: "Only the event owner can update it" });
       }
-      
+
       // Processar upload de imagem se necessário
       let coverImageUrl = formData.coverImageUrl;
-      
+
       // Se a imagem é base64, salvar como arquivo
       if (coverImageUrl && coverImageUrl.startsWith('data:image/')) {
         try {
@@ -604,7 +609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (event.coverImageUrl && event.coverImageUrl.startsWith('/uploads/')) {
             deleteImage(event.coverImageUrl);
           }
-          
+
           // Salvar nova imagem
           coverImageUrl = saveBase64Image(coverImageUrl, eventId);
           console.log('[Debug API] Nova imagem salva em:', coverImageUrl);
@@ -630,27 +635,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endTime: formData.endTime,
         startDate: new Date(formData.startDate),
       };
-      
+
       // Adicionar endDate se disponível
       if (formData.endDate) {
         updateData.endDate = new Date(formData.endDate);
       }
-      
+
       // Forçar o formato correto do evento
       console.log("[Debug API] Formato recebido do cliente:", formData.format);
-      
+
       console.log("[Debug API] Atualizando evento com formato:", updateData.format, "tipo:", typeof updateData.format);
-      
+
       // Remover campo date se estiver presente (obsoleto)
       if ('date' in updateData) {
         delete updateData.date;
       }
-      
+
       console.log("[Debug API] Dados finais para atualização:", JSON.stringify(updateData, null, 2));
-      
+
       // Update event
       const updatedEvent = await dbStorage.updateEvent(eventId, updateData);
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId,
@@ -658,75 +663,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "updated_event",
         details: JSON.stringify({ eventName: updatedEvent.name })
       });
-      
+
       res.json(updatedEvent);
     } catch (error) {
       console.error("Error updating event:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Invalid event data", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Invalid event data",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Failed to update event" });
     }
   });
-  
+
   // Rota para atualizar apenas o status do evento (PATCH)
   app.patch('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user can access this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       // Get current event
       const event = await dbStorage.getEventById(eventId);
-      
+
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
-      
+
       // Verificar se há um status no body da requisição
       if (!req.body.status) {
         return res.status(400).json({ message: "Status is required" });
       }
-      
+
       // Verificar se o status é válido
       const validStatuses = ["planning", "confirmed", "in_progress", "completed", "cancelled"];
       if (!validStatuses.includes(req.body.status)) {
-        return res.status(400).json({ 
-          message: "Invalid status", 
-          validValues: validStatuses 
+        return res.status(400).json({
+          message: "Invalid status",
+          validValues: validStatuses
         });
       }
-      
+
       // Update event with new status
-      const updatedEvent = await dbStorage.updateEvent(eventId, { 
-        status: req.body.status 
+      const updatedEvent = await dbStorage.updateEvent(eventId, {
+        status: req.body.status
       });
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "status_updated",
-        details: JSON.stringify({ 
+        details: JSON.stringify({
           eventName: event.name,
           oldStatus: event.status,
           newStatus: req.body.status
         })
       });
-      
+
       res.json(updatedEvent);
     } catch (error) {
       console.error("Error updating event status:", error);
@@ -738,7 +743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -748,27 +753,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      
+
       const eventId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user is the owner
       const event = await dbStorage.getEventById(eventId);
-      
+
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
-      
+
       if (event.ownerId !== userId) {
         return res.status(403).json({ message: "Only the event owner can delete it" });
       }
-      
+
       // Delete event
       await dbStorage.deleteEvent(eventId);
-      
+
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting event:", error);
@@ -782,103 +787,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.taskId, 10);
-      
+
       if (isNaN(taskId)) {
         return res.status(400).json({ message: "ID de tarefa inválido" });
       }
-      
+
       // Buscar a tarefa para verificar acesso
       const task = await dbStorage.getTaskById(taskId);
-      
+
       if (!task) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento da tarefa
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
       }
-      
+
       // Buscar os responsáveis da tarefa
       const assignees = await dbStorage.getTaskAssignees(taskId);
-      
+
       res.json(assignees);
     } catch (error) {
       console.error("Erro ao buscar responsáveis da tarefa:", error);
       res.status(500).json({ message: "Falha ao buscar responsáveis da tarefa" });
     }
   });
-  
+
   // Endpoint para buscar uma tarefa específica pelo ID
   app.get('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(taskId)) {
         return res.status(400).json({ message: "ID de tarefa inválido" });
       }
-      
+
       // Buscar a tarefa
       const task = await dbStorage.getTaskById(taskId);
-      
+
       if (!task) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento da tarefa
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
       }
-      
+
       res.json(task);
     } catch (error) {
       console.error("Erro ao buscar tarefa:", error);
       res.status(500).json({ message: "Falha ao buscar tarefa" });
     }
   });
-  
+
   // Endpoint para atualizar uma tarefa específica
   app.put('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(taskId)) {
         return res.status(400).json({ message: "ID de tarefa inválido" });
       }
-      
+
       // Buscar a tarefa
       const task = await dbStorage.getTaskById(taskId);
-      
+
       if (!task) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento da tarefa
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
       }
-      
+
       // Extrair os IDs dos responsáveis adicionais, se enviados
       const { assigneeIds, ...taskDataRest } = req.body;
-      
+
       // Atualizar a tarefa
       const taskData = {
         ...taskDataRest,
         // Converter a data se existir
         dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined
       };
-      
+
       // Atualizar a tarefa e seus responsáveis
       const updatedTask = await dbStorage.updateTask(taskId, taskData, assigneeIds);
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId: task.eventId,
@@ -886,21 +891,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "updated_task",
         details: JSON.stringify({ taskTitle: updatedTask.title })
       });
-      
+
       res.json(updatedTask);
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
       res.status(500).json({ message: "Falha ao atualizar tarefa" });
     }
   });
-  
+
   // Endpoint para buscar todas as tarefas do usuário
   app.get('/api/tasks', isAuthenticated, async (req: any, res) => {
     try {
       console.log('Buscando todas as tarefas do usuário');
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -912,21 +917,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      
+
       // Buscar todos os eventos que o usuário tem acesso
       const events = await dbStorage.getEventsByUser(userId);
-      
+
       // Para cada evento, buscar as tarefas
       let allTasks: any[] = [];
       for (const event of events) {
         const eventTasks = await dbStorage.getTasksByEventId(event.id);
-        
+
         // Para cada tarefa, buscar os responsáveis
         const enhancedTasks = await Promise.all(eventTasks.map(async task => {
           try {
             // Buscar os responsáveis da tarefa
             const taskAssignees = await dbStorage.getTaskAssignees(task.id);
-            
+
             // Transformar para o formato esperado pelo frontend
             const assignees = taskAssignees.map(assignee => ({
               userId: assignee.userId,
@@ -935,7 +940,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               profileImageUrl: assignee.user.profileImageUrl,
               phone: assignee.user.phone
             }));
-            
+
             // Retornar a tarefa com nome do evento e responsáveis
             return {
               ...task,
@@ -952,17 +957,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
           }
         }));
-        
+
         allTasks = [...allTasks, ...enhancedTasks];
       }
-      
+
       // Retornar todas as tarefas em ordem de data de vencimento
       allTasks.sort((a, b) => {
         if (!a.dueDate) return 1;
         if (!b.dueDate) return -1;
         return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
       });
-      
+
       console.log(`Retornando ${allTasks.length} tarefas para o usuário ${userId}`);
       res.json(allTasks);
     } catch (error) {
@@ -970,12 +975,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Falha ao buscar tarefas" });
     }
   });
-  
+
   app.get('/api/events/:eventId/tasks', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -987,28 +992,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao acessar tarefas do evento:", req.params.eventId);
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       const tasks = await dbStorage.getTasksByEventId(eventId);
-      
+
       // Para cada tarefa, buscar os responsáveis
       const enhancedTasks = await Promise.all(tasks.map(async task => {
         try {
           // Buscar os responsáveis da tarefa
           const taskAssignees = await dbStorage.getTaskAssignees(task.id);
-          
+
           // Transformar para o formato esperado pelo frontend
           const assignees = taskAssignees.map(assignee => ({
             userId: assignee.userId,
@@ -1017,7 +1022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             profileImageUrl: assignee.user.profileImageUrl,
             phone: assignee.user.phone
           }));
-          
+
           // Retornar a tarefa com os responsáveis
           return {
             ...task,
@@ -1032,35 +1037,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         }
       }));
-      
+
       res.json(enhancedTasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
       res.status(500).json({ message: "Failed to fetch tasks" });
     }
   });
-  
+
   // Rota para buscar fornecedores de um evento
   app.get('/api/events/:eventId/vendors', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       const vendors = await dbStorage.getVendorsByEventId(eventId);
       console.log(`Retornando ${vendors.length} fornecedores para o evento ${eventId}`);
       console.log("Fornecedores:", JSON.stringify(vendors).substring(0, 200) + "...");
-      
+
       // Garantir que estamos enviando um array de fornecedores e não outro tipo de dado
       if (vendors && Array.isArray(vendors)) {
         res.json(vendors);
@@ -1073,39 +1078,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch vendors" });
     }
   });
-  
+
   // Rota para adicionar fornecedor a um evento
   app.post('/api/events/:eventId/vendors', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       // Validate vendor data
       if (!req.body.name || !req.body.service) {
         return res.status(400).json({ message: "Name and service are required" });
       }
-      
+
       // Preparar dados do fornecedor
       const vendorData = {
         ...req.body,
         eventId,
         cost: req.body.cost ? parseFloat(req.body.cost) : null
       };
-      
+
       // Create vendor
       const vendor = await dbStorage.createVendor(vendorData);
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId,
@@ -1113,7 +1118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "vendor_added",
         details: JSON.stringify({ vendorName: vendor.name, service: vendor.service })
       });
-      
+
       res.status(201).json(vendor);
     } catch (error) {
       console.error("Error creating vendor:", error);
@@ -1126,34 +1131,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const vendorId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(vendorId)) {
         return res.status(400).json({ message: "Invalid vendor ID" });
       }
-      
+
       // Buscar fornecedor para verificar a qual evento pertence
       const vendor = await dbStorage.getVendorById(vendorId);
-      
+
       if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento do fornecedor
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, vendor.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this vendor" });
       }
-      
+
       // Preparar dados do fornecedor
       const vendorData = {
         ...req.body,
         cost: req.body.cost ? parseFloat(req.body.cost) : null
       };
-      
+
       // Atualizar fornecedor
       const updatedVendor = await dbStorage.updateVendor(vendorId, vendorData);
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId: vendor.eventId,
@@ -1161,41 +1166,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "vendor_updated",
         details: JSON.stringify({ vendorName: updatedVendor.name, service: updatedVendor.service })
       });
-      
+
       res.json(updatedVendor);
     } catch (error) {
       console.error("Error updating vendor:", error);
       res.status(500).json({ message: "Failed to update vendor" });
     }
   });
-  
+
   // Rota para excluir um fornecedor
   app.delete('/api/vendors/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const vendorId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(vendorId)) {
         return res.status(400).json({ message: "Invalid vendor ID" });
       }
-      
+
       // Buscar fornecedor para verificar a qual evento pertence
       const vendor = await dbStorage.getVendorById(vendorId);
-      
+
       if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento do fornecedor
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, vendor.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this vendor" });
       }
-      
+
       // Excluir fornecedor
       await dbStorage.deleteVendor(vendorId);
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId: vendor.eventId,
@@ -1203,7 +1208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "vendor_deleted",
         details: JSON.stringify({ vendorName: vendor.name, service: vendor.service })
       });
-      
+
       res.status(200).json({ success: true });
     } catch (error) {
       console.error("Error deleting vendor:", error);
@@ -1216,45 +1221,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
-      
+
       const budgetItems = await dbStorage.getBudgetItemsByEventId(eventId);
       console.log(`Retornando ${budgetItems.length} itens de orçamento para o evento ${eventId}`);
-      
+
       res.json(budgetItems);
     } catch (error) {
       console.error("Erro ao buscar itens de orçamento:", error);
       res.status(500).json({ message: "Falha ao buscar itens de orçamento" });
     }
   });
-  
+
   // Rota para adicionar item ao orçamento
   app.post('/api/events/:eventId/budget', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
-      
+
       // Validar dados do item de orçamento
       const budgetItemSchema = insertExpenseSchema;
       const validatedData = budgetItemSchema.parse({
@@ -1263,160 +1268,160 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: parseFloat(req.body.amount),
         paid: req.body.paid || false
       });
-      
+
       // Criar item de orçamento
       const budgetItem = await dbStorage.createBudgetItem(validatedData);
-      
+
       // Log da atividade
       await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "budget_item_added",
-        details: JSON.stringify({ 
-          itemName: budgetItem.name, 
+        details: JSON.stringify({
+          itemName: budgetItem.name,
           category: budgetItem.category,
           amount: budgetItem.amount
         })
       });
-      
+
       res.status(201).json(budgetItem);
     } catch (error) {
       console.error("Erro ao adicionar item ao orçamento:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Dados inválidos para o item de orçamento", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Dados inválidos para o item de orçamento",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Falha ao adicionar item ao orçamento" });
     }
   });
-  
+
   // Rota para atualizar item do orçamento
   app.put('/api/budget/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const itemId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(itemId)) {
         return res.status(400).json({ message: "ID de item inválido" });
       }
-      
+
       // Buscar item para verificar a qual evento pertence
       const budgetItem = await dbStorage.getBudgetItemById(itemId);
-      
+
       if (!budgetItem) {
         return res.status(404).json({ message: "Item de orçamento não encontrado" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento do item
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, budgetItem.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
       }
-      
+
       // Validar dados do item
       const updateSchema = insertExpenseSchema.partial();
-      
+
       const updateData = updateSchema.parse({
         ...req.body,
         amount: req.body.amount ? parseFloat(req.body.amount) : undefined
       });
-      
+
       // Atualizar item
       const updatedItem = await dbStorage.updateBudgetItem(itemId, updateData);
-      
+
       // Log da atividade
       await dbStorage.createActivityLog({
         eventId: budgetItem.eventId,
         userId,
         action: "budget_item_updated",
-        details: JSON.stringify({ 
-          itemName: updatedItem.name, 
+        details: JSON.stringify({
+          itemName: updatedItem.name,
           category: updatedItem.category,
           amount: updatedItem.amount
         })
       });
-      
+
       res.json(updatedItem);
     } catch (error) {
       console.error("Erro ao atualizar item do orçamento:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Dados inválidos para o item de orçamento", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Dados inválidos para o item de orçamento",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Falha ao atualizar item do orçamento" });
     }
   });
-  
+
   // Rota para excluir item do orçamento
   app.delete('/api/budget/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const itemId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(itemId)) {
         return res.status(400).json({ message: "ID de item inválido" });
       }
-      
+
       // Buscar item para verificar a qual evento pertence
       const budgetItem = await dbStorage.getBudgetItemById(itemId);
-      
+
       if (!budgetItem) {
         return res.status(404).json({ message: "Item de orçamento não encontrado" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento do item
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, budgetItem.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
       }
-      
+
       // Excluir item
       await dbStorage.deleteBudgetItem(itemId);
-      
+
       // Log da atividade
       await dbStorage.createActivityLog({
         eventId: budgetItem.eventId,
         userId,
         action: "budget_item_deleted",
-        details: JSON.stringify({ 
-          itemName: budgetItem.name, 
+        details: JSON.stringify({
+          itemName: budgetItem.name,
           category: budgetItem.category,
           amount: budgetItem.amount
         })
       });
-      
+
       res.status(200).json({ success: true });
     } catch (error) {
       console.error("Erro ao excluir item do orçamento:", error);
       res.status(500).json({ message: "Falha ao excluir item do orçamento" });
     }
   });
-  
+
   // ROTAS PARA CRONOGRAMA DE EVENTOS
-  
+
   // Rota para buscar todos os itens do cronograma de um evento
   app.get('/api/events/:eventId/schedule', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
-      
+
       // Usar SQL direto com template literals
       const result = await db.execute(`
         SELECT id, event_id as "eventId", title, description, event_date as "eventDate", 
@@ -1426,49 +1431,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE event_id = ${eventId} 
         ORDER BY event_date ASC, start_time ASC
       `);
-      
+
       console.log(`Cronograma evento ${eventId} - ${result.rows.length} itens encontrados:`, result.rows);
-      
+
       // Desabilitar cache para garantir dados atualizados
       res.set({
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
       });
-      
+
       res.json(result.rows);
     } catch (error) {
       console.error("Erro ao buscar itens do cronograma:", error);
       res.status(500).json({ message: "Falha ao buscar itens do cronograma" });
     }
   });
-  
+
   // Rota para adicionar um item ao cronograma de um evento
   app.post('/api/events/:eventId/schedule', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este evento" });
       }
-      
+
       // Validar dados básicos
       const { title, description, eventDate, startTime, location, responsibles } = req.body;
-      
+
       if (!title || !startTime) {
-        return res.status(400).json({ 
-          message: "Título e horário de início são obrigatórios" 
+        return res.status(400).json({
+          message: "Título e horário de início são obrigatórios"
         });
       }
-      
+
       // Usar SQL direto para evitar problemas com Drizzle
       const eventDateValue = eventDate ? `'${eventDate}'` : 'NULL';
       const result = await db.execute(`
@@ -1476,70 +1481,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
         VALUES (${eventId}, '${title}', ${description ? `'${description}'` : 'NULL'}, ${eventDateValue}, '${startTime}', ${location ? `'${location}'` : 'NULL'}, ${responsibles ? `'${responsibles}'` : 'NULL'}, NOW(), NOW())
         RETURNING *
       `);
-      
+
       const newItem = result.rows[0];
-      
+
       // Log da atividade
       await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "schedule_item_created",
-        details: JSON.stringify({ 
+        details: JSON.stringify({
           title,
           startTime
         })
       });
-      
+
       res.status(201).json(newItem);
     } catch (error) {
       console.error("Erro ao adicionar item ao cronograma:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Dados inválidos para o item do cronograma", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Dados inválidos para o item do cronograma",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Falha ao adicionar item ao cronograma" });
     }
   });
-  
+
   // Rota para atualizar um item do cronograma
   app.put('/api/schedule/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const itemId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(itemId)) {
         return res.status(400).json({ message: "ID de item inválido" });
       }
-      
+
       // Buscar item para verificar a qual evento pertence
       const scheduleItem = await db.select().from(scheduleItems)
         .where(eq(scheduleItems.id, itemId))
         .limit(1);
-      
+
       if (!scheduleItem || scheduleItem.length === 0) {
         return res.status(404).json({ message: "Item do cronograma não encontrado" });
       }
-      
+
       const item = scheduleItem[0];
-      
+
       // Verificar se o usuário tem acesso ao evento do item
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, item.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
       }
-      
+
       // Validar dados básicos
       const { title, description, startTime, location, responsibles } = req.body;
-      
+
       if (!title || !startTime) {
-        return res.status(400).json({ 
-          message: "Título e horário de início são obrigatórios" 
+        return res.status(400).json({
+          message: "Título e horário de início são obrigatórios"
         });
       }
-      
+
       // Usar SQL com template literals para atualização
       const updateResult = await db.execute(`
         UPDATE schedule_items 
@@ -1552,76 +1557,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE id = ${itemId}
         RETURNING *
       `);
-      
+
       const updatedItem = updateResult.rows[0];
-      
+
       // Log da atividade
       await dbStorage.createActivityLog({
         eventId: item.eventId,
         userId,
         action: "schedule_item_updated",
-        details: JSON.stringify({ 
+        details: JSON.stringify({
           title: title,
           startTime: startTime
         })
       });
-      
+
       res.json(updatedItem[0]);
     } catch (error) {
       console.error("Erro ao atualizar item do cronograma:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Dados inválidos para o item do cronograma", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Dados inválidos para o item do cronograma",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Falha ao atualizar item do cronograma" });
     }
   });
-  
+
   // Rota para excluir um item do cronograma
   app.delete('/api/schedule/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const itemId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(itemId)) {
         return res.status(400).json({ message: "ID de item inválido" });
       }
-      
+
       // Buscar item para verificar a qual evento pertence
       const scheduleItem = await db.select().from(scheduleItems)
         .where(eq(scheduleItems.id, itemId))
         .limit(1);
-      
+
       if (!scheduleItem || scheduleItem.length === 0) {
         return res.status(404).json({ message: "Item do cronograma não encontrado" });
       }
-      
+
       const item = scheduleItem[0];
-      
+
       // Verificar se o usuário tem acesso ao evento do item
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, item.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Você não tem acesso a este item" });
       }
-      
+
       // Excluir item
       await db.delete(scheduleItems)
         .where(eq(scheduleItems.id, itemId));
-      
+
       // Log da atividade
       await dbStorage.createActivityLog({
         eventId: item.eventId,
         userId,
         action: "schedule_item_deleted",
-        details: JSON.stringify({ 
+        details: JSON.stringify({
           title: item.title,
           startTime: item.startTime
         })
       });
-      
+
       res.status(200).json({ success: true });
     } catch (error) {
       console.error("Erro ao excluir item do cronograma:", error);
@@ -1633,39 +1638,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       // Validate task data
       const taskData = {
         ...req.body,
         eventId
       };
-      
+
       const validatedTaskData = insertTaskSchema.parse(taskData);
-      
+
       // Preparar dados da tarefa com tipos corretos
       const taskDataToCreate: any = {
         ...validatedTaskData,
       };
-      
+
       // Converter dueDate para objeto Date se existir
       if (validatedTaskData.dueDate) {
         taskDataToCreate.dueDate = new Date(validatedTaskData.dueDate);
       }
-      
+
       // Create task
       const task = await dbStorage.createTask(taskDataToCreate);
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId,
@@ -1673,14 +1678,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "created_task",
         details: JSON.stringify({ taskTitle: task.title })
       });
-      
+
       res.status(201).json(task);
     } catch (error) {
       console.error("Error creating task:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Invalid task data", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Invalid task data",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Failed to create task" });
@@ -1691,39 +1696,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(taskId)) {
         return res.status(400).json({ message: "Invalid task ID" });
       }
-      
+
       // Get task
       const task = await dbStorage.getTaskById(taskId);
-      
+
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
-      
+
       // Check if user has access to the event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this task" });
       }
-      
+
       // Update task
       const updatedTask = await dbStorage.updateTask(taskId, req.body);
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId: task.eventId,
         userId,
         action: "updated_task",
-        details: JSON.stringify({ 
+        details: JSON.stringify({
           taskTitle: updatedTask.title,
           changes: req.body.status ? { status: req.body.status } : {}
         })
       });
-      
+
       res.json(updatedTask);
     } catch (error) {
       console.error("Error updating task:", error);
@@ -1735,28 +1740,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const taskId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(taskId)) {
         return res.status(400).json({ message: "Invalid task ID" });
       }
-      
+
       // Get task
       const task = await dbStorage.getTaskById(taskId);
-      
+
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
-      
+
       // Check if user has access to the event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this task" });
       }
-      
+
       // Delete task
       await dbStorage.deleteTask(taskId);
-      
+
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -1769,7 +1774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -1781,20 +1786,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao acessar equipe do evento:", req.params.eventId);
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       const teamMembers = await dbStorage.getTeamMembersByEventId(eventId);
       console.log(`Membros da equipe para o evento ${eventId}:`, teamMembers.length);
       res.json(teamMembers);
@@ -1808,7 +1813,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events/:eventId/team', isAuthenticated, async (req: any, res) => {
     try {
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         userId = req.session.devUserId;
       } else if (req.user?.claims?.sub) {
@@ -1816,26 +1821,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
       const { userIds, email, role, name, phone } = req.body;
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Support two formats: 
       // 1. New format with userIds array (from EventTeam.tsx)
       // 2. Legacy format with email (from Team.tsx)
-      
+
       if (userIds && Array.isArray(userIds) && userIds.length > 0) {
         // New format - handle userIds array
         const addedMembers = [];
-        
+
         for (const memberId of userIds) {
           try {
             console.log(`Tentando adicionar membro ${memberId} ao evento ${eventId}`);
-            
+
             const teamMember = await dbStorage.addTeamMember({
               eventId,
               userId: memberId,
@@ -1846,29 +1851,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 canInvite: false
               })
             });
-            
+
             if (teamMember) {
               addedMembers.push(teamMember);
               console.log(`Membro ${memberId} adicionado com sucesso ao evento ${eventId}`);
             }
-            
+
           } catch (memberError) {
             console.error(`Error adding member ${memberId}:`, memberError);
           }
         }
-        
+
         res.status(201).json({
           message: `${addedMembers.length} member(s) added successfully`,
           addedMembers
         });
         return;
-        
+
       } else if (email && role) {
         // Legacy format - handle email/role/name/phone
         try {
           // Find or create user by email
           const member = await dbStorage.findOrCreateUserByEmail(email, name, phone);
-          
+
           // Add team member
           const teamMember = await dbStorage.addTeamMember({
             eventId,
@@ -1884,7 +1889,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               canInvite: false
             })
           });
-          
+
           // Log activity
           await dbStorage.createActivityLog({
             eventId,
@@ -1892,36 +1897,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
             action: "added_team_member",
             details: JSON.stringify({ memberEmail: email, memberRole: role })
           });
-          
+
           res.status(201).json({
             message: "Team member added successfully",
             teamMember
           });
           return;
-          
+
         } catch (error) {
           console.error("Error adding team member:", error);
           return res.status(500).json({ message: "Failed to add team member" });
         }
-        
+
       } else {
-        return res.status(400).json({ 
-          message: "Either userIds array or email/role are required" 
+        return res.status(400).json({
+          message: "Either userIds array or email/role are required"
         });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       const addedMembers = [];
-      
+
       for (const memberId of userIds) {
         try {
           console.log(`Tentando adicionar membro ${memberId} ao evento ${eventId}`);
-          
+
           // Add team member directly without checking if exists
           const teamMember = await dbStorage.addTeamMember({
             eventId,
@@ -1933,22 +1938,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               canInvite: false
             })
           });
-          
+
           if (teamMember) {
             addedMembers.push(teamMember);
             console.log(`Membro ${memberId} adicionado com sucesso ao evento ${eventId}`);
           }
-          
+
         } catch (memberError) {
           console.error(`Error adding member ${memberId}:`, memberError);
         }
       }
-      
+
       res.status(201).json({
         message: `${addedMembers.length} member(s) added successfully`,
         addedMembers
       });
-      
+
     } catch (error) {
       console.error("Error adding team members:", error);
       res.status(500).json({ message: "Failed to add team members" });
@@ -1959,7 +1964,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/events/:eventId/team/:userId', isAuthenticated, async (req: any, res) => {
     try {
       let currentUserId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         currentUserId = req.session.devUserId;
       } else if (req.user?.claims?.sub) {
@@ -1967,48 +1972,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
       const userIdToRemove = req.params.userId;
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(currentUserId, eventId);
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       // Get current user's team member info to check permissions
       const teamMembers = await dbStorage.getTeamMembersByEventId(eventId);
       const currentUserMember = teamMembers.find(member => member.userId === currentUserId);
-      
+
       // Check if current user is organizer or event owner
       const event = await dbStorage.getEventById(eventId);
       const isOwner = event?.ownerId === currentUserId;
       const isOrganizer = currentUserMember?.role === 'organizer';
-      
+
       if (!isOwner && !isOrganizer) {
         return res.status(403).json({ message: "Apenas organizadores podem remover membros da equipe" });
       }
-      
+
       // Find the member to remove
       const memberToRemove = teamMembers.find(member => member.id.toString() === userIdToRemove);
-      
+
       if (!memberToRemove) {
         return res.status(404).json({ message: "Team member not found" });
       }
-      
+
       // Cannot remove event owner
       if (event?.ownerId === memberToRemove.userId) {
         return res.status(400).json({ message: "Não é possível remover o proprietário do evento" });
       }
-      
+
       // Remove team member using the actual userId
       await dbStorage.removeTeamMember(eventId, memberToRemove.userId);
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId,
@@ -2016,9 +2021,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "removed_team_member",
         details: JSON.stringify({ removedUserId: userIdToRemove })
       });
-      
+
       res.status(204).send();
-      
+
     } catch (error) {
       console.error("Error removing team member:", error);
       res.status(500).json({ message: "Failed to remove team member" });
@@ -2029,30 +2034,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user is the owner
       const event = await dbStorage.getEventById(eventId);
-      
+
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
-      
+
       if (event.ownerId !== userId) {
         return res.status(403).json({ message: "Only the event owner can add team members" });
       }
-      
+
       // Validate team member data
       if (!req.body.email || !req.body.role) {
         return res.status(400).json({ message: "Email and role are required" });
       }
-      
+
       // Find or create user by email
       const member = await dbStorage.findOrCreateUserByEmail(req.body.email);
-      
+
       // Add team member
       const teamMember = await dbStorage.addTeamMember({
         eventId,
@@ -2060,7 +2065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: req.body.role,
         permissions: typeof req.body.permissions === 'object' ? JSON.stringify(req.body.permissions || {}) : (req.body.permissions || '{}')
       });
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId,
@@ -2068,7 +2073,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "added_team_member",
         details: JSON.stringify({ memberEmail: req.body.email, role: req.body.role })
       });
-      
+
       res.status(201).json(teamMember);
     } catch (error) {
       console.error("Error adding team member:", error);
@@ -2080,19 +2085,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // Validate user data
       if (!req.body) {
         return res.status(400).json({ message: "Profile data is required" });
       }
-      
+
       // Get current user data
       const currentUser = await dbStorage.getUser(userId);
-      
+
       if (!currentUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Update user
       const updatedUser = await dbStorage.upsertUser({
         ...currentUser,
@@ -2101,22 +2106,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: req.body.phone !== undefined ? req.body.phone : currentUser.phone,
         profileImageUrl: req.body.profileImageUrl !== undefined ? req.body.profileImageUrl : currentUser.profileImageUrl,
       });
-      
+
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating user profile:", error);
       res.status(500).json({ message: "Failed to update user profile" });
     }
   });
-  
+
   // Notifications update route
   app.put('/api/user/notifications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // In a real application, you would update user notification preferences in the database
       // For now, we'll just return success
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error("Error updating notification preferences:", error);
@@ -2134,7 +2139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -2146,20 +2151,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      
+
       // Get all events for the user
       const events = await dbStorage.getEventsByUser(userId);
       console.log(`Total de eventos encontrados: ${events.length}`);
-      
+
       // Get active events (planning, confirmed, in_progress or active status)
-      const activeEvents = events.filter(event => 
-        event.status === "planning" || 
-        event.status === "confirmed" || 
-        event.status === "in_progress" || 
+      const activeEvents = events.filter(event =>
+        event.status === "planning" ||
+        event.status === "confirmed" ||
+        event.status === "in_progress" ||
         event.status === "active"
       );
       console.log(`Eventos ativos encontrados: ${activeEvents.length}`);
-      
+
       // Carregar informações detalhadas para eventos ativos (equipe e tarefas)
       const activeEventsWithDetails = await Promise.all(
         activeEvents.map(async (event) => {
@@ -2173,25 +2178,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         })
       );
-      
+
       // Sort active events by startDate ascending (closest first)
       activeEventsWithDetails.sort((a, b) => {
         const dateA = new Date(a.startDate || "2099-12-31");
         const dateB = new Date(b.startDate || "2099-12-31");
         return dateA.getTime() - dateB.getTime();
       });
-      
+
       // Get upcoming events (next 30 days) using startDate
       const today = new Date();
       today.setUTCHours(0, 0, 0, 0);
       const thirtyDaysFromNow = new Date(today);
       thirtyDaysFromNow.setDate(today.getDate() + 30);
-      
+
       const upcomingEvents = events.filter(event => {
         const eventDate = new Date(event.startDate);
         return eventDate >= today && eventDate <= thirtyDaysFromNow;
       });
-      
+
       // Get pending tasks
       let pendingTasks: any[] = [];
       for (const event of events) {
@@ -2200,20 +2205,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tasks.filter(task => task.status !== "completed")
         );
       }
-      
+
       // Get recent activities
       let recentActivities: any[] = [];
       for (const event of events) {
         const activities = await dbStorage.getActivityLogsByEventId(event.id);
         recentActivities = recentActivities.concat(activities);
       }
-      
+
       // Sort by date and limit to 10
       recentActivities.sort((a, b) => {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
       recentActivities = recentActivities.slice(0, 10);
-      
+
       res.json({
         totalEvents: events.length,
         activeEvents: activeEvents.length,
@@ -2233,7 +2238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -2245,20 +2250,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao acessar atividades do evento:", req.params.eventId);
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       const activities = await dbStorage.getActivityLogsByEventId(eventId);
       res.json(activities);
     } catch (error) {
@@ -2272,25 +2277,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });
       }
-      
+
       // Check if user has access to this event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this event" });
       }
-      
+
       // Get event
       const event = await dbStorage.getEventById(eventId);
-      
+
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
-      
+
       // Generate AI checklist
       const checklistItems = await generateEventChecklist({
         name: event.name,
@@ -2302,7 +2307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         attendees: event.attendees || undefined,
         generateAIChecklist: true
       });
-      
+
       // Create tasks from checklist
       const tasks = [];
       for (const item of checklistItems) {
@@ -2317,7 +2322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }, [userId]); // Adicionamos o userId como o único responsável na tabela de assignees
         tasks.push(task);
       }
-      
+
       // Log activity
       await dbStorage.createActivityLog({
         eventId,
@@ -2325,7 +2330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "generated_ai_checklist",
         details: JSON.stringify({ taskCount: tasks.length })
       });
-      
+
       res.status(201).json(tasks);
     } catch (error) {
       console.error("Error generating AI checklist:", error);
@@ -2334,13 +2339,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==== Rotas para Despesas ====
-  
+
   // Obter despesas de um evento
   app.get('/api/events/:eventId/expenses', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -2352,27 +2357,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao acessar despesas do evento:", req.params.eventId);
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
-      
+
       const expenses = await dbStorage.getExpensesByEventId(eventId);
       console.log(`Despesas brutas do banco para evento ${eventId}:`, expenses);
       console.log(`Retornando ${expenses ? expenses.length : 0} despesas para o evento ${eventId}`);
-      
+
       // Garantir que sempre retornamos um array válido
       const validExpenses = Array.isArray(expenses) ? expenses : [];
       console.log(`Despesas válidas sendo enviadas:`, validExpenses);
-      
+
       // Forçar resposta JSON correta
       res.setHeader('Content-Type', 'application/json');
       return res.status(200).json(validExpenses);
@@ -2381,13 +2386,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
-  
+
   // Adicionar nova despesa
   app.post('/api/events/:eventId/expenses', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -2399,22 +2404,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao adicionar despesa");
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
-      
+
       // Use the form schema to validate string dates first
       const { expenseFormSchema } = await import('@shared/schema');
-      
+
       // Limpar campos nulos para strings vazias antes da validação
       const cleanedBody = {
         ...req.body,
@@ -2422,58 +2427,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dueDate: req.body.dueDate === null ? '' : req.body.dueDate,
         eventId,
       };
-      
+
       const formData = expenseFormSchema.parse(cleanedBody);
-      
+
       // Convert string dates to Date objects for database insertion
       const validatedData = {
         ...formData,
         dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
         paymentDate: formData.paymentDate ? new Date(formData.paymentDate) : null,
       };
-      
+
       // Remove id field for creation as it's auto-generated
       const { id, ...createData } = validatedData as any;
       const expense = await dbStorage.createExpense(createData);
-      
+
       // Recalcular e atualizar o campo expenses do evento
       const allExpenses = await dbStorage.getExpensesByEventId(eventId);
       const totalExpenses = allExpenses
         .filter(e => e.amount < 0)
         .reduce((sum, e) => sum + e.amount, 0);
-      
+
       // Atualizar campo expenses no evento
       await db.update(events)
         .set({ expenses: totalExpenses })
         .where(eq(events.id, eventId));
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId,
         userId,
         action: "expense_added",
         details: JSON.stringify({
-          itemName: expense.name, 
+          itemName: expense.name,
           category: expense.category,
           amount: expense.amount,
           vendorId: expense.vendorId
         })
       });
-      
+
       res.status(201).json(expense);
     } catch (error) {
       console.error("Erro ao adicionar despesa:", error);
       res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
-  
+
   // Atualizar despesa específica por ID (PUT)
   app.put('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
     try {
       console.log("PUT /api/expenses/:id - Dados recebidos:", req.body);
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -2486,43 +2491,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao atualizar despesa");
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const itemId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(itemId)) {
         return res.status(400).json({ message: "ID inválido" });
       }
-      
+
       const expense = await dbStorage.getExpenseById(itemId);
-      
+
       if (!expense) {
         return res.status(404).json({ message: "Despesa não encontrada" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, expense.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
-      
+
       // Validação - só atualizamos os campos fornecidos
       const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
       console.log("Dados validados para atualização:", validatedUpdates);
-      
+
       const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
       console.log("Despesa atualizada com sucesso:", updatedExpense);
-      
+
       // Recalcular e atualizar o campo expenses do evento
       const allExpenses = await dbStorage.getExpensesByEventId(expense.eventId);
       const totalExpenses = allExpenses
         .filter(e => e.amount < 0)
         .reduce((sum, e) => sum + e.amount, 0);
-      
+
       // Atualizar campo expenses no evento
       await db.update(events)
         .set({ expenses: totalExpenses })
         .where(eq(events.id, expense.eventId));
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId: expense.eventId,
@@ -2534,7 +2539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paid: updatedExpense.paid
         })
       });
-      
+
       res.json(updatedExpense);
     } catch (error) {
       console.error("Erro ao atualizar despesa:", error);
@@ -2548,7 +2553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PUT /api/events/:eventId/expenses/:id - Dados recebidos:", req.body);
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -2561,52 +2566,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao atualizar despesa");
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
       const itemId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(itemId) || isNaN(eventId)) {
         return res.status(400).json({ message: "ID inválido" });
       }
-      
+
       // Verificar acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
-      
+
       const expense = await dbStorage.getExpenseById(itemId);
-      
+
       if (!expense || expense.eventId !== eventId) {
         return res.status(404).json({ message: "Despesa não encontrada" });
       }
-      
+
       // Converter strings de data para objetos Date antes da validação
       const bodyWithDates = {
         ...req.body,
         dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined,
         paymentDate: req.body.paymentDate ? new Date(req.body.paymentDate) : undefined,
       };
-      
+
       // Validação - só atualizamos os campos fornecidos
       const validatedUpdates = insertExpenseSchema.partial().parse(bodyWithDates);
       console.log("Dados validados para atualização:", validatedUpdates);
-      
+
       const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
       console.log("Despesa atualizada com sucesso:", updatedExpense);
-      
+
       // Recalcular e atualizar o campo expenses do evento
       const allExpenses = await dbStorage.getExpensesByEventId(eventId);
       const totalExpenses = allExpenses
         .filter(e => e.amount < 0)
         .reduce((sum, e) => sum + e.amount, 0);
-      
+
       // Atualizar campo expenses no evento
       await db.update(events)
         .set({ expenses: totalExpenses })
         .where(eq(events.id, eventId));
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId: expense.eventId,
@@ -2618,20 +2623,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paid: updatedExpense.paid
         })
       });
-      
+
       res.json(updatedExpense);
     } catch (error) {
       console.error("Erro ao atualizar despesa:", error);
       res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
-  
+
   // Atualizar despesa (mesma lógica, mas para o método PATCH)
   app.patch('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -2643,30 +2648,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao atualizar despesa (PATCH)");
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const itemId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(itemId)) {
         return res.status(400).json({ message: "ID inválido" });
       }
-      
+
       const expense = await dbStorage.getExpenseById(itemId);
-      
+
       if (!expense) {
         return res.status(404).json({ message: "Despesa não encontrada" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, expense.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
-      
+
       // Validação - só atualizamos os campos fornecidos
       const validatedUpdates = insertExpenseSchema.partial().parse(req.body);
-      
+
       const updatedExpense = await dbStorage.updateExpense(itemId, validatedUpdates);
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId: expense.eventId,
@@ -2678,61 +2683,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paid: updatedExpense.paid
         })
       });
-      
+
       res.json(updatedExpense);
     } catch (error) {
       console.error("Erro ao atualizar despesa:", error);
       res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
-  
+
   // Excluir despesa
   app.delete('/api/expenses/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const itemId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(itemId)) {
         return res.status(400).json({ message: "ID inválido" });
       }
-      
+
       const expense = await dbStorage.getExpenseById(itemId);
-      
+
       if (!expense) {
         return res.status(404).json({ message: "Despesa não encontrada" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, expense.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
-      
+
       await dbStorage.deleteExpense(itemId);
-      
+
       // Recalcular e atualizar o campo expenses do evento
       const allExpenses = await dbStorage.getExpensesByEventId(expense.eventId);
       const totalExpenses = allExpenses
         .filter(e => e.amount < 0)
         .reduce((sum, e) => sum + e.amount, 0);
-      
+
       // Atualizar campo expenses no evento
       await db.update(events)
         .set({ expenses: totalExpenses })
         .where(eq(events.id, expense.eventId));
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId: expense.eventId,
         userId,
         action: "expense_deleted",
         details: JSON.stringify({
-          itemName: expense.name, 
+          itemName: expense.name,
           category: expense.category,
           amount: expense.amount
         })
       });
-      
+
       res.status(200).json({ message: "Despesa excluída com sucesso" });
     } catch (error) {
       console.error("Erro ao excluir despesa:", error);
@@ -2743,18 +2748,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Usar as rotas do cronograma a partir do módulo separado
   app.use('/api', scheduleRoutes);
   app.use('/api', cronogramaRoutes);
-  
+
   // Rota direta para o cronograma (solução de emergência)
   setupCronogramaRoute(app);
 
   // ==== Rotas para Documentos ====
-  
+
   // Obter documentos de um evento
   app.get('/api/events/:eventId/documents', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
       let userId;
-      
+
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
@@ -2766,69 +2771,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Erro na autenticação do usuário ao acessar documentos do evento:", req.params.eventId);
         return res.status(401).json({ message: "User not authenticated properly" });
       }
-      
+
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
-      
+
       const documents = await dbStorage.getDocumentsByEventId(eventId);
       console.log(`Retornando ${documents.length} documentos para o evento ${eventId}`);
-      
+
       res.json(documents);
     } catch (error) {
       console.error("Erro ao obter documentos:", error);
       res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
-  
+
   // Obter documentos por categoria
   app.get('/api/events/:eventId/documents/category/:category', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
       const category = req.params.category;
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
-      
+
       const documents = await dbStorage.getDocumentsByCategory(eventId, category);
       console.log(`Retornando ${documents.length} documentos da categoria ${category} para o evento ${eventId}`);
-      
+
       res.json(documents);
     } catch (error) {
       console.error("Erro ao obter documentos por categoria:", error);
       res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
-  
+
   // Middleware específico para uploads de documento
   const documentUploadAuth = async (req: any, res: any, next: any) => {
     console.log("=== MIDDLEWARE DE UPLOAD DE DOCUMENTO ===");
     console.log("- URL:", req.url);
     console.log("- Method:", req.method);
-    
+
     const user = req.user as any;
-    
+
     if (!user || !user.claims || !user.claims.sub) {
       console.log("Usuário não autenticado para upload");
       return res.status(401).json({ message: "Unauthorized" });
     }
-    
+
     console.log("Usuário autorizado para upload:", user.claims.sub);
     return next();
   };
@@ -2838,7 +2843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
-      
+
       console.log("=== INÍCIO DO UPLOAD DE DOCUMENTO ===");
       console.log("Dados recebidos para upload de documento:");
       console.log("- req.body completo:", JSON.stringify(req.body, null, 2));
@@ -2853,30 +2858,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("  - filename enviado:", req.body.filename, typeof req.body.filename);
       console.log("  - category enviada:", req.body.category, typeof req.body.category);
       console.log("  - description enviada:", req.body.description, typeof req.body.description);
-      
+
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "ID de evento inválido" });
       }
-      
+
       if (!req.file) {
         return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para acessar este evento" });
       }
-      
+
       // Get file info from multer
       const fileExtension = req.file.mimetype;
       const fileUrl = `/uploads/${req.file.filename}`;
-      
+
       // Use the filename from form data if provided, otherwise use original filename
-      const fileName = req.body.filename && req.body.filename.trim() !== '' 
-        ? req.body.filename 
+      const fileName = req.body.filename && req.body.filename.trim() !== ''
+        ? req.body.filename
         : req.file.originalname;
-      
+
       const documentData = {
         name: fileName,
         category: req.body.category || 'outros',
@@ -2886,64 +2891,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         uploadedById: userId,
         eventId: eventId
       };
-      
+
       console.log("Dados processados para inserção:", documentData);
-      
+
       const document = await dbStorage.createDocument(documentData);
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId,
         userId,
         action: 'document_added',
-        details: JSON.stringify({ 
+        details: JSON.stringify({
           filename: document.name,
           category: document.category
         })
       });
-      
+
       res.status(201).json(document);
     } catch (error) {
       console.error("Erro ao criar documento:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Dados inválidos para o documento", 
-          errors: error.errors 
+        return res.status(400).json({
+          message: "Dados inválidos para o documento",
+          errors: error.errors
         });
       }
       res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
-  
+
   // Atualizar um documento
   app.put('/api/events/:eventId/documents/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
       const documentId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(eventId) || isNaN(documentId)) {
         return res.status(400).json({ message: "ID inválido" });
       }
-      
+
       // Verificar se o documento existe
       const document = await dbStorage.getDocumentById(documentId);
-      
+
       if (!document) {
         return res.status(404).json({ message: "Documento não encontrado" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, document.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
-      
+
       // Validação - só atualizamos os campos fornecidos
       const validatedUpdates = insertDocumentSchema.partial().parse(req.body);
-      
+
       const updatedDocument = await dbStorage.updateDocument(documentId, validatedUpdates);
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId,
@@ -2955,43 +2960,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
           documentName: updatedDocument.name
         })
       });
-      
+
       res.json(updatedDocument);
     } catch (error) {
       console.error("Erro ao atualizar documento:", error);
       res.status(500).json({ message: "Erro ao processar solicitação" });
     }
   });
-  
+
   // Excluir um documento
   app.delete('/api/events/:eventId/documents/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.eventId, 10);
       const documentId = parseInt(req.params.id, 10);
-      
+
       if (isNaN(eventId) || isNaN(documentId)) {
         return res.status(400).json({ message: "ID inválido" });
       }
-      
+
       // Verificar se o documento existe
       const document = await dbStorage.getDocumentById(documentId);
-      
+
       if (!document) {
         return res.status(404).json({ message: "Documento não encontrado" });
       }
-      
+
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, document.eventId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Sem permissão para executar esta ação" });
       }
-      
+
       // Guardar informações do documento antes de excluir
       const documentInfo = { ...document };
-      
+
       await dbStorage.deleteDocument(documentId);
-      
+
       // Registrar atividade
       await dbStorage.createActivityLog({
         eventId,
@@ -3003,7 +3008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           documentName: documentInfo.name
         })
       });
-      
+
       res.status(204).send();
     } catch (error) {
       console.error("Erro ao excluir documento:", error);
@@ -3027,31 +3032,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process CSV file
       return new Promise((resolve, reject) => {
         const results: any[] = [];
-        
+
         fs.createReadStream(filePath)
           .pipe(csvParser())
           .on('data', (data) => results.push(data))
           .on('end', () => {
             results.forEach((row, index) => {
               const errors: string[] = [];
-              
+
               // Validate required fields
               if (!row.nome && !row.name) {
                 errors.push('Nome é obrigatório');
               }
-              
+
               // Validate email if provided
               const email = row.email || row['e-mail'] || '';
               if (email && !isValidEmail(email)) {
                 errors.push('E-mail inválido');
               }
-              
+
               // Validate phone if provided
               const phone = row.telefone || row.phone || '';
               if (phone && !isValidPhone(phone)) {
                 errors.push('Telefone inválido');
               }
-              
+
               if (errors.length > 0) {
                 invalidRecords.push({
                   line: index + 2, // +2 because CSV starts at line 1 and we skip header
@@ -3069,7 +3074,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
               }
             });
-            
+
             resolve({
               validParticipants,
               invalidRecords,
@@ -3091,24 +3096,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       data.forEach((row: any, index) => {
         const errors: string[] = [];
-        
+
         // Validate required fields
         if (!row.nome && !row.name) {
           errors.push('Nome é obrigatório');
         }
-        
+
         // Validate email if provided
         const email = row.email || row['e-mail'] || '';
         if (email && !isValidEmail(email)) {
           errors.push('E-mail inválido');
         }
-        
+
         // Validate phone if provided
         const phone = row.telefone || row.phone || '';
         if (phone && !isValidPhone(phone)) {
           errors.push('Telefone inválido');
         }
-        
+
         if (errors.length > 0) {
           invalidRecords.push({
             line: index + 2, // +2 because Excel starts at line 1 and we skip header
@@ -3157,10 +3162,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     fileFilter: (req, file, cb) => {
       const allowedTypes = /csv|xlsx/;
       const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-      const mimetype = file.mimetype === 'text/csv' || 
-                      file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-                      file.mimetype === 'application/vnd.ms-excel';
-      
+      const mimetype = file.mimetype === 'text/csv' ||
+        file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.mimetype === 'application/vnd.ms-excel';
+
       if (mimetype && extname) {
         return cb(null, true);
       } else {
@@ -3181,10 +3186,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (eventId === 5) {
         const participants = await dbStorage.getParticipantsByEventId(eventId);
         const stats = await dbStorage.getParticipantStats(eventId);
-        
+
         console.log("✅ Participantes encontrados:", participants.length);
         console.log("✅ Stats:", stats);
-        
+
         return res.json({ participants, stats });
       }
 
@@ -3244,40 +3249,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // COLOCAR NO FINAL PARA NÃO SER INTERCEPTADO
-  const httpServer = createServer(app);
-  
+  // In serverless (Vercel), skip HTTP server creation
+  const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+  if (isServerless) {
+    console.log('Running in serverless mode — skipping HTTP server creation');
+  }
+
+  const httpServer = isServerless ? null : createServer(app);
+
   // POST /upload-participants-final/:eventId - ENDPOINT FINAL QUE FUNCIONA
-  httpServer.on('request', (req, res) => {
-    if (req.method === 'POST' && req.url?.includes('/upload-participants-final/')) {
-      const eventId = req.url.split('/')[2];
-      console.log("🔥 UPLOAD FINAL FUNCIONANDO!");
-      console.log("EventId:", eventId);
-      
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, message: 'Upload funcionando!' }));
-      return;
-    }
-  });
-  
+  if (httpServer) {
+    httpServer.on('request', (req, res) => {
+      if (req.method === 'POST' && req.url?.includes('/upload-participants-final/')) {
+        const eventId = req.url.split('/')[2];
+        console.log("🔥 UPLOAD FINAL FUNCIONANDO!");
+        console.log("EventId:", eventId);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Upload funcionando!' }));
+        return;
+      }
+    });
+  }
+
   // POST /upload-participants-fixed/:eventId - ENDPOINT CORRIGIDO DEFINITIVO
   app.post("/upload-participants-fixed/:eventId", participantUpload.single('file'), async (req, res) => {
     console.log("🔥 UPLOAD FUNCIONANDO AGORA!");
     console.log("Arquivo recebido:", req.file?.originalname);
     console.log("EventId:", req.params.eventId);
     console.log("User: 8650891");
-    
+
     // Forçar resposta JSON
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'no-cache');
-    
+
     try {
       const eventId = parseInt(req.params.eventId);
-      
+
       // SOLUÇÃO DIRETA: usar o ID fixo do usuário atual que sabemos que funciona
       const sessionUserId = "8650891"; // ID fixo que sabemos que está funcionando
       console.log("🎯 USANDO ID FIXO:", sessionUserId);
-      
+
       if (!sessionUserId) {
         console.log("❌ Usuário não autenticado - sem sessão");
         return res.status(401).json({ message: "Usuário não autenticado" });
@@ -3294,7 +3307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔧 Verificando acesso para userId:", sessionUserId, "eventId:", eventId);
       const hasAccess = await dbStorage.hasUserAccessToEvent(sessionUserId, eventId);
       console.log("🔧 Resultado hasAccess:", hasAccess);
-      
+
       if (!hasAccess) {
         console.log("❌ Sem acesso ao evento - userId:", sessionUserId, "eventId:", eventId);
         if (fs.existsSync(req.file.path)) {
@@ -3317,7 +3330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar limite
       if (result.validParticipants.length > 500) {
         console.log("❌ Limite excedido:", result.validParticipants.length);
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Limite de 500 participantes por importação excedido",
           stats: result.stats
         });
@@ -3332,13 +3345,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error("❌ Erro ao processar arquivo:", error);
-      
+
       if (req.file && fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
-      
-      return res.status(500).json({ 
-        message: `Erro ao processar arquivo: ${(error as any).message}` 
+
+      return res.status(500).json({
+        message: `Erro ao processar arquivo: ${(error as any).message}`
       });
     }
   });
@@ -3370,7 +3383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate each participant
-      const validatedParticipants = participantsData.map(p => 
+      const validatedParticipants = participantsData.map(p =>
         insertParticipantSchema.parse({
           ...p,
           eventId,
@@ -3425,7 +3438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate update data
       const updateData = insertParticipantSchema.partial().parse(req.body);
-      
+
       const updatedParticipant = await dbStorage.updateParticipant(participantId, updateData);
 
       // Log activity
@@ -3516,28 +3529,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Headers:", req.headers);
     console.log("Method:", req.method);
     console.log("URL:", req.url);
-    
+
     try {
       const eventId = parseInt(req.params.eventId);
       const userId = "8650891"; // Hardcoded user ID
-      
+
       console.log("EventId:", eventId, "UserId:", userId);
-      
+
       if (!req.file) {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
       }
-      
+
       console.log("Arquivo:", req.file.filename, "Tamanho:", req.file.size);
-      
+
       // Process file based on type
       let validParticipants: any[] = [];
       let invalidRecords: any[] = [];
-      
+
       if (req.file.mimetype === 'text/csv' || req.file.originalname?.endsWith('.csv')) {
         // Process CSV
         const csvData = fs.readFileSync(req.file.path, 'utf8');
         const lines = csvData.split('\n').filter(line => line.trim());
-        
+
         for (let i = 1; i < lines.length; i++) { // Skip header
           const columns = lines[i].split(',').map(col => col.trim().replace(/"/g, ''));
           if (columns.length >= 3) {
@@ -3555,32 +3568,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validParticipants = [
           {
             name: "Participante Teste",
-            email: "teste@exemplo.com", 
+            email: "teste@exemplo.com",
             phone: "11999999999",
             status: 'pending',
             origin: 'imported'
           }
         ];
       }
-      
+
       const stats = {
         total: validParticipants.length,
         valid: validParticipants.length,
         invalid: invalidRecords.length
       };
-      
+
       // Clean up file
       if (fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
-      
+
       res.json({
         message: "Arquivo processado com sucesso",
         stats: stats,
         validParticipants: validParticipants,
         invalidRecords: invalidRecords
       });
-      
+
     } catch (error) {
       console.error("Erro no upload:", error);
       res.status(500).json({ message: "Erro ao processar arquivo" });
@@ -3606,7 +3619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teamMembers = await dbStorage.getTeamMembersByEventId(eventId);
       const currentUserMember = teamMembers.find(member => member.userId === userId);
       const teamMember = teamMembers.find(tm => tm.id === teamMemberId);
-      
+
       if (!teamMember) {
         return res.status(404).json({ message: "Membro da equipe não encontrado" });
       }
@@ -3615,7 +3628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const event = await dbStorage.getEventById(eventId);
       const isOwner = event?.ownerId === userId;
       const isOrganizer = currentUserMember?.role === 'organizer';
-      
+
       if (!isOwner && !isOrganizer) {
         return res.status(403).json({ message: "Apenas organizadores podem remover membros da equipe" });
       }
@@ -3662,25 +3675,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.id);
       const userId = req.session.userId;
-      
+
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized - Login Required" });
       }
-      
+
       console.log(`Verificando acesso para usuário ${userId} ao evento ${eventId}`);
-      
+
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       console.log(`Usuário ${userId} tem acesso ao evento ${eventId}:`, hasAccess);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
-      
+
       const feedbackUrl = await dbStorage.generateFeedbackLink(eventId);
-      
+
       console.log(`Link de feedback gerado para evento ${eventId}: ${feedbackUrl}`);
-      
+
       res.json({ feedbackUrl });
     } catch (error) {
       console.error("Erro ao gerar link de feedback:", error);
@@ -3692,12 +3705,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/feedback/:feedbackId/event', async (req, res) => {
     try {
       const { feedbackId } = req.params;
-      
+
       const event = await dbStorage.getEventByFeedbackId(feedbackId);
       if (!event) {
         return res.status(404).json({ message: "Link de feedback inválido" });
       }
-      
+
       // Retornar apenas as informações necessárias para a página pública
       res.json({
         id: event.id,
@@ -3716,26 +3729,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { feedbackId } = req.params;
       const { name, email, rating, comment, isAnonymous } = req.body;
-      
+
       // Validar dados obrigatórios
       if (!rating || !comment) {
         return res.status(400).json({ message: "Avaliação e comentário são obrigatórios" });
       }
-      
+
       if (rating < 1 || rating > 5) {
         return res.status(400).json({ message: "Avaliação deve ser entre 1 e 5 estrelas" });
       }
-      
+
       // Verificar se o feedbackId existe e obter o eventId
       const event = await dbStorage.getEventByFeedbackId(feedbackId);
       if (!event) {
         return res.status(404).json({ message: "Link de feedback inválido" });
       }
-      
+
       // Capturar dados de métricas
       const ipAddress = req.ip || req.connection.remoteAddress;
       const userAgent = req.get('User-Agent');
-      
+
       // Criar o feedback
       const feedback = await dbStorage.createFeedback({
         eventId: event.id,
@@ -3746,7 +3759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comment,
         isAnonymous: isAnonymous !== undefined ? isAnonymous : true
       });
-      
+
       // Criar métrica de feedback
       try {
         await dbStorage.createFeedbackMetric({
@@ -3759,8 +3772,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Erro ao criar métrica de feedback:", metricError);
         // Não falhar o feedback se a métrica falhar
       }
-      
-      res.json({ 
+
+      res.json({
         message: "Feedback enviado com sucesso!",
         feedback: {
           id: feedback.id,
@@ -3779,7 +3792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:id/feedbacks', async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      
+
       // Usar mesma lógica de autenticação das outras rotas que funcionam
       const userId = req.session.userId;
       if (!userId) {
@@ -3791,7 +3804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar se o usuário tem acesso ao evento
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, eventId);
       console.log(`[DEBUG] Usuário ${userId} tem acesso ao evento ${eventId}: ${hasAccess}`);
-      
+
       if (!hasAccess) {
         return res.status(403).json({ message: "Acesso negado ao evento" });
       }
@@ -3834,7 +3847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/feedback/:feedbackId/event', async (req, res) => {
     try {
       const { feedbackId } = req.params;
-      
+
       const event = await dbStorage.getEventByFeedbackId(feedbackId);
       if (!event) {
         return res.status(404).json({ message: "Link de feedback não encontrado ou expirado" });
@@ -3844,7 +3857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const ipAddress = req.ip || req.connection.remoteAddress;
         const userAgent = req.get('User-Agent');
-        
+
         await dbStorage.createFeedbackMetric({
           feedbackId,
           viewedAt: new Date(),
@@ -3922,6 +3935,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar link de feedback" });
     }
   });
-  
+
   return httpServer;
 }
