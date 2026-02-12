@@ -1,11 +1,11 @@
 {
-  "buildCommand": "npx vite build --config vite.config.ts",
+  "buildCommand": "vite build && node build-api.mjs",
   "outputDirectory": "dist/public",
   "installCommand": "npm install",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+      "destination": "/api/index.mjs"
     },
     {
       "source": "/((?!api/).*)",
@@ -13,7 +13,7 @@
     }
   ],
   "functions": {
-    "api/index.ts": {
+    "api/index.mjs": {
       "maxDuration": 30
     }
   }
