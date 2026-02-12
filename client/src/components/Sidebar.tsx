@@ -121,7 +121,8 @@ const Sidebar: React.FC = () => {
       
       {/* Navigation */}
       <nav className={cn(
-        "flex-1 p-4"
+        "flex-1 py-4",
+        expanded ? "px-4" : "px-2"
       )}>
         <div className="flex flex-col gap-3">
           {navItems.map((item) => (
@@ -132,7 +133,7 @@ const Sidebar: React.FC = () => {
                     <div
                       className={cn(
                         "flex items-center rounded-md transition-colors cursor-pointer h-10 px-3",
-                        !expanded ? "justify-center w-10 mx-auto" : "",
+                        !expanded ? "justify-center w-full" : "",
                         isActivePath(item.path)
                           ? "bg-primary text-white"
                           : item.highlight
