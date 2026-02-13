@@ -10,6 +10,12 @@ import { db } from "./db";
 import { events, users, scheduleItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupSupabaseAuth, isAuthenticated } from "./supabaseAuth";
+const debugLog = (msg: string) => {
+  try {
+    fs.appendFileSync(path.join(process.cwd(), 'debug.log'), `[${new Date().toISOString()}] ${msg}\n`);
+  } catch (e) { }
+};
+debugLog("Routes module initialized");
 
 import {
   insertEventSchema,
@@ -108,6 +114,32 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
   // Endpoint para verificar se dev login está disponível
   app.get('/api/auth/dev-available', (req, res) => {
     res.json({ available: process.env.NODE_ENV !== 'production' });
+  });
+
+  // TAREFA TEMPORÁRIA: Rota de diagnóstico de banco de dados
+  app.get('/api/debug/inspect-db', async (req, res) => {
+    try {
+      const allUsers = await dbStorage.getAllUsers();
+      const allEvents = await db.select().from(events).limit(50);
+
+      const targetUser = allUsers.find(u => u.email === 'applution@gmail.com');
+      const targetEvents = targetUser ? allEvents.filter(e => e.ownerId === targetUser.id) : [];
+
+      debugLog(`[InspectDB] Found user ${targetUser?.id} for applution@gmail.com`);
+      debugLog(`[InspectDB] Found ${targetEvents.length} events for ${targetUser?.id}`);
+
+      res.json({
+        targetUser,
+        targetEventsCount: targetEvents.length,
+        usersCount: allUsers.length,
+        eventsCount: allEvents.length,
+        allEmails: allUsers.map(u => u.email),
+        eventsSample: allEvents.slice(0, 10).map(e => ({ id: e.id, ownerId: e.ownerId, name: e.name }))
+      });
+    } catch (err: any) {
+      debugLog(`[InspectDB] Error: ${err.message}`);
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // Auth middleware
@@ -218,6 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
       const userPicture = req.user.claims.picture;
 
       console.log("[Auth] Login via Supabase - UUID:", supabaseUserId, "Email:", userEmail);
+      debugLog(`[Auth] User Login: UUID=${supabaseUserId}, Email=${userEmail}`);
 
       if (!userEmail) {
         console.error("[Auth] Email não fornecido pelo Supabase!");
@@ -285,6 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
     try {
       const userId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
+      debugLog(`[Events] Fetching for userId=${userId}, email=${userEmail}`);
       console.log("========================================");
       console.log("Buscando eventos para userId:", userId, "email:", userEmail);
       console.log("Claims completos:", JSON.stringify(req.user.claims));

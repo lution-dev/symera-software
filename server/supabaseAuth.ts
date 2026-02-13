@@ -9,23 +9,27 @@ const emailToUserIdCache = new Map<string, { userId: string; timestamp: number }
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 async function getEffectiveUserId(email: string, supabaseUserId: string): Promise<string> {
+  console.log(`[Auth DEBUG] Resolving ID for ${email} (Supabase UUID: ${supabaseUserId})`);
   // Verificar cache primeiro
   const cached = emailToUserIdCache.get(email);
   if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+    console.log(`[Auth DEBUG] Found cached original ID: ${cached.userId}`);
     return cached.userId;
   }
 
   // Buscar usuário pelo email no banco de dados
   const dbStorage = await storage;
   const existingUser = await dbStorage.getUserByEmail(email);
-  
+
   if (existingUser) {
     // Usuário existente - usar ID original do banco
+    console.log(`[Auth DEBUG] Found existing user in DB with ID: ${existingUser.id}`);
     emailToUserIdCache.set(email, { userId: existingUser.id, timestamp: Date.now() });
     return existingUser.id;
   }
-  
+
   // Usuário novo - usar UUID do Supabase
+  console.log(`[Auth DEBUG] No existing user found. Using Supabase UUID: ${supabaseUserId}`);
   emailToUserIdCache.set(email, { userId: supabaseUserId, timestamp: Date.now() });
   return supabaseUserId;
 }
@@ -34,26 +38,26 @@ let supabaseInstance: SupabaseClient | null = null;
 
 function getSupabaseClient(): SupabaseClient {
   if (supabaseInstance) return supabaseInstance;
-  
+
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-  
+
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Supabase credentials not configured");
   }
-  
+
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
   return supabaseInstance;
 }
 
 export function getSession() {
   const sessionTtl = 30 * 24 * 60 * 60 * 1000;
-  
+
   const MemoryStore = memorystore(session);
   const sessionStore = new MemoryStore({
     checkPeriod: 86400000,
   });
-  
+
   return session({
     secret: process.env.SESSION_SECRET || 'supabase-session-secret-dev',
     store: sessionStore,
@@ -109,7 +113,7 @@ export function generateDevToken(): string {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     console.log("[Auth] Token não fornecido no header Authorization");
     return res.status(401).json({ message: "Unauthorized - No token provided" });
@@ -123,17 +127,17 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       console.log("[Auth] Token de desenvolvimento rejeitado em produção");
       return res.status(401).json({ message: "Unauthorized - Dev tokens not allowed in production" });
     }
-    
+
     try {
       const payloadBase64 = token.substring(DEV_TOKEN_PREFIX.length);
       const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
-      
+
       if (!payload.is_dev) {
         return res.status(401).json({ message: "Unauthorized - Invalid dev token" });
       }
-      
+
       console.log("[Auth] 🔧 Token de DESENVOLVIMENTO aceito - UserId:", payload.sub);
-      
+
       (req as any).user = {
         claims: {
           sub: payload.sub,
@@ -143,7 +147,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
           picture: null,
         }
       };
-      
+
       return next();
     } catch (error) {
       console.log("[Auth] Token de desenvolvimento inválido");
@@ -160,7 +164,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     }
 
     const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-    
+
     // Verificar expiração
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp && payload.exp < now) {
@@ -187,7 +191,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     // Se o usuário já existe no banco, usa o ID original
     // Se é usuário novo, usa o UUID do Supabase
     const effectiveUserId = await getEffectiveUserId(email, supabaseUserId);
-    
+
     console.log("[Auth] Resolução de ID - Supabase UUID:", supabaseUserId, "-> ID efetivo:", effectiveUserId, "Email:", email);
 
     (req as any).user = {

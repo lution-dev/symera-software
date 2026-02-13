@@ -15,14 +15,14 @@ import { useToast } from "@/hooks/use-toast";
 const calculateDaysRemaining = (eventDate: string) => {
   const targetDate = new Date(eventDate);
   const today = new Date();
-  
+
   // Reset both dates to midnight UTC to ensure accurate day calculation
   today.setUTCHours(0, 0, 0, 0);
   targetDate.setUTCHours(0, 0, 0, 0);
-  
+
   const diffTime = targetDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   return diffDays;
 };
 import { useAuth } from "@/hooks/useAuth";
@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const migrationAttempted = useRef(false);
   const queryClient = useQueryClient();
-  
+
   const { data, isLoading } = useQuery({
     queryKey: ["/api/dashboard"],
   });
@@ -94,20 +94,20 @@ const Dashboard: React.FC = () => {
         return eventDate >= now;
       });
   }, [data?.activeEventsList]);
-  
+
   const allActiveEventsList = data?.activeEventsList || [];
-  
+
   const totalEvents = data?.totalEvents || 0;
   const pendingTasks = data?.pendingTasks || [];
   const recentActivities = data?.recentActivities || [];
-  
+
   // Filter active events (with status planning, confirmed, or in_progress)
-  const activeEvents = allActiveEventsList.filter(event => 
-    event.status === 'planning' || 
-    event.status === 'confirmed' || 
+  const activeEvents = allActiveEventsList.filter(event =>
+    event.status === 'planning' ||
+    event.status === 'confirmed' ||
     event.status === 'in_progress'
   ).length;
-  
+
   // Count events by status
   const planningEvents = allActiveEventsList.filter(event => event.status === 'planning').length;
   const confirmedEvents = allActiveEventsList.filter(event => event.status === 'confirmed').length;
@@ -135,6 +135,10 @@ const Dashboard: React.FC = () => {
           <h2 className="text-xl sm:hidden font-semibold text-foreground">
             Olá, {user?.firstName || ""}!
           </h2>
+          {/* DEBUG BANNER TEMPORARIO */}
+          <div className="bg-red-900/50 border border-red-500 text-white p-2 text-xs rounded mt-2 mb-2">
+            DEBUG: ID={user?.id} | Email={user?.email}
+          </div>
           {activeEvents > 0 ? (
             <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
               {isMobile ? (
@@ -218,8 +222,8 @@ const Dashboard: React.FC = () => {
             <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
               Você não tem eventos ativos no momento. {pendingTasks.length > 0 && `Você tem ${pendingTasks.length} tarefas pendentes.`}
               {totalEvents === 0 && (
-                <Button 
-                  variant="link" 
+                <Button
+                  variant="link"
                   className="text-primary p-0 h-auto ml-2"
                   onClick={() => migrationMutation.mutate()}
                   disabled={migrationMutation.isPending}
@@ -243,7 +247,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Metrics Cards */}
-      <DashboardMetrics 
+      <DashboardMetrics
         totalEvents={totalEvents}
         activeEvents={activeEvents}
         pendingTasks={pendingTasks.length}
@@ -282,9 +286,9 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Card de dicas/recursos com sistema de rotação e interação */}
-      <TipsCard 
-        isCreatingFirstEvent={totalEvents === 0} 
-        hasTeamMembers={allActiveEventsList.some(event => event.team && event.team.length > 0)} 
+      <TipsCard
+        isCreatingFirstEvent={totalEvents === 0}
+        hasTeamMembers={allActiveEventsList.some(event => event.team && event.team.length > 0)}
         hasVendors={true} // Assumimos que alguns eventos já têm fornecedores
         hasTasks={pendingTasks.length > 0}
       />
@@ -347,7 +351,7 @@ const Dashboard: React.FC = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* Tablet and desktop grid view */}
             <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {activeEventsList.slice(0, 3).map((event: any) => (
@@ -383,7 +387,7 @@ const Dashboard: React.FC = () => {
               <i className="fas fa-tasks text-primary mr-2"></i>
               Tarefas Pendentes
             </h3>
-            
+
             {isLoading ? (
               <div className="flex justify-center py-4">
                 <div className="animate-spin rounded-full h-5 w-5 sm:h-8 sm:w-8 border-t-2 border-b-2 border-primary"></div>
@@ -396,7 +400,7 @@ const Dashboard: React.FC = () => {
               <>
                 {/* Mobile task list component */}
                 <div className="sm:hidden">
-                  <TaskList 
+                  <TaskList
                     title="📝 Minhas Tarefas"
                     tasks={pendingTasks}
                     loading={false}
@@ -405,10 +409,10 @@ const Dashboard: React.FC = () => {
                     showFilters={true}
                   />
                 </div>
-                
+
                 {/* Desktop view para tarefas */}
                 <div className="hidden sm:block">
-                  <TaskList 
+                  <TaskList
                     title="📝 Minhas Tarefas"
                     tasks={pendingTasks}
                     loading={false}
@@ -429,7 +433,7 @@ const Dashboard: React.FC = () => {
               <i className="fas fa-history text-primary mr-2"></i>
               Atividades Recentes
             </h3>
-            
+
             {isLoading ? (
               <div className="flex justify-center py-4">
                 <div className="animate-spin rounded-full h-5 w-5 sm:h-8 sm:w-8 border-t-2 border-b-2 border-primary"></div>
@@ -444,15 +448,15 @@ const Dashboard: React.FC = () => {
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-4 text-center">
                   Exibindo suas 5 atividades mais recentes
                 </p>
-                
+
                 {/* Linha de tempo vertical */}
                 <div className="absolute left-3.5 sm:left-4 top-2 bottom-0 w-0.5 bg-border/50 z-0"></div>
-                
+
                 {recentActivities.slice(0, 5).map((activity: any, index: number) => {
                   // Determinar o texto de cada atividade com base no tipo de ação
                   const getActivityText = () => {
                     const { action, details } = activity;
-                    
+
                     switch (action) {
                       case "created_event":
                         return `Criou o evento "${details?.eventName || 'Evento'}"`;
@@ -482,10 +486,10 @@ const Dashboard: React.FC = () => {
                         return "Realizou uma ação";
                     }
                   };
-                  
+
                   // Pegar o nome do evento da API ou dos detalhes
                   const eventName = allActiveEventsList.find(e => e.id === activity.eventId)?.name || activity.details?.eventName || '';
-                  
+
                   // Determinar cor do ícone e bolinha com base no tipo de ação
                   const getActivityColorClass = () => {
                     switch (activity.action) {
@@ -505,7 +509,7 @@ const Dashboard: React.FC = () => {
                         return "bg-primary/10 text-primary border-primary/50";
                     }
                   };
-                  
+
                   // Ícones usando classes do Font Awesome padrão
                   const getActivityIconClass = () => {
                     switch (activity.action) {
@@ -536,20 +540,20 @@ const Dashboard: React.FC = () => {
                         return "fas fa-bell";
                     }
                   };
-                  
+
                   return (
                     <div key={activity.id} className="relative mb-4 last:mb-0 pl-10 sm:pl-12">
                       {/* Nó na timeline */}
                       <div className={`absolute left-0 top-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full border ${getActivityColorClass()} flex items-center justify-center flex-shrink-0 z-10`}>
                         <i className={`${getActivityIconClass()} text-xs sm:text-sm`}></i>
                       </div>
-                      
+
                       {/* Conteúdo da atividade */}
                       <div className={`p-2 sm:p-3 rounded-lg border ${index === 0 ? 'border-primary/20 bg-primary/5' : 'border-border/30 bg-muted/30'}`}>
                         <p className="text-xs sm:text-sm font-medium">
                           {getActivityText()}
                         </p>
-                        
+
                         <div className="flex items-center justify-between mt-1.5">
                           <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center">
                             <i className="fas fa-folder-open text-[8px] sm:text-[10px] mr-1"></i>
