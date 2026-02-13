@@ -8,11 +8,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function AuthCallback() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("Iniciando autenticação...");
+  const [debugLog, setDebugLog] = useState<string[]>([]);
   const [, navigate] = useLocation();
   const processedRef = useRef(false);
 
+  const addLog = (msg: string) => {
+    console.log("[AuthCallback]", msg);
+    setDebugLog(prev => [...prev, `${new Date().toISOString().substring(11, 19)} ${msg}`]);
+  };
+
   useEffect(() => {
-    // Evitar dupla execução em React Strict Mode
     if (processedRef.current) return;
     processedRef.current = true;
 
@@ -20,58 +25,100 @@ export default function AuthCallback() {
 
     const processAuth = async () => {
       try {
-        const supabase = await getSupabase();
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const errorParam = urlParams.get('error');
+        // Log all URL info
+        addLog(`URL: ${window.location.href}`);
+        addLog(`Search: ${window.location.search}`);
+        addLog(`Hash: ${window.location.hash ? window.location.hash.substring(0, 50) + '...' : '(vazio)'}`);
 
-        console.log("[AuthCallback] Iniciando processamento. Code presente?", !!code);
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get("code");
+        const errorParam = urlParams.get("error");
+
+        // Also check hash for implicit flow
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessTokenFromHash = hashParams.get("access_token");
+
+        addLog(`Code: ${code ? code.substring(0, 10) + '...' : 'NULL'}`);
+        addLog(`Error param: ${errorParam || 'NULL'}`);
+        addLog(`Access token in hash: ${accessTokenFromHash ? 'SIM' : 'NAO'}`);
 
         if (errorParam) {
-          const errorDesc = urlParams.get('error_description') || errorParam;
-          console.error("[AuthCallback] Erro n URL:", errorDesc);
+          const errorDesc = urlParams.get("error_description") || errorParam;
+          addLog(`ERRO da URL: ${errorDesc}`);
           if (mounted) setError(errorDesc);
           return;
         }
 
-        if (!code) {
-          console.log("[AuthCallback] Sem código, verificando sessão existente...");
-          const { data: { session: existingSession } } = await supabase.auth.getSession();
-          if (existingSession) {
-            console.log("[AuthCallback] Sessão existente encontrada.");
-            handleSuccess(existingSession);
-            return;
+        addLog("Inicializando Supabase...");
+        const supabase = await getSupabase();
+        addLog("Supabase inicializado OK");
+
+        // If we have an access token in the hash (implicit flow), try to set session
+        if (accessTokenFromHash) {
+          addLog("Fluxo implícito detectado - token no hash");
+          const refreshToken = hashParams.get("refresh_token");
+          if (refreshToken) {
+            addLog("Definindo sessão com tokens do hash...");
+            const { data, error: setError } = await supabase.auth.setSession({
+              access_token: accessTokenFromHash,
+              refresh_token: refreshToken,
+            });
+            if (setError) {
+              addLog(`ERRO ao definir sessão: ${setError.message}`);
+              throw setError;
+            }
+            if (data.session) {
+              addLog("Sessão criada via tokens do hash!");
+              await handleSuccess(data.session);
+              return;
+            }
           }
-          if (mounted) setError("Código de autenticação não encontrado.");
+        }
+
+        if (code) {
+          addLog("Fluxo PKCE detectado - trocando código...");
+          if (mounted) setStatus("Trocando código de autorização...");
+
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (exchangeError) {
+            addLog(`ERRO ao trocar código: ${exchangeError.message}`);
+
+            // Try to get existing session
+            addLog("Tentando recuperar sessão existente...");
+            const { data: { session: existingSession } } = await supabase.auth.getSession();
+            if (existingSession) {
+              addLog("Sessão existente encontrada após erro!");
+              await handleSuccess(existingSession);
+              return;
+            }
+            addLog("Nenhuma sessão existente encontrada");
+            throw exchangeError;
+          }
+
+          if (!data.session) {
+            addLog("ERRO: exchangeCodeForSession retornou sem sessão");
+            throw new Error("Sessão não criada após troca de código.");
+          }
+
+          addLog("Código trocado com sucesso! Sessão criada.");
+          await handleSuccess(data.session);
           return;
         }
 
-        if (mounted) setStatus("Trocando código de autorização...");
-
-        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
-        if (exchangeError) {
-          console.error("[AuthCallback] Erro ao trocar código:", exchangeError);
-
-          // Tentar recuperar sessão mesmo com erro (as vezes o código já foi usado mas a sessão tá lá)
-          const { data: { session: existingSession } } = await supabase.auth.getSession();
-          if (existingSession) {
-            console.log("[AuthCallback] Recuperada sessão existente após erro de troca.");
-            handleSuccess(existingSession);
-            return;
-          }
-
-          throw exchangeError;
+        // No code, no hash token - check for existing session
+        addLog("Sem código nem token. Verificando sessão existente...");
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        if (existingSession) {
+          addLog("Sessão existente encontrada!");
+          await handleSuccess(existingSession);
+          return;
         }
 
-        if (!data.session) {
-          throw new Error("Sessão não criada após troca de código.");
-        }
-
-        handleSuccess(data.session);
-
+        addLog("NENHUMA sessão encontrada. Login falhou.");
+        if (mounted) setError("Código de autenticação não encontrado na URL.");
       } catch (err: any) {
-        console.error("[AuthCallback] Erro fatal:", err);
+        addLog(`ERRO FATAL: ${err.message || String(err)}`);
         if (mounted) {
           setError(err.message || "Erro inesperado durante o login.");
         }
@@ -82,30 +129,33 @@ export default function AuthCallback() {
       if (!mounted) return;
 
       try {
+        addLog(`Sessão obtida! User: ${session.user?.email || 'unknown'}`);
+        addLog("Buscando dados do usuário no servidor...");
         setStatus("Buscando dados do usuário...");
 
-        // Buscar dados do usuário do servidor
         const userResponse = await fetch("/api/auth/user", {
-          headers: { Authorization: `Bearer ${session.access_token}` }
+          headers: { Authorization: `Bearer ${session.access_token}` },
         });
 
+        addLog(`Resposta /api/auth/user: ${userResponse.status}`);
+
         if (!userResponse.ok) {
-          console.warn("[AuthCallback] Falha ao buscar dados do usuário:", userResponse.status);
-          // Não bloquear o login se falhar o fetch do usuário, usar dados da sessão
+          addLog(`Falha ao buscar usuário (${userResponse.status}). Salvando com dados da sessão.`);
           authManager.saveAuthData(session);
         } else {
           const serverUser = await userResponse.json();
-          console.log("[AuthCallback] Dados do usuário recebidos:", serverUser.id);
+          addLog(`Usuário do servidor: ${serverUser.id} (${serverUser.email || 'no email'})`);
           authManager.saveAuthDataWithServerId(session, serverUser.id);
         }
 
+        addLog("Dados salvos no localStorage. Redirecionando para /...");
         setStatus("Redirecionando...");
-        // Pequeno delay para garantir que o storage foi atualizado
-        setTimeout(() => navigate("/"), 100);
-
-      } catch (err) {
-        console.error("[AuthCallback] Erro no pós-processamento:", err);
-        // Tentar seguir mesmo com erro
+        setTimeout(() => {
+          addLog("Navegando para /");
+          navigate("/");
+        }, 200);
+      } catch (err: any) {
+        addLog(`ERRO no pós-processamento: ${err.message}`);
         authManager.saveAuthData(session);
         navigate("/");
       }
@@ -113,28 +163,47 @@ export default function AuthCallback() {
 
     processAuth();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [navigate]);
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md border-red-200 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-red-600 flex items-center gap-2">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Falha no Login
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+  // Always show debug log
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-lg shadow-lg">
+        <CardHeader>
+          <CardTitle className={error ? "text-red-600" : "text-primary"}>
+            {error ? "❌ Falha no Login" : "🔄 " + status}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {error && (
             <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">
               {error}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Ocorreu um erro ao tentar conectar com o Google. Isso pode acontecer devido a configurações de segurança ou falhas de conexão.
-            </p>
+          )}
+
+          {!error && (
+            <div className="flex items-center gap-3">
+              <div className="relative w-8 h-8">
+                <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+              </div>
+              <p className="text-sm text-muted-foreground">Processando...</p>
+            </div>
+          )}
+
+          {/* Debug log - TEMPORÁRIO */}
+          <div className="mt-4 p-3 bg-gray-900 text-green-400 rounded-md text-xs font-mono max-h-64 overflow-y-auto">
+            <p className="text-gray-500 mb-2">--- Debug Log (temporário) ---</p>
+            {debugLog.map((log, i) => (
+              <p key={i} className="whitespace-pre-wrap">{log}</p>
+            ))}
+            {debugLog.length === 0 && <p className="text-gray-600">Aguardando...</p>}
+          </div>
+
+          {error && (
             <Button
               className="w-full"
               onClick={() => navigate("/auth")}
@@ -142,23 +211,9 @@ export default function AuthCallback() {
             >
               Voltar para Login
             </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center p-8">
-        <div className="relative w-16 h-16 mx-auto mb-6">
-          <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
-        </div>
-        <h3 className="text-lg font-semibold mb-2">{status}</h3>
-        <p className="text-sm text-muted-foreground">Estamos configurando seu acesso...</p>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
