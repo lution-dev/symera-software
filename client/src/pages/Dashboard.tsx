@@ -135,10 +135,6 @@ const Dashboard: React.FC = () => {
           <h2 className="text-xl sm:hidden font-semibold text-foreground">
             Olá, {user?.firstName || ""}!
           </h2>
-          {/* DEBUG BANNER TEMPORARIO */}
-          <div className="bg-red-900/50 border border-red-500 text-white p-2 text-xs rounded mt-2 mb-2">
-            DEBUG: ID={user?.id} | Email={user?.email}
-          </div>
           {activeEvents > 0 ? (
             <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
               {isMobile ? (

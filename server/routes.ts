@@ -10,12 +10,6 @@ import { db } from "./db";
 import { events, users, scheduleItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupSupabaseAuth, isAuthenticated } from "./supabaseAuth";
-const debugLog = (msg: string) => {
-  try {
-    fs.appendFileSync(path.join(process.cwd(), 'debug.log'), `[${new Date().toISOString()}] ${msg}\n`);
-  } catch (e) { }
-};
-debugLog("Routes module initialized");
 
 import {
   insertEventSchema,
@@ -92,153 +86,12 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
   // Serve uploaded files statically
   app.use('/uploads', express.static(uploadDir));
 
-  // ROTA DE DESENVOLVIMENTO - LOGIN AUTOMÁTICO (só funciona fora de produção)
-  app.post('/api/auth/dev-login', async (req: any, res) => {
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(403).json({ message: "Dev login não disponível em produção" });
-    }
-
-    const { generateDevToken } = await import('./supabaseAuth');
-    const token = generateDevToken();
-
-    console.log("🔧 LOGIN DE DESENVOLVIMENTO - Token gerado");
-    res.json({
-      success: true,
-      accessToken: token,
-      userId: "8650891",
-      email: "dev@symera.test",
-      name: "Usuário de Teste"
-    });
-  });
-
-  // Endpoint para verificar se dev login está disponível
-  app.get('/api/auth/dev-available', (req, res) => {
-    res.json({ available: process.env.NODE_ENV !== 'production' });
-  });
-
-  // TAREFA TEMPORÁRIA: Rota de diagnóstico de banco de dados
-  app.get('/api/debug/inspect-db', async (req, res) => {
-    try {
-      const allUsers = await dbStorage.getAllUsers();
-      const allEvents = await db.select().from(events).limit(50);
-
-      const targetUser = allUsers.find(u => u.email === 'applution@gmail.com');
-      const targetEvents = targetUser ? allEvents.filter(e => e.ownerId === targetUser.id) : [];
-
-      debugLog(`[InspectDB] Found user ${targetUser?.id} for applution@gmail.com`);
-      debugLog(`[InspectDB] Found ${targetEvents.length} events for ${targetUser?.id}`);
-
-      res.json({
-        targetUser,
-        targetEventsCount: targetEvents.length,
-        usersCount: allUsers.length,
-        eventsCount: allEvents.length,
-        allEmails: allUsers.map(u => u.email),
-        eventsSample: allEvents.slice(0, 10).map(e => ({ id: e.id, ownerId: e.ownerId, name: e.name }))
-      });
-    } catch (err: any) {
-      debugLog(`[InspectDB] Error: ${err.message}`);
-      res.status(500).json({ error: err.message });
-    }
-  });
-
   // Auth middleware
   await setupSupabaseAuth(app);
 
   // Habilitado: autenticação de desenvolvimento automática
   const { devModeAuth } = await import('./devMode');
   app.use(devModeAuth);
-
-  // ROTA DE DIAGNÓSTICO: Verificar eventos existentes no banco
-  app.get('/api/debug/check-events', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const userEmail = req.user.claims.email;
-
-      console.log("========== DIAGNÓSTICO ==========");
-      console.log("Usuário atual (Supabase):", userId);
-      console.log("Email:", userEmail);
-
-      // Buscar todos os usuários com este email
-      const userByEmail = await dbStorage.getUserByEmail(userEmail);
-      console.log("Usuário encontrado por email:", userByEmail);
-
-      // Buscar eventos do usuário atual
-      const eventsCurrentUser = await dbStorage.getEventsByUser(userId);
-      console.log("Eventos do usuário atual:", eventsCurrentUser.length);
-
-      // Buscar todos os eventos no sistema para debug
-      const allEventsQuery = await db.select().from(events).limit(20);
-      console.log("Primeiros 20 eventos no sistema:", allEventsQuery.map(e => ({ id: e.id, name: e.name, ownerId: e.ownerId })));
-
-      // Buscar todos os usuários
-      const allUsersQuery = await db.select().from(users).limit(20);
-      console.log("Primeiros 20 usuários:", allUsersQuery.map(u => ({ id: u.id, email: u.email })));
-
-      return res.json({
-        currentUserId: userId,
-        currentUserEmail: userEmail,
-        userFoundByEmail: userByEmail ? { id: userByEmail.id, email: userByEmail.email } : null,
-        eventsForCurrentUser: eventsCurrentUser.length,
-        allEvents: allEventsQuery.map(e => ({ id: e.id, name: e.name, ownerId: e.ownerId })),
-        allUsers: allUsersQuery.map(u => ({ id: u.id, email: u.email }))
-      });
-    } catch (error: any) {
-      console.error("Erro no diagnóstico:", error);
-      return res.status(500).json({ error: error.message });
-    }
-  });
-
-  // ROTA ESPECIAL: Forçar migração de eventos para usuário Supabase
-  app.post('/api/force-migration', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const userEmail = req.user.claims.email;
-
-      // Buscar usuário antigo pelo email para descobrir o ID correto
-      const oldUser = await dbStorage.getUserByEmail(userEmail);
-      const OLD_USER_ID = oldUser?.id || "8650891";
-
-      console.log("========== FORÇA MIGRAÇÃO ==========");
-      console.log("Novo userId (Supabase):", userId);
-      console.log("Email:", userEmail);
-      console.log("ID antigo (local):", OLD_USER_ID);
-
-      // Verificar eventos do usuário antigo
-      const oldEvents = await dbStorage.getEventsByUser(OLD_USER_ID);
-      console.log("Eventos do usuário antigo:", oldEvents.length);
-
-      if (oldEvents.length > 0) {
-        console.log("Executando migração...");
-        await dbStorage.migrateUserFromLocalToReplit(OLD_USER_ID, userId);
-        console.log("Migração concluída!");
-
-        // Buscar eventos novamente
-        const newEvents = await dbStorage.getEventsByUser(userId);
-        console.log("Eventos após migração:", newEvents.length);
-
-        return res.json({
-          success: true,
-          message: "Migração concluída!",
-          oldEventsCount: oldEvents.length,
-          newEventsCount: newEvents.length
-        });
-      } else {
-        // Verificar se já existe eventos no novo ID
-        const existingEvents = await dbStorage.getEventsByUser(userId);
-        console.log("Eventos já existentes para novo ID:", existingEvents.length);
-
-        return res.json({
-          success: true,
-          message: "Nenhum evento para migrar do ID antigo",
-          existingEventsCount: existingEvents.length
-        });
-      }
-    } catch (error: any) {
-      console.error("Erro na migração forçada:", error);
-      return res.status(500).json({ error: error.message });
-    }
-  });
 
   // Auth routes - Requer autenticação obrigatória
   // NOVA LÓGICA: Priorizar usuário existente pelo email para manter IDs originais
@@ -250,7 +103,6 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
       const userPicture = req.user.claims.picture;
 
       console.log("[Auth] Login via Supabase - UUID:", supabaseUserId, "Email:", userEmail);
-      debugLog(`[Auth] User Login: UUID=${supabaseUserId}, Email=${userEmail}`);
 
       if (!userEmail) {
         console.error("[Auth] Email não fornecido pelo Supabase!");
@@ -318,7 +170,6 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
     try {
       const userId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
-      debugLog(`[Events] Fetching for userId=${userId}, email=${userEmail}`);
       console.log("========================================");
       console.log("Buscando eventos para userId:", userId, "email:", userEmail);
       console.log("Claims completos:", JSON.stringify(req.user.claims));

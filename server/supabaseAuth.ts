@@ -9,11 +9,9 @@ const emailToUserIdCache = new Map<string, { userId: string; timestamp: number }
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 async function getEffectiveUserId(email: string, supabaseUserId: string): Promise<string> {
-  console.log(`[Auth DEBUG] Resolving ID for ${email} (Supabase UUID: ${supabaseUserId})`);
   // Verificar cache primeiro
   const cached = emailToUserIdCache.get(email);
   if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
-    console.log(`[Auth DEBUG] Found cached original ID: ${cached.userId}`);
     return cached.userId;
   }
 
@@ -23,13 +21,11 @@ async function getEffectiveUserId(email: string, supabaseUserId: string): Promis
 
   if (existingUser) {
     // Usuário existente - usar ID original do banco
-    console.log(`[Auth DEBUG] Found existing user in DB with ID: ${existingUser.id}`);
     emailToUserIdCache.set(email, { userId: existingUser.id, timestamp: Date.now() });
     return existingUser.id;
   }
 
   // Usuário novo - usar UUID do Supabase
-  console.log(`[Auth DEBUG] No existing user found. Using Supabase UUID: ${supabaseUserId}`);
   emailToUserIdCache.set(email, { userId: supabaseUserId, timestamp: Date.now() });
   return supabaseUserId;
 }
