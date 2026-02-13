@@ -193,7 +193,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   // Fetch event details
   const { data: event, isLoading, error, refetch } = useQuery<EventData>({
     queryKey: [`/api/events/${eventId}`],
-    enabled: !!eventId && isAuthenticated,
+    enabled: !!eventId,
     retry: 1,
     staleTime: 0,
     refetchOnWindowFocus: true,
