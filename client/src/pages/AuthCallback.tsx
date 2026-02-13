@@ -1,4 +1,3 @@
-```typescript
 import { useEffect, useState, useRef } from "react";
 import { getSupabase } from "../lib/supabase";
 import { authManager } from "../lib/auth";
@@ -16,44 +15,44 @@ export default function AuthCallback() {
     // Evitar dupla execução em React Strict Mode
     if (processedRef.current) return;
     processedRef.current = true;
-    
+
     let mounted = true;
-    
+
     const processAuth = async () => {
       try {
         const supabase = await getSupabase();
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const errorParam = urlParams.get('error');
-        
+
         console.log("[AuthCallback] Iniciando processamento. Code presente?", !!code);
-        
+
         if (errorParam) {
           const errorDesc = urlParams.get('error_description') || errorParam;
           console.error("[AuthCallback] Erro n URL:", errorDesc);
           if (mounted) setError(errorDesc);
           return;
         }
-        
+
         if (!code) {
           console.log("[AuthCallback] Sem código, verificando sessão existente...");
           const { data: { session: existingSession } } = await supabase.auth.getSession();
           if (existingSession) {
-             console.log("[AuthCallback] Sessão existente encontrada.");
-             handleSuccess(existingSession);
-             return;
+            console.log("[AuthCallback] Sessão existente encontrada.");
+            handleSuccess(existingSession);
+            return;
           }
           if (mounted) setError("Código de autenticação não encontrado.");
           return;
         }
 
         if (mounted) setStatus("Trocando código de autorização...");
-        
+
         const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        
+
         if (exchangeError) {
           console.error("[AuthCallback] Erro ao trocar código:", exchangeError);
-          
+
           // Tentar recuperar sessão mesmo com erro (as vezes o código já foi usado mas a sessão tá lá)
           const { data: { session: existingSession } } = await supabase.auth.getSession();
           if (existingSession) {
@@ -61,16 +60,16 @@ export default function AuthCallback() {
             handleSuccess(existingSession);
             return;
           }
-          
+
           throw exchangeError;
         }
-        
+
         if (!data.session) {
           throw new Error("Sessão não criada após troca de código.");
         }
-        
+
         handleSuccess(data.session);
-        
+
       } catch (err: any) {
         console.error("[AuthCallback] Erro fatal:", err);
         if (mounted) {
@@ -81,29 +80,29 @@ export default function AuthCallback() {
 
     const handleSuccess = async (session: any) => {
       if (!mounted) return;
-      
+
       try {
         setStatus("Buscando dados do usuário...");
-        
+
         // Buscar dados do usuário do servidor
         const userResponse = await fetch("/api/auth/user", {
-          headers: { Authorization: `Bearer ${ session.access_token } ` }
+          headers: { Authorization: `Bearer ${session.access_token}` }
         });
-        
+
         if (!userResponse.ok) {
           console.warn("[AuthCallback] Falha ao buscar dados do usuário:", userResponse.status);
           // Não bloquear o login se falhar o fetch do usuário, usar dados da sessão
-           authManager.saveAuthData(session);
+          authManager.saveAuthData(session);
         } else {
           const serverUser = await userResponse.json();
           console.log("[AuthCallback] Dados do usuário recebidos:", serverUser.id);
           authManager.saveAuthDataWithServerId(session, serverUser.id);
         }
-        
+
         setStatus("Redirecionando...");
         // Pequeno delay para garantir que o storage foi atualizado
         setTimeout(() => navigate("/"), 100);
-        
+
       } catch (err) {
         console.error("[AuthCallback] Erro no pós-processamento:", err);
         // Tentar seguir mesmo com erro
@@ -113,7 +112,7 @@ export default function AuthCallback() {
     };
 
     processAuth();
-    
+
     return () => { mounted = false; };
   }, [navigate]);
 
@@ -136,8 +135,8 @@ export default function AuthCallback() {
             <p className="text-sm text-muted-foreground">
               Ocorreu um erro ao tentar conectar com o Google. Isso pode acontecer devido a configurações de segurança ou falhas de conexão.
             </p>
-            <Button 
-              className="w-full" 
+            <Button
+              className="w-full"
               onClick={() => navigate("/auth")}
               variant="default"
             >
@@ -162,4 +161,4 @@ export default function AuthCallback() {
     </div>
   );
 }
-```
+
