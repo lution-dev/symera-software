@@ -22,16 +22,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { 
-  Home, 
-  Calendar, 
-  Plus, 
-  ClipboardList, 
-  Users, 
-  Store, 
-  DollarSign, 
+import {
+  Home,
+  Calendar,
+  Plus,
+  ClipboardList,
+  Users,
+  Store,
+  DollarSign,
   Settings,
-  LogOut
+  LogOut,
+  Pin,
+  PinOff
 } from "lucide-react";
 
 // User type definition
@@ -46,38 +48,53 @@ interface User {
 const Sidebar: React.FC = () => {
   const [location] = useLocation();
   const { user } = useAuth() as { user: User | undefined | null };
-  const [expanded, setExpanded] = useState<boolean>(false);
-  
-  // Initialize sidebar as collapsed by default
+  const [isPinned, setIsPinned] = useState<boolean>(() => {
+    return localStorage.getItem('sidebar_pinned') === 'true';
+  });
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+
+  const expanded = isPinned || isHovered;
+
+  // Update layout and localStorage when pinned state changes
   useEffect(() => {
-    // Dispatch event to notify layout that sidebar is collapsed
-    window.dispatchEvent(new CustomEvent('sidebarStateChange', { 
-      detail: { collapsed: true } 
+    localStorage.setItem('sidebar_pinned', isPinned.toString());
+    // Also update the old 'sidebar_collapsed' if it's used elsewhere
+    localStorage.setItem('sidebar_collapsed', (!isPinned).toString());
+
+    // Notify layout
+    window.dispatchEvent(new CustomEvent('sidebarStateChange', {
+      detail: { collapsed: !isPinned }
     }));
-  }, []);
+  }, [isPinned]);
+
+  // Notify layout specifically for hover changes when not pinned
+  useEffect(() => {
+    if (!isPinned) {
+      window.dispatchEvent(new CustomEvent('sidebarStateChange', {
+        detail: { collapsed: !isHovered }
+      }));
+    }
+  }, [isHovered, isPinned]);
+
+  const togglePin = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsPinned(!isPinned);
+  };
 
   // Handle mouse enter - expand the sidebar
   const handleMouseEnter = () => {
-    setExpanded(true);
-    // Notify layout that sidebar is expanded
-    window.dispatchEvent(new CustomEvent('sidebarStateChange', { 
-      detail: { collapsed: false } 
-    }));
+    setIsHovered(true);
   };
 
   // Handle mouse leave - collapse the sidebar
   const handleMouseLeave = () => {
-    setExpanded(false);
-    // Notify layout that sidebar is collapsed
-    window.dispatchEvent(new CustomEvent('sidebarStateChange', { 
-      detail: { collapsed: true } 
-    }));
+    setIsHovered(false);
   };
-  
+
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
-  
+
   const navItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/events", label: "Meus Eventos", icon: Calendar },
@@ -88,16 +105,16 @@ const Sidebar: React.FC = () => {
     { path: "/budget", label: "Orçamento", icon: DollarSign },
     { path: "/settings", label: "Configurações", icon: Settings },
   ];
-  
+
   const isActivePath = (path: string) => {
     if (path === '/') return location === '/';
     // For /events, check it's exactly /events or event details, but not /events/new
     if (path === '/events') return location === '/events' || (location.startsWith('/events/') && location !== '/events/new');
     return location === path;
   };
-  
+
   return (
-    <aside 
+    <aside
       className={cn(
         "hidden md:flex flex-col bg-card border-r border-border overflow-y-auto transition-all duration-300 fixed top-0 bottom-0 left-0 z-40 h-screen",
         expanded ? "w-64" : "w-16"
@@ -107,18 +124,35 @@ const Sidebar: React.FC = () => {
     >
       {/* Logo section */}
       <div className={cn(
-        "relative flex items-center border-b border-border", 
+        "relative flex items-center border-b border-border",
         expanded ? "p-4" : "p-4 justify-center"
       )}>
         <div className={cn(
-          "flex items-center",
-          !expanded ? "justify-center" : ""
+          "flex items-center w-full",
+          !expanded ? "justify-center" : "justify-between"
         )}>
-          <Logo className="h-8 w-auto" />
-          {expanded && <h1 className="text-xl font-bold gradient-text ml-3">Symera</h1>}
+          <Link href="/">
+            <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+              <Logo className="h-8 w-auto" />
+              {expanded && <h1 className="text-xl font-bold gradient-text ml-3">Symera</h1>}
+            </div>
+          </Link>
+
+          {expanded && (
+            <button
+              onClick={togglePin}
+              className={cn(
+                "p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-primary",
+                isPinned && "text-primary bg-primary/10"
+              )}
+              title={isPinned ? "Desafixar" : "Fixar"}
+            >
+              {isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+            </button>
+          )}
         </div>
       </div>
-      
+
       {/* Navigation */}
       <nav className={cn(
         "flex-1 py-4",
@@ -137,8 +171,8 @@ const Sidebar: React.FC = () => {
                         isActivePath(item.path)
                           ? "bg-primary text-white"
                           : item.highlight
-                          ? (!expanded ? "text-primary hover:bg-muted" : "border border-primary/50 text-primary hover:bg-muted")
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            ? (!expanded ? "text-primary hover:bg-muted" : "border border-primary/50 text-primary hover:bg-muted")
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       )}
                     >
                       <item.icon className="w-5 h-5 min-w-5" />
@@ -154,7 +188,7 @@ const Sidebar: React.FC = () => {
           ))}
         </div>
       </nav>
-      
+
       {/* User profile */}
       <div className={cn(
         "border-t border-border",
@@ -184,7 +218,7 @@ const Sidebar: React.FC = () => {
               </div>
             </Link>
           )}
-          
+
           {/* Logout button */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -207,7 +241,7 @@ const Sidebar: React.FC = () => {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction 
+                <AlertDialogAction
                   onClick={handleLogout}
                   className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                 >

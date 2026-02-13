@@ -12,20 +12,99 @@ import { ExpenseManager } from "@/components/Finance/ExpenseManager";
 import { DocumentManager } from "@/components/Documents/DocumentManager";
 import { ParticipantsList } from "@/components/ParticipantsList";
 import { FeedbackManager } from "@/components/Feedback/FeedbackManager";
-import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials } from "@/lib/utils";
+import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials, formatActivityTimestamp } from "@/lib/utils";
+
+interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+  phone?: string;
+}
+
+interface TeamMember {
+  id: number;
+  eventId: number;
+  userId: string;
+  role: string;
+  permissions: Record<string, any>;
+  createdAt: string;
+  user: User;
+}
+
+interface TaskAssignee {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl?: string;
+}
+
+interface Reminder {
+  id: number;
+  taskId: number;
+  userId: string;
+  scheduledTime: string;
+  channel: "whatsapp";
+  sent: boolean;
+}
+
+interface Task {
+  id: number;
+  title: string;
+  description?: string;
+  dueDate?: string;
+  status: "todo" | "in_progress" | "completed";
+  priority: "low" | "medium" | "high";
+  eventId: number;
+  assignees?: TaskAssignee[];
+  reminders?: Reminder[];
+}
+
+interface Activity {
+  id: number;
+  eventId: number;
+  userId: string;
+  action: string;
+  details: Record<string, any>;
+  createdAt: string;
+  userName?: string;
+  eventName?: string;
+}
+
+interface EventData {
+  id: number;
+  name: string;
+  type: string;
+  date: string;
+  location?: string;
+  ownerId: string;
+  budget?: number;
+  expenses?: number;
+  status?: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
+  coverImageUrl?: string;
+  team?: TeamMember[];
+  attendees?: number;
+  refetch?: () => void;
+}
 
 // Utility function to calculate days remaining consistently
 const calculateDaysRemaining = (eventDate: string) => {
   const targetDate = new Date(eventDate);
   const today = new Date();
-  
+
   // Reset both dates to midnight UTC to ensure accurate day calculation
   today.setUTCHours(0, 0, 0, 0);
   targetDate.setUTCHours(0, 0, 0, 0);
-  
+
   const diffTime = targetDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   return diffDays;
 };
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -45,16 +124,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Select, 
-  SelectContent, 
-  SelectGroup, 
-  SelectItem, 
-  SelectLabel, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -84,16 +163,16 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
-  
+
   // Estado para a navegação lateral
   const [activeSection, setActiveSection] = useState<string>("resumo");
-  
+
   // Estados para modais
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<any>(null);
   const [isDeleteEventDialogOpen, setIsDeleteEventDialogOpen] = useState(false);
   const [isGenerateChecklistDialogOpen, setIsGenerateChecklistDialogOpen] = useState(false);
-  
+
   // Filtering and sorting state
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -102,16 +181,17 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const [sortBy, setSortBy] = useState<string>("dueDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  
+
   // Team member selection modal state
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [memberSearchQuery, setMemberSearchQuery] = useState("");
-  
+
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
-  
+
   // Configuração para garantir que dados recentes sejam carregados sempre
-  const { data: event, isLoading, error, refetch } = useQuery({
+  // Fetch event details
+  const { data: event, isLoading, error, refetch } = useQuery<EventData>({
     queryKey: [`/api/events/${eventId}`],
     enabled: !!eventId && isAuthenticated,
     retry: 1,
@@ -119,7 +199,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
-  
+
   // Forçar recarga quando a página for montada
   useEffect(() => {
     if (eventId) {
@@ -127,24 +207,27 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       setTimeout(() => refetch(), 500);
     }
   }, [eventId, refetch]);
-  
-  const { data: tasks, isLoading: tasksLoading } = useQuery({
+
+  // Fetch tasks
+  const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: [`/api/events/${eventId}/tasks`],
     enabled: !!eventId && !!event,
   });
-  
-  const { data: team, isLoading: teamLoading } = useQuery({
+
+  // Fetch team members
+  const { data: team, isLoading: teamLoading } = useQuery<TeamMember[]>({
     queryKey: [`/api/events/${eventId}/team`],
     enabled: !!eventId && !!event,
   });
-  
-  const { data: activities, isLoading: activitiesLoading } = useQuery({
+
+  // Fetch activities
+  const { data: activities, isLoading: activitiesLoading } = useQuery<Activity[]>({
     queryKey: [`/api/events/${eventId}/activities`],
     enabled: !!eventId && !!event,
   });
 
   // Fetch all users available for adding to team
-  const { data: allUsers, isLoading: usersLoading } = useQuery({
+  const { data: allUsers, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
     enabled: isAddMemberModalOpen,
     retry: 1,
@@ -152,7 +235,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   });
 
   // Filter users that are not already team members
-  const availableUsers = allUsers?.filter((user: any) => 
+  const availableUsers = allUsers?.filter((user: any) =>
     !team?.some((member: any) => member.userId === user.id)
   ) || [];
 
@@ -162,7 +245,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     user.lastName?.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(memberSearchQuery.toLowerCase())
   );
-  
+
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
       return apiRequest(`/api/events/${eventId}/generate-checklist`, {
@@ -242,11 +325,11 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       });
     },
   });
-  
+
   // Mutation para atualizar o status do evento
   const updateEventStatusMutation = useMutation({
     mutationFn: async (newStatus: string) => {
-      return apiRequest(`/api/events/${eventId}`, { 
+      return apiRequest(`/api/events/${eventId}`, {
         method: "PATCH",
         body: JSON.stringify({ status: newStatus })
       });
@@ -267,7 +350,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       });
     },
   });
-  
+
   const deleteEventMutation = useMutation({
     mutationFn: async () => {
       return apiRequest(`/api/events/${eventId}`, {
@@ -290,12 +373,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       });
     },
   });
-  
+
   const handleDeleteEvent = () => {
     deleteEventMutation.mutate();
     setIsDeleteEventDialogOpen(false);
   };
-  
+
   const handleRegenerateChecklist = () => {
     setIsGenerateChecklistDialogOpen(true);
   };
@@ -304,7 +387,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     regenerateChecklistMutation.mutate();
     setIsGenerateChecklistDialogOpen(false);
   };
-  
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -314,7 +397,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       </div>
     );
   }
-  
+
   if (!event) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -337,16 +420,16 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       </div>
     );
   }
-  
+
   // Calculate progress
   const progress = calculateTaskProgress(tasks || []);
-  
+
   // Count tasks by status
   const totalTasks = tasks?.length || 0;
   const completedTasks = tasks?.filter((task: any) => task.status === 'completed').length || 0;
   const inProgressTasks = tasks?.filter((task: any) => task.status === 'in_progress').length || 0;
   const todoTasks = tasks?.filter((task: any) => task.status === 'todo').length || 0;
-  
+
   // Função para calcular dias restantes até um evento
   const getRemainingDays = (dateString: string) => {
     const eventDate = new Date(dateString);
@@ -361,7 +444,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   // Função para obter imagem de capa padrão com base no tipo de evento
   const getDefaultCover = () => {
     if (!event) return '';
-    
+
     switch (event.type) {
       case 'wedding':
         return 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=300';
@@ -415,7 +498,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </li>
             </ol>
           </nav>
-          
+
           {/* Breadcrumb para Mobile - simplificado como "Voltar" */}
           <div className="sm:hidden flex items-center py-3 px-4">
             <Link href="/events" className="flex items-center text-sm text-foreground font-medium">
@@ -425,10 +508,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Espaçamento para compensar o header fixo */}
       <div className="h-12 sm:h-14"></div>
-      
+
       {/* Layout principal com sidebar lateral e conteúdo */}
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
         {/* Sidebar - Visível em desktop, escondida em mobile */}
@@ -437,7 +520,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           <div className="overflow-hidden">
             {/* Imagem de capa */}
             <div className="relative h-[100px]">
-              <img 
+              <img
                 src={event.coverImageUrl || getDefaultCover()}
                 alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
                 className="w-full h-full object-cover rounded-t-lg"
@@ -458,89 +541,80 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </p>
             </div>
           </div>
-          
+
           {/* Separador sutil */}
           <div className="h-px bg-border mx-4"></div>
-          
+
           <div className="py-4 px-4">
             {/* Menu lateral - apenas abas de navegação, sem título */}
             <nav className="space-y-2">
-              <button 
-                onClick={() => setActiveSection('resumo')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'resumo' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('resumo')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'resumo' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <i className="far fa-file mr-2"></i> Resumo
               </button>
-              <button 
-                onClick={() => setActiveSection('tarefas')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'tarefas' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('tarefas')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'tarefas' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
-                <i className="fas fa-tasks mr-2"></i> Tarefas
+                <i className="fas fa-tasks mr-2"></i> Tarefas ({totalTasks})
               </button>
-              <button 
-                onClick={() => setActiveSection('equipe')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'equipe' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('equipe')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'equipe' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <i className="far fa-user-circle mr-2"></i> Equipe
               </button>
-              <button 
-                onClick={() => setActiveSection('participantes')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('participantes')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <i className="far fa-address-book mr-2"></i> Lista de Participantes
               </button>
-              <button 
-                onClick={() => setActiveSection('cronograma')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'cronograma' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('cronograma')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'cronograma' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <i className="far fa-calendar-alt mr-2"></i> Cronograma
               </button>
-              <button 
-                onClick={() => setActiveSection('financeiro')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'financeiro' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('financeiro')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'financeiro' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <i className="far fa-money-bill-alt mr-2"></i> Financeiro
               </button>
-              <button 
-                onClick={() => setActiveSection('documentos')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'documentos' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('documentos')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'documentos' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <i className="far fa-file-pdf mr-2"></i> Documentos
               </button>
-              <button 
-                onClick={() => setActiveSection('atividades')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'atividades' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('atividades')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'atividades' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <i className="fas fa-history mr-2"></i> Atividades
               </button>
-              <button 
-                onClick={() => setActiveSection('feedback')} 
-                className={`w-full flex items-center px-3 py-2 rounded-md ${
-                  activeSection === 'feedback' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                }`}
+              <button
+                onClick={() => setActiveSection('feedback')}
+                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'feedback' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <i className="far fa-comment-alt mr-2"></i> Feedback pós-evento
               </button>
             </nav>
           </div>
         </div>
-        
+
         {/* Menu dropdown para mobile */}
         <div className="md:hidden px-4 mb-4">
           <Select value={activeSection} onValueChange={(value) => {
@@ -559,7 +633,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 </SelectItem>
                 <SelectItem value="tarefas">
                   <div className="flex items-center">
-                    <i className="fas fa-tasks mr-2"></i> Tarefas
+                    <i className="fas fa-tasks mr-2"></i> Tarefas ({totalTasks})
                   </div>
                 </SelectItem>
                 <SelectItem value="equipe">
@@ -601,7 +675,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Conteúdo principal */}
         <div className="flex-1 px-4 md:px-6 overflow-x-hidden">
           {/* Conteúdo baseado na seção ativa */}
@@ -611,16 +685,16 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               <div className="rounded-xl overflow-hidden shadow-md mb-6">
                 {/* Imagem de capa com informações do evento sobrepostas */}
                 <div className="relative h-48 sm:h-64 md:h-[220px]">
-                  <img 
+                  <img
                     src={event.coverImageUrl || getDefaultCover()}
                     alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
-                  
+
                   {/* Botões de ação no canto superior direito */}
                   <div className="absolute top-4 right-4 z-10 flex gap-2">
-                    <Button 
+                    <Button
                       onClick={handleEditClick}
                       variant="secondary"
                       className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-sm"
@@ -628,10 +702,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     >
                       <i className="fas fa-edit mr-2"></i> Editar Evento
                     </Button>
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button 
+                        <Button
                           variant="secondary"
                           className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-sm"
                           size="sm"
@@ -640,8 +714,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          className="text-destructive focus:text-destructive" 
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
                           onClick={() => setIsDeleteEventDialogOpen(true)}
                         >
                           <i className="fas fa-trash mr-2"></i>
@@ -650,28 +724,27 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  
+
                   <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
                     <div className="flex items-center gap-1.5 mb-2">
                       <Badge className="px-2 py-1 text-xs font-medium" variant="secondary">
                         {getEventTypeLabel(event.type)}
                       </Badge>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/25 text-[hsl(var(--event-planning))] border border-[hsl(var(--event-planning))]/30' : 
-                        event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/25 text-[hsl(var(--event-confirmed))] border border-[hsl(var(--event-confirmed))]/30' : 
-                        event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/25 text-[hsl(var(--event-in-progress))] border border-[hsl(var(--event-in-progress))]/30' : 
-                        event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/25 text-[hsl(var(--event-in-progress))] border border-[hsl(var(--event-in-progress))]/30' : 
-                        event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/25 text-[hsl(var(--event-completed))] border border-[hsl(var(--event-completed))]/30' : 
-                        event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/25 text-[hsl(var(--event-cancelled))] border border-[hsl(var(--event-cancelled))]/30' : 
-                        'bg-[hsl(var(--event-planning))]/25 text-[hsl(var(--event-planning))] border border-[hsl(var(--event-planning))]/30'
-                      }`}>
-                        {event.status === 'planning' ? 'Planejamento' : 
-                        event.status === 'confirmed' ? 'Confirmado' : 
-                        event.status === 'in_progress' ? 'Em andamento' : 
-                        event.status === 'active' ? 'Ativo' : 
-                        event.status === 'completed' ? 'Concluído' : 
-                        event.status === 'cancelled' ? 'Cancelado' : 
-                        'Planejamento'}
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/25 text-[hsl(var(--event-planning))] border border-[hsl(var(--event-planning))]/30' :
+                        event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/25 text-[hsl(var(--event-confirmed))] border border-[hsl(var(--event-confirmed))]/30' :
+                          event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/25 text-[hsl(var(--event-in-progress))] border border-[hsl(var(--event-in-progress))]/30' :
+                            event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/25 text-[hsl(var(--event-in-progress))] border border-[hsl(var(--event-in-progress))]/30' :
+                              event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/25 text-[hsl(var(--event-completed))] border border-[hsl(var(--event-completed))]/30' :
+                                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/25 text-[hsl(var(--event-cancelled))] border border-[hsl(var(--event-cancelled))]/30' :
+                                  'bg-[hsl(var(--event-planning))]/25 text-[hsl(var(--event-planning))] border border-[hsl(var(--event-planning))]/30'
+                        }`}>
+                        {event.status === 'planning' ? 'Planejamento' :
+                          event.status === 'confirmed' ? 'Confirmado' :
+                            event.status === 'in_progress' ? 'Em andamento' :
+                              event.status === 'active' ? 'Ativo' :
+                                event.status === 'completed' ? 'Concluído' :
+                                  event.status === 'cancelled' ? 'Cancelado' :
+                                    'Planejamento'}
                       </span>
                     </div>
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
@@ -682,7 +755,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Informações principais do evento em formato de grade abaixo da imagem */}
                 <div className="bg-card p-5 border-t border-border">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -727,7 +800,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                         </p>
                       </div>
                     </div>
-                    
+
                     {/* Número de convidados */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
@@ -738,7 +811,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                         <p className="text-sm font-medium">{event.attendees || 0}</p>
                       </div>
                     </div>
-                    
+
                     {/* Orçamento */}
                     <div className="flex items-center">
                       <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
@@ -751,7 +824,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Barra de Progresso - Completamente fora do card principal */}
                 <div className="bg-card mt-4 p-3 rounded-md border border-border">
                   <div className="flex items-center gap-3">
@@ -764,8 +837,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                         <span className="text-xs font-medium">{progress}%</span>
                       </div>
                       <div className="w-full bg-primary/10 rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
+                        <div
+                          className="bg-primary h-2 rounded-full"
                           style={{ width: `${progress}%` }}
                         ></div>
                       </div>
@@ -773,7 +846,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Indicadores estratégicos do evento */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {/* Total de tarefas e progresso */}
@@ -800,7 +873,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Orçamento e gastos */}
                 <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
                   <h3 className="text-sm font-medium mb-4 flex items-center">
@@ -825,14 +898,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       <span className="text-sm text-muted-foreground">Gasto atual:</span>
                       <span className="font-semibold">
                         {event.budget && event.expenses && event.budget > 0
-                          ? `${Math.round(((Math.abs(event.expenses) / 100) / event.budget) * 100)}%` 
+                          ? `${Math.round(((Math.abs(event.expenses) / 100) / event.budget) * 100)}%`
                           : "0%"
                         }
                       </span>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Participantes */}
                 <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
                   <h3 className="text-sm font-medium mb-4 flex items-center">
@@ -857,7 +930,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Duração e datas */}
                 <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
                   <h3 className="text-sm font-medium mb-4 flex items-center">
@@ -871,17 +944,17 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           (() => {
                             const startDate = new Date(event.startDate);
                             const endDate = event.endDate ? new Date(event.endDate) : null;
-                            
+
                             // Verifica se o evento dura mais de um dia
                             if (endDate && startDate.toDateString() !== endDate.toDateString()) {
                               // Formato para múltiplos dias: "26 Jun - 29 Jun"
-                              const startFormatted = startDate.toLocaleDateString('pt-BR', { 
-                                day: 'numeric', 
-                                month: 'short' 
+                              const startFormatted = startDate.toLocaleDateString('pt-BR', {
+                                day: 'numeric',
+                                month: 'short'
                               });
-                              const endFormatted = endDate.toLocaleDateString('pt-BR', { 
-                                day: 'numeric', 
-                                month: 'short' 
+                              const endFormatted = endDate.toLocaleDateString('pt-BR', {
+                                day: 'numeric',
+                                month: 'short'
                               });
                               return `${startFormatted} - ${endFormatted}`;
                             } else {
@@ -895,7 +968,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Horário:</span>
                       <span className="font-semibold text-right">
-                        {event.startTime && event.endTime 
+                        {event.startTime && event.endTime
                           ? `${event.startTime} - ${event.endTime}`
                           : "A definir"
                         }
@@ -908,11 +981,11 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           (() => {
                             const startDate = new Date(event.startDate);
                             const endDate = event.endDate ? new Date(event.endDate) : startDate;
-                            
+
                             // Calcula diferença em dias
                             const diffTime = endDate.getTime() - startDate.getTime();
                             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            
+
                             if (diffDays > 1) {
                               return `${diffDays} dias`;
                             } else if (event.startTime && event.endTime) {
@@ -944,7 +1017,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Insight da IA */}
               <div className="bg-card rounded-xl shadow-sm p-5 border border-border mb-6">
                 <div className="flex items-start space-x-4">
@@ -960,9 +1033,9 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           {event.startDate ? (
                             (() => {
                               const diffDays = calculateDaysRemaining(event.startDate);
-                              return diffDays > 0 
-                                ? ` e faltam ${diffDays} dias para o evento acontecer.` 
-                                : diffDays === 0 
+                              return diffDays > 0
+                                ? ` e faltam ${diffDays} dias para o evento acontecer.`
+                                : diffDays === 0
                                   ? `. O evento é hoje!`
                                   : `. O evento já passou.`;
                             })()
@@ -970,13 +1043,13 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                         </span>
                       ) : (
                         <span>
-                          Todas as tarefas foram concluídas! 
+                          Todas as tarefas foram concluídas!
                           {event.startDate ? (
                             (() => {
                               const diffDays = calculateDaysRemaining(event.startDate);
-                              return diffDays > 0 
-                                ? ` Faltam ${diffDays} dias para o evento acontecer.` 
-                                : diffDays === 0 
+                              return diffDays > 0
+                                ? ` Faltam ${diffDays} dias para o evento acontecer.`
+                                : diffDays === 0
                                   ? ` O evento é hoje!`
                                   : ` O evento já passou.`;
                             })()
@@ -989,15 +1062,15 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </div>
             </div>
           )}
-          
+
           {activeSection === "tarefas" && (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-                <h2 className="text-xl font-semibold">Checklist do Evento</h2>
+                <h2 className="text-xl font-semibold">Checklist do Evento ({totalTasks})</h2>
                 <div className="flex flex-wrap w-full sm:w-auto gap-2">
-                  <Button 
-                    onClick={handleRegenerateChecklist} 
-                    variant="secondary" 
+                  <Button
+                    onClick={handleRegenerateChecklist}
+                    variant="secondary"
                     className="flex-1 sm:flex-auto bg-purple-600 hover:bg-purple-700 text-white"
                     disabled={regenerateChecklistMutation.isPending}
                   >
@@ -1016,21 +1089,20 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   </Button>
                 </div>
               </div>
-              
+
               {tasksLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : (
-                <TaskList 
+                <TaskList
                   tasks={tasks || []}
                   loading={false}
-                  eventId={eventId}
                 />
               )}
             </div>
           )}
-          
+
           {activeSection === "equipe" && (
             <div className="bg-card rounded-lg p-6">
               <div className="flex justify-between items-center mb-6">
@@ -1059,9 +1131,9 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                           <h3 className="font-medium truncate">{member.user?.firstName} {member.user?.lastName}</h3>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs whitespace-nowrap">
-                              {member.role === 'organizer' ? 'Organizador' : 
-                               member.role === 'vendor' ? 'Fornecedor' : 
-                               member.role === 'team_member' ? 'Membro da Equipe' : member.role}
+                              {member.role === 'organizer' ? 'Organizador' :
+                                member.role === 'vendor' ? 'Fornecedor' :
+                                  member.role === 'team_member' ? 'Membro da Equipe' : member.role}
                             </Badge>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -1070,8 +1142,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem 
-                                  className="text-destructive focus:text-destructive" 
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
                                   onClick={() => setMemberToRemove(member)}
                                 >
                                   <i className="fas fa-trash mr-2"></i>
@@ -1107,7 +1179,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               )}
             </div>
           )}
-          
+
           {activeSection === "atividades" && (
             <ActivityFeed
               activities={activities || []}
@@ -1115,7 +1187,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               limit={10}
             />
           )}
-          
+
           {/* Lista de Participantes */}
           {activeSection === "participantes" && (
             <ParticipantsList eventId={Number(eventId)} />
@@ -1125,14 +1197,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           {activeSection === "cronograma" && (
             <ScheduleList eventId={Number(eventId)} />
           )}
-          
+
           {/* Financeiro */}
           {activeSection === "financeiro" && (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
                 <h2 className="text-xl font-semibold">Financeiro</h2>
               </div>
-              
+
               {/* Cards de resumo financeiro */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
                 <div className="bg-card rounded-lg border border-border p-3 md:p-4">
@@ -1176,14 +1248,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Lista de despesas */}
               <div className="bg-card rounded-lg border border-border p-3 md:p-6">
                 <ExpenseManager eventId={Number(eventId)} />
               </div>
             </div>
           )}
-          
+
           {/* Documentos */}
           {activeSection === "documentos" && (
             <div className="space-y-4">
@@ -1191,7 +1263,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               <DocumentManager eventId={Number(eventId)} />
             </div>
           )}
-          
+
           {/* Feedback pós-evento */}
           {activeSection === "feedback" && (
             <FeedbackManager eventId={Number(eventId)} />
@@ -1211,22 +1283,22 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               Selecione usuários para adicionar à equipe deste evento. Eles poderão colaborar e acessar informações do evento.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             {/* Campo de busca */}
             <div className="mb-4">
-              <Input 
+              <Input
                 placeholder="Buscar usuários por nome ou email..."
                 value={memberSearchQuery}
                 onChange={(e) => setMemberSearchQuery(e.target.value)}
                 className="w-full"
               />
             </div>
-            
+
             {/* Lista de usuários disponíveis */}
             <div className="space-y-2 max-h-60 overflow-y-auto">
               <div className="text-sm text-muted-foreground mb-2">Usuários disponíveis:</div>
-              
+
               {usersLoading ? (
                 <div className="flex justify-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
@@ -1235,13 +1307,12 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 filteredUsers.map((user: any) => (
                   <div
                     key={user.id}
-                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedMembers.includes(user.id) 
-                        ? 'bg-primary/10 border border-primary/20' 
-                        : 'bg-muted/50 hover:bg-muted'
-                    }`}
+                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedMembers.includes(user.id)
+                      ? 'bg-primary/10 border border-primary/20'
+                      : 'bg-muted/50 hover:bg-muted'
+                      }`}
                     onClick={() => {
-                      setSelectedMembers(prev => 
+                      setSelectedMembers(prev =>
                         prev.includes(user.id)
                           ? prev.filter(id => id !== user.id)
                           : [...prev, user.id]
@@ -1252,14 +1323,14 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       checked={selectedMembers.includes(user.id)}
                       className="pointer-events-none"
                     />
-                    
+
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.profileImageUrl} />
                       <AvatarFallback>
-                        {getInitials(user.firstName, user.lastName)}
+                        {getInitials(`${user.firstName || ''} ${user.lastName || ''}`)}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     <div className="flex-1">
                       <p className="font-medium text-sm">
                         {user.firstName} {user.lastName}
@@ -1277,10 +1348,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               )}
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setIsAddMemberModalOpen(false);
                 setSelectedMembers([]);
@@ -1304,10 +1375,10 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               }}
               disabled={selectedMembers.length === 0 || addTeamMembersMutation.isPending}
             >
-              {addTeamMembersMutation.isPending 
-                ? "Adicionando..." 
-                : selectedMembers.length > 0 
-                  ? `Adicionar Membros (${selectedMembers.length})` 
+              {addTeamMembersMutation.isPending
+                ? "Adicionando..."
+                : selectedMembers.length > 0
+                  ? `Adicionar Membros (${selectedMembers.length})`
                   : "Adicionar Membros"
               }
             </Button>
