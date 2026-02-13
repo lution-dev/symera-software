@@ -11,18 +11,13 @@ import {
 } from "@/components/ui/card";
 import Logo from "@/components/ui/logo";
 import { useState, useEffect } from "react";
-import { Bug } from "lucide-react";
+
 
 const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isDevLoading, setIsDevLoading] = useState(false);
-  const [showDevLogin, setShowDevLogin] = useState(false);
   const { toast } = useToast();
-  const { signInWithGoogle, signInWithDevToken, isDevLoginAvailable } = useAuth();
+  const { signInWithGoogle } = useAuth();
 
-  useEffect(() => {
-    isDevLoginAvailable().then(setShowDevLogin);
-  }, []);
 
   const handleGoogleLogin = async () => {
     try {
@@ -39,28 +34,7 @@ const LoginForm = () => {
     }
   };
 
-  const handleDevLogin = async () => {
-    try {
-      setIsDevLoading(true);
-      const success = await signInWithDevToken();
-      if (!success) {
-        toast({
-          title: "Erro no login de teste",
-          description: "Não foi possível fazer login de desenvolvimento.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Erro no dev login:", error);
-      toast({
-        title: "Erro no login de teste",
-        description: "Não foi possível fazer login de desenvolvimento.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDevLoading(false);
-    }
-  };
+
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -80,7 +54,7 @@ const LoginForm = () => {
             Faça login para acessar sua conta
           </p>
         </div>
-        
+
         <Button
           onClick={handleGoogleLogin}
           className="w-full h-12 flex items-center justify-center gap-3"
@@ -112,16 +86,7 @@ const LoginForm = () => {
           {isLoading ? "Conectando..." : "Continuar com Google"}
         </Button>
 
-        {showDevLogin && (
-          <Button
-            onClick={handleDevLogin}
-            className="w-full h-10 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white"
-            disabled={isDevLoading}
-          >
-            <Bug className="h-4 w-4" />
-            {isDevLoading ? "Entrando..." : "Entrar como Teste (Dev)"}
-          </Button>
-        )}
+
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-center text-sm text-muted-foreground">

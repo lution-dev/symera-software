@@ -1,37 +1,39 @@
 import { useEffect, useState } from "react";
 import { getSupabase } from "../lib/supabase";
 import { authManager } from "../lib/auth";
+import { useLocation } from "wouter";
 
 export default function AuthCallback() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("Entrando na sua conta...");
+  const [, navigate] = useLocation();
 
   useEffect(() => {
     let mounted = true;
-    
+
     const processAuth = async () => {
       try {
         const supabase = await getSupabase();
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const errorParam = urlParams.get('error');
-        
+
         if (errorParam) {
           const errorDesc = urlParams.get('error_description') || errorParam;
           if (mounted) {
             setError(errorDesc);
-            setTimeout(() => window.location.href = "/auth", 3000);
+            setTimeout(() => navigate("/auth"), 3000);
           }
           return;
         }
-        
+
         let session = null;
-        
+
         if (code) {
           if (mounted) setStatus("Processando autenticação...");
-          
+
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          
+
           if (exchangeError) {
             const { data: { session: existingSession } } = await supabase.auth.getSession();
             session = existingSession;
@@ -42,47 +44,47 @@ export default function AuthCallback() {
           const { data: { session: existingSession } } = await supabase.auth.getSession();
           session = existingSession;
         }
-        
+
         if (!session) {
           if (mounted) {
             setError("Login não completado. Tente novamente.");
-            setTimeout(() => window.location.href = "/auth", 3000);
+            setTimeout(() => navigate("/auth"), 3000);
           }
           return;
         }
-        
+
         if (mounted) setStatus("Configurando conta...");
-        
+
         // Buscar dados do usuário do servidor (que retorna o ID original do banco)
         const userResponse = await fetch("/api/auth/user", {
           headers: { Authorization: `Bearer ${session.access_token}` }
         });
-        
+
         if (!userResponse.ok) {
           throw new Error("Falha ao buscar dados do usuário");
         }
-        
+
         const serverUser = await userResponse.json();
         console.log("[AuthCallback] Usuário retornado pelo servidor:", serverUser);
-        
+
         // Salvar dados de autenticação com o ID ORIGINAL do banco (não o UUID do Supabase)
         authManager.saveAuthDataWithServerId(session, serverUser.id);
-        
-        window.history.replaceState({}, '', '/');
-        window.location.href = "/";
-        
+
+        // Usar navegação do lado do cliente para evitar reload e perda de estado
+        navigate("/");
+
       } catch (err: any) {
         if (mounted) {
           setError(err.message || "Erro inesperado");
-          setTimeout(() => window.location.href = "/auth", 3000);
+          setTimeout(() => navigate("/auth"), 3000);
         }
       }
     };
 
     processAuth();
-    
+
     return () => { mounted = false; };
-  }, []);
+  }, [navigate]);
 
   if (error) {
     return (
