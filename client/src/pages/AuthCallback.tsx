@@ -16,43 +16,33 @@ export default function AuthCallback() {
     processedRef.current = true;
 
     let mounted = true;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const processAuth = async () => {
       try {
         console.log("[AuthCallback] URL:", window.location.href);
+        console.log("[AuthCallback] Hash presente:", !!window.location.hash);
 
-        // Inicializar Supabase (com detectSessionInUrl: true, ele auto-processa tokens do hash)
+        // Inicializar Supabase - com detectSessionInUrl: true, ele auto-processa tokens do hash
         const supabase = await getSupabase();
         console.log("[AuthCallback] Supabase inicializado");
 
         if (mounted) setStatus("Verificando sessão...");
 
-        // Usar onAuthStateChange para detectar quando o Supabase processar os tokens
+        // Estratégia: usar onAuthStateChange para pegar o momento exato
+        // em que o Supabase processa os tokens do hash (fluxo implícito)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log("[AuthCallback] Auth event:", event, "Session:", !!session);
+            console.log("[AuthCallback] Auth event:", event);
 
-            if (event === "SIGNED_IN" && session) {
-              console.log("[AuthCallback] SIGNED_IN detectado!");
+            if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") && session) {
+              console.log("[AuthCallback] Sessão detectada via evento:", event);
               subscription.unsubscribe();
+              clearTimeout(timeoutId);
               await handleSuccess(session);
             }
           }
         );
-
-        // Também verificar se já existe uma sessão (caso o evento já tenha disparado)
-        // Pequeno delay para dar tempo ao Supabase de processar o hash
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log("[AuthCallback] getSession:", !!session);
-
-        if (session) {
-          console.log("[AuthCallback] Sessão encontrada via getSession");
-          subscription.unsubscribe();
-          await handleSuccess(session);
-          return;
-        }
 
         // Verificar se tem erro na URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -64,7 +54,7 @@ export default function AuthCallback() {
           return;
         }
 
-        // Verificar se tem código PKCE (caso mude para PKCE no futuro)
+        // Verificar se tem código PKCE
         const code = urlParams.get("code");
         if (code) {
           console.log("[AuthCallback] Trocando código PKCE...");
@@ -72,24 +62,38 @@ export default function AuthCallback() {
 
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
-            console.error("[AuthCallback] Erro PKCE:", exchangeError);
-            throw exchangeError;
-          }
-          if (data.session) {
+            console.error("[AuthCallback] Erro PKCE:", exchangeError.message);
+            // Não falhar - pode ser que o onAuthStateChange já processou
+          } else if (data.session) {
             subscription.unsubscribe();
+            clearTimeout(timeoutId);
             await handleSuccess(data.session);
             return;
           }
         }
 
-        // Se chegou aqui, aguardar o evento SIGNED_IN por até 10 segundos
-        console.log("[AuthCallback] Aguardando evento SIGNED_IN...");
-        if (mounted) setStatus("Aguardando autenticação...");
+        // Aguardar um pouco para o Supabase processar o hash (fluxo implícito)
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        setTimeout(() => {
-          if (mounted && !error) {
+        // Checar sessão após o delay
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("[AuthCallback] getSession após delay:", !!session);
+
+        if (session) {
+          subscription.unsubscribe();
+          clearTimeout(timeoutId);
+          await handleSuccess(session);
+          return;
+        }
+
+        // Se ainda não tem sessão, dar mais tempo (até 10s total)
+        console.log("[AuthCallback] Aguardando evento de autenticação...");
+        if (mounted) setStatus("Aguardando resposta do Google...");
+
+        timeoutId = setTimeout(() => {
+          if (mounted) {
             subscription.unsubscribe();
-            setError("Tempo limite excedido. O login pode não ter sido completado.");
+            setError("Tempo limite excedido. Tente fazer login novamente.");
           }
         }, 10000);
 
@@ -108,36 +112,43 @@ export default function AuthCallback() {
         console.log("[AuthCallback] handleSuccess - User:", session.user?.email);
         setStatus("Configurando conta...");
 
-        // Buscar dados do usuário no servidor
-        const userResponse = await fetch("/api/auth/user", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        // Salvar dados de auth IMEDIATAMENTE (antes de fetch ao servidor)
+        // Isso garante que mesmo que o fetch falhe, temos dados locais
+        authManager.saveAuthData(session);
+        console.log("[AuthCallback] Auth data salvo no localStorage");
 
-        console.log("[AuthCallback] /api/auth/user status:", userResponse.status);
+        // Tentar buscar dados do servidor (sem bloquear o fluxo)
+        try {
+          const userResponse = await fetch("/api/auth/user", {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
 
-        if (!userResponse.ok) {
-          console.warn("[AuthCallback] Falha no /api/auth/user, usando dados da sessão");
-          authManager.saveAuthData(session);
-        } else {
-          const serverUser = await userResponse.json();
-          console.log("[AuthCallback] Server user ID:", serverUser.id);
-          authManager.saveAuthDataWithServerId(session, serverUser.id);
+          console.log("[AuthCallback] /api/auth/user status:", userResponse.status);
+
+          if (userResponse.ok) {
+            const serverUser = await userResponse.json();
+            console.log("[AuthCallback] Server user ID:", serverUser.id);
+            // Atualizar com o ID do servidor (sobrescreve os dados salvos acima)
+            authManager.saveAuthDataWithServerId(session, serverUser.id);
+          }
+        } catch (fetchErr) {
+          console.warn("[AuthCallback] Erro ao buscar /api/auth/user (não crítico):", fetchErr);
+          // Não bloquear - já temos os dados salvos acima
         }
 
         // Verificar se os dados foram salvos
         const savedData = authManager.getAuthData();
-        console.log("[AuthCallback] Dados salvos:", !!savedData, savedData?.userId);
+        console.log("[AuthCallback] Dados salvos confirmados:", !!savedData);
 
         setStatus("Redirecionando para o dashboard...");
 
-        // Usar window.location.href para garantir um reload completo
-        // Isso garante que AuthProvider e useAuth reinicializem com os novos dados
+        // Usar window.location.href para reload completo
+        // Garantir que AuthProvider reinicialize com os novos dados
         window.location.href = "/";
 
       } catch (err: any) {
-        console.error("[AuthCallback] Erro no pós-processamento:", err);
-        // Salvar o que tiver e redirecionar
-        authManager.saveAuthData(session);
+        console.error("[AuthCallback] Erro no handleSuccess:", err);
+        // Dados já salvos via saveAuthData acima, apenas redirecionar
         window.location.href = "/";
       }
     };
@@ -146,6 +157,7 @@ export default function AuthCallback() {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
     };
   }, [navigate]);
 

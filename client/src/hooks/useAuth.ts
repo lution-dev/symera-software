@@ -22,25 +22,25 @@ export function useAuth() {
   useEffect(() => {
     if (initRef.current) return;
     initRef.current = true;
-    
+
     let unsubscribe: (() => void) | undefined;
 
     const init = async () => {
       try {
         console.log('[useAuth] Inicializando...');
-        
+
         // Primeiro verificar se há dados de auth salvos no localStorage
         const savedAuthData = authManager.getAuthData();
         if (savedAuthData) {
           console.log('[useAuth] Dados de auth encontrados no localStorage');
           setHasValidAuthData(true);
         }
-        
+
         const supabase = await getSupabase();
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
+
         console.log('[useAuth] Sessão Supabase:', !!currentSession);
-        
+
         if (currentSession) {
           setSession(currentSession);
           authManager.saveAuthData(currentSession);
@@ -50,7 +50,7 @@ export function useAuth() {
           console.log('[useAuth] Usando dados salvos do localStorage');
           setHasValidAuthData(true);
         }
-        
+
         unsubscribe = await authManager.setupAuthListener((newSession) => {
           console.log('[useAuth] Auth state changed:', !!newSession);
           setSession(newSession);
@@ -78,12 +78,12 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
       const token = session?.access_token || authManager.getAccessToken();
-      
+
       if (!token) {
         console.log('[useAuth] Nenhum token disponível');
         throw new Error("No token");
       }
-      
+
       console.log('[useAuth] Buscando dados do usuário...');
       try {
         const res = await fetch("/api/auth/user", {
@@ -91,7 +91,7 @@ export function useAuth() {
             Authorization: `Bearer ${token}`,
           },
         });
-        
+
         if (!res.ok) {
           if (res.status === 401) {
             console.log('[useAuth] 401 - tentando renovar token...');
@@ -107,7 +107,22 @@ export function useAuth() {
                 }
               }
             }
-            console.log('[useAuth] 401 confirmado após retry - limpando auth');
+            // Em vez de limpar os dados, usar dados locais como fallback
+            // Isso evita que o usuário seja deslogado por erros transitórios
+            console.log('[useAuth] 401 após retry - verificando dados locais como fallback');
+            const authData = authManager.getAuthData();
+            if (authData) {
+              console.log('[useAuth] Usando dados locais como fallback após 401');
+              return {
+                id: authData.userId,
+                email: authData.email,
+                firstName: authData.name?.split(' ')[0] || authData.email.split('@')[0],
+                lastName: authData.name?.split(' ').slice(1).join(' ') || '',
+                profileImageUrl: authData.picture,
+              };
+            }
+            // Só limpar se realmente não tem dados locais
+            console.log('[useAuth] 401 confirmado e sem dados locais - limpando auth');
             authManager.clearAuthData();
             setHasValidAuthData(false);
             throw new Error("Unauthorized");
@@ -125,7 +140,7 @@ export function useAuth() {
           }
           throw new Error(`HTTP ${res.status}`);
         }
-        
+
         const data = await res.json();
         console.log('[useAuth] Dados do usuário recebidos:', !!data);
         return data;
