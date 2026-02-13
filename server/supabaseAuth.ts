@@ -8,7 +8,7 @@ import { storage } from "./storage";
 const emailToUserIdCache = new Map<string, { userId: string; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
-async function getEffectiveUserId(email: string, supabaseUserId: string): Promise<string> {
+export async function getEffectiveUserId(email: string, supabaseUserId: string): Promise<string> {
   // Verificar cache primeiro
   const cached = emailToUserIdCache.get(email);
   if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {

@@ -1978,9 +1978,12 @@ function setupCronogramaRoute(app2) {
 
 // server/routes.ts
 var debugLog = (msg) => {
+  console.log(`[DEBUG] ${msg}`);
   try {
-    fs2.appendFileSync(path2.join(process.cwd(), "debug.log"), `[${(/* @__PURE__ */ new Date()).toISOString()}] ${msg}
+    if (process.env.NODE_ENV !== "production") {
+      fs2.appendFileSync(path2.join(process.cwd(), "debug.log"), `[${(/* @__PURE__ */ new Date()).toISOString()}] ${msg}
 `);
+    }
   } catch (e) {
   }
 };
@@ -2030,6 +2033,50 @@ var upload = multer({
 async function registerRoutes(app2) {
   app2.use("/uploads", express.static(uploadDir));
   await setupSupabaseAuth(app2);
+  app2.get("/api/diag", async (req, res) => {
+    const logs = [];
+    const log = (msg) => logs.push(`[${(/* @__PURE__ */ new Date()).toISOString()}] ${msg}`);
+    try {
+      log(`Environment check: NODE_ENV=${process.env.NODE_ENV}`);
+      log(`DB URL configured: ${!!process.env.DATABASE_URL}`);
+      const usersCount = await db.select({ count: users.id }).from(users).limit(1);
+      log(`DB Connection OK. Users table accessible.`);
+      const email = req.query.email;
+      const supabaseId = req.query.supabaseId;
+      const result = {
+        status: "online",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        buildVersion: "v2-diag-fix",
+        env: process.env.NODE_ENV,
+        logs
+      };
+      if (email && supabaseId) {
+        log(`Testing resolution for email=${email}, supabaseId=${supabaseId}`);
+        const effectiveId = await getEffectiveUserId(email, supabaseId);
+        log(`Resolved effectiveId: ${effectiveId}`);
+        result.effectiveId = effectiveId;
+        const user = await storage.getUser(effectiveId);
+        log(`User found in DB: ${!!user} (id=${user?.id})`);
+        result.user = user ? { id: user.id, email: user.email } : null;
+        const events2 = await storage.getEventsByUser(effectiveId);
+        log(`Events found count: ${events2.length}`);
+        result.eventsCount = events2.length;
+        result.eventIds = events2.map((e) => e.id).slice(0, 5);
+      }
+      res.json(result);
+    } catch (error) {
+      console.error("DIAG ERROR:", error);
+      log(`ERROR: ${error.message}`);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+        logs
+      });
+    }
+  });
+  app2.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  });
   const { devModeAuth: devModeAuth2 } = await Promise.resolve().then(() => (init_devMode(), devMode_exports));
   app2.use(devModeAuth2);
   app2.get("/api/auth/user", isAuthenticated, async (req, res) => {
@@ -4493,8 +4540,8 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/users", isAuthenticated, async (req, res) => {
     try {
-      const users3 = await storage.getAllUsers();
-      res.json(users3);
+      const users2 = await storage.getAllUsers();
+      res.json(users2);
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });

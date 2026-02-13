@@ -9,12 +9,16 @@ import { saveBase64Image, deleteImage } from "./utils/imageUpload";
 import { db } from "./db";
 import { events, users, scheduleItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { setupSupabaseAuth, isAuthenticated } from "./supabaseAuth";
+import { setupSupabaseAuth, isAuthenticated, getEffectiveUserId } from "./supabaseAuth";
 
 // Temporary debug logger
 const debugLog = (msg: string) => {
+  console.log(`[DEBUG] ${msg}`);
   try {
-    fs.appendFileSync(path.join(process.cwd(), 'debug.log'), `[${new Date().toISOString()}] ${msg}\n`);
+    // In Vercel/Production, we might not have write access, but try anyway for local debugging
+    if (process.env.NODE_ENV !== 'production') {
+      fs.appendFileSync(path.join(process.cwd(), 'debug.log'), `[${new Date().toISOString()}] ${msg}\n`);
+    }
   } catch (e) { }
 };
 
@@ -95,6 +99,66 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
 
   // Auth middleware
   await setupSupabaseAuth(app);
+
+  // Rota de diagnóstico para verificação em produção
+  app.get('/api/diag', async (req, res) => {
+    const logs: string[] = [];
+    const log = (msg: string) => logs.push(`[${new Date().toISOString()}] ${msg}`);
+
+    try {
+      log(`Environment check: NODE_ENV=${process.env.NODE_ENV}`);
+      log(`DB URL configured: ${!!process.env.DATABASE_URL}`);
+
+      // Teste de conexão com o banco
+      const usersCount = await db.select({ count: users.id }).from(users).limit(1);
+      log(`DB Connection OK. Users table accessible.`);
+
+      // Parâmetros da query
+      const email = req.query.email as string;
+      const supabaseId = req.query.supabaseId as string;
+
+      const result: any = {
+        status: 'online',
+        timestamp: new Date().toISOString(),
+        buildVersion: 'v2-diag-fix',
+        env: process.env.NODE_ENV,
+        logs
+      };
+
+      if (email && supabaseId) {
+        log(`Testing resolution for email=${email}, supabaseId=${supabaseId}`);
+        const effectiveId = await getEffectiveUserId(email, supabaseId);
+        log(`Resolved effectiveId: ${effectiveId}`);
+        result.effectiveId = effectiveId;
+
+        // Buscar usuário no banco
+        const user = await dbStorage.getUser(effectiveId);
+        log(`User found in DB: ${!!user} (id=${user?.id})`);
+        result.user = user ? { id: user.id, email: user.email } : null;
+
+        // Buscar eventos
+        const events = await dbStorage.getEventsByUser(effectiveId);
+        log(`Events found count: ${events.length}`);
+        result.eventsCount = events.length;
+        result.eventIds = events.map(e => e.id).slice(0, 5); // Primeiros 5 IDs
+      }
+
+      res.json(result);
+    } catch (error: any) {
+      console.error("DIAG ERROR:", error);
+      log(`ERROR: ${error.message}`);
+      res.status(500).json({
+        status: 'error',
+        message: error.message,
+        logs
+      });
+    }
+  });
+
+  // Basic health check
+  app.get('/api/health', (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
 
   // Habilitado: autenticação de desenvolvimento automática
   const { devModeAuth } = await import('./devMode');
