@@ -42,41 +42,68 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+interface DashboardEvent {
+  id: number;
+  name: string;
+  type: string;
+  startDate?: string; // Standardize to camelCase but keep snake_case for compatibility if needed
+  start_date?: string;
+  endDate?: string;
+  end_date?: string;
+  startTime?: string;
+  start_time?: string;
+  endTime?: string;
+  end_time?: string;
+  location?: string;
+  status?: string;
+  attendees?: number;
+  team?: any[];
+  tasks?: any[];
+  coverImageUrl?: string;
+  cover_image_url?: string;
+  date?: string;
+  format?: string;
+}
+
+interface DashboardTask {
+  id: number;
+  title: string;
+  status: "todo" | "in_progress" | "completed";
+  dueDate?: string;
+  priority?: "low" | "medium" | "high";
+  eventId?: number;
+  eventName?: string;
+}
+
+interface DashboardActivity {
+  id: number;
+  action: string;
+  details: any;
+  createdAt: string;
+  eventId?: number;
+}
+
+interface DashboardData {
+  totalEvents: number;
+  upcomingEvents: DashboardEvent[];
+  activeEventsList: DashboardEvent[];
+  pendingTasks: DashboardTask[];
+  recentActivities: DashboardActivity[];
+}
+
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const isMobile = useIsMobile();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const migrationAttempted = useRef(false);
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading: isDashboardLoading } = useQuery<DashboardData>({
     queryKey: ["/api/dashboard"],
+    enabled: !!user, // Only fetch when user is authenticated
   });
 
-  const migrationMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('/api/force-migration', { method: 'POST' });
-    },
-    onSuccess: (result) => {
-      console.log("Migração executada:", result);
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-    },
-    onError: (error) => {
-      console.error("Erro na migração:", error);
-    }
-  });
+  const isLoading = authLoading || isDashboardLoading;
 
-  useEffect(() => {
-    if (!isLoading && data && !migrationAttempted.current) {
-      const totalEvents = data?.totalEvents || 0;
-      if (totalEvents === 0 && user) {
-        console.log("Nenhum evento encontrado, tentando migração automática...");
-        migrationAttempted.current = true;
-        migrationMutation.mutate();
-      }
-    }
-  }, [isLoading, data, user]);
 
   const upcomingEvents = data?.upcomingEvents || [];
   const activeEventsList = React.useMemo(() => {
@@ -116,10 +143,12 @@ const Dashboard: React.FC = () => {
   // Determine next upcoming event days
   const upcomingEventDays = React.useMemo(() => {
     if (upcomingEvents.length > 0) {
-      return calculateDaysRemaining(upcomingEvents[0].startDate || upcomingEvents[0].start_date || upcomingEvents[0].date);
+      const dateStr = upcomingEvents[0].startDate || upcomingEvents[0].start_date || upcomingEvents[0].date || "";
+      return calculateDaysRemaining(dateStr);
     }
     if (activeEventsList.length > 0) {
-      return calculateDaysRemaining(activeEventsList[0].startDate || activeEventsList[0].start_date || activeEventsList[0].date);
+      const dateStr = activeEventsList[0].startDate || activeEventsList[0].start_date || activeEventsList[0].date || "";
+      return calculateDaysRemaining(dateStr);
     }
     return 0;
   }, [upcomingEvents, activeEventsList]);
@@ -217,16 +246,6 @@ const Dashboard: React.FC = () => {
           ) : (
             <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
               Você não tem eventos ativos no momento. {pendingTasks.length > 0 && `Você tem ${pendingTasks.length} tarefas pendentes.`}
-              {totalEvents === 0 && (
-                <Button
-                  variant="link"
-                  className="text-primary p-0 h-auto ml-2"
-                  onClick={() => migrationMutation.mutate()}
-                  disabled={migrationMutation.isPending}
-                >
-                  {migrationMutation.isPending ? "Recuperando..." : "Recuperar eventos anteriores"}
-                </Button>
-              )}
             </div>
           )}
 
@@ -398,7 +417,7 @@ const Dashboard: React.FC = () => {
                 <div className="sm:hidden">
                   <TaskList
                     title="📝 Minhas Tarefas"
-                    tasks={pendingTasks}
+                    tasks={pendingTasks as any[]}
                     loading={false}
                     showEventName={true}
                     limitTasks={true}
@@ -410,7 +429,7 @@ const Dashboard: React.FC = () => {
                 <div className="hidden sm:block">
                   <TaskList
                     title="📝 Minhas Tarefas"
-                    tasks={pendingTasks}
+                    tasks={pendingTasks as any[]}
                     loading={false}
                     showEventName={true}
                     limitTasks={true}
