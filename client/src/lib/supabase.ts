@@ -6,34 +6,34 @@ let supabaseConfig: { url: string; anonKey: string } | null = null;
 
 async function initSupabase(): Promise<SupabaseClient> {
   if (supabaseInstance) return supabaseInstance;
-  
+
   if (initPromise) return initPromise;
-  
+
   initPromise = (async () => {
     try {
       const response = await fetch('/api/supabase-config');
       const config = await response.json();
-      
-      console.log('[Supabase] Config received:', { 
-        hasUrl: !!config.url, 
+
+      console.log('[Supabase] Config received:', {
+        hasUrl: !!config.url,
         hasKey: !!config.anonKey,
         urlStart: config.url?.substring(0, 20)
       });
-      
+
       if (!config.url || !config.anonKey) {
         throw new Error('Supabase configuration not available');
       }
-      
+
       if (!config.url.startsWith('http')) {
         throw new Error('Invalid Supabase URL');
       }
-      
+
       supabaseConfig = { url: config.url, anonKey: config.anonKey };
-      
+
       supabaseInstance = createClient(config.url, config.anonKey, {
         auth: {
           persistSession: true,
-          detectSessionInUrl: true,
+          detectSessionInUrl: false, // Desativado pois tratamos manualmente no AuthCallback
           autoRefreshToken: true,
         }
       });
@@ -43,7 +43,7 @@ async function initSupabase(): Promise<SupabaseClient> {
       throw error;
     }
   })();
-  
+
   return initPromise;
 }
 
