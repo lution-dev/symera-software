@@ -33,7 +33,7 @@ async function initSupabase(): Promise<SupabaseClient> {
       supabaseInstance = createClient(config.url, config.anonKey, {
         auth: {
           persistSession: true,
-          detectSessionInUrl: false, // Desativado pois tratamos manualmente no AuthCallback
+          detectSessionInUrl: true, // Supabase usa fluxo implícito: precisa auto-detectar tokens no hash da URL
           autoRefreshToken: true,
         }
       });

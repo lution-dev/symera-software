@@ -7,15 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AuthCallback() {
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState("Iniciando autenticação...");
-  const [debugLog, setDebugLog] = useState<string[]>([]);
+  const [status, setStatus] = useState("Autenticando...");
   const [, navigate] = useLocation();
   const processedRef = useRef(false);
-
-  const addLog = (msg: string) => {
-    console.log("[AuthCallback]", msg);
-    setDebugLog(prev => [...prev, `${new Date().toISOString().substring(11, 19)} ${msg}`]);
-  };
 
   useEffect(() => {
     if (processedRef.current) return;
@@ -25,100 +19,82 @@ export default function AuthCallback() {
 
     const processAuth = async () => {
       try {
-        // Log all URL info
-        addLog(`URL: ${window.location.href}`);
-        addLog(`Search: ${window.location.search}`);
-        addLog(`Hash: ${window.location.hash ? window.location.hash.substring(0, 50) + '...' : '(vazio)'}`);
+        console.log("[AuthCallback] URL:", window.location.href);
 
+        // Inicializar Supabase (com detectSessionInUrl: true, ele auto-processa tokens do hash)
+        const supabase = await getSupabase();
+        console.log("[AuthCallback] Supabase inicializado");
+
+        if (mounted) setStatus("Verificando sessão...");
+
+        // Usar onAuthStateChange para detectar quando o Supabase processar os tokens
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log("[AuthCallback] Auth event:", event, "Session:", !!session);
+
+            if (event === "SIGNED_IN" && session) {
+              console.log("[AuthCallback] SIGNED_IN detectado!");
+              subscription.unsubscribe();
+              await handleSuccess(session);
+            }
+          }
+        );
+
+        // Também verificar se já existe uma sessão (caso o evento já tenha disparado)
+        // Pequeno delay para dar tempo ao Supabase de processar o hash
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("[AuthCallback] getSession:", !!session);
+
+        if (session) {
+          console.log("[AuthCallback] Sessão encontrada via getSession");
+          subscription.unsubscribe();
+          await handleSuccess(session);
+          return;
+        }
+
+        // Verificar se tem erro na URL
         const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get("code");
         const errorParam = urlParams.get("error");
-
-        // Also check hash for implicit flow
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessTokenFromHash = hashParams.get("access_token");
-
-        addLog(`Code: ${code ? code.substring(0, 10) + '...' : 'NULL'}`);
-        addLog(`Error param: ${errorParam || 'NULL'}`);
-        addLog(`Access token in hash: ${accessTokenFromHash ? 'SIM' : 'NAO'}`);
-
         if (errorParam) {
           const errorDesc = urlParams.get("error_description") || errorParam;
-          addLog(`ERRO da URL: ${errorDesc}`);
+          subscription.unsubscribe();
           if (mounted) setError(errorDesc);
           return;
         }
 
-        addLog("Inicializando Supabase...");
-        const supabase = await getSupabase();
-        addLog("Supabase inicializado OK");
-
-        // If we have an access token in the hash (implicit flow), try to set session
-        if (accessTokenFromHash) {
-          addLog("Fluxo implícito detectado - token no hash");
-          const refreshToken = hashParams.get("refresh_token");
-          if (refreshToken) {
-            addLog("Definindo sessão com tokens do hash...");
-            const { data, error: setError } = await supabase.auth.setSession({
-              access_token: accessTokenFromHash,
-              refresh_token: refreshToken,
-            });
-            if (setError) {
-              addLog(`ERRO ao definir sessão: ${setError.message}`);
-              throw setError;
-            }
-            if (data.session) {
-              addLog("Sessão criada via tokens do hash!");
-              await handleSuccess(data.session);
-              return;
-            }
-          }
-        }
-
+        // Verificar se tem código PKCE (caso mude para PKCE no futuro)
+        const code = urlParams.get("code");
         if (code) {
-          addLog("Fluxo PKCE detectado - trocando código...");
-          if (mounted) setStatus("Trocando código de autorização...");
+          console.log("[AuthCallback] Trocando código PKCE...");
+          if (mounted) setStatus("Processando código...");
 
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
           if (exchangeError) {
-            addLog(`ERRO ao trocar código: ${exchangeError.message}`);
-
-            // Try to get existing session
-            addLog("Tentando recuperar sessão existente...");
-            const { data: { session: existingSession } } = await supabase.auth.getSession();
-            if (existingSession) {
-              addLog("Sessão existente encontrada após erro!");
-              await handleSuccess(existingSession);
-              return;
-            }
-            addLog("Nenhuma sessão existente encontrada");
+            console.error("[AuthCallback] Erro PKCE:", exchangeError);
             throw exchangeError;
           }
-
-          if (!data.session) {
-            addLog("ERRO: exchangeCodeForSession retornou sem sessão");
-            throw new Error("Sessão não criada após troca de código.");
+          if (data.session) {
+            subscription.unsubscribe();
+            await handleSuccess(data.session);
+            return;
           }
-
-          addLog("Código trocado com sucesso! Sessão criada.");
-          await handleSuccess(data.session);
-          return;
         }
 
-        // No code, no hash token - check for existing session
-        addLog("Sem código nem token. Verificando sessão existente...");
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        if (existingSession) {
-          addLog("Sessão existente encontrada!");
-          await handleSuccess(existingSession);
-          return;
-        }
+        // Se chegou aqui, aguardar o evento SIGNED_IN por até 10 segundos
+        console.log("[AuthCallback] Aguardando evento SIGNED_IN...");
+        if (mounted) setStatus("Aguardando autenticação...");
 
-        addLog("NENHUMA sessão encontrada. Login falhou.");
-        if (mounted) setError("Código de autenticação não encontrado na URL.");
+        setTimeout(() => {
+          if (mounted && !error) {
+            subscription.unsubscribe();
+            setError("Tempo limite excedido. O login pode não ter sido completado.");
+          }
+        }, 10000);
+
       } catch (err: any) {
-        addLog(`ERRO FATAL: ${err.message || String(err)}`);
+        console.error("[AuthCallback] Erro:", err);
         if (mounted) {
           setError(err.message || "Erro inesperado durante o login.");
         }
@@ -129,35 +105,40 @@ export default function AuthCallback() {
       if (!mounted) return;
 
       try {
-        addLog(`Sessão obtida! User: ${session.user?.email || 'unknown'}`);
-        addLog("Buscando dados do usuário no servidor...");
-        setStatus("Buscando dados do usuário...");
+        console.log("[AuthCallback] handleSuccess - User:", session.user?.email);
+        setStatus("Configurando conta...");
 
+        // Buscar dados do usuário no servidor
         const userResponse = await fetch("/api/auth/user", {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
 
-        addLog(`Resposta /api/auth/user: ${userResponse.status}`);
+        console.log("[AuthCallback] /api/auth/user status:", userResponse.status);
 
         if (!userResponse.ok) {
-          addLog(`Falha ao buscar usuário (${userResponse.status}). Salvando com dados da sessão.`);
+          console.warn("[AuthCallback] Falha no /api/auth/user, usando dados da sessão");
           authManager.saveAuthData(session);
         } else {
           const serverUser = await userResponse.json();
-          addLog(`Usuário do servidor: ${serverUser.id} (${serverUser.email || 'no email'})`);
+          console.log("[AuthCallback] Server user ID:", serverUser.id);
           authManager.saveAuthDataWithServerId(session, serverUser.id);
         }
 
-        addLog("Dados salvos no localStorage. Redirecionando para /...");
-        setStatus("Redirecionando...");
-        setTimeout(() => {
-          addLog("Navegando para /");
-          navigate("/");
-        }, 200);
+        // Verificar se os dados foram salvos
+        const savedData = authManager.getAuthData();
+        console.log("[AuthCallback] Dados salvos:", !!savedData, savedData?.userId);
+
+        setStatus("Redirecionando para o dashboard...");
+
+        // Usar window.location.href para garantir um reload completo
+        // Isso garante que AuthProvider e useAuth reinicializem com os novos dados
+        window.location.href = "/";
+
       } catch (err: any) {
-        addLog(`ERRO no pós-processamento: ${err.message}`);
+        console.error("[AuthCallback] Erro no pós-processamento:", err);
+        // Salvar o que tiver e redirecionar
         authManager.saveAuthData(session);
-        navigate("/");
+        window.location.href = "/";
       }
     };
 
@@ -168,42 +149,22 @@ export default function AuthCallback() {
     };
   }, [navigate]);
 
-  // Always show debug log
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-lg shadow-lg">
-        <CardHeader>
-          <CardTitle className={error ? "text-red-600" : "text-primary"}>
-            {error ? "❌ Falha no Login" : "🔄 " + status}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md border-red-200 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-red-600 flex items-center gap-2">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Falha no Login
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">
               {error}
             </div>
-          )}
-
-          {!error && (
-            <div className="flex items-center gap-3">
-              <div className="relative w-8 h-8">
-                <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
-              </div>
-              <p className="text-sm text-muted-foreground">Processando...</p>
-            </div>
-          )}
-
-          {/* Debug log - TEMPORÁRIO */}
-          <div className="mt-4 p-3 bg-gray-900 text-green-400 rounded-md text-xs font-mono max-h-64 overflow-y-auto">
-            <p className="text-gray-500 mb-2">--- Debug Log (temporário) ---</p>
-            {debugLog.map((log, i) => (
-              <p key={i} className="whitespace-pre-wrap">{log}</p>
-            ))}
-            {debugLog.length === 0 && <p className="text-gray-600">Aguardando...</p>}
-          </div>
-
-          {error && (
             <Button
               className="w-full"
               onClick={() => navigate("/auth")}
@@ -211,9 +172,22 @@ export default function AuthCallback() {
             >
               Voltar para Login
             </Button>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center p-8">
+        <div className="relative w-16 h-16 mx-auto mb-6">
+          <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+        </div>
+        <h3 className="text-lg font-semibold mb-2">{status}</h3>
+        <p className="text-sm text-muted-foreground">Estamos configurando seu acesso...</p>
+      </div>
     </div>
   );
 }
