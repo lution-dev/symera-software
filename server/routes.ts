@@ -11,6 +11,13 @@ import { events, users, scheduleItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { setupSupabaseAuth, isAuthenticated } from "./supabaseAuth";
 
+// Temporary debug logger
+const debugLog = (msg: string) => {
+  try {
+    fs.appendFileSync(path.join(process.cwd(), 'debug.log'), `[${new Date().toISOString()}] ${msg}\n`);
+  } catch (e) { }
+};
+
 import {
   insertEventSchema,
   eventFormSchema,
@@ -103,6 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
       const userPicture = req.user.claims.picture;
 
       console.log("[Auth] Login via Supabase - UUID:", supabaseUserId, "Email:", userEmail);
+      debugLog(`AUTH_USER: sub=${supabaseUserId}, email=${userEmail}`);
 
       if (!userEmail) {
         console.error("[Auth] Email não fornecido pelo Supabase!");
@@ -114,6 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
 
       if (existingUser) {
         console.log("[Auth] Usuário existente encontrado! Usando ID original:", existingUser.id);
+        debugLog(`AUTH_USER: existing user found id=${existingUser.id}, returning this`);
 
         // Atualizar foto de perfil se necessário
         if (userPicture && existingUser.profileImageUrl !== userPicture) {
@@ -172,6 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
       const userEmail = req.user.claims.email;
       console.log("========================================");
       console.log("Buscando eventos para userId:", userId, "email:", userEmail);
+      debugLog(`EVENTS: req.user.claims.sub=${userId}, email=${userEmail}`);
       console.log("Claims completos:", JSON.stringify(req.user.claims));
       console.log("========================================");
 
@@ -194,6 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
       // Buscar eventos pelo ID atual
       let events = await dbStorage.getEventsByUser(userId);
       console.log("Eventos encontrados para userId", userId, ":", events.length);
+      debugLog(`EVENTS: found ${events.length} events for userId=${userId}`);
 
       // Fallback: Se não encontrou eventos, tentar buscar pelo email
       if (events.length === 0 && userEmail) {
@@ -2028,17 +2039,21 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
       if (req.session.devIsAuthenticated && req.session.devUserId) {
         // Usar ID da sessão de desenvolvimento
         userId = req.session.devUserId;
+        debugLog(`DASHBOARD: using DEV session userId=${userId}`);
         console.log(`Buscando dados do dashboard para o usuário de desenvolvimento: ${userId}`);
       } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
         userId = req.user.claims.sub;
+        debugLog(`DASHBOARD: using claims.sub userId=${userId}, email=${req.user?.claims?.email}`);
         console.log(`Buscando dados do dashboard para o usuário autenticado: ${userId}`);
       } else {
+        debugLog(`DASHBOARD: NO USER ID FOUND - returning 401`);
         return res.status(401).json({ message: "Unauthorized" });
       }
 
       // Get all events for the user
       const events = await dbStorage.getEventsByUser(userId);
+      debugLog(`DASHBOARD: getEventsByUser(${userId}) returned ${events.length} events`);
       console.log(`Total de eventos encontrados: ${events.length}`);
 
       // Get active events (planning, confirmed, in_progress or active status)
