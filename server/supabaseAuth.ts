@@ -12,6 +12,7 @@ export async function getEffectiveUserId(email: string, supabaseUserId: string):
   // Verificar cache primeiro
   const cached = emailToUserIdCache.get(email);
   if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+    console.log(`[Auth] getEffectiveUserId (CACHE): ${email} -> ${cached.userId}`);
     return cached.userId;
   }
 
@@ -22,10 +23,12 @@ export async function getEffectiveUserId(email: string, supabaseUserId: string):
   if (existingUser) {
     // Usuário existente - usar ID original do banco
     emailToUserIdCache.set(email, { userId: existingUser.id, timestamp: Date.now() });
+    console.log(`[Auth] getEffectiveUserId (DB MATCH): ${email} -> ${existingUser.id} (Original Supabase: ${supabaseUserId})`);
     return existingUser.id;
   }
 
   // Usuário novo - usar UUID do Supabase
+  console.log(`[Auth] getEffectiveUserId (NO MATCH): ${email} -> returning new ID ${supabaseUserId}`);
   emailToUserIdCache.set(email, { userId: supabaseUserId, timestamp: Date.now() });
   return supabaseUserId;
 }

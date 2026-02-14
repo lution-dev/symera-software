@@ -57,13 +57,13 @@ class MemoryCache {
   get<T>(key: string): T | undefined {
     const entry = this.cache.get(key);
     if (!entry) return undefined;
-    
+
     // Verificar se o cache está expirado
     if (Date.now() - entry.timestamp > this.ttl) {
       this.cache.delete(key);
       return undefined;
     }
-    
+
     return entry.data as T;
   }
 
@@ -97,59 +97,59 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   upsertUser(user: UpsertUser): Promise<User>;
   findOrCreateUserByEmail(email: string): Promise<User>;
-  
+
   // Event operations
   getEventsByUser(userId: string): Promise<Event[]>;
   getEventById(id: number): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event>;
   deleteEvent(id: number): Promise<void>;
-  
+
   // Task operations
   getTasksByEventId(eventId: number): Promise<Task[]>;
   getTaskById(id: number): Promise<Task | undefined>;
   createTask(task: InsertTask, assigneeIds?: string[]): Promise<Task>;
   updateTask(id: number, task: Partial<InsertTask>, assigneeIds?: string[]): Promise<Task>;
   deleteTask(id: number): Promise<void>;
-  
+
   // Task assignee operations
   getTaskAssignees(taskId: number): Promise<(TaskAssignee & { user: User })[]>;
   addTaskAssignee(taskId: number, userId: string): Promise<TaskAssignee>;
   removeTaskAssignee(taskId: number, userId: string): Promise<void>;
   replaceTaskAssignees(taskId: number, userIds: string[]): Promise<TaskAssignee[]>;
-  
+
   // Team member operations
   getTeamMembersByEventId(eventId: number): Promise<(EventTeamMember & { user: User })[]>;
   addTeamMember(teamMember: InsertEventTeamMember): Promise<EventTeamMember>;
   removeTeamMember(eventId: number, userId: string): Promise<void>;
   isUserTeamMember(userId: string, eventId: number): Promise<boolean>;
   hasUserAccessToEvent(userId: string, eventId: number): Promise<boolean>;
-  
+
   // Vendor operations
   getVendorsByEventId(eventId: number): Promise<Vendor[]>;
   getVendorById(id: number): Promise<Vendor | undefined>;
   createVendor(vendor: InsertVendor): Promise<Vendor>;
   updateVendor(id: number, vendor: Partial<InsertVendor>): Promise<Vendor>;
   deleteVendor(id: number): Promise<void>;
-  
+
   // Budget item operations
   getBudgetItemsByEventId(eventId: number): Promise<BudgetItem[]>;
   getBudgetItemById(id: number): Promise<BudgetItem | undefined>;
   createBudgetItem(budgetItem: InsertBudgetItem): Promise<BudgetItem>;
   updateBudgetItem(id: number, budgetItem: Partial<InsertBudgetItem>): Promise<BudgetItem>;
   deleteBudgetItem(id: number): Promise<void>;
-  
+
   // Expense operations
   getExpensesByEventId(eventId: number): Promise<Expense[]>;
   getExpenseById(id: number): Promise<Expense | undefined>;
   createExpense(expense: InsertExpense): Promise<Expense>;
   updateExpense(id: number, expense: Partial<InsertExpense>): Promise<Expense>;
   deleteExpense(id: number): Promise<void>;
-  
+
   // Activity log operations
   getActivityLogsByEventId(eventId: number): Promise<ActivityLog[]>;
   createActivityLog(activityLog: InsertActivityLog): Promise<ActivityLog>;
-  
+
   // Document operations
   getDocumentsByEventId(eventId: number): Promise<Document[]>;
   getDocumentById(id: number): Promise<Document | undefined>;
@@ -157,7 +157,7 @@ export interface IStorage {
   createDocument(document: InsertDocument): Promise<Document>;
   updateDocument(id: number, document: Partial<InsertDocument>): Promise<Document>;
   deleteDocument(id: number): Promise<void>;
-  
+
   // Participant operations
   getParticipantsByEventId(eventId: number): Promise<Participant[]>;
   getParticipantById(id: number): Promise<Participant | undefined>;
@@ -166,7 +166,7 @@ export interface IStorage {
   updateParticipant(id: number, participant: Partial<InsertParticipant>): Promise<Participant>;
   deleteParticipant(id: number): Promise<void>;
   getParticipantStats(eventId: number): Promise<{ total: number; confirmed: number; pending: number }>;
-  
+
   // Feedback operations
   getFeedbacksByEventId(eventId: number): Promise<EventFeedback[]>;
   getFeedbackByFeedbackId(feedbackId: string): Promise<(EventFeedback & { event: Event }) | undefined>;
@@ -176,11 +176,11 @@ export interface IStorage {
   getEventByFeedbackId(feedbackId: string): Promise<Event | undefined>;
   getEventFeedbackByFeedbackId(feedbackId: string): Promise<{ eventId: number; feedbackId: string } | undefined>;
   getFeedbackStats(eventId: number): Promise<{ total: number; averageRating: number; anonymousPercentage: number }>;
-  
+
   // Feedback metrics operations
   createFeedbackMetric(metric: InsertFeedbackMetrics): Promise<FeedbackMetrics>;
   updateFeedbackMetricSubmission(feedbackId: string, ipAddress?: string, userAgent?: string): Promise<void>;
-  
+
   // Draft event operations
   getDraftEventByUser(userId: string): Promise<Event | undefined>;
   saveDraftEvent(userId: string, draftData: Partial<InsertEvent>): Promise<Event>;
@@ -194,16 +194,16 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `user:${id}`;
     const cachedUser = userCache.get<User>(cacheKey);
     if (cachedUser) return cachedUser;
-    
+
     // Se não estiver em cache, consultar banco de dados com retry
     return executeWithRetry(async () => {
       const [user] = await db.select().from(users).where(eq(users.id, id));
-      
+
       // Armazenar em cache para futuras requisições
       if (user) {
         userCache.set(cacheKey, user);
       }
-      
+
       return user;
     });
   }
@@ -212,32 +212,34 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = 'all:users';
     const cachedUsers = userCache.get<User[]>(cacheKey);
     if (cachedUsers) return cachedUsers;
-    
+
     return executeWithRetry(async () => {
       const allUsers = await db.select().from(users);
-      
+
       // Armazenar em cache para futuras requisições
       userCache.set(cacheKey, allUsers);
-      
+
       return allUsers;
     });
   }
-  
+
   async getUserByEmail(email: string): Promise<User | undefined> {
     // Verificar cache pelo email
     const cacheKey = `user:email:${email}`;
     const cachedUser = userCache.get<User>(cacheKey);
     if (cachedUser) return cachedUser;
-    
+
     return executeWithRetry(async () => {
-      const [user] = await db.select().from(users).where(eq(users.email, email));
-      
+      // Usar SQL raw para comparação case-insensitive
+      // Isso conserta problemas onde o usuário foi criado com CamelCase mas loga com lowercase
+      const [user] = await db.select().from(users).where(sql`lower(${users.email}) = lower(${email})`);
+
       // Armazenar em cache para futuras requisições
       if (user) {
         userCache.set(cacheKey, user);
         userCache.set(`user:${user.id}`, user);
       }
-      
+
       return user;
     });
   }
@@ -255,11 +257,11 @@ export class DatabaseStorage implements IStorage {
           },
         })
         .returning();
-      
+
       // Invalidar e atualizar cache
       userCache.invalidate(`user:${user.id}`);
       userCache.set(`user:${user.id}`, user);
-      
+
       return user;
     });
   }
@@ -269,11 +271,11 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `user:email:${email}`;
     const cachedUser = userCache.get<User>(cacheKey);
     if (cachedUser) return cachedUser;
-    
+
     return executeWithRetry(async () => {
-      // Check if user exists
-      const existingUsers = await db.select().from(users).where(eq(users.email, email));
-      
+      // Check if user exists (case-insensitive)
+      const existingUsers = await db.select().from(users).where(sql`lower(${users.email}) = lower(${email})`);
+
       if (existingUsers.length > 0) {
         const user = existingUsers[0];
         // Atualizar cache
@@ -281,12 +283,12 @@ export class DatabaseStorage implements IStorage {
         userCache.set(cacheKey, user);
         return user;
       }
-      
+
       // Parse name if provided
       const nameParts = name ? name.trim().split(' ') : email.split('@')[0].split('.');
       const firstName = nameParts[0] || email.split('@')[0];
       const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-      
+
       // Create new user
       const [newUser] = await db
         .insert(users)
@@ -300,11 +302,11 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .returning();
-      
+
       // Atualizar cache
       userCache.set(`user:${newUser.id}`, newUser);
       userCache.set(cacheKey, newUser);
-      
+
       return newUser;
     });
   }
@@ -312,36 +314,36 @@ export class DatabaseStorage implements IStorage {
   async migrateUserFromLocalToReplit(localUserId: string, replitUserId: string): Promise<void> {
     return executeWithRetry(async () => {
       console.log(`Migrando usuário de ${localUserId} para ${replitUserId}`);
-      
+
       // Verificar se já existe um usuário com o novo ID (Supabase)
       const existingNewUser = await db.select().from(users).where(eq(users.id, replitUserId));
-      
+
       if (existingNewUser.length > 0) {
         console.log(`Usuário com ID ${replitUserId} já existe. Apenas migrando referências.`);
-        
+
         // Apenas atualizar as referências para o novo ID
         await Promise.all([
           db.update(eventTeamMembers)
             .set({ userId: replitUserId })
             .where(eq(eventTeamMembers.userId, localUserId)),
-          
+
           db.update(events)
             .set({ ownerId: replitUserId })
             .where(eq(events.ownerId, localUserId)),
-          
+
           db.update(taskAssignees)
             .set({ userId: replitUserId })
             .where(eq(taskAssignees.userId, localUserId)),
-          
+
           db.update(documents)
             .set({ uploadedById: replitUserId })
             .where(eq(documents.uploadedById, localUserId)),
-          
+
           db.update(activityLogs)
             .set({ userId: replitUserId })
             .where(eq(activityLogs.userId, localUserId))
         ]);
-        
+
         // Deletar o usuário local antigo (não é mais necessário)
         try {
           await db.delete(users).where(eq(users.id, localUserId));
@@ -352,36 +354,36 @@ export class DatabaseStorage implements IStorage {
       } else {
         // Não existe usuário com o novo ID, atualizar o ID do usuário existente
         console.log(`Atualizando ID do usuário de ${localUserId} para ${replitUserId}`);
-        
+
         // Primeiro atualizar todas as referências
         await Promise.all([
           db.update(eventTeamMembers)
             .set({ userId: replitUserId })
             .where(eq(eventTeamMembers.userId, localUserId)),
-          
+
           db.update(events)
             .set({ ownerId: replitUserId })
             .where(eq(events.ownerId, localUserId)),
-          
+
           db.update(taskAssignees)
             .set({ userId: replitUserId })
             .where(eq(taskAssignees.userId, localUserId)),
-          
+
           db.update(documents)
             .set({ uploadedById: replitUserId })
             .where(eq(documents.uploadedById, localUserId)),
-          
+
           db.update(activityLogs)
             .set({ userId: replitUserId })
             .where(eq(activityLogs.userId, localUserId))
         ]);
-        
+
         // Atualizar o ID do próprio usuário
         await db.update(users)
           .set({ id: replitUserId, updatedAt: new Date() })
           .where(eq(users.id, localUserId));
       }
-      
+
       // Invalidar caches relacionados
       userCache.invalidate(`user:${localUserId}`);
       userCache.invalidate(`user:${replitUserId}`);
@@ -389,7 +391,7 @@ export class DatabaseStorage implements IStorage {
       eventCache.invalidate(`events:user:${localUserId}`);
       eventCache.invalidate(`events:user:${replitUserId}`);
       eventCache.invalidate(`events:`);
-      
+
       console.log(`Migração concluída de ${localUserId} para ${replitUserId}`);
     });
   }
@@ -400,7 +402,7 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `events:user:${userId}`;
     const cachedEvents = eventCache.get<Event[]>(cacheKey);
     if (cachedEvents) return cachedEvents;
-    
+
     return executeWithRetry(async () => {
       // Get events where user is owner
       const ownedEvents = await db
@@ -408,7 +410,7 @@ export class DatabaseStorage implements IStorage {
         .from(events)
         .where(eq(events.ownerId, userId))
         .orderBy(desc(events.startDate));
-      
+
       // Get events where user is team member
       const teamMemberships = await db
         .select({
@@ -416,9 +418,9 @@ export class DatabaseStorage implements IStorage {
         })
         .from(eventTeamMembers)
         .where(eq(eventTeamMembers.userId, userId));
-      
+
       const teamEventIds = teamMemberships.map(tm => tm.eventId);
-      
+
       if (teamEventIds.length === 0) {
         // Adicionar informações da equipe e tarefas para eventos do proprietário
         const eventsWithTeamAndTasks = await Promise.all(
@@ -436,7 +438,7 @@ export class DatabaseStorage implements IStorage {
         eventCache.set(cacheKey, eventsWithTeamAndTasks);
         return eventsWithTeamAndTasks;
       }
-      
+
       // Get team events (usando consulta em lote para reduzir requisições)
       let teamEvents: Event[] = [];
       if (teamEventIds.length > 0) {
@@ -450,16 +452,16 @@ export class DatabaseStorage implements IStorage {
           // Buscar eventos em lotes menores para evitar problemas
           // Essa abordagem evita usar o operador OR com muitas condições
           const batchResults = await Promise.all(
-            teamEventIds.map(id => 
+            teamEventIds.map(id =>
               db.select().from(events).where(eq(events.id, id))
             )
           );
-          
+
           // Combinar resultados de todos os lotes
           teamEvents = batchResults.flat();
         }
       }
-      
+
       // Combine owned and team events, removing duplicates
       const allEvents = [...ownedEvents];
       for (const event of teamEvents) {
@@ -467,13 +469,13 @@ export class DatabaseStorage implements IStorage {
           allEvents.push(event);
         }
       }
-      
+
       const sortedEvents = allEvents.sort((a, b) => {
         const dateA = a.startDate;
         const dateB = b.startDate;
         return new Date(dateB).getTime() - new Date(dateA).getTime();
       });
-      
+
       // Adicionar informações da equipe e tarefas para todos os eventos
       const eventsWithTeamAndTasks = await Promise.all(
         sortedEvents.map(async (event) => {
@@ -486,7 +488,7 @@ export class DatabaseStorage implements IStorage {
           };
         })
       );
-      
+
       // Armazenar em cache
       eventCache.set(cacheKey, eventsWithTeamAndTasks);
       return eventsWithTeamAndTasks;
@@ -505,11 +507,11 @@ export class DatabaseStorage implements IStorage {
   async createEvent(eventData: InsertEvent): Promise<Event> {
     return executeWithRetry(async () => {
       const [event] = await db.insert(events).values(eventData).returning();
-      
+
       // Invalidar caches relacionados
       eventCache.invalidate(`events:user:${eventData.ownerId}`);
       eventCache.set(`event:${event.id}`, event);
-      
+
       return event;
     });
   }
@@ -519,32 +521,32 @@ export class DatabaseStorage implements IStorage {
       console.log('Atualizando evento com dados:', JSON.stringify(eventData, null, 2));
       console.log('Formato do evento recebido:', eventData.format);
       console.log('MeetingUrl recebido:', eventData.meetingUrl);
-      
+
       // Garantir que o formato seja salvo corretamente
       let dataToUpdate = {
         ...eventData,
         updatedAt: new Date(),
       };
-      
+
       // Log detalhado do que será salvo
       console.log('Dados a serem salvos:', JSON.stringify(dataToUpdate, null, 2));
-      
+
       const [event] = await db
         .update(events)
         .set(dataToUpdate)
         .where(eq(events.id, id))
         .returning();
-      
+
       console.log('Evento atualizado no banco:', JSON.stringify(event, null, 2));
-      
+
       // Limpar completamente os caches relacionados a eventos
       eventCache.invalidate(`event:${id}`);
-      eventCache.invalidate(`events:user:`); 
+      eventCache.invalidate(`events:user:`);
       eventCache.invalidate(`events:`);
-      
+
       // Não armazenar em cache imediatamente para forçar 
       // a obtenção de dados frescos da próxima vez
-      
+
       return event;
     });
   }
@@ -553,9 +555,9 @@ export class DatabaseStorage implements IStorage {
     return executeWithRetry(async () => {
       // Obter o evento antes de excluir para identificar o proprietário
       const [event] = await db.select().from(events).where(eq(events.id, id));
-      
+
       await db.delete(events).where(eq(events.id, id));
-      
+
       // Invalidar caches
       eventCache.invalidate(`event:${id}`);
       if (event) {
@@ -571,14 +573,14 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `tasks:event:${eventId}`;
     const cachedTasks = taskCache.get<Task[]>(cacheKey);
     if (cachedTasks) return cachedTasks;
-    
+
     return executeWithRetry(async () => {
       const result = await db
         .select()
         .from(tasks)
         .where(eq(tasks.eventId, eventId))
         .orderBy(tasks.dueDate);
-      
+
       // Armazenar em cache
       taskCache.set(cacheKey, result);
       return result;
@@ -590,15 +592,15 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `task:${id}`;
     const cachedTask = taskCache.get<Task>(cacheKey);
     if (cachedTask) return cachedTask;
-    
+
     return executeWithRetry(async () => {
       const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
-      
+
       // Armazenar em cache
       if (task) {
         taskCache.set(cacheKey, task);
       }
-      
+
       return task;
     });
   }
@@ -606,16 +608,16 @@ export class DatabaseStorage implements IStorage {
   async createTask(taskData: InsertTask, assigneeIds?: string[]): Promise<Task> {
     return executeWithRetry(async () => {
       const [task] = await db.insert(tasks).values(taskData).returning();
-      
+
       // Add multiple assignees if provided
       if (assigneeIds && assigneeIds.length > 0) {
         await this.replaceTaskAssignees(task.id, assigneeIds);
       }
-      
+
       // Invalidar e atualizar cache
       taskCache.invalidate(`tasks:event:${taskData.eventId}`);
       taskCache.set(`task:${task.id}`, task);
-      
+
       return task;
     });
   }
@@ -630,15 +632,15 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(tasks.id, id))
         .returning();
-      
+
       // Update multiple assignees if provided
       if (assigneeIds !== undefined) {
         await this.replaceTaskAssignees(task.id, assigneeIds);
       }
-      
+
       // Invalidar e atualizar caches
       taskCache.set(`task:${id}`, task);
-      
+
       // Se eventId foi atualizado, invalidar caches de ambos os eventos
       if (taskData.eventId) {
         // Obter a tarefa antiga para saber o eventId antigo
@@ -651,7 +653,7 @@ export class DatabaseStorage implements IStorage {
         // Se não temos eventId nos dados de atualização, obter do resultado
         taskCache.invalidate(`tasks:event:${task.eventId}`);
       }
-      
+
       return task;
     });
   }
@@ -660,9 +662,9 @@ export class DatabaseStorage implements IStorage {
     return executeWithRetry(async () => {
       // Obter a tarefa antes de excluir para saber o eventId
       const task = await this.getTaskById(id);
-      
+
       await db.delete(tasks).where(eq(tasks.id, id));
-      
+
       // Invalidar caches
       taskCache.invalidate(`task:${id}`);
       if (task) {
@@ -677,19 +679,19 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(eventTeamMembers)
       .where(eq(eventTeamMembers.eventId, eventId));
-    
+
     return Promise.all(
       teamMembers.map(async (member) => {
         const [user] = await db
           .select()
           .from(users)
           .where(eq(users.id, member.userId));
-        
+
         let parsedPermissions: any = member.permissions;
         if (typeof parsedPermissions === 'string') {
           try { parsedPermissions = JSON.parse(parsedPermissions); } catch { parsedPermissions = {}; }
         }
-        
+
         return {
           ...member,
           permissions: parsedPermissions,
@@ -710,7 +712,7 @@ export class DatabaseStorage implements IStorage {
           eq(eventTeamMembers.userId, teamMemberData.userId)
         )
       );
-    
+
     if (existingMembers.length > 0) {
       // Update existing team member
       const [teamMember] = await db
@@ -728,7 +730,7 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return teamMember;
     }
-    
+
     // Add new team member
     const [teamMember] = await db
       .insert(eventTeamMembers)
@@ -747,9 +749,9 @@ export class DatabaseStorage implements IStorage {
             eq(eventTeamMembers.userId, userId)
           )
         );
-      
+
       console.log(`Removendo membro da equipe - EventId: ${eventId}, UserId: ${userId}, Linhas afetadas:`, result);
-      
+
       // Invalidar cache da equipe
       userCache.invalidate(`team:event:${eventId}`);
     });
@@ -757,7 +759,7 @@ export class DatabaseStorage implements IStorage {
 
   async isUserTeamMember(userId: string, eventId: number): Promise<boolean> {
     console.log(`Verificando se usuário ${userId} é membro da equipe do evento ${eventId}`);
-    
+
     try {
       // Usar explicitamente o nome correto da tabela no banco de dados: event_team_members
       const members = await db
@@ -769,7 +771,7 @@ export class DatabaseStorage implements IStorage {
             eq(eventTeamMembers.userId, userId)
           )
         );
-      
+
       console.log(`Encontrados ${members.length} registros para o usuário na equipe`);
       console.log('Registros:', JSON.stringify(members));
       return members.length > 0;
@@ -782,12 +784,12 @@ export class DatabaseStorage implements IStorage {
   async hasUserAccessToEvent(userId: string, eventId: number): Promise<boolean> {
     return executeWithRetry(async () => {
       console.log(`Verificando acesso do usuário ${userId} ao evento ${eventId}`);
-      
+
       if (!userId || userId === 'undefined') {
         console.log('UserId é undefined ou inválido');
         return false;
       }
-      
+
       // Check if user is owner
       const [event] = await db
         .select()
@@ -798,13 +800,13 @@ export class DatabaseStorage implements IStorage {
             eq(events.ownerId, userId)
           )
         );
-      
+
       console.log(`Evento encontrado como proprietário:`, event ? 'SIM' : 'NÃO');
-      
+
       if (event) {
         return true;
       }
-      
+
       // Check if user is team member
       const isTeamMember = await this.isUserTeamMember(userId, eventId);
       console.log(`Usuário é membro da equipe:`, isTeamMember ? 'SIM' : 'NÃO');
@@ -821,7 +823,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(vendors)
         .where(eq(vendors.eventId, eventId));
-      
+
       console.log(`Encontrados ${result.length} fornecedores para o evento ${eventId}`);
       console.log("Exemplo de fornecedor encontrado:", result.length > 0 ? result[0] : "Nenhum");
       return result;
@@ -830,7 +832,7 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getVendorById(id: number): Promise<Vendor | undefined> {
     const [vendor] = await db
       .select()
@@ -870,7 +872,7 @@ export class DatabaseStorage implements IStorage {
       .from(activityLogs)
       .where(eq(activityLogs.eventId, eventId))
       .orderBy(desc(activityLogs.createdAt));
-    
+
     return logs.map(log => {
       let parsedDetails: any = log.details;
       if (typeof parsedDetails === 'string') {
@@ -953,14 +955,14 @@ export class DatabaseStorage implements IStorage {
       .insert(expenses)
       .values(expenseData)
       .returning();
-      
+
     // Atualizar o total de despesas do evento
     const event = await this.getEventById(expenseData.eventId);
     if (event) {
       const totalExpenses = await this.calculateEventTotalExpenses(expenseData.eventId);
       await this.updateEvent(expenseData.eventId, { expenses: totalExpenses });
     }
-    
+
     return expense;
   }
 
@@ -973,17 +975,17 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(expenses.id, id))
       .returning();
-      
+
     // Atualizar o total de despesas do evento, se necessário
     if (expenseData.amount !== undefined || expenseData.eventId !== undefined) {
-      const eventId = expenseData.eventId !== undefined ? 
-        expenseData.eventId : 
+      const eventId = expenseData.eventId !== undefined ?
+        expenseData.eventId :
         expense.eventId;
-      
+
       const totalExpenses = await this.calculateEventTotalExpenses(eventId);
       await this.updateEvent(eventId, { expenses: totalExpenses });
     }
-    
+
     return expense;
   }
 
@@ -992,23 +994,23 @@ export class DatabaseStorage implements IStorage {
     const expense = await this.getExpenseById(id);
     if (expense) {
       await db.delete(expenses).where(eq(expenses.id, id));
-      
+
       // Atualizar o total de despesas do evento
       const totalExpenses = await this.calculateEventTotalExpenses(expense.eventId);
       await this.updateEvent(expense.eventId, { expenses: totalExpenses });
     }
   }
-  
+
   // Método auxiliar para calcular o total de despesas de um evento
   private async calculateEventTotalExpenses(eventId: number): Promise<number> {
     const allExpenses = await db
       .select({ total: sql`SUM(${expenses.amount})` })
       .from(expenses)
       .where(eq(expenses.eventId, eventId));
-      
+
     return Number(allExpenses[0]?.total || 0);
   }
-  
+
   // Task assignee operations
   async getTaskAssignees(taskId: number): Promise<(TaskAssignee & { user: User })[]> {
     return executeWithRetry(async () => {
@@ -1016,7 +1018,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(taskAssignees)
         .where(eq(taskAssignees.taskId, taskId));
-      
+
       // Get user details for each assignee
       return Promise.all(
         assignees.map(async (assignee) => {
@@ -1024,7 +1026,7 @@ export class DatabaseStorage implements IStorage {
             .select()
             .from(users)
             .where(eq(users.id, assignee.userId));
-          
+
           return {
             ...assignee,
             user,
@@ -1046,12 +1048,12 @@ export class DatabaseStorage implements IStorage {
             eq(taskAssignees.userId, userId)
           )
         );
-      
+
       if (existingAssignees.length > 0) {
         // Already assigned
         return existingAssignees[0];
       }
-      
+
       // Add new assignee
       const [assignee] = await db
         .insert(taskAssignees)
@@ -1060,17 +1062,17 @@ export class DatabaseStorage implements IStorage {
           userId,
         })
         .returning();
-      
+
       // Get the task to invalidate cache
       const [task] = await db
         .select()
         .from(tasks)
         .where(eq(tasks.id, taskId));
-        
+
       if (task && task.eventId) {
         taskCache.invalidate(`tasks:event:${task.eventId}`);
       }
-      
+
       return assignee;
     });
   }
@@ -1082,7 +1084,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(tasks)
         .where(eq(tasks.id, taskId));
-      
+
       await db
         .delete(taskAssignees)
         .where(
@@ -1091,7 +1093,7 @@ export class DatabaseStorage implements IStorage {
             eq(taskAssignees.userId, userId)
           )
         );
-        
+
       if (task && task.eventId) {
         taskCache.invalidate(`tasks:event:${task.eventId}`);
       }
@@ -1105,16 +1107,16 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(tasks)
         .where(eq(tasks.id, taskId));
-      
+
       // Remove all existing assignees
       await db
         .delete(taskAssignees)
         .where(eq(taskAssignees.taskId, taskId));
-      
+
       if (!userIds || userIds.length === 0) {
         return [];
       }
-      
+
       // Add all new assignees
       const assignees = await Promise.all(
         userIds.map(async (userId) => {
@@ -1128,29 +1130,29 @@ export class DatabaseStorage implements IStorage {
           return assignee;
         })
       );
-      
+
       if (task && task.eventId) {
         taskCache.invalidate(`tasks:event:${task.eventId}`);
       }
-      
+
       return assignees;
     });
   }
-  
+
   // Document operations
   async getDocumentsByEventId(eventId: number): Promise<Document[]> {
     // Verificar cache
     const cacheKey = `documents:event:${eventId}`;
     const cachedDocuments = documentCache.get<Document[]>(cacheKey);
     if (cachedDocuments) return cachedDocuments;
-    
+
     return executeWithRetry(async () => {
       const result = await db
         .select()
         .from(documents)
         .where(eq(documents.eventId, eventId))
         .orderBy(desc(documents.uploadedAt));
-      
+
       // Armazenar em cache
       documentCache.set(cacheKey, result);
       return result;
@@ -1162,18 +1164,18 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `document:${id}`;
     const cachedDocument = documentCache.get<Document>(cacheKey);
     if (cachedDocument) return cachedDocument;
-    
+
     return executeWithRetry(async () => {
       const [document] = await db
         .select()
         .from(documents)
         .where(eq(documents.id, id));
-      
+
       // Armazenar em cache
       if (document) {
         documentCache.set(cacheKey, document);
       }
-      
+
       return document;
     });
   }
@@ -1183,7 +1185,7 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `documents:event:${eventId}:category:${category}`;
     const cachedDocuments = documentCache.get<Document[]>(cacheKey);
     if (cachedDocuments) return cachedDocuments;
-    
+
     return executeWithRetry(async () => {
       const result = await db
         .select()
@@ -1193,7 +1195,7 @@ export class DatabaseStorage implements IStorage {
           eq(documents.category, category)
         ))
         .orderBy(desc(documents.uploadedAt));
-      
+
       // Armazenar em cache
       documentCache.set(cacheKey, result);
       return result;
@@ -1206,12 +1208,12 @@ export class DatabaseStorage implements IStorage {
         .insert(documents)
         .values(documentData)
         .returning();
-      
+
       // Invalidar e atualizar cache
       documentCache.invalidate(`documents:event:${documentData.eventId}`);
       documentCache.invalidate(`documents:event:${documentData.eventId}:category:${documentData.category}`);
       documentCache.set(`document:${document.id}`, document);
-      
+
       return document;
     });
   }
@@ -1226,12 +1228,12 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(documents.id, id))
         .returning();
-      
+
       // Invalidar e atualizar cache
       documentCache.invalidate(`documents:event:${document.eventId}`);
       documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
       documentCache.set(`document:${document.id}`, document);
-      
+
       return document;
     });
   }
@@ -1239,10 +1241,10 @@ export class DatabaseStorage implements IStorage {
   async deleteDocument(id: number): Promise<void> {
     return executeWithRetry(async () => {
       const document = await this.getDocumentById(id);
-      
+
       if (document) {
         await db.delete(documents).where(eq(documents.id, id));
-        
+
         // Invalidar cache
         documentCache.invalidate(`documents:event:${document.eventId}`);
         documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
@@ -1257,14 +1259,14 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `participants:event:${eventId}`;
     const cachedParticipants = participantCache.get<Participant[]>(cacheKey);
     if (cachedParticipants) return cachedParticipants;
-    
+
     return executeWithRetry(async () => {
       const result = await db
         .select()
         .from(participants)
         .where(eq(participants.eventId, eventId))
         .orderBy(participants.name);
-      
+
       // Armazenar em cache
       participantCache.set(cacheKey, result);
       return result;
@@ -1276,15 +1278,15 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `participant:${id}`;
     const cachedParticipant = participantCache.get<Participant>(cacheKey);
     if (cachedParticipant) return cachedParticipant;
-    
+
     return executeWithRetry(async () => {
       const [participant] = await db.select().from(participants).where(eq(participants.id, id));
-      
+
       // Armazenar em cache
       if (participant) {
         participantCache.set(cacheKey, participant);
       }
-      
+
       return participant;
     });
   }
@@ -1292,11 +1294,11 @@ export class DatabaseStorage implements IStorage {
   async createParticipant(participantData: InsertParticipant): Promise<Participant> {
     return executeWithRetry(async () => {
       const [participant] = await db.insert(participants).values(participantData).returning();
-      
+
       // Invalidar e atualizar cache
       participantCache.invalidate(`participants:event:${participantData.eventId}`);
       participantCache.set(`participant:${participant.id}`, participant);
-      
+
       return participant;
     });
   }
@@ -1304,18 +1306,18 @@ export class DatabaseStorage implements IStorage {
   async createParticipants(participantsData: InsertParticipant[]): Promise<Participant[]> {
     return executeWithRetry(async () => {
       const createdParticipants = await db.insert(participants).values(participantsData).returning();
-      
+
       // Invalidar cache para todos os eventos afetados
       const eventIds = Array.from(new Set(participantsData.map(p => p.eventId)));
       eventIds.forEach(eventId => {
         participantCache.invalidate(`participants:event:${eventId}`);
       });
-      
+
       // Armazenar em cache individual
       createdParticipants.forEach(participant => {
         participantCache.set(`participant:${participant.id}`, participant);
       });
-      
+
       return createdParticipants;
     });
   }
@@ -1330,11 +1332,11 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(participants.id, id))
         .returning();
-      
+
       // Invalidar e atualizar cache
       participantCache.invalidate(`participants:event:${participant.eventId}`);
       participantCache.set(`participant:${participant.id}`, participant);
-      
+
       return participant;
     });
   }
@@ -1342,10 +1344,10 @@ export class DatabaseStorage implements IStorage {
   async deleteParticipant(id: number): Promise<void> {
     return executeWithRetry(async () => {
       const participant = await this.getParticipantById(id);
-      
+
       if (participant) {
         await db.delete(participants).where(eq(participants.id, id));
-        
+
         // Invalidar cache
         participantCache.invalidate(`participants:event:${participant.eventId}`);
         participantCache.invalidate(`participant:${id}`);
@@ -1356,11 +1358,11 @@ export class DatabaseStorage implements IStorage {
   async getParticipantStats(eventId: number): Promise<{ total: number; confirmed: number; pending: number }> {
     return executeWithRetry(async () => {
       const eventParticipants = await this.getParticipantsByEventId(eventId);
-      
+
       const total = eventParticipants.length;
       const confirmed = eventParticipants.filter(p => p.status === 'confirmed').length;
       const pending = eventParticipants.filter(p => p.status === 'pending').length;
-      
+
       return { total, confirmed, pending };
     });
   }
@@ -1373,7 +1375,7 @@ export class DatabaseStorage implements IStorage {
         .from(eventFeedbacks)
         .where(eq(eventFeedbacks.eventId, eventId))
         .orderBy(desc(eventFeedbacks.createdAt));
-      
+
       return feedbacks;
     });
   }
@@ -1396,7 +1398,7 @@ export class DatabaseStorage implements IStorage {
         .from(eventFeedbacks)
         .innerJoin(events, eq(eventFeedbacks.eventId, events.id))
         .where(eq(eventFeedbacks.feedbackId, feedbackId));
-      
+
       return result;
     });
   }
@@ -1407,7 +1409,7 @@ export class DatabaseStorage implements IStorage {
         .insert(eventFeedbacks)
         .values(feedbackData)
         .returning();
-      
+
       return feedback;
     });
   }
@@ -1422,19 +1424,19 @@ export class DatabaseStorage implements IStorage {
     return executeWithRetry(async () => {
       // Gerar um ID único para o feedback
       const feedbackId = `feedback_${eventId}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-      
+
       // Verificar se já existe um feedbackId para este evento
       const existingFeedback = await db
         .select()
         .from(eventFeedbacks)
         .where(and(eq(eventFeedbacks.eventId, eventId), isNotNull(eventFeedbacks.feedbackId)))
         .limit(1);
-      
+
       if (existingFeedback.length > 0) {
         // Se já existe um link, retornar o feedbackId existente
         return existingFeedback[0].feedbackId!;
       }
-      
+
       return feedbackId;
     });
   }
@@ -1453,7 +1455,7 @@ export class DatabaseStorage implements IStorage {
 
       const totalRating = feedbacks.reduce((sum, feedback) => sum + feedback.rating, 0);
       const averageRating = totalRating / total;
-      
+
       const anonymousCount = feedbacks.filter(feedback => feedback.isAnonymous).length;
       const anonymousPercentage = (anonymousCount / total) * 100;
 
@@ -1471,7 +1473,7 @@ export class DatabaseStorage implements IStorage {
         .insert(feedbackMetrics)
         .values(metric)
         .returning();
-      
+
       return result;
     });
   }
@@ -1498,7 +1500,7 @@ export class DatabaseStorage implements IStorage {
         .from(eventFeedbacks)
         .innerJoin(events, eq(eventFeedbacks.eventId, events.id))
         .where(eq(eventFeedbacks.feedbackId, feedbackId));
-      
+
       return result?.event;
     });
   }
@@ -1512,7 +1514,7 @@ export class DatabaseStorage implements IStorage {
         })
         .from(eventFeedbacks)
         .where(eq(eventFeedbacks.feedbackId, feedbackId));
-      
+
       return result;
     });
   }
@@ -1527,7 +1529,7 @@ export class DatabaseStorage implements IStorage {
           sql`${eventFeedbacks.rating} > 0`
         ))
         .orderBy(desc(eventFeedbacks.createdAt));
-      
+
       console.log(`[DEBUG] Encontrados ${results.length} feedbacks válidos para evento ${eventId}`);
       return results;
     });
@@ -1556,7 +1558,7 @@ export class DatabaseStorage implements IStorage {
         ))
         .orderBy(desc(events.updatedAt))
         .limit(1);
-      
+
       return draft;
     });
   }
@@ -1564,7 +1566,7 @@ export class DatabaseStorage implements IStorage {
   async saveDraftEvent(userId: string, draftData: Partial<InsertEvent>): Promise<Event> {
     return executeWithRetry(async () => {
       const existingDraft = await this.getDraftEventByUser(userId);
-      
+
       if (existingDraft) {
         const [updated] = await db
           .update(events)
@@ -1575,7 +1577,7 @@ export class DatabaseStorage implements IStorage {
           })
           .where(eq(events.id, existingDraft.id))
           .returning();
-        
+
         eventCache.invalidate(`event:${existingDraft.id}`);
         return updated;
       } else {
@@ -1601,7 +1603,7 @@ export class DatabaseStorage implements IStorage {
             updatedAt: new Date(),
           })
           .returning();
-        
+
         return created;
       }
     });
