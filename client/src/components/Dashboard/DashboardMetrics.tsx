@@ -1,4 +1,5 @@
 import React from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MetricCardProps {
   title: string;
@@ -9,6 +10,7 @@ interface MetricCardProps {
     trend: "up" | "down" | "neutral";
     text: string;
   };
+  isLoading?: boolean;
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -16,28 +18,41 @@ const MetricCard: React.FC<MetricCardProps> = ({
   value,
   icon,
   change,
+  isLoading = false,
 }) => {
   return (
     <div className="bg-card rounded-lg p-4 sm:p-5 shadow-lg">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="w-full">
           <p className="text-muted-foreground text-xs sm:text-sm">{title}</p>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-1">{value}</h2>
+          {isLoading ? (
+            <Skeleton className="h-8 w-16 mt-1" />
+          ) : (
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-1">{value}</h2>
+          )}
         </div>
-        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full flex items-center justify-center">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full flex items-center justify-center flex-shrink-0 ml-2">
           <i className={`${
             // Alguns ícones específicos não têm versão outline, então usamos a versão solid para eles
-            icon === 'calendar-check' || icon === 'clipboard-list' || icon === 'calendar-alt' 
-            ? 'fas' : 'far'
-          } fa-${icon} text-primary text-lg sm:text-xl`}></i>
+            icon === 'calendar-check' || icon === 'clipboard-list' || icon === 'calendar-alt'
+              ? 'fas' : 'far'
+            } fa-${icon} text-primary text-lg sm:text-xl`}></i>
         </div>
       </div>
-      {change && (
-        <div className="mt-3 sm:mt-4 flex items-center flex-wrap">
-          <span className={`text-xs sm:text-sm flex items-center ${change.trend === "up" ? "text-green-400" : change.trend === "down" ? "text-red-400" : "text-gray-400"}`}>
-            <i className={`fas fa-arrow-${change.trend} mr-1`}></i> {change.value}
-          </span>
-          <span className="text-muted-foreground text-xs sm:text-sm ml-2">{change.text}</span>
+      {(change || isLoading) && (
+        <div className="mt-3 sm:mt-4 flex items-center flex-wrap h-5">
+          {isLoading ? (
+            <Skeleton className="h-4 w-32" />
+          ) : (
+            change && (
+              <>
+                <span className={`text-xs sm:text-sm flex items-center ${change.trend === "up" ? "text-green-400" : change.trend === "down" ? "text-red-400" : "text-gray-400"}`}>
+                  <i className={`fas fa-arrow-${change.trend} mr-1`}></i> {change.value}
+                </span>
+                <span className="text-muted-foreground text-xs sm:text-sm ml-2">{change.text}</span>
+              </>
+            )
+          )}
         </div>
       )}
     </div>
@@ -50,6 +65,7 @@ interface DashboardMetricsProps {
   pendingTasks: number;
   upcomingEvents: number;
   upcomingEventDays?: number;
+  isLoading?: boolean;
 }
 
 const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
@@ -57,7 +73,8 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
   activeEvents,
   pendingTasks,
   upcomingEvents,
-  upcomingEventDays = 5
+  upcomingEventDays = 5,
+  isLoading = false
 }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
@@ -70,8 +87,9 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
           trend: "up",
           text: "desde o mês passado"
         }}
+        isLoading={isLoading}
       />
-      
+
       <MetricCard
         title="Tarefas Pendentes"
         value={pendingTasks}
@@ -81,8 +99,9 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
           trend: "up",
           text: "desde a semana passada"
         }}
+        isLoading={isLoading}
       />
-      
+
       {/* Em telas pequenas, este cartão ocupa toda a largura */}
       <div className="col-span-2 md:col-span-1">
         <MetricCard
@@ -94,6 +113,7 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
             trend: "neutral",
             text: ""
           }}
+          isLoading={isLoading}
         />
       </div>
     </div>

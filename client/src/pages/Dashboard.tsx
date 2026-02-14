@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import DashboardMetrics from "@/components/Dashboard/DashboardMetrics";
 import EventCard from "@/components/EventCard";
 import TaskList from "@/components/Dashboard/TaskList";
@@ -164,7 +165,11 @@ const Dashboard: React.FC = () => {
           <h2 className="text-xl sm:hidden font-semibold text-foreground">
             Olá, {user?.firstName || ""}!
           </h2>
-          {activeEvents > 0 ? (
+          {isLoading ? (
+            <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
+              <Skeleton className="h-5 w-64" />
+            </div>
+          ) : activeEvents > 0 ? (
             <div className="text-muted-foreground mt-1 mobile-text text-sm sm:text-base">
               {isMobile ? (
                 <>
@@ -268,6 +273,7 @@ const Dashboard: React.FC = () => {
         pendingTasks={pendingTasks.length}
         upcomingEvents={upcomingEvents.length}
         upcomingEventDays={upcomingEventDays}
+        isLoading={isLoading}
       />
 
       {/* Quick Access Buttons - Only visible on mobile screens */}
