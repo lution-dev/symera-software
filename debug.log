@@ -726,3 +726,281 @@
 [2026-02-14T19:49:10.135Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
 [2026-02-14T19:49:10.136Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
 [2026-02-14T19:49:10.137Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.334Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.335Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.338Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.339Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.359Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.362Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.367Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.368Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.371Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.373Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.376Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.381Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.386Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.387Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.389Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.390Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:34.393Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:34.395Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.464Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.465Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.467Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.468Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.470Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.470Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.472Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.472Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.485Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.486Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.540Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.542Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.543Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.549Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.549Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.560Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.562Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.565Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:49:36.565Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:49:36.994Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T19:51:40.340Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.341Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:51:40.343Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.344Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:51:40.345Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.346Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:51:40.351Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.352Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:51:40.355Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.355Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:51:40.400Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.401Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T19:51:40.414Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.415Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:51:40.420Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.421Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:51:40.424Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.425Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:51:40.427Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:51:40.427Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.147Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.153Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.170Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.171Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.183Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.184Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.190Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.191Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.199Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.200Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.205Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.206Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.212Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.214Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.217Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.217Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.221Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.222Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.228Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.229Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.233Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.234Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.237Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.237Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.240Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.241Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.245Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.246Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.250Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.251Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.254Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.257Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.262Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.263Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:03.267Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:03.267Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.345Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.347Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.351Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.352Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.356Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.357Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.367Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.367Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.370Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.370Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.427Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.444Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.444Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.449Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.449Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.454Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.455Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:15.457Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T19:53:15.458Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T19:53:16.002Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:12:43.459Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:12:43.459Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:12:43.551Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:12:43.571Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:12:43.572Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:12:43.577Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:12:43.578Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:12:43.587Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:12:43.588Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:12:43.599Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:12:43.604Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:12:44.047Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:13:32.504Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:13:32.505Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:13:32.564Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:13:32.577Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:13:32.578Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:13:32.583Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:13:32.584Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:13:32.624Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:13:32.625Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:13:32.628Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:13:32.630Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:13:32.988Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:16:33.938Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:16:33.939Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:16:34.003Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:16:34.019Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:16:34.020Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:16:34.026Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:16:34.027Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:16:34.035Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:16:34.036Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:16:34.038Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:16:34.039Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:16:34.519Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:22:26.091Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:22:26.092Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:22:26.140Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:22:26.158Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:22:26.159Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:22:26.164Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:22:26.165Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:22:26.205Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:22:26.206Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:22:26.208Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:22:26.209Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:22:26.600Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:26:21.593Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.594Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.601Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.602Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.611Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.612Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.618Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.619Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.625Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.626Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.630Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.631Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.701Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.731Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.732Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.737Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.738Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.749Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.750Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:21.754Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:26:21.772Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:26:22.355Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:27:37.254Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.255Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.258Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.259Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.328Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.387Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.392Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.393Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.397Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.398Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.407Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.408Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.410Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.411Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.414Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.415Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.425Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.426Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.428Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.429Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.432Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:27:37.433Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:27:37.743Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:27:37.783Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:30:56.688Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.689Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.692Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.693Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.697Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.698Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.703Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.704Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.706Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.707Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.709Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.709Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.774Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.801Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.804Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.812Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.813Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.831Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.833Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:56.836Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:30:56.840Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:30:57.392Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:32:15.534Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:32:15.537Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:32:15.541Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:32:15.542Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.850Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.851Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.853Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.854Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.857Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.857Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.859Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.860Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.862Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.862Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.865Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.865Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.903Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.907Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.908Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.918Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.918Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.926Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.927Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:45.929Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:35:45.930Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:35:46.321Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:36:26.864Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:26.866Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:26.868Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:26.868Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:26.871Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:26.871Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:26.874Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:26.874Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:26.878Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:26.878Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:26.897Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:26.901Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:26.973Z] DASHBOARD: using claims.sub userId=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:26.974Z] DASHBOARD: getEventsByUser(32f40f0c-1fe9-4b5b-95b3-7e3380930b07) returned 9 events
+[2026-02-14T20:36:27.003Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:27.004Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:27.009Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:27.010Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:27.028Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:27.029Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this
+[2026-02-14T20:36:27.033Z] AUTH_USER: sub=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, email=applution@gmail.com
+[2026-02-14T20:36:27.034Z] AUTH_USER: existing user found id=32f40f0c-1fe9-4b5b-95b3-7e3380930b07, returning this

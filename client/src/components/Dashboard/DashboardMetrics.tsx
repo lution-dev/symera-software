@@ -1,10 +1,20 @@
 import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  CalendarCheck,
+  ClipboardList,
+  CalendarDays,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  LucideIcon
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MetricCardProps {
   title: string;
   value: number | string;
-  icon: string;
+  icon: LucideIcon;
   change?: {
     value: string;
     trend: "up" | "down" | "neutral";
@@ -16,40 +26,48 @@ interface MetricCardProps {
 const MetricCard: React.FC<MetricCardProps> = ({
   title,
   value,
-  icon,
+  icon: Icon,
   change,
   isLoading = false,
 }) => {
   return (
-    <div className="bg-card rounded-lg p-4 sm:p-5 shadow-lg">
-      <div className="flex items-center justify-between">
-        <div className="w-full">
-          <p className="text-muted-foreground text-xs sm:text-sm">{title}</p>
+    <div className="relative overflow-hidden bg-card rounded-2xl p-4 sm:p-5 shadow-lg border border-white/5 group hover:border-primary/20 transition-all duration-300">
+      {/* Decorative background element */}
+      <div className="absolute -right-4 -top-4 w-20 h-20 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+
+      <div className="relative z-10 flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-muted-foreground text-xs sm:text-sm font-medium tracking-tight">{title}</p>
           {isLoading ? (
-            <Skeleton className="h-8 w-16 mt-1" />
+            <Skeleton className="h-8 w-16" />
           ) : (
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-1">{value}</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tighter">{value}</h2>
           )}
         </div>
-        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full flex items-center justify-center flex-shrink-0 ml-2">
-          <i className={`${
-            // Alguns ícones específicos não têm versão outline, então usamos a versão solid para eles
-            icon === 'calendar-check' || icon === 'clipboard-list' || icon === 'calendar-alt'
-              ? 'fas' : 'far'
-            } fa-${icon} text-primary text-lg sm:text-xl`}></i>
+        <div className="p-2.5 bg-primary/10 rounded-xl text-primary flex-shrink-0">
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
         </div>
       </div>
+
       {(change || isLoading) && (
-        <div className="mt-3 sm:mt-4 flex items-center flex-wrap h-5">
+        <div className="mt-4 flex items-center gap-2 h-5">
           {isLoading ? (
-            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-24" />
           ) : (
             change && (
               <>
-                <span className={`text-xs sm:text-sm flex items-center ${change.trend === "up" ? "text-green-400" : change.trend === "down" ? "text-red-400" : "text-gray-400"}`}>
-                  <i className={`fas fa-arrow-${change.trend} mr-1`}></i> {change.value}
-                </span>
-                <span className="text-muted-foreground text-xs sm:text-sm ml-2">{change.text}</span>
+                <div className={cn(
+                  "flex items-center gap-1 text-[11px] sm:text-xs font-bold px-1.5 py-0.5 rounded-md",
+                  change.trend === "up" ? "bg-green-500/10 text-green-400" :
+                    change.trend === "down" ? "bg-red-500/10 text-red-400" :
+                      "bg-muted text-muted-foreground"
+                )}>
+                  {change.trend === "up" ? <TrendingUp className="w-3 h-3" /> :
+                    change.trend === "down" ? <TrendingDown className="w-3 h-3" /> :
+                      <Minus className="w-3 h-3" />}
+                  {change.value}
+                </div>
+                <span className="text-muted-foreground text-[10px] sm:text-xs font-medium">{change.text}</span>
               </>
             )
           )}
@@ -77,41 +95,44 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
   isLoading = false
 }) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
-      <MetricCard
-        title="Total de Eventos"
-        value={totalEvents}
-        icon="calendar-check"
-        change={{
-          value: "20%",
-          trend: "up",
-          text: "desde o mês passado"
-        }}
-        isLoading={isLoading}
-      />
-
-      <MetricCard
-        title="Tarefas Pendentes"
-        value={pendingTasks}
-        icon="clipboard-list"
-        change={{
-          value: "5%",
-          trend: "up",
-          text: "desde a semana passada"
-        }}
-        isLoading={isLoading}
-      />
-
-      {/* Em telas pequenas, este cartão ocupa toda a largura */}
-      <div className="col-span-2 md:col-span-1">
+    <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 gap-4 mb-2 sm:mb-6 no-scrollbar snap-x snap-mandatory">
+      <div className="min-w-[280px] sm:min-w-0 snap-center">
         <MetricCard
-          title="Eventos Este Mês"
-          value={upcomingEvents}
-          icon="calendar-alt"
+          title="Total de Eventos"
+          value={totalEvents}
+          icon={CalendarCheck}
           change={{
-            value: upcomingEventDays > 0 ? `Próximo em ${upcomingEventDays} dias` : "Não há eventos próximos",
+            value: "20%",
+            trend: "up",
+            text: "este mês"
+          }}
+          isLoading={isLoading}
+        />
+      </div>
+
+      <div className="min-w-[280px] sm:min-w-0 snap-center">
+        <MetricCard
+          title="Tarefas Pendentes"
+          value={pendingTasks}
+          icon={ClipboardList}
+          change={{
+            value: "5%",
+            trend: "up",
+            text: "desde ontem"
+          }}
+          isLoading={isLoading}
+        />
+      </div>
+
+      <div className="min-w-[280px] sm:min-w-0 snap-center">
+        <MetricCard
+          title="Próximos em 30d"
+          value={upcomingEvents}
+          icon={CalendarDays}
+          change={{
+            value: upcomingEventDays > 0 ? `Em ${upcomingEventDays} dias` : "Nenhum",
             trend: "neutral",
-            text: ""
+            text: "próximo evento"
           }}
           isLoading={isLoading}
         />
