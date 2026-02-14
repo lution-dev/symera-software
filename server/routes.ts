@@ -214,6 +214,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
           existingUserById.profileImageUrl = userPicture;
         }
 
+        console.log("[Auth] LOGIN SUCCESS: Returning user by ID:", existingUserById.id);
         return res.json(existingUserById);
       }
 
@@ -241,11 +242,12 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
   // Events routes
   app.get('/api/events', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
+      const userId = await getEffectiveUserId(userEmail, req.user.claims.sub);
+
       console.log("========================================");
       console.log("Buscando eventos para userId:", userId, "email:", userEmail);
-      debugLog(`EVENTS: req.user.claims.sub=${userId}, email=${userEmail}`);
+      debugLog(`EVENTS: req.user.claims.sub=${req.user.claims.sub}, email=${userEmail}, effectiveId=${userId}`);
       console.log("Claims completos:", JSON.stringify(req.user.claims));
       console.log("========================================");
 
@@ -297,8 +299,16 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
   app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
       // Obter ID do usuário da autenticação Replit
-      const userId = req.user.claims.sub;
-      console.log("Usando ID de autenticação Replit para acessar evento:", req.params.id);
+      // Obter ID do usuário da autenticação Replit
+      const email = req.user.claims.email;
+      const supabaseId = req.user.claims.sub;
+
+      let userId = supabaseId;
+      if (email) {
+        userId = await getEffectiveUserId(email, supabaseId);
+      }
+
+      console.log("Usando ID resolvido:", userId, "(Original:", supabaseId, ")");
 
       const eventId = parseInt(req.params.id, 10);
 
@@ -2107,9 +2117,19 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
         console.log(`Buscando dados do dashboard para o usuário de desenvolvimento: ${userId}`);
       } else if (req.user?.claims?.sub) {
         // Usar ID da autenticação Replit
-        userId = req.user.claims.sub;
-        debugLog(`DASHBOARD: using claims.sub userId=${userId}, email=${req.user?.claims?.email}`);
-        console.log(`Buscando dados do dashboard para o usuário autenticado: ${userId}`);
+        const supabaseId = req.user.claims.sub;
+        const email = req.user.claims.email;
+
+        debugLog(`DASHBOARD: using claims.sub userId=${supabaseId}, email=${email}`);
+        console.log(`[Dashboard] Buscando dados para userId: ${supabaseId} (Email: ${email})`);
+
+        // Resolver ID efetivo (compatibilidade com usuários antigos)
+        if (email) {
+          userId = await getEffectiveUserId(email, supabaseId);
+          console.log(`[Dashboard] ID efetivo resolvido: ${userId} (Original: ${supabaseId})`);
+        } else {
+          userId = supabaseId;
+        }
       } else {
         debugLog(`DASHBOARD: NO USER ID FOUND - returning 401`);
         return res.status(401).json({ message: "Unauthorized" });
@@ -2118,7 +2138,21 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
       // Get all events for the user
       const events = await dbStorage.getEventsByUser(userId);
       debugLog(`DASHBOARD: getEventsByUser(${userId}) returned ${events.length} events`);
-      console.log(`Total de eventos encontrados: ${events.length}`);
+      console.log(`[Dashboard] Total de eventos encontrados para ${userId}: ${events.length}`);
+
+      if (events.length === 0) {
+        console.log(`[Dashboard] AVISO: Nenhum evento encontrado para o usuário ${userId}. Verificando se existem eventos órfãos ou associados a outro ID.`);
+        // Tentar buscar por email se disponível
+        if (req.user?.claims?.email) {
+          const userByEmail = await dbStorage.getUserByEmail(req.user.claims.email);
+          if (userByEmail) {
+            console.log(`[Dashboard] Usuário encontrado por email: ${userByEmail.id}. O ID do token é ${userId}. Eles conferem? ${userByEmail.id === userId ? 'SIM' : 'NÃO'}`);
+            if (userByEmail.id !== userId) {
+              console.log(`[Dashboard] POSSÍVEL CAUSA: O usuário tem eventos no ID ${userByEmail.id} mas está logado com ID ${userId}.`);
+            }
+          }
+        }
+      }
 
       // Get active events (planning, confirmed, in_progress or active status)
       const activeEvents = events.filter(event =>
