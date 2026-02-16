@@ -556,14 +556,70 @@ export class DatabaseStorage implements IStorage {
       // Obter o evento antes de excluir para identificar o proprietário
       const [event] = await db.select().from(events).where(eq(events.id, id));
 
-      await db.delete(events).where(eq(events.id, id));
-
-      // Invalidar caches
-      eventCache.invalidate(`event:${id}`);
       if (event) {
+        console.log(`[Storage] Deletando evento ${id} e todos os dados relacionados...`);
+
+        // Deletar em ordem inversa de dependência para respeitar FKs
+
+        // 1. Feedback metrics (via feedbacks)
+        const feedbacks = await db.select({ feedbackId: eventFeedbacks.feedbackId }).from(eventFeedbacks).where(eq(eventFeedbacks.eventId, id));
+        if (feedbacks.length > 0) {
+          for (const f of feedbacks) {
+            await db.delete(feedbackMetrics).where(eq(feedbackMetrics.feedbackId, f.feedbackId));
+          }
+        }
+
+        // 2. Feedbacks
+        await db.delete(eventFeedbacks).where(eq(eventFeedbacks.eventId, id));
+
+        // 3. Participants
+        await db.delete(participants).where(eq(participants.eventId, id));
+
+        // 4. Documents
+        await db.delete(documents).where(eq(documents.eventId, id));
+
+        // 5. Schedule Items
+        await db.delete(scheduleItems).where(eq(scheduleItems.eventId, id));
+
+        // 6. Expenses
+        await db.delete(expenses).where(eq(expenses.eventId, id));
+
+        // 7. Budget Items
+        await db.delete(budgetItems).where(eq(budgetItems.eventId, id));
+
+        // 8. Vendors
+        await db.delete(vendors).where(eq(vendors.eventId, id));
+
+        // 9. Team Members
+        await db.delete(eventTeamMembers).where(eq(eventTeamMembers.eventId, id));
+
+        // 10. Activity Logs
+        await db.delete(activityLogs).where(eq(activityLogs.eventId, id));
+
+        // 11. Task Assignees (via tasks)
+        const eventTasks = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.eventId, id));
+        if (eventTasks.length > 0) {
+          for (const t of eventTasks) {
+            await db.delete(taskAssignees).where(eq(taskAssignees.taskId, t.id));
+          }
+        }
+
+        // 12. Tasks
+        await db.delete(tasks).where(eq(tasks.eventId, id));
+
+        // 13. Finalmente o EVENTO
+        await db.delete(events).where(eq(events.id, id));
+
+        // Invalidar caches
+        eventCache.invalidate(`event:${id}`);
         eventCache.invalidate(`events:user:${event.ownerId}`);
+        eventCache.invalidate(`events:user:`);
+        taskCache.invalidate(`tasks:event:${id}`);
+        documentCache.invalidate(`documents:event:${id}`);
+        participantCache.invalidate(`participants:event:${id}`);
+
+        console.log(`[Storage] Evento ${id} deletado com sucesso.`);
       }
-      eventCache.invalidate(`events:user:`); // Invalidar qualquer cache de lista de eventos
     });
   }
 

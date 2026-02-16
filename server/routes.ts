@@ -709,18 +709,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
 
   app.delete('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // Obter ID do usuário da sessão de desenvolvimento ou da autenticação Replit
-      let userId;
-
-      if (req.session.devIsAuthenticated && req.session.devUserId) {
-        // Usar ID da sessão de desenvolvimento
-        userId = req.session.devUserId;
-      } else if (req.user?.claims?.sub) {
-        // Usar ID da autenticação Replit
-        userId = req.user.claims.sub;
-      } else {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      const userId = req.user.claims.sub;
 
       const eventId = parseInt(req.params.id, 10);
 
