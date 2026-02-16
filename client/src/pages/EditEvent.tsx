@@ -5,6 +5,24 @@ import EventForm from "@/components/forms/EventForm";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
+interface Event {
+  id: number;
+  name: string;
+  type: string;
+  format: string;
+  date: string;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  meetingUrl?: string;
+  description?: string;
+  budget?: number;
+  attendees?: number;
+  coverImageUrl?: string;
+}
+
 interface EditEventProps {
   id?: string;
 }
@@ -13,17 +31,17 @@ const EditEvent: React.FC<EditEventProps> = ({ id }) => {
   const [location] = useLocation();
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-  
+
   // Extrair o ID da URL se não recebido como prop
   const eventId = id || location.split('/')[2];
-  
+
   // Buscar os detalhes do evento para preencher o formulário
-  const { data: event, isLoading, error } = useQuery({
+  const { data: event, isLoading, error } = useQuery<Event>({
     queryKey: [`/api/events/${eventId}`],
     enabled: !!eventId && isAuthenticated,
     retry: 1
   });
-  
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -33,7 +51,7 @@ const EditEvent: React.FC<EditEventProps> = ({ id }) => {
       </div>
     );
   }
-  
+
   if (!event) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -54,14 +72,14 @@ const EditEvent: React.FC<EditEventProps> = ({ id }) => {
       </div>
     );
   }
-  
+
   // Buscar o valor do formato diretamente do banco através da API
   console.log("[Debug EditEvent] Dados do evento recebidos:", event);
-  
+
   // Forçar o formato para online para o evento específico com ID 9
   const formatoCorreto = event.id === 9 ? "online" : (event.format || "in_person");
   console.log("[Debug EditEvent] Formato a ser usado:", formatoCorreto);
-  
+
   // Preparar os valores padrão para o formulário
   const defaultValues = {
     name: event.name,
@@ -79,25 +97,11 @@ const EditEvent: React.FC<EditEventProps> = ({ id }) => {
     attendees: event.attendees,
     coverImageUrl: event.coverImageUrl || "",
   };
-  
+
   return (
     <div className="container mx-auto px-4 py-6 custom-scrollbar">
-      <div className="mb-6 md:mb-8">
-        <Button 
-          variant="link" 
-          onClick={() => navigate(`/events/${eventId}`)} 
-          className="text-primary hover:underline flex items-center mb-2 p-0"
-        >
-          <i className="fas fa-arrow-left mr-2"></i> Voltar para detalhes do evento
-        </Button>
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Editar Evento</h1>
-        <p className="text-muted-foreground">
-          Atualize as informações do seu evento
-        </p>
-      </div>
-
       <div className="bg-card p-4 sm:p-6 rounded-xl shadow-lg">
-        <EventForm 
+        <EventForm
           defaultValues={defaultValues}
           isEdit={true}
           eventId={parseInt(eventId)}

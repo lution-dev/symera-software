@@ -101,6 +101,7 @@ const MobileNavbar: React.FC = () => {
     if (location === '/events') return 'Meus Eventos';
     if (location === '/events/new') return 'Criar Evento';
     if (location.startsWith('/events/')) {
+      if (location.endsWith('/edit')) return 'Editar Evento';
       const params = new URLSearchParams(search);
       const section = params.get('section') || params.get('tab');
 
@@ -136,6 +137,7 @@ const MobileNavbar: React.FC = () => {
   const getBackButtonDestination = () => {
     if (location === '/events/new') return '/events';
     if (location.startsWith('/events/')) {
+      if (location.endsWith('/edit')) return location.replace('/edit', '');
       const params = new URLSearchParams(search);
       const from = params.get('from');
 
@@ -174,7 +176,8 @@ const MobileNavbar: React.FC = () => {
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center w-12">
             {/* Verificamos se deve mostrar o menu hamburguer ou o botão de voltar */}
-            {!location.includes('/events/') && location !== '/events/new' &&
+            {!location.includes('/events/') &&
+              location !== '/events/new' &&
               !location.includes('/profile/configuracoes') && !location.includes('/settings/') ? (
               <>
                 {/* Menu toggle no estilo dos exemplos */}
