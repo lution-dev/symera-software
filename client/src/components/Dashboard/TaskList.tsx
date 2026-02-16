@@ -287,7 +287,7 @@ const TaskList: React.FC<TaskListProps> = ({
         {enhancedTasks.map((task: any) => (
           <div
             key={task.id}
-            className="group relative bg-card/40 hover:bg-card/60 rounded-3xl p-5 border border-white/5 hover:border-primary/30 transition-all duration-500 shadow-xl backdrop-blur-md hover:-translate-y-1"
+            className="group relative bg-card hover:bg-card/80 rounded-3xl p-5 border border-white/5 hover:border-primary/30 transition-all duration-500 shadow-xl hover:-translate-y-1"
           >
             {/* Subtle gloss effect */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -437,7 +437,7 @@ const TaskList: React.FC<TaskListProps> = ({
       {/* Mobile View */}
       <div className="sm:hidden flex flex-col gap-3">
         {enhancedTasks.map((task: any) => (
-          <div key={task.id} className="p-4 bg-card/40 rounded-2xl border border-white/5 shadow-lg backdrop-blur-sm">
+          <div key={task.id} className="p-4 bg-card rounded-2xl border border-white/5 shadow-lg">
             <div className="flex justify-between items-start mb-2">
               <div className="flex gap-3">
                 <div className={cn(

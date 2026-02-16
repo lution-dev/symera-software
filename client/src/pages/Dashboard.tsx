@@ -249,14 +249,16 @@ const Dashboard: React.FC = () => {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none]">
                 {activeEventsList.slice(0, 3).map(event => (
-                  <EventCard key={event.id} {...event} />
+                  <div key={event.id} className={cn("snap-center md:min-w-0", activeEventsList.length === 1 ? "w-full min-w-full" : "min-w-[85vw]")}>
+                    <EventCard {...event} />
+                  </div>
                 ))}
 
-                {/* Plus card - always visible for layout consistency */}
+                {/* Plus card - hidden on mobile, visible on desktop */}
                 {!isLoading && (
-                  <Link href="/events/new">
+                  <Link href="/events/new" className="hidden md:block">
                     <div className="h-full min-h-[180px] border-2 border-dashed border-white/10 bg-card/40 backdrop-blur-sm hover:border-primary/50 hover:bg-primary/5 rounded-3xl flex flex-col items-center justify-center p-6 transition-all duration-500 group cursor-pointer shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary/80 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 mb-3 shadow-lg shadow-primary/5 group-hover:shadow-primary/20">
                         <Plus className="w-7 h-7" />

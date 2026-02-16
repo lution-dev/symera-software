@@ -9,53 +9,69 @@
   --muted-foreground: 240 5% 64.9%;
   --popover: 270 60% 10%;
   --popover-foreground: 0 0% 98%;
+  /* Standard Card Background: #261537 (Acts as 'White' surface on dark background) */
   --card: 270 45% 15%;
   --card-foreground: 0 0% 98%;
   --border: 270 30% 20%;
   --input: 270 30% 20%;
-  --primary: 30 100% 50%;  /* Cor FF8800 em HSL */
+  --primary: 30 100% 50%;
+  /* Cor FF8800 em HSL */
   --primary-foreground: 0 0% 100%;
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
   --accent: 240 3.7% 15.9%;
   --accent-foreground: 0 0% 98%;
-  --destructive: 7 77% 56%;  /* Cor EC4130 em HSL */
+  --destructive: 7 77% 56%;
+  /* Cor EC4130 em HSL */
   --destructive-foreground: 0 0% 98%;
-  --ring: 30 100% 50%;  /* Cor FF8800 em HSL */
+  --ring: 30 100% 50%;
+  /* Cor FF8800 em HSL */
   --radius: 1rem;
-  
+
   /* Custom colors for Symera */
   --purple-dark: 270 60% 10%;
   --purple-medium: 270 45% 15%;
   --purple-light: 270 30% 20%;
-  --orange: 30 100% 50%;  /* Cor FF8800 em HSL */
-  --red: 7 77% 56%;  /* Cor EC4130 em HSL */
-  
+  --orange: 30 100% 50%;
+  /* Cor FF8800 em HSL */
+  --red: 7 77% 56%;
+  /* Cor EC4130 em HSL */
+
   /* Chart colors */
-  --chart-1: 30 100% 50%;  /* FF8800 */
+  --chart-1: 30 100% 50%;
+  /* FF8800 */
   --chart-2: 200 100% 50%;
   --chart-3: 120 100% 50%;
-  --chart-4: 7 77% 56%;    /* EC4130 */
+  --chart-4: 7 77% 56%;
+  /* EC4130 */
   --chart-5: 60 100% 50%;
-  
+
   /* Task status colors */
   --status-todo: 0 0% 55%;
   --status-in-progress: 40 100% 50%;
   --status-completed: 120 70% 45%;
-  
+
   /* Event status colors */
-  --event-planning: 210 100% 60%;   /* Azul #0080FF */
-  --event-confirmed: 270 75% 60%;   /* Roxo #9933FF */
-  --event-in-progress: 30 100% 50%; /* Laranja #FF8800 */
-  --event-completed: 120 70% 50%;   /* Verde #33CC66 */
-  --event-cancelled: 0 100% 60%;    /* Vermelho #FF3333 */
-  
+  --event-planning: 210 100% 60%;
+  /* Azul #0080FF */
+  --event-confirmed: 270 75% 60%;
+  /* Roxo #9933FF */
+  --event-in-progress: 30 100% 50%;
+  /* Laranja #FF8800 */
+  --event-completed: 120 70% 50%;
+  /* Verde #33CC66 */
+  --event-cancelled: 0 100% 60%;
+  /* Vermelho #FF3333 */
+
   /* Responsive breakpoints - as per design requirements */
-  --mobile-breakpoint: 480px;      /* Telas de até 480px (mobile) */
-  --tablet-breakpoint: 1024px;     /* Telas entre 481px e 1024px (tablet) */
-  
+  --mobile-breakpoint: 480px;
+  /* Telas de até 480px (mobile) */
+  --tablet-breakpoint: 1024px;
+  /* Telas entre 481px e 1024px (tablet) */
+
   /* Touch target sizes */
-  --touch-target-min: 44px;        /* Minimum touch target size per Apple/Google standards */
+  --touch-target-min: 44px;
+  /* Minimum touch target size per Apple/Google standards */
 }
 
 @layer base {
@@ -67,7 +83,14 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 
-  h1, h2, h3, h4, h5, h6, .title, .heading {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .title,
+  .heading {
     @apply font-sora;
   }
 }
@@ -77,71 +100,72 @@
   .gradient-primary {
     @apply bg-gradient-to-r from-[#FF8800] to-[#EC4130];
   }
-  
+
   .gradient-text {
     @apply text-transparent bg-clip-text bg-gradient-to-r from-[#FF8800] to-[#EC4130];
   }
-  
+
   .card-hover {
     @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
   }
-  
+
   .modern-card {
     @apply rounded-2xl overflow-hidden;
   }
-  
+
   .modern-input {
     @apply rounded-xl;
   }
-  
+
   .modern-button {
     @apply rounded-xl;
   }
-  
+
   /* Mobile-optimized utilities */
   .touch-target {
-    @apply min-h-[44px] min-w-[44px]; /* Apple/Google recommended minimum touch target size */
+    @apply min-h-[44px] min-w-[44px];
+    /* Apple/Google recommended minimum touch target size */
   }
-  
+
   .mobile-card {
     @apply w-full p-4 rounded-xl;
   }
-  
+
   .mobile-full-width {
     @apply w-full mx-0;
   }
-  
+
   .mobile-stack {
     @apply flex flex-col;
   }
-  
+
   .mobile-scroll-container {
     @apply overflow-x-auto py-2 -mx-4 px-4;
   }
-  
+
   .mobile-scroll-items {
     @apply flex space-x-3 pb-2;
   }
-  
+
   /* Enhanced spacing and text size for mobile */
   .mobile-spacing {
     @apply p-4 sm:p-6;
   }
-  
+
   .mobile-text {
     @apply text-base sm:text-sm;
   }
-  
+
   .mobile-header {
     @apply text-xl sm:text-2xl md:text-3xl;
   }
-  
+
   /* Specific fix for forms to prevent double scroll */
   .form-page {
     height: auto !important;
     overflow-y: visible !important;
   }
-  
+
   /* Remover completamente a barra de rolagem cinza externa */
   body::-webkit-scrollbar,
   html::-webkit-scrollbar,
@@ -149,26 +173,28 @@
     display: none !important;
     width: 0 !important;
   }
-  
+
   /* Garantir que apenas a barra personalizada apareça */
-  body, html, div {
+  body,
+  html,
+  div {
     scrollbar-width: none;
   }
-  
+
   /* Custom scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     @apply bg-purple-light rounded-full;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-gradient-to-b from-[#FF8800] to-[#EC4130] rounded-full;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-gradient-to-b from-[#FF9933] to-[#F05545] rounded-full;
   }
@@ -179,9 +205,11 @@
   0% {
     box-shadow: 0 0 0 0 rgba(255, 136, 0, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 10px rgba(255, 136, 0, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(255, 136, 0, 0);
   }
@@ -196,6 +224,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
