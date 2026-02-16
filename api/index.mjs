@@ -312,60 +312,9 @@ var init_schema = __esm({
   }
 });
 
-// server/devMode.ts
-var devMode_exports = {};
-__export(devMode_exports, {
-  devModeAuth: () => devModeAuth,
-  ensureDevAuth: () => ensureDevAuth
-});
-var devModeAuth, ensureDevAuth;
-var init_devMode = __esm({
-  "server/devMode.ts"() {
-    "use strict";
-    devModeAuth = async (req, res, next) => {
-      return next();
-    };
-    ensureDevAuth = async (req, res, next) => {
-      return next();
-    };
-  }
-});
-
-// api/_handler.ts
-import express2 from "express";
-
-// server/routes.ts
-import { createServer } from "http";
-import express from "express";
-import path2 from "path";
-import multer from "multer";
-import fs2 from "fs";
-
-// server/storage.ts
-init_schema();
-
 // server/db.ts
-init_schema();
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?"
-  );
-}
-var pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  // limite máximo de conexões no pool
-  idleTimeoutMillis: 3e4,
-  // tempo para fechar conexões inativas (30s)
-  connectionTimeoutMillis: 5e3,
-  // tempo máximo para estabelecer conexão (5s)
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-var db = drizzle(pool, { schema: schema_exports });
 async function executeWithRetry(operation, maxRetries = 3, delay = 1e3) {
   let lastError;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -386,988 +335,995 @@ async function executeWithRetry(operation, maxRetries = 3, delay = 1e3) {
   }
   throw lastError;
 }
+var pool, db;
+var init_db = __esm({
+  "server/db.ts"() {
+    "use strict";
+    init_schema();
+    if (!process.env.DATABASE_URL) {
+      throw new Error(
+        "DATABASE_URL must be set. Did you forget to provision a database?"
+      );
+    }
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 10,
+      // limite máximo de conexões no pool
+      idleTimeoutMillis: 3e4,
+      // tempo para fechar conexões inativas (30s)
+      connectionTimeoutMillis: 5e3,
+      // tempo máximo para estabelecer conexão (5s)
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
+    db = drizzle(pool, { schema: schema_exports });
+  }
+});
 
 // server/storage.ts
 import { eq, and, desc, sql, isNotNull } from "drizzle-orm";
-var MemoryCache = class {
-  cache;
-  ttl;
-  // Tempo de vida do cache em ms
-  constructor(ttlMs = 6e4) {
-    this.cache = /* @__PURE__ */ new Map();
-    this.ttl = ttlMs;
-  }
-  get(key) {
-    const entry = this.cache.get(key);
-    if (!entry) return void 0;
-    if (Date.now() - entry.timestamp > this.ttl) {
-      this.cache.delete(key);
-      return void 0;
-    }
-    return entry.data;
-  }
-  set(key, data) {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now()
-    });
-  }
-  invalidate(prefix) {
-    Array.from(this.cache.keys()).forEach((key) => {
-      if (key.startsWith(prefix)) {
-        this.cache.delete(key);
+var MemoryCache, userCache, eventCache, taskCache, documentCache, participantCache, DatabaseStorage, storage;
+var init_storage = __esm({
+  "server/storage.ts"() {
+    "use strict";
+    init_schema();
+    init_db();
+    MemoryCache = class {
+      cache;
+      ttl;
+      // Tempo de vida do cache em ms
+      constructor(ttlMs = 6e4) {
+        this.cache = /* @__PURE__ */ new Map();
+        this.ttl = ttlMs;
       }
-    });
-  }
-};
-var userCache = new MemoryCache(3e5);
-var eventCache = new MemoryCache(18e4);
-var taskCache = new MemoryCache(12e4);
-var documentCache = new MemoryCache(12e4);
-var participantCache = new MemoryCache(12e4);
-var DatabaseStorage = class {
-  // User operations
-  async getUser(id) {
-    const cacheKey = `user:${id}`;
-    const cachedUser = userCache.get(cacheKey);
-    if (cachedUser) return cachedUser;
-    return executeWithRetry(async () => {
-      const [user] = await db.select().from(users).where(eq(users.id, id));
-      if (user) {
-        userCache.set(cacheKey, user);
-      }
-      return user;
-    });
-  }
-  async getAllUsers() {
-    const cacheKey = "all:users";
-    const cachedUsers = userCache.get(cacheKey);
-    if (cachedUsers) return cachedUsers;
-    return executeWithRetry(async () => {
-      const allUsers = await db.select().from(users);
-      userCache.set(cacheKey, allUsers);
-      return allUsers;
-    });
-  }
-  async getUserByEmail(email) {
-    const cacheKey = `user:email:${email}`;
-    const cachedUser = userCache.get(cacheKey);
-    if (cachedUser) return cachedUser;
-    return executeWithRetry(async () => {
-      const [user] = await db.select().from(users).where(eq(users.email, email));
-      if (user) {
-        userCache.set(cacheKey, user);
-        userCache.set(`user:${user.id}`, user);
-      }
-      return user;
-    });
-  }
-  async upsertUser(userData) {
-    return executeWithRetry(async () => {
-      const [user] = await db.insert(users).values(userData).onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: /* @__PURE__ */ new Date()
+      get(key) {
+        const entry = this.cache.get(key);
+        if (!entry) return void 0;
+        if (Date.now() - entry.timestamp > this.ttl) {
+          this.cache.delete(key);
+          return void 0;
         }
-      }).returning();
-      userCache.invalidate(`user:${user.id}`);
-      userCache.set(`user:${user.id}`, user);
-      return user;
-    });
-  }
-  async findOrCreateUserByEmail(email, name, phone) {
-    const cacheKey = `user:email:${email}`;
-    const cachedUser = userCache.get(cacheKey);
-    if (cachedUser) return cachedUser;
-    return executeWithRetry(async () => {
-      const existingUsers = await db.select().from(users).where(eq(users.email, email));
-      if (existingUsers.length > 0) {
-        const user = existingUsers[0];
-        userCache.set(`user:${user.id}`, user);
-        userCache.set(cacheKey, user);
-        return user;
+        return entry.data;
       }
-      const nameParts = name ? name.trim().split(" ") : email.split("@")[0].split(".");
-      const firstName = nameParts[0] || email.split("@")[0];
-      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
-      const [newUser] = await db.insert(users).values({
-        id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        email,
-        firstName,
-        lastName: lastName || "",
-        phone: phone || void 0,
-        createdAt: /* @__PURE__ */ new Date(),
-        updatedAt: /* @__PURE__ */ new Date()
-      }).returning();
-      userCache.set(`user:${newUser.id}`, newUser);
-      userCache.set(cacheKey, newUser);
-      return newUser;
-    });
-  }
-  async migrateUserFromLocalToReplit(localUserId, replitUserId) {
-    return executeWithRetry(async () => {
-      console.log(`Migrando usu\xE1rio de ${localUserId} para ${replitUserId}`);
-      const existingNewUser = await db.select().from(users).where(eq(users.id, replitUserId));
-      if (existingNewUser.length > 0) {
-        console.log(`Usu\xE1rio com ID ${replitUserId} j\xE1 existe. Apenas migrando refer\xEAncias.`);
-        await Promise.all([
-          db.update(eventTeamMembers).set({ userId: replitUserId }).where(eq(eventTeamMembers.userId, localUserId)),
-          db.update(events).set({ ownerId: replitUserId }).where(eq(events.ownerId, localUserId)),
-          db.update(taskAssignees).set({ userId: replitUserId }).where(eq(taskAssignees.userId, localUserId)),
-          db.update(documents).set({ uploadedById: replitUserId }).where(eq(documents.uploadedById, localUserId)),
-          db.update(activityLogs).set({ userId: replitUserId }).where(eq(activityLogs.userId, localUserId))
-        ]);
-        try {
-          await db.delete(users).where(eq(users.id, localUserId));
-          console.log(`Usu\xE1rio antigo ${localUserId} removido.`);
-        } catch (deleteError) {
-          console.log(`N\xE3o foi poss\xEDvel deletar usu\xE1rio antigo ${localUserId}:`, deleteError);
-        }
-      } else {
-        console.log(`Atualizando ID do usu\xE1rio de ${localUserId} para ${replitUserId}`);
-        await Promise.all([
-          db.update(eventTeamMembers).set({ userId: replitUserId }).where(eq(eventTeamMembers.userId, localUserId)),
-          db.update(events).set({ ownerId: replitUserId }).where(eq(events.ownerId, localUserId)),
-          db.update(taskAssignees).set({ userId: replitUserId }).where(eq(taskAssignees.userId, localUserId)),
-          db.update(documents).set({ uploadedById: replitUserId }).where(eq(documents.uploadedById, localUserId)),
-          db.update(activityLogs).set({ userId: replitUserId }).where(eq(activityLogs.userId, localUserId))
-        ]);
-        await db.update(users).set({ id: replitUserId, updatedAt: /* @__PURE__ */ new Date() }).where(eq(users.id, localUserId));
+      set(key, data) {
+        this.cache.set(key, {
+          data,
+          timestamp: Date.now()
+        });
       }
-      userCache.invalidate(`user:${localUserId}`);
-      userCache.invalidate(`user:${replitUserId}`);
-      userCache.invalidate(`user:email:`);
-      eventCache.invalidate(`events:user:${localUserId}`);
-      eventCache.invalidate(`events:user:${replitUserId}`);
-      eventCache.invalidate(`events:`);
-      console.log(`Migra\xE7\xE3o conclu\xEDda de ${localUserId} para ${replitUserId}`);
-    });
-  }
-  // Event operations
-  async getEventsByUser(userId) {
-    const cacheKey = `events:user:${userId}`;
-    const cachedEvents = eventCache.get(cacheKey);
-    if (cachedEvents) return cachedEvents;
-    return executeWithRetry(async () => {
-      const ownedEvents = await db.select().from(events).where(eq(events.ownerId, userId)).orderBy(desc(events.startDate));
-      const teamMemberships = await db.select({
-        eventId: eventTeamMembers.eventId
-      }).from(eventTeamMembers).where(eq(eventTeamMembers.userId, userId));
-      const teamEventIds = teamMemberships.map((tm) => tm.eventId);
-      if (teamEventIds.length === 0) {
-        const eventsWithTeamAndTasks2 = await Promise.all(
-          ownedEvents.map(async (event) => {
-            const teamMembers = await this.getTeamMembersByEventId(event.id);
-            const tasks2 = await this.getTasksByEventId(event.id);
+      invalidate(prefix) {
+        Array.from(this.cache.keys()).forEach((key) => {
+          if (key.startsWith(prefix)) {
+            this.cache.delete(key);
+          }
+        });
+      }
+    };
+    userCache = new MemoryCache(3e5);
+    eventCache = new MemoryCache(18e4);
+    taskCache = new MemoryCache(12e4);
+    documentCache = new MemoryCache(12e4);
+    participantCache = new MemoryCache(12e4);
+    DatabaseStorage = class {
+      // User operations
+      async getUser(id) {
+        const cacheKey = `user:${id}`;
+        const cachedUser = userCache.get(cacheKey);
+        if (cachedUser) return cachedUser;
+        return executeWithRetry(async () => {
+          const [user] = await db.select().from(users).where(eq(users.id, id));
+          if (user) {
+            userCache.set(cacheKey, user);
+          }
+          return user;
+        });
+      }
+      async getAllUsers() {
+        const cacheKey = "all:users";
+        const cachedUsers = userCache.get(cacheKey);
+        if (cachedUsers) return cachedUsers;
+        return executeWithRetry(async () => {
+          const allUsers = await db.select().from(users);
+          userCache.set(cacheKey, allUsers);
+          return allUsers;
+        });
+      }
+      async getUserByEmail(email) {
+        const cacheKey = `user:email:${email}`;
+        const cachedUser = userCache.get(cacheKey);
+        if (cachedUser) return cachedUser;
+        return executeWithRetry(async () => {
+          const [user] = await db.select().from(users).where(sql`lower(${users.email}) = lower(${email})`);
+          if (user) {
+            userCache.set(cacheKey, user);
+            userCache.set(`user:${user.id}`, user);
+          }
+          return user;
+        });
+      }
+      async upsertUser(userData) {
+        return executeWithRetry(async () => {
+          const [user] = await db.insert(users).values(userData).onConflictDoUpdate({
+            target: users.id,
+            set: {
+              ...userData,
+              updatedAt: /* @__PURE__ */ new Date()
+            }
+          }).returning();
+          userCache.invalidate(`user:${user.id}`);
+          userCache.set(`user:${user.id}`, user);
+          return user;
+        });
+      }
+      async findOrCreateUserByEmail(email, name, phone) {
+        const cacheKey = `user:email:${email}`;
+        const cachedUser = userCache.get(cacheKey);
+        if (cachedUser) return cachedUser;
+        return executeWithRetry(async () => {
+          const existingUsers = await db.select().from(users).where(sql`lower(${users.email}) = lower(${email})`);
+          if (existingUsers.length > 0) {
+            const user = existingUsers[0];
+            userCache.set(`user:${user.id}`, user);
+            userCache.set(cacheKey, user);
+            return user;
+          }
+          const nameParts = name ? name.trim().split(" ") : email.split("@")[0].split(".");
+          const firstName = nameParts[0] || email.split("@")[0];
+          const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+          const [newUser] = await db.insert(users).values({
+            id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            email,
+            firstName,
+            lastName: lastName || "",
+            phone: phone || void 0,
+            createdAt: /* @__PURE__ */ new Date(),
+            updatedAt: /* @__PURE__ */ new Date()
+          }).returning();
+          userCache.set(`user:${newUser.id}`, newUser);
+          userCache.set(cacheKey, newUser);
+          return newUser;
+        });
+      }
+      async migrateUserFromLocalToReplit(localUserId, replitUserId) {
+        return executeWithRetry(async () => {
+          console.log(`Migrando usu\xE1rio de ${localUserId} para ${replitUserId}`);
+          const existingNewUser = await db.select().from(users).where(eq(users.id, replitUserId));
+          if (existingNewUser.length > 0) {
+            console.log(`Usu\xE1rio com ID ${replitUserId} j\xE1 existe. Apenas migrando refer\xEAncias.`);
+            await Promise.all([
+              db.update(eventTeamMembers).set({ userId: replitUserId }).where(eq(eventTeamMembers.userId, localUserId)),
+              db.update(events).set({ ownerId: replitUserId }).where(eq(events.ownerId, localUserId)),
+              db.update(taskAssignees).set({ userId: replitUserId }).where(eq(taskAssignees.userId, localUserId)),
+              db.update(documents).set({ uploadedById: replitUserId }).where(eq(documents.uploadedById, localUserId)),
+              db.update(activityLogs).set({ userId: replitUserId }).where(eq(activityLogs.userId, localUserId))
+            ]);
+            try {
+              await db.delete(users).where(eq(users.id, localUserId));
+              console.log(`Usu\xE1rio antigo ${localUserId} removido.`);
+            } catch (deleteError) {
+              console.log(`N\xE3o foi poss\xEDvel deletar usu\xE1rio antigo ${localUserId}:`, deleteError);
+            }
+          } else {
+            console.log(`Atualizando ID do usu\xE1rio de ${localUserId} para ${replitUserId}`);
+            await Promise.all([
+              db.update(eventTeamMembers).set({ userId: replitUserId }).where(eq(eventTeamMembers.userId, localUserId)),
+              db.update(events).set({ ownerId: replitUserId }).where(eq(events.ownerId, localUserId)),
+              db.update(taskAssignees).set({ userId: replitUserId }).where(eq(taskAssignees.userId, localUserId)),
+              db.update(documents).set({ uploadedById: replitUserId }).where(eq(documents.uploadedById, localUserId)),
+              db.update(activityLogs).set({ userId: replitUserId }).where(eq(activityLogs.userId, localUserId))
+            ]);
+            await db.update(users).set({ id: replitUserId, updatedAt: /* @__PURE__ */ new Date() }).where(eq(users.id, localUserId));
+          }
+          userCache.invalidate(`user:${localUserId}`);
+          userCache.invalidate(`user:${replitUserId}`);
+          userCache.invalidate(`user:email:`);
+          eventCache.invalidate(`events:user:${localUserId}`);
+          eventCache.invalidate(`events:user:${replitUserId}`);
+          eventCache.invalidate(`events:`);
+          console.log(`Migra\xE7\xE3o conclu\xEDda de ${localUserId} para ${replitUserId}`);
+        });
+      }
+      // Event operations
+      async getEventsByUser(userId) {
+        const cacheKey = `events:user:${userId}`;
+        const cachedEvents = eventCache.get(cacheKey);
+        if (cachedEvents) return cachedEvents;
+        return executeWithRetry(async () => {
+          const ownedEvents = await db.select().from(events).where(eq(events.ownerId, userId)).orderBy(desc(events.startDate));
+          const teamMemberships = await db.select({
+            eventId: eventTeamMembers.eventId
+          }).from(eventTeamMembers).where(eq(eventTeamMembers.userId, userId));
+          const teamEventIds = teamMemberships.map((tm) => tm.eventId);
+          if (teamEventIds.length === 0) {
+            const eventsWithTeamAndTasks2 = await Promise.all(
+              ownedEvents.map(async (event) => {
+                const teamMembers = await this.getTeamMembersByEventId(event.id);
+                const tasks2 = await this.getTasksByEventId(event.id);
+                return {
+                  ...event,
+                  team: teamMembers,
+                  tasks: tasks2
+                };
+              })
+            );
+            eventCache.set(cacheKey, eventsWithTeamAndTasks2);
+            return eventsWithTeamAndTasks2;
+          }
+          let teamEvents = [];
+          if (teamEventIds.length > 0) {
+            if (teamEventIds.length === 1) {
+              teamEvents = await db.select().from(events).where(eq(events.id, teamEventIds[0]));
+            } else {
+              const batchResults = await Promise.all(
+                teamEventIds.map(
+                  (id) => db.select().from(events).where(eq(events.id, id))
+                )
+              );
+              teamEvents = batchResults.flat();
+            }
+          }
+          const allEvents = [...ownedEvents];
+          for (const event of teamEvents) {
+            if (event && !allEvents.some((e) => e.id === event.id)) {
+              allEvents.push(event);
+            }
+          }
+          const sortedEvents = allEvents.sort((a, b) => {
+            const dateA = a.startDate;
+            const dateB = b.startDate;
+            return new Date(dateB).getTime() - new Date(dateA).getTime();
+          });
+          const eventsWithTeamAndTasks = await Promise.all(
+            sortedEvents.map(async (event) => {
+              const teamMembers = await this.getTeamMembersByEventId(event.id);
+              const tasks2 = await this.getTasksByEventId(event.id);
+              return {
+                ...event,
+                team: teamMembers,
+                tasks: tasks2
+              };
+            })
+          );
+          eventCache.set(cacheKey, eventsWithTeamAndTasks);
+          return eventsWithTeamAndTasks;
+        });
+      }
+      async getEventById(id) {
+        return executeWithRetry(async () => {
+          const [event] = await db.select().from(events).where(eq(events.id, id));
+          console.log(`Evento ${id} recuperado diretamente do banco:`, event);
+          return event;
+        });
+      }
+      async createEvent(eventData) {
+        return executeWithRetry(async () => {
+          const [event] = await db.insert(events).values(eventData).returning();
+          eventCache.invalidate(`events:user:${eventData.ownerId}`);
+          eventCache.set(`event:${event.id}`, event);
+          return event;
+        });
+      }
+      async updateEvent(id, eventData) {
+        return executeWithRetry(async () => {
+          console.log("Atualizando evento com dados:", JSON.stringify(eventData, null, 2));
+          console.log("Formato do evento recebido:", eventData.format);
+          console.log("MeetingUrl recebido:", eventData.meetingUrl);
+          let dataToUpdate = {
+            ...eventData,
+            updatedAt: /* @__PURE__ */ new Date()
+          };
+          console.log("Dados a serem salvos:", JSON.stringify(dataToUpdate, null, 2));
+          const [event] = await db.update(events).set(dataToUpdate).where(eq(events.id, id)).returning();
+          console.log("Evento atualizado no banco:", JSON.stringify(event, null, 2));
+          eventCache.invalidate(`event:${id}`);
+          eventCache.invalidate(`events:user:`);
+          eventCache.invalidate(`events:`);
+          return event;
+        });
+      }
+      async deleteEvent(id) {
+        return executeWithRetry(async () => {
+          const [event] = await db.select().from(events).where(eq(events.id, id));
+          await db.delete(events).where(eq(events.id, id));
+          eventCache.invalidate(`event:${id}`);
+          if (event) {
+            eventCache.invalidate(`events:user:${event.ownerId}`);
+          }
+          eventCache.invalidate(`events:user:`);
+        });
+      }
+      // Task operations
+      async getTasksByEventId(eventId) {
+        const cacheKey = `tasks:event:${eventId}`;
+        const cachedTasks = taskCache.get(cacheKey);
+        if (cachedTasks) return cachedTasks;
+        return executeWithRetry(async () => {
+          const result = await db.select().from(tasks).where(eq(tasks.eventId, eventId)).orderBy(tasks.dueDate);
+          taskCache.set(cacheKey, result);
+          return result;
+        });
+      }
+      async getTaskById(id) {
+        const cacheKey = `task:${id}`;
+        const cachedTask = taskCache.get(cacheKey);
+        if (cachedTask) return cachedTask;
+        return executeWithRetry(async () => {
+          const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+          if (task) {
+            taskCache.set(cacheKey, task);
+          }
+          return task;
+        });
+      }
+      async createTask(taskData, assigneeIds) {
+        return executeWithRetry(async () => {
+          const [task] = await db.insert(tasks).values(taskData).returning();
+          if (assigneeIds && assigneeIds.length > 0) {
+            await this.replaceTaskAssignees(task.id, assigneeIds);
+          }
+          taskCache.invalidate(`tasks:event:${taskData.eventId}`);
+          taskCache.set(`task:${task.id}`, task);
+          return task;
+        });
+      }
+      async updateTask(id, taskData, assigneeIds) {
+        return executeWithRetry(async () => {
+          const [task] = await db.update(tasks).set({
+            ...taskData,
+            updatedAt: /* @__PURE__ */ new Date()
+          }).where(eq(tasks.id, id)).returning();
+          if (assigneeIds !== void 0) {
+            await this.replaceTaskAssignees(task.id, assigneeIds);
+          }
+          taskCache.set(`task:${id}`, task);
+          if (taskData.eventId) {
+            const oldTask = await this.getTaskById(id);
+            if (oldTask && oldTask.eventId !== taskData.eventId) {
+              taskCache.invalidate(`tasks:event:${oldTask.eventId}`);
+            }
+            taskCache.invalidate(`tasks:event:${taskData.eventId}`);
+          } else {
+            taskCache.invalidate(`tasks:event:${task.eventId}`);
+          }
+          return task;
+        });
+      }
+      async deleteTask(id) {
+        return executeWithRetry(async () => {
+          const task = await this.getTaskById(id);
+          await db.delete(tasks).where(eq(tasks.id, id));
+          taskCache.invalidate(`task:${id}`);
+          if (task) {
+            taskCache.invalidate(`tasks:event:${task.eventId}`);
+          }
+        });
+      }
+      // Team member operations
+      async getTeamMembersByEventId(eventId) {
+        const teamMembers = await db.select().from(eventTeamMembers).where(eq(eventTeamMembers.eventId, eventId));
+        return Promise.all(
+          teamMembers.map(async (member) => {
+            const [user] = await db.select().from(users).where(eq(users.id, member.userId));
+            let parsedPermissions = member.permissions;
+            if (typeof parsedPermissions === "string") {
+              try {
+                parsedPermissions = JSON.parse(parsedPermissions);
+              } catch {
+                parsedPermissions = {};
+              }
+            }
             return {
-              ...event,
-              team: teamMembers,
-              tasks: tasks2
+              ...member,
+              permissions: parsedPermissions,
+              user
             };
           })
         );
-        eventCache.set(cacheKey, eventsWithTeamAndTasks2);
-        return eventsWithTeamAndTasks2;
       }
-      let teamEvents = [];
-      if (teamEventIds.length > 0) {
-        if (teamEventIds.length === 1) {
-          teamEvents = await db.select().from(events).where(eq(events.id, teamEventIds[0]));
-        } else {
-          const batchResults = await Promise.all(
-            teamEventIds.map(
-              (id) => db.select().from(events).where(eq(events.id, id))
+      async addTeamMember(teamMemberData) {
+        const existingMembers = await db.select().from(eventTeamMembers).where(
+          and(
+            eq(eventTeamMembers.eventId, teamMemberData.eventId),
+            eq(eventTeamMembers.userId, teamMemberData.userId)
+          )
+        );
+        if (existingMembers.length > 0) {
+          const [teamMember2] = await db.update(eventTeamMembers).set({
+            role: teamMemberData.role,
+            permissions: teamMemberData.permissions
+          }).where(
+            and(
+              eq(eventTeamMembers.eventId, teamMemberData.eventId),
+              eq(eventTeamMembers.userId, teamMemberData.userId)
+            )
+          ).returning();
+          return teamMember2;
+        }
+        const [teamMember] = await db.insert(eventTeamMembers).values(teamMemberData).returning();
+        return teamMember;
+      }
+      async removeTeamMember(eventId, userId) {
+        return executeWithRetry(async () => {
+          const result = await db.delete(eventTeamMembers).where(
+            and(
+              eq(eventTeamMembers.eventId, eventId),
+              eq(eventTeamMembers.userId, userId)
             )
           );
-          teamEvents = batchResults.flat();
-        }
+          console.log(`Removendo membro da equipe - EventId: ${eventId}, UserId: ${userId}, Linhas afetadas:`, result);
+          userCache.invalidate(`team:event:${eventId}`);
+        });
       }
-      const allEvents = [...ownedEvents];
-      for (const event of teamEvents) {
-        if (event && !allEvents.some((e) => e.id === event.id)) {
-          allEvents.push(event);
-        }
-      }
-      const sortedEvents = allEvents.sort((a, b) => {
-        const dateA = a.startDate;
-        const dateB = b.startDate;
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
-      });
-      const eventsWithTeamAndTasks = await Promise.all(
-        sortedEvents.map(async (event) => {
-          const teamMembers = await this.getTeamMembersByEventId(event.id);
-          const tasks2 = await this.getTasksByEventId(event.id);
-          return {
-            ...event,
-            team: teamMembers,
-            tasks: tasks2
-          };
-        })
-      );
-      eventCache.set(cacheKey, eventsWithTeamAndTasks);
-      return eventsWithTeamAndTasks;
-    });
-  }
-  async getEventById(id) {
-    return executeWithRetry(async () => {
-      const [event] = await db.select().from(events).where(eq(events.id, id));
-      console.log(`Evento ${id} recuperado diretamente do banco:`, event);
-      return event;
-    });
-  }
-  async createEvent(eventData) {
-    return executeWithRetry(async () => {
-      const [event] = await db.insert(events).values(eventData).returning();
-      eventCache.invalidate(`events:user:${eventData.ownerId}`);
-      eventCache.set(`event:${event.id}`, event);
-      return event;
-    });
-  }
-  async updateEvent(id, eventData) {
-    return executeWithRetry(async () => {
-      console.log("Atualizando evento com dados:", JSON.stringify(eventData, null, 2));
-      console.log("Formato do evento recebido:", eventData.format);
-      console.log("MeetingUrl recebido:", eventData.meetingUrl);
-      let dataToUpdate = {
-        ...eventData,
-        updatedAt: /* @__PURE__ */ new Date()
-      };
-      console.log("Dados a serem salvos:", JSON.stringify(dataToUpdate, null, 2));
-      const [event] = await db.update(events).set(dataToUpdate).where(eq(events.id, id)).returning();
-      console.log("Evento atualizado no banco:", JSON.stringify(event, null, 2));
-      eventCache.invalidate(`event:${id}`);
-      eventCache.invalidate(`events:user:`);
-      eventCache.invalidate(`events:`);
-      return event;
-    });
-  }
-  async deleteEvent(id) {
-    return executeWithRetry(async () => {
-      const [event] = await db.select().from(events).where(eq(events.id, id));
-      await db.delete(events).where(eq(events.id, id));
-      eventCache.invalidate(`event:${id}`);
-      if (event) {
-        eventCache.invalidate(`events:user:${event.ownerId}`);
-      }
-      eventCache.invalidate(`events:user:`);
-    });
-  }
-  // Task operations
-  async getTasksByEventId(eventId) {
-    const cacheKey = `tasks:event:${eventId}`;
-    const cachedTasks = taskCache.get(cacheKey);
-    if (cachedTasks) return cachedTasks;
-    return executeWithRetry(async () => {
-      const result = await db.select().from(tasks).where(eq(tasks.eventId, eventId)).orderBy(tasks.dueDate);
-      taskCache.set(cacheKey, result);
-      return result;
-    });
-  }
-  async getTaskById(id) {
-    const cacheKey = `task:${id}`;
-    const cachedTask = taskCache.get(cacheKey);
-    if (cachedTask) return cachedTask;
-    return executeWithRetry(async () => {
-      const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
-      if (task) {
-        taskCache.set(cacheKey, task);
-      }
-      return task;
-    });
-  }
-  async createTask(taskData, assigneeIds) {
-    return executeWithRetry(async () => {
-      const [task] = await db.insert(tasks).values(taskData).returning();
-      if (assigneeIds && assigneeIds.length > 0) {
-        await this.replaceTaskAssignees(task.id, assigneeIds);
-      }
-      taskCache.invalidate(`tasks:event:${taskData.eventId}`);
-      taskCache.set(`task:${task.id}`, task);
-      return task;
-    });
-  }
-  async updateTask(id, taskData, assigneeIds) {
-    return executeWithRetry(async () => {
-      const [task] = await db.update(tasks).set({
-        ...taskData,
-        updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq(tasks.id, id)).returning();
-      if (assigneeIds !== void 0) {
-        await this.replaceTaskAssignees(task.id, assigneeIds);
-      }
-      taskCache.set(`task:${id}`, task);
-      if (taskData.eventId) {
-        const oldTask = await this.getTaskById(id);
-        if (oldTask && oldTask.eventId !== taskData.eventId) {
-          taskCache.invalidate(`tasks:event:${oldTask.eventId}`);
-        }
-        taskCache.invalidate(`tasks:event:${taskData.eventId}`);
-      } else {
-        taskCache.invalidate(`tasks:event:${task.eventId}`);
-      }
-      return task;
-    });
-  }
-  async deleteTask(id) {
-    return executeWithRetry(async () => {
-      const task = await this.getTaskById(id);
-      await db.delete(tasks).where(eq(tasks.id, id));
-      taskCache.invalidate(`task:${id}`);
-      if (task) {
-        taskCache.invalidate(`tasks:event:${task.eventId}`);
-      }
-    });
-  }
-  // Team member operations
-  async getTeamMembersByEventId(eventId) {
-    const teamMembers = await db.select().from(eventTeamMembers).where(eq(eventTeamMembers.eventId, eventId));
-    return Promise.all(
-      teamMembers.map(async (member) => {
-        const [user] = await db.select().from(users).where(eq(users.id, member.userId));
-        let parsedPermissions = member.permissions;
-        if (typeof parsedPermissions === "string") {
-          try {
-            parsedPermissions = JSON.parse(parsedPermissions);
-          } catch {
-            parsedPermissions = {};
-          }
-        }
-        return {
-          ...member,
-          permissions: parsedPermissions,
-          user
-        };
-      })
-    );
-  }
-  async addTeamMember(teamMemberData) {
-    const existingMembers = await db.select().from(eventTeamMembers).where(
-      and(
-        eq(eventTeamMembers.eventId, teamMemberData.eventId),
-        eq(eventTeamMembers.userId, teamMemberData.userId)
-      )
-    );
-    if (existingMembers.length > 0) {
-      const [teamMember2] = await db.update(eventTeamMembers).set({
-        role: teamMemberData.role,
-        permissions: teamMemberData.permissions
-      }).where(
-        and(
-          eq(eventTeamMembers.eventId, teamMemberData.eventId),
-          eq(eventTeamMembers.userId, teamMemberData.userId)
-        )
-      ).returning();
-      return teamMember2;
-    }
-    const [teamMember] = await db.insert(eventTeamMembers).values(teamMemberData).returning();
-    return teamMember;
-  }
-  async removeTeamMember(eventId, userId) {
-    return executeWithRetry(async () => {
-      const result = await db.delete(eventTeamMembers).where(
-        and(
-          eq(eventTeamMembers.eventId, eventId),
-          eq(eventTeamMembers.userId, userId)
-        )
-      );
-      console.log(`Removendo membro da equipe - EventId: ${eventId}, UserId: ${userId}, Linhas afetadas:`, result);
-      userCache.invalidate(`team:event:${eventId}`);
-    });
-  }
-  async isUserTeamMember(userId, eventId) {
-    console.log(`Verificando se usu\xE1rio ${userId} \xE9 membro da equipe do evento ${eventId}`);
-    try {
-      const members = await db.select().from(eventTeamMembers).where(
-        and(
-          eq(eventTeamMembers.eventId, eventId),
-          eq(eventTeamMembers.userId, userId)
-        )
-      );
-      console.log(`Encontrados ${members.length} registros para o usu\xE1rio na equipe`);
-      console.log("Registros:", JSON.stringify(members));
-      return members.length > 0;
-    } catch (error) {
-      console.error(`Erro ao verificar se usu\xE1rio ${userId} \xE9 membro da equipe:`, error);
-      return false;
-    }
-  }
-  async hasUserAccessToEvent(userId, eventId) {
-    return executeWithRetry(async () => {
-      console.log(`Verificando acesso do usu\xE1rio ${userId} ao evento ${eventId}`);
-      if (!userId || userId === "undefined") {
-        console.log("UserId \xE9 undefined ou inv\xE1lido");
-        return false;
-      }
-      const [event] = await db.select().from(events).where(
-        and(
-          eq(events.id, eventId),
-          eq(events.ownerId, userId)
-        )
-      );
-      console.log(`Evento encontrado como propriet\xE1rio:`, event ? "SIM" : "N\xC3O");
-      if (event) {
-        return true;
-      }
-      const isTeamMember = await this.isUserTeamMember(userId, eventId);
-      console.log(`Usu\xE1rio \xE9 membro da equipe:`, isTeamMember ? "SIM" : "N\xC3O");
-      return isTeamMember;
-    });
-  }
-  // Vendor operations
-  async getVendorsByEventId(eventId) {
-    console.log(`Buscando fornecedores para o evento ${eventId}`);
-    try {
-      const result = await db.select().from(vendors).where(eq(vendors.eventId, eventId));
-      console.log(`Encontrados ${result.length} fornecedores para o evento ${eventId}`);
-      console.log("Exemplo de fornecedor encontrado:", result.length > 0 ? result[0] : "Nenhum");
-      return result;
-    } catch (error) {
-      console.error(`Erro ao buscar fornecedores para o evento ${eventId}:`, error);
-      return [];
-    }
-  }
-  async getVendorById(id) {
-    const [vendor] = await db.select().from(vendors).where(eq(vendors.id, id));
-    return vendor;
-  }
-  async createVendor(vendorData) {
-    const [vendor] = await db.insert(vendors).values(vendorData).returning();
-    return vendor;
-  }
-  async updateVendor(id, vendorData) {
-    const [vendor] = await db.update(vendors).set({
-      ...vendorData,
-      updatedAt: /* @__PURE__ */ new Date()
-    }).where(eq(vendors.id, id)).returning();
-    return vendor;
-  }
-  async deleteVendor(id) {
-    await db.delete(vendors).where(eq(vendors.id, id));
-  }
-  // Activity log operations
-  async getActivityLogsByEventId(eventId) {
-    const logs = await db.select().from(activityLogs).where(eq(activityLogs.eventId, eventId)).orderBy(desc(activityLogs.createdAt));
-    return logs.map((log) => {
-      let parsedDetails = log.details;
-      if (typeof parsedDetails === "string") {
+      async isUserTeamMember(userId, eventId) {
+        console.log(`Verificando se usu\xE1rio ${userId} \xE9 membro da equipe do evento ${eventId}`);
         try {
-          parsedDetails = JSON.parse(parsedDetails);
-        } catch {
-          parsedDetails = {};
+          const members = await db.select().from(eventTeamMembers).where(
+            and(
+              eq(eventTeamMembers.eventId, eventId),
+              eq(eventTeamMembers.userId, userId)
+            )
+          );
+          console.log(`Encontrados ${members.length} registros para o usu\xE1rio na equipe`);
+          console.log("Registros:", JSON.stringify(members));
+          return members.length > 0;
+        } catch (error) {
+          console.error(`Erro ao verificar se usu\xE1rio ${userId} \xE9 membro da equipe:`, error);
+          return false;
         }
       }
-      return { ...log, details: parsedDetails };
-    });
-  }
-  async createActivityLog(activityLogData) {
-    const [activityLog] = await db.insert(activityLogs).values(activityLogData).returning();
-    return activityLog;
-  }
-  // Budget item operations
-  async getBudgetItemsByEventId(eventId) {
-    return db.select().from(budgetItems).where(eq(budgetItems.eventId, eventId)).orderBy(desc(budgetItems.createdAt));
-  }
-  async getBudgetItemById(id) {
-    const [item] = await db.select().from(budgetItems).where(eq(budgetItems.id, id)).limit(1);
-    return item;
-  }
-  async createBudgetItem(budgetItemData) {
-    const [item] = await db.insert(budgetItems).values(budgetItemData).returning();
-    return item;
-  }
-  async updateBudgetItem(id, budgetItemData) {
-    const [item] = await db.update(budgetItems).set({
-      ...budgetItemData,
-      updatedAt: /* @__PURE__ */ new Date()
-    }).where(eq(budgetItems.id, id)).returning();
-    return item;
-  }
-  async deleteBudgetItem(id) {
-    await db.delete(budgetItems).where(eq(budgetItems.id, id));
-  }
-  // Expense operations
-  async getExpensesByEventId(eventId) {
-    return db.select().from(expenses).where(eq(expenses.eventId, eventId)).orderBy(desc(expenses.createdAt));
-  }
-  async getExpenseById(id) {
-    const [expense] = await db.select().from(expenses).where(eq(expenses.id, id)).limit(1);
-    return expense;
-  }
-  async createExpense(expenseData) {
-    const [expense] = await db.insert(expenses).values(expenseData).returning();
-    const event = await this.getEventById(expenseData.eventId);
-    if (event) {
-      const totalExpenses = await this.calculateEventTotalExpenses(expenseData.eventId);
-      await this.updateEvent(expenseData.eventId, { expenses: totalExpenses });
-    }
-    return expense;
-  }
-  async updateExpense(id, expenseData) {
-    const [expense] = await db.update(expenses).set({
-      ...expenseData,
-      updatedAt: /* @__PURE__ */ new Date()
-    }).where(eq(expenses.id, id)).returning();
-    if (expenseData.amount !== void 0 || expenseData.eventId !== void 0) {
-      const eventId = expenseData.eventId !== void 0 ? expenseData.eventId : expense.eventId;
-      const totalExpenses = await this.calculateEventTotalExpenses(eventId);
-      await this.updateEvent(eventId, { expenses: totalExpenses });
-    }
-    return expense;
-  }
-  async deleteExpense(id) {
-    const expense = await this.getExpenseById(id);
-    if (expense) {
-      await db.delete(expenses).where(eq(expenses.id, id));
-      const totalExpenses = await this.calculateEventTotalExpenses(expense.eventId);
-      await this.updateEvent(expense.eventId, { expenses: totalExpenses });
-    }
-  }
-  // Método auxiliar para calcular o total de despesas de um evento
-  async calculateEventTotalExpenses(eventId) {
-    const allExpenses = await db.select({ total: sql`SUM(${expenses.amount})` }).from(expenses).where(eq(expenses.eventId, eventId));
-    return Number(allExpenses[0]?.total || 0);
-  }
-  // Task assignee operations
-  async getTaskAssignees(taskId) {
-    return executeWithRetry(async () => {
-      const assignees = await db.select().from(taskAssignees).where(eq(taskAssignees.taskId, taskId));
-      return Promise.all(
-        assignees.map(async (assignee) => {
-          const [user] = await db.select().from(users).where(eq(users.id, assignee.userId));
-          return {
-            ...assignee,
-            user
-          };
-        })
-      );
-    });
-  }
-  async addTaskAssignee(taskId, userId) {
-    return executeWithRetry(async () => {
-      const existingAssignees = await db.select().from(taskAssignees).where(
-        and(
-          eq(taskAssignees.taskId, taskId),
-          eq(taskAssignees.userId, userId)
-        )
-      );
-      if (existingAssignees.length > 0) {
-        return existingAssignees[0];
+      async hasUserAccessToEvent(userId, eventId) {
+        return executeWithRetry(async () => {
+          console.log(`Verificando acesso do usu\xE1rio ${userId} ao evento ${eventId}`);
+          if (!userId || userId === "undefined") {
+            console.log("UserId \xE9 undefined ou inv\xE1lido");
+            return false;
+          }
+          const [event] = await db.select().from(events).where(
+            and(
+              eq(events.id, eventId),
+              eq(events.ownerId, userId)
+            )
+          );
+          console.log(`Evento encontrado como propriet\xE1rio:`, event ? "SIM" : "N\xC3O");
+          if (event) {
+            return true;
+          }
+          const isTeamMember = await this.isUserTeamMember(userId, eventId);
+          console.log(`Usu\xE1rio \xE9 membro da equipe:`, isTeamMember ? "SIM" : "N\xC3O");
+          return isTeamMember;
+        });
       }
-      const [assignee] = await db.insert(taskAssignees).values({
-        taskId,
-        userId
-      }).returning();
-      const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId));
-      if (task && task.eventId) {
-        taskCache.invalidate(`tasks:event:${task.eventId}`);
+      // Vendor operations
+      async getVendorsByEventId(eventId) {
+        console.log(`Buscando fornecedores para o evento ${eventId}`);
+        try {
+          const result = await db.select().from(vendors).where(eq(vendors.eventId, eventId));
+          console.log(`Encontrados ${result.length} fornecedores para o evento ${eventId}`);
+          console.log("Exemplo de fornecedor encontrado:", result.length > 0 ? result[0] : "Nenhum");
+          return result;
+        } catch (error) {
+          console.error(`Erro ao buscar fornecedores para o evento ${eventId}:`, error);
+          return [];
+        }
       }
-      return assignee;
-    });
-  }
-  async removeTaskAssignee(taskId, userId) {
-    return executeWithRetry(async () => {
-      const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId));
-      await db.delete(taskAssignees).where(
-        and(
-          eq(taskAssignees.taskId, taskId),
-          eq(taskAssignees.userId, userId)
-        )
-      );
-      if (task && task.eventId) {
-        taskCache.invalidate(`tasks:event:${task.eventId}`);
+      async getVendorById(id) {
+        const [vendor] = await db.select().from(vendors).where(eq(vendors.id, id));
+        return vendor;
       }
-    });
-  }
-  async replaceTaskAssignees(taskId, userIds) {
-    return executeWithRetry(async () => {
-      const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId));
-      await db.delete(taskAssignees).where(eq(taskAssignees.taskId, taskId));
-      if (!userIds || userIds.length === 0) {
-        return [];
+      async createVendor(vendorData) {
+        const [vendor] = await db.insert(vendors).values(vendorData).returning();
+        return vendor;
       }
-      const assignees = await Promise.all(
-        userIds.map(async (userId) => {
+      async updateVendor(id, vendorData) {
+        const [vendor] = await db.update(vendors).set({
+          ...vendorData,
+          updatedAt: /* @__PURE__ */ new Date()
+        }).where(eq(vendors.id, id)).returning();
+        return vendor;
+      }
+      async deleteVendor(id) {
+        await db.delete(vendors).where(eq(vendors.id, id));
+      }
+      // Activity log operations
+      async getActivityLogsByEventId(eventId) {
+        const logs = await db.select().from(activityLogs).where(eq(activityLogs.eventId, eventId)).orderBy(desc(activityLogs.createdAt));
+        return logs.map((log) => {
+          let parsedDetails = log.details;
+          if (typeof parsedDetails === "string") {
+            try {
+              parsedDetails = JSON.parse(parsedDetails);
+            } catch {
+              parsedDetails = {};
+            }
+          }
+          return { ...log, details: parsedDetails };
+        });
+      }
+      async createActivityLog(activityLogData) {
+        const [activityLog] = await db.insert(activityLogs).values(activityLogData).returning();
+        return activityLog;
+      }
+      // Budget item operations
+      async getBudgetItemsByEventId(eventId) {
+        return db.select().from(budgetItems).where(eq(budgetItems.eventId, eventId)).orderBy(desc(budgetItems.createdAt));
+      }
+      async getBudgetItemById(id) {
+        const [item] = await db.select().from(budgetItems).where(eq(budgetItems.id, id)).limit(1);
+        return item;
+      }
+      async createBudgetItem(budgetItemData) {
+        const [item] = await db.insert(budgetItems).values(budgetItemData).returning();
+        return item;
+      }
+      async updateBudgetItem(id, budgetItemData) {
+        const [item] = await db.update(budgetItems).set({
+          ...budgetItemData,
+          updatedAt: /* @__PURE__ */ new Date()
+        }).where(eq(budgetItems.id, id)).returning();
+        return item;
+      }
+      async deleteBudgetItem(id) {
+        await db.delete(budgetItems).where(eq(budgetItems.id, id));
+      }
+      // Expense operations
+      async getExpensesByEventId(eventId) {
+        return db.select().from(expenses).where(eq(expenses.eventId, eventId)).orderBy(desc(expenses.createdAt));
+      }
+      async getExpenseById(id) {
+        const [expense] = await db.select().from(expenses).where(eq(expenses.id, id)).limit(1);
+        return expense;
+      }
+      async createExpense(expenseData) {
+        const [expense] = await db.insert(expenses).values(expenseData).returning();
+        const event = await this.getEventById(expenseData.eventId);
+        if (event) {
+          const totalExpenses = await this.calculateEventTotalExpenses(expenseData.eventId);
+          await this.updateEvent(expenseData.eventId, { expenses: totalExpenses });
+        }
+        return expense;
+      }
+      async updateExpense(id, expenseData) {
+        const [expense] = await db.update(expenses).set({
+          ...expenseData,
+          updatedAt: /* @__PURE__ */ new Date()
+        }).where(eq(expenses.id, id)).returning();
+        if (expenseData.amount !== void 0 || expenseData.eventId !== void 0) {
+          const eventId = expenseData.eventId !== void 0 ? expenseData.eventId : expense.eventId;
+          const totalExpenses = await this.calculateEventTotalExpenses(eventId);
+          await this.updateEvent(eventId, { expenses: totalExpenses });
+        }
+        return expense;
+      }
+      async deleteExpense(id) {
+        const expense = await this.getExpenseById(id);
+        if (expense) {
+          await db.delete(expenses).where(eq(expenses.id, id));
+          const totalExpenses = await this.calculateEventTotalExpenses(expense.eventId);
+          await this.updateEvent(expense.eventId, { expenses: totalExpenses });
+        }
+      }
+      // Método auxiliar para calcular o total de despesas de um evento
+      async calculateEventTotalExpenses(eventId) {
+        const allExpenses = await db.select({ total: sql`SUM(${expenses.amount})` }).from(expenses).where(eq(expenses.eventId, eventId));
+        return Number(allExpenses[0]?.total || 0);
+      }
+      // Task assignee operations
+      async getTaskAssignees(taskId) {
+        return executeWithRetry(async () => {
+          const assignees = await db.select().from(taskAssignees).where(eq(taskAssignees.taskId, taskId));
+          return Promise.all(
+            assignees.map(async (assignee) => {
+              const [user] = await db.select().from(users).where(eq(users.id, assignee.userId));
+              return {
+                ...assignee,
+                user
+              };
+            })
+          );
+        });
+      }
+      async addTaskAssignee(taskId, userId) {
+        return executeWithRetry(async () => {
+          const existingAssignees = await db.select().from(taskAssignees).where(
+            and(
+              eq(taskAssignees.taskId, taskId),
+              eq(taskAssignees.userId, userId)
+            )
+          );
+          if (existingAssignees.length > 0) {
+            return existingAssignees[0];
+          }
           const [assignee] = await db.insert(taskAssignees).values({
             taskId,
             userId
           }).returning();
+          const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId));
+          if (task && task.eventId) {
+            taskCache.invalidate(`tasks:event:${task.eventId}`);
+          }
           return assignee;
-        })
-      );
-      if (task && task.eventId) {
-        taskCache.invalidate(`tasks:event:${task.eventId}`);
+        });
       }
-      return assignees;
-    });
-  }
-  // Document operations
-  async getDocumentsByEventId(eventId) {
-    const cacheKey = `documents:event:${eventId}`;
-    const cachedDocuments = documentCache.get(cacheKey);
-    if (cachedDocuments) return cachedDocuments;
-    return executeWithRetry(async () => {
-      const result = await db.select().from(documents).where(eq(documents.eventId, eventId)).orderBy(desc(documents.uploadedAt));
-      documentCache.set(cacheKey, result);
-      return result;
-    });
-  }
-  async getDocumentById(id) {
-    const cacheKey = `document:${id}`;
-    const cachedDocument = documentCache.get(cacheKey);
-    if (cachedDocument) return cachedDocument;
-    return executeWithRetry(async () => {
-      const [document] = await db.select().from(documents).where(eq(documents.id, id));
-      if (document) {
-        documentCache.set(cacheKey, document);
+      async removeTaskAssignee(taskId, userId) {
+        return executeWithRetry(async () => {
+          const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId));
+          await db.delete(taskAssignees).where(
+            and(
+              eq(taskAssignees.taskId, taskId),
+              eq(taskAssignees.userId, userId)
+            )
+          );
+          if (task && task.eventId) {
+            taskCache.invalidate(`tasks:event:${task.eventId}`);
+          }
+        });
       }
-      return document;
-    });
-  }
-  async getDocumentsByCategory(eventId, category) {
-    const cacheKey = `documents:event:${eventId}:category:${category}`;
-    const cachedDocuments = documentCache.get(cacheKey);
-    if (cachedDocuments) return cachedDocuments;
-    return executeWithRetry(async () => {
-      const result = await db.select().from(documents).where(and(
-        eq(documents.eventId, eventId),
-        eq(documents.category, category)
-      )).orderBy(desc(documents.uploadedAt));
-      documentCache.set(cacheKey, result);
-      return result;
-    });
-  }
-  async createDocument(documentData) {
-    return executeWithRetry(async () => {
-      const [document] = await db.insert(documents).values(documentData).returning();
-      documentCache.invalidate(`documents:event:${documentData.eventId}`);
-      documentCache.invalidate(`documents:event:${documentData.eventId}:category:${documentData.category}`);
-      documentCache.set(`document:${document.id}`, document);
-      return document;
-    });
-  }
-  async updateDocument(id, documentData) {
-    return executeWithRetry(async () => {
-      const [document] = await db.update(documents).set({
-        ...documentData,
-        updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq(documents.id, id)).returning();
-      documentCache.invalidate(`documents:event:${document.eventId}`);
-      documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
-      documentCache.set(`document:${document.id}`, document);
-      return document;
-    });
-  }
-  async deleteDocument(id) {
-    return executeWithRetry(async () => {
-      const document = await this.getDocumentById(id);
-      if (document) {
-        await db.delete(documents).where(eq(documents.id, id));
-        documentCache.invalidate(`documents:event:${document.eventId}`);
-        documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
-        documentCache.invalidate(`document:${id}`);
+      async replaceTaskAssignees(taskId, userIds) {
+        return executeWithRetry(async () => {
+          const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId));
+          await db.delete(taskAssignees).where(eq(taskAssignees.taskId, taskId));
+          if (!userIds || userIds.length === 0) {
+            return [];
+          }
+          const assignees = await Promise.all(
+            userIds.map(async (userId) => {
+              const [assignee] = await db.insert(taskAssignees).values({
+                taskId,
+                userId
+              }).returning();
+              return assignee;
+            })
+          );
+          if (task && task.eventId) {
+            taskCache.invalidate(`tasks:event:${task.eventId}`);
+          }
+          return assignees;
+        });
       }
-    });
-  }
-  // Participant operations
-  async getParticipantsByEventId(eventId) {
-    const cacheKey = `participants:event:${eventId}`;
-    const cachedParticipants = participantCache.get(cacheKey);
-    if (cachedParticipants) return cachedParticipants;
-    return executeWithRetry(async () => {
-      const result = await db.select().from(participants).where(eq(participants.eventId, eventId)).orderBy(participants.name);
-      participantCache.set(cacheKey, result);
-      return result;
-    });
-  }
-  async getParticipantById(id) {
-    const cacheKey = `participant:${id}`;
-    const cachedParticipant = participantCache.get(cacheKey);
-    if (cachedParticipant) return cachedParticipant;
-    return executeWithRetry(async () => {
-      const [participant] = await db.select().from(participants).where(eq(participants.id, id));
-      if (participant) {
-        participantCache.set(cacheKey, participant);
+      // Document operations
+      async getDocumentsByEventId(eventId) {
+        const cacheKey = `documents:event:${eventId}`;
+        const cachedDocuments = documentCache.get(cacheKey);
+        if (cachedDocuments) return cachedDocuments;
+        return executeWithRetry(async () => {
+          const result = await db.select().from(documents).where(eq(documents.eventId, eventId)).orderBy(desc(documents.uploadedAt));
+          documentCache.set(cacheKey, result);
+          return result;
+        });
       }
-      return participant;
-    });
-  }
-  async createParticipant(participantData) {
-    return executeWithRetry(async () => {
-      const [participant] = await db.insert(participants).values(participantData).returning();
-      participantCache.invalidate(`participants:event:${participantData.eventId}`);
-      participantCache.set(`participant:${participant.id}`, participant);
-      return participant;
-    });
-  }
-  async createParticipants(participantsData) {
-    return executeWithRetry(async () => {
-      const createdParticipants = await db.insert(participants).values(participantsData).returning();
-      const eventIds = Array.from(new Set(participantsData.map((p) => p.eventId)));
-      eventIds.forEach((eventId) => {
-        participantCache.invalidate(`participants:event:${eventId}`);
-      });
-      createdParticipants.forEach((participant) => {
-        participantCache.set(`participant:${participant.id}`, participant);
-      });
-      return createdParticipants;
-    });
-  }
-  async updateParticipant(id, participantData) {
-    return executeWithRetry(async () => {
-      const [participant] = await db.update(participants).set({
-        ...participantData,
-        updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq(participants.id, id)).returning();
-      participantCache.invalidate(`participants:event:${participant.eventId}`);
-      participantCache.set(`participant:${participant.id}`, participant);
-      return participant;
-    });
-  }
-  async deleteParticipant(id) {
-    return executeWithRetry(async () => {
-      const participant = await this.getParticipantById(id);
-      if (participant) {
-        await db.delete(participants).where(eq(participants.id, id));
-        participantCache.invalidate(`participants:event:${participant.eventId}`);
-        participantCache.invalidate(`participant:${id}`);
+      async getDocumentById(id) {
+        const cacheKey = `document:${id}`;
+        const cachedDocument = documentCache.get(cacheKey);
+        if (cachedDocument) return cachedDocument;
+        return executeWithRetry(async () => {
+          const [document] = await db.select().from(documents).where(eq(documents.id, id));
+          if (document) {
+            documentCache.set(cacheKey, document);
+          }
+          return document;
+        });
       }
-    });
-  }
-  async getParticipantStats(eventId) {
-    return executeWithRetry(async () => {
-      const eventParticipants = await this.getParticipantsByEventId(eventId);
-      const total = eventParticipants.length;
-      const confirmed = eventParticipants.filter((p) => p.status === "confirmed").length;
-      const pending = eventParticipants.filter((p) => p.status === "pending").length;
-      return { total, confirmed, pending };
-    });
-  }
-  // Feedback operations
-  async getFeedbacksByEventId(eventId) {
-    return executeWithRetry(async () => {
-      const feedbacks = await db.select().from(eventFeedbacks).where(eq(eventFeedbacks.eventId, eventId)).orderBy(desc(eventFeedbacks.createdAt));
-      return feedbacks;
-    });
-  }
-  async getFeedbackByFeedbackId(feedbackId) {
-    return executeWithRetry(async () => {
-      const [result] = await db.select({
-        id: eventFeedbacks.id,
-        eventId: eventFeedbacks.eventId,
-        feedbackId: eventFeedbacks.feedbackId,
-        name: eventFeedbacks.name,
-        email: eventFeedbacks.email,
-        rating: eventFeedbacks.rating,
-        comment: eventFeedbacks.comment,
-        isAnonymous: eventFeedbacks.isAnonymous,
-        createdAt: eventFeedbacks.createdAt,
-        event: events
-      }).from(eventFeedbacks).innerJoin(events, eq(eventFeedbacks.eventId, events.id)).where(eq(eventFeedbacks.feedbackId, feedbackId));
-      return result;
-    });
-  }
-  async createFeedback(feedbackData) {
-    return executeWithRetry(async () => {
-      const [feedback] = await db.insert(eventFeedbacks).values(feedbackData).returning();
-      return feedback;
-    });
-  }
-  async deleteFeedback(id) {
-    return executeWithRetry(async () => {
-      await db.delete(eventFeedbacks).where(eq(eventFeedbacks.id, id));
-    });
-  }
-  async generateFeedbackLink(eventId) {
-    return executeWithRetry(async () => {
-      const feedbackId = `feedback_${eventId}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-      const existingFeedback = await db.select().from(eventFeedbacks).where(and(eq(eventFeedbacks.eventId, eventId), isNotNull(eventFeedbacks.feedbackId))).limit(1);
-      if (existingFeedback.length > 0) {
-        return existingFeedback[0].feedbackId;
+      async getDocumentsByCategory(eventId, category) {
+        const cacheKey = `documents:event:${eventId}:category:${category}`;
+        const cachedDocuments = documentCache.get(cacheKey);
+        if (cachedDocuments) return cachedDocuments;
+        return executeWithRetry(async () => {
+          const result = await db.select().from(documents).where(and(
+            eq(documents.eventId, eventId),
+            eq(documents.category, category)
+          )).orderBy(desc(documents.uploadedAt));
+          documentCache.set(cacheKey, result);
+          return result;
+        });
       }
-      return feedbackId;
-    });
-  }
-  async getFeedbackStats(eventId) {
-    return executeWithRetry(async () => {
-      const feedbacks = await db.select().from(eventFeedbacks).where(and(eq(eventFeedbacks.eventId, eventId), sql`${eventFeedbacks.rating} > 0`));
-      const total = feedbacks.length;
-      if (total === 0) {
-        return { total: 0, averageRating: 0, anonymousPercentage: 0 };
+      async createDocument(documentData) {
+        return executeWithRetry(async () => {
+          const [document] = await db.insert(documents).values(documentData).returning();
+          documentCache.invalidate(`documents:event:${documentData.eventId}`);
+          documentCache.invalidate(`documents:event:${documentData.eventId}:category:${documentData.category}`);
+          documentCache.set(`document:${document.id}`, document);
+          return document;
+        });
       }
-      const totalRating = feedbacks.reduce((sum, feedback) => sum + feedback.rating, 0);
-      const averageRating = totalRating / total;
-      const anonymousCount = feedbacks.filter((feedback) => feedback.isAnonymous).length;
-      const anonymousPercentage = anonymousCount / total * 100;
-      return {
-        total,
-        averageRating: Math.round(averageRating * 10) / 10,
-        anonymousPercentage: Math.round(anonymousPercentage)
-      };
-    });
-  }
-  async createFeedbackMetric(metric) {
-    return executeWithRetry(async () => {
-      const [result] = await db.insert(feedbackMetrics).values(metric).returning();
-      return result;
-    });
-  }
-  async updateFeedbackMetricSubmission(feedbackId, ipAddress, userAgent) {
-    return executeWithRetry(async () => {
-      await db.update(feedbackMetrics).set({
-        submittedAt: /* @__PURE__ */ new Date(),
-        ipAddress,
-        userAgent
-      }).where(eq(feedbackMetrics.feedbackId, feedbackId));
-    });
-  }
-  async getEventByFeedbackId(feedbackId) {
-    return executeWithRetry(async () => {
-      const [result] = await db.select({
-        event: events
-      }).from(eventFeedbacks).innerJoin(events, eq(eventFeedbacks.eventId, events.id)).where(eq(eventFeedbacks.feedbackId, feedbackId));
-      return result?.event;
-    });
-  }
-  async getEventFeedbackByFeedbackId(feedbackId) {
-    return executeWithRetry(async () => {
-      const [result] = await db.select({
-        eventId: eventFeedbacks.eventId,
-        feedbackId: eventFeedbacks.feedbackId
-      }).from(eventFeedbacks).where(eq(eventFeedbacks.feedbackId, feedbackId));
-      return result;
-    });
-  }
-  async getEventFeedbacks(eventId) {
-    return executeWithRetry(async () => {
-      const results = await db.select().from(eventFeedbacks).where(and(
-        eq(eventFeedbacks.eventId, eventId),
-        sql`${eventFeedbacks.rating} > 0`
-      )).orderBy(desc(eventFeedbacks.createdAt));
-      console.log(`[DEBUG] Encontrados ${results.length} feedbacks v\xE1lidos para evento ${eventId}`);
-      return results;
-    });
-  }
-  async getExistingFeedbackLink(eventId) {
-    return executeWithRetry(async () => {
-      const [event] = await db.select({ feedbackUrl: events.feedbackUrl }).from(events).where(eq(events.id, eventId));
-      return event?.feedbackUrl || null;
-    });
-  }
-  async getDraftEventByUser(userId) {
-    return executeWithRetry(async () => {
-      const [draft] = await db.select().from(events).where(and(
-        eq(events.ownerId, userId),
-        eq(events.status, "draft")
-      )).orderBy(desc(events.updatedAt)).limit(1);
-      return draft;
-    });
-  }
-  async saveDraftEvent(userId, draftData) {
-    return executeWithRetry(async () => {
-      const existingDraft = await this.getDraftEventByUser(userId);
-      if (existingDraft) {
-        const [updated] = await db.update(events).set({
-          ...draftData,
-          status: "draft",
-          updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq(events.id, existingDraft.id)).returning();
-        eventCache.invalidate(`event:${existingDraft.id}`);
-        return updated;
-      } else {
-        const [created] = await db.insert(events).values({
-          name: draftData.name || "Rascunho",
-          type: draftData.type || "other",
-          format: draftData.format || "in_person",
-          startDate: draftData.startDate || /* @__PURE__ */ new Date(),
-          endDate: draftData.endDate,
-          startTime: draftData.startTime,
-          endTime: draftData.endTime,
-          location: draftData.location,
-          meetingUrl: draftData.meetingUrl,
-          description: draftData.description,
-          budget: draftData.budget,
-          attendees: draftData.attendees,
-          coverImageUrl: draftData.coverImageUrl,
-          status: "draft",
-          ownerId: userId,
-          createdAt: /* @__PURE__ */ new Date(),
-          updatedAt: /* @__PURE__ */ new Date()
-        }).returning();
-        return created;
+      async updateDocument(id, documentData) {
+        return executeWithRetry(async () => {
+          const [document] = await db.update(documents).set({
+            ...documentData,
+            updatedAt: /* @__PURE__ */ new Date()
+          }).where(eq(documents.id, id)).returning();
+          documentCache.invalidate(`documents:event:${document.eventId}`);
+          documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
+          documentCache.set(`document:${document.id}`, document);
+          return document;
+        });
       }
-    });
-  }
-  async deleteDraftEvent(userId) {
-    return executeWithRetry(async () => {
-      const draft = await this.getDraftEventByUser(userId);
-      if (draft) {
-        await db.delete(events).where(eq(events.id, draft.id));
-        eventCache.invalidate(`event:${draft.id}`);
+      async deleteDocument(id) {
+        return executeWithRetry(async () => {
+          const document = await this.getDocumentById(id);
+          if (document) {
+            await db.delete(documents).where(eq(documents.id, id));
+            documentCache.invalidate(`documents:event:${document.eventId}`);
+            documentCache.invalidate(`documents:event:${document.eventId}:category:${document.category}`);
+            documentCache.invalidate(`document:${id}`);
+          }
+        });
       }
-    });
-  }
-};
-var storage = new DatabaseStorage();
-
-// server/utils/imageUpload.ts
-import fs from "fs";
-import path from "path";
-function saveBase64Image(base64Data, eventId) {
-  try {
-    const matches = base64Data.match(/^data:image\/([a-zA-Z]*);base64,(.+)$/);
-    if (!matches) {
-      throw new Error("Invalid base64 image format");
-    }
-    const imageType = matches[1];
-    const imageBuffer = Buffer.from(matches[2], "base64");
-    const uploadDir2 = path.join(process.cwd(), "public", "uploads", "events");
-    if (!fs.existsSync(uploadDir2)) {
-      fs.mkdirSync(uploadDir2, { recursive: true });
-    }
-    const fileName = `event-${eventId}-${Date.now()}.${imageType}`;
-    const filePath = path.join(uploadDir2, fileName);
-    fs.writeFileSync(filePath, imageBuffer);
-    return `/uploads/events/${fileName}`;
-  } catch (error) {
-    console.error("Erro ao salvar imagem:", error);
-    throw new Error("Falha ao processar upload da imagem");
-  }
-}
-function deleteImage(imageUrl) {
-  try {
-    if (imageUrl.startsWith("/uploads/")) {
-      const filePath = path.join(process.cwd(), "public", imageUrl);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      // Participant operations
+      async getParticipantsByEventId(eventId) {
+        const cacheKey = `participants:event:${eventId}`;
+        const cachedParticipants = participantCache.get(cacheKey);
+        if (cachedParticipants) return cachedParticipants;
+        return executeWithRetry(async () => {
+          const result = await db.select().from(participants).where(eq(participants.eventId, eventId)).orderBy(participants.name);
+          participantCache.set(cacheKey, result);
+          return result;
+        });
       }
-    }
-  } catch (error) {
-    console.error("Erro ao deletar imagem:", error);
+      async getParticipantById(id) {
+        const cacheKey = `participant:${id}`;
+        const cachedParticipant = participantCache.get(cacheKey);
+        if (cachedParticipant) return cachedParticipant;
+        return executeWithRetry(async () => {
+          const [participant] = await db.select().from(participants).where(eq(participants.id, id));
+          if (participant) {
+            participantCache.set(cacheKey, participant);
+          }
+          return participant;
+        });
+      }
+      async createParticipant(participantData) {
+        return executeWithRetry(async () => {
+          const [participant] = await db.insert(participants).values(participantData).returning();
+          participantCache.invalidate(`participants:event:${participantData.eventId}`);
+          participantCache.set(`participant:${participant.id}`, participant);
+          return participant;
+        });
+      }
+      async createParticipants(participantsData) {
+        return executeWithRetry(async () => {
+          const createdParticipants = await db.insert(participants).values(participantsData).returning();
+          const eventIds = Array.from(new Set(participantsData.map((p) => p.eventId)));
+          eventIds.forEach((eventId) => {
+            participantCache.invalidate(`participants:event:${eventId}`);
+          });
+          createdParticipants.forEach((participant) => {
+            participantCache.set(`participant:${participant.id}`, participant);
+          });
+          return createdParticipants;
+        });
+      }
+      async updateParticipant(id, participantData) {
+        return executeWithRetry(async () => {
+          const [participant] = await db.update(participants).set({
+            ...participantData,
+            updatedAt: /* @__PURE__ */ new Date()
+          }).where(eq(participants.id, id)).returning();
+          participantCache.invalidate(`participants:event:${participant.eventId}`);
+          participantCache.set(`participant:${participant.id}`, participant);
+          return participant;
+        });
+      }
+      async deleteParticipant(id) {
+        return executeWithRetry(async () => {
+          const participant = await this.getParticipantById(id);
+          if (participant) {
+            await db.delete(participants).where(eq(participants.id, id));
+            participantCache.invalidate(`participants:event:${participant.eventId}`);
+            participantCache.invalidate(`participant:${id}`);
+          }
+        });
+      }
+      async getParticipantStats(eventId) {
+        return executeWithRetry(async () => {
+          const eventParticipants = await this.getParticipantsByEventId(eventId);
+          const total = eventParticipants.length;
+          const confirmed = eventParticipants.filter((p) => p.status === "confirmed").length;
+          const pending = eventParticipants.filter((p) => p.status === "pending").length;
+          return { total, confirmed, pending };
+        });
+      }
+      // Feedback operations
+      async getFeedbacksByEventId(eventId) {
+        return executeWithRetry(async () => {
+          const feedbacks = await db.select().from(eventFeedbacks).where(eq(eventFeedbacks.eventId, eventId)).orderBy(desc(eventFeedbacks.createdAt));
+          return feedbacks;
+        });
+      }
+      async getFeedbackByFeedbackId(feedbackId) {
+        return executeWithRetry(async () => {
+          const [result] = await db.select({
+            id: eventFeedbacks.id,
+            eventId: eventFeedbacks.eventId,
+            feedbackId: eventFeedbacks.feedbackId,
+            name: eventFeedbacks.name,
+            email: eventFeedbacks.email,
+            rating: eventFeedbacks.rating,
+            comment: eventFeedbacks.comment,
+            isAnonymous: eventFeedbacks.isAnonymous,
+            createdAt: eventFeedbacks.createdAt,
+            event: events
+          }).from(eventFeedbacks).innerJoin(events, eq(eventFeedbacks.eventId, events.id)).where(eq(eventFeedbacks.feedbackId, feedbackId));
+          return result;
+        });
+      }
+      async createFeedback(feedbackData) {
+        return executeWithRetry(async () => {
+          const [feedback] = await db.insert(eventFeedbacks).values(feedbackData).returning();
+          return feedback;
+        });
+      }
+      async deleteFeedback(id) {
+        return executeWithRetry(async () => {
+          await db.delete(eventFeedbacks).where(eq(eventFeedbacks.id, id));
+        });
+      }
+      async generateFeedbackLink(eventId) {
+        return executeWithRetry(async () => {
+          const feedbackId = `feedback_${eventId}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+          const existingFeedback = await db.select().from(eventFeedbacks).where(and(eq(eventFeedbacks.eventId, eventId), isNotNull(eventFeedbacks.feedbackId))).limit(1);
+          if (existingFeedback.length > 0) {
+            return existingFeedback[0].feedbackId;
+          }
+          return feedbackId;
+        });
+      }
+      async getFeedbackStats(eventId) {
+        return executeWithRetry(async () => {
+          const feedbacks = await db.select().from(eventFeedbacks).where(and(eq(eventFeedbacks.eventId, eventId), sql`${eventFeedbacks.rating} > 0`));
+          const total = feedbacks.length;
+          if (total === 0) {
+            return { total: 0, averageRating: 0, anonymousPercentage: 0 };
+          }
+          const totalRating = feedbacks.reduce((sum, feedback) => sum + feedback.rating, 0);
+          const averageRating = totalRating / total;
+          const anonymousCount = feedbacks.filter((feedback) => feedback.isAnonymous).length;
+          const anonymousPercentage = anonymousCount / total * 100;
+          return {
+            total,
+            averageRating: Math.round(averageRating * 10) / 10,
+            anonymousPercentage: Math.round(anonymousPercentage)
+          };
+        });
+      }
+      async createFeedbackMetric(metric) {
+        return executeWithRetry(async () => {
+          const [result] = await db.insert(feedbackMetrics).values(metric).returning();
+          return result;
+        });
+      }
+      async updateFeedbackMetricSubmission(feedbackId, ipAddress, userAgent) {
+        return executeWithRetry(async () => {
+          await db.update(feedbackMetrics).set({
+            submittedAt: /* @__PURE__ */ new Date(),
+            ipAddress,
+            userAgent
+          }).where(eq(feedbackMetrics.feedbackId, feedbackId));
+        });
+      }
+      async getEventByFeedbackId(feedbackId) {
+        return executeWithRetry(async () => {
+          const [result] = await db.select({
+            event: events
+          }).from(eventFeedbacks).innerJoin(events, eq(eventFeedbacks.eventId, events.id)).where(eq(eventFeedbacks.feedbackId, feedbackId));
+          return result?.event;
+        });
+      }
+      async getEventFeedbackByFeedbackId(feedbackId) {
+        return executeWithRetry(async () => {
+          const [result] = await db.select({
+            eventId: eventFeedbacks.eventId,
+            feedbackId: eventFeedbacks.feedbackId
+          }).from(eventFeedbacks).where(eq(eventFeedbacks.feedbackId, feedbackId));
+          return result;
+        });
+      }
+      async getEventFeedbacks(eventId) {
+        return executeWithRetry(async () => {
+          const results = await db.select().from(eventFeedbacks).where(and(
+            eq(eventFeedbacks.eventId, eventId),
+            sql`${eventFeedbacks.rating} > 0`
+          )).orderBy(desc(eventFeedbacks.createdAt));
+          console.log(`[DEBUG] Encontrados ${results.length} feedbacks v\xE1lidos para evento ${eventId}`);
+          return results;
+        });
+      }
+      async getExistingFeedbackLink(eventId) {
+        return executeWithRetry(async () => {
+          const [event] = await db.select({ feedbackUrl: events.feedbackUrl }).from(events).where(eq(events.id, eventId));
+          return event?.feedbackUrl || null;
+        });
+      }
+      async getDraftEventByUser(userId) {
+        return executeWithRetry(async () => {
+          const [draft] = await db.select().from(events).where(and(
+            eq(events.ownerId, userId),
+            eq(events.status, "draft")
+          )).orderBy(desc(events.updatedAt)).limit(1);
+          return draft;
+        });
+      }
+      async saveDraftEvent(userId, draftData) {
+        return executeWithRetry(async () => {
+          const existingDraft = await this.getDraftEventByUser(userId);
+          if (existingDraft) {
+            const [updated] = await db.update(events).set({
+              ...draftData,
+              status: "draft",
+              updatedAt: /* @__PURE__ */ new Date()
+            }).where(eq(events.id, existingDraft.id)).returning();
+            eventCache.invalidate(`event:${existingDraft.id}`);
+            return updated;
+          } else {
+            const [created] = await db.insert(events).values({
+              name: draftData.name || "Rascunho",
+              type: draftData.type || "other",
+              format: draftData.format || "in_person",
+              startDate: draftData.startDate || /* @__PURE__ */ new Date(),
+              endDate: draftData.endDate,
+              startTime: draftData.startTime,
+              endTime: draftData.endTime,
+              location: draftData.location,
+              meetingUrl: draftData.meetingUrl,
+              description: draftData.description,
+              budget: draftData.budget,
+              attendees: draftData.attendees,
+              coverImageUrl: draftData.coverImageUrl,
+              status: "draft",
+              ownerId: userId,
+              createdAt: /* @__PURE__ */ new Date(),
+              updatedAt: /* @__PURE__ */ new Date()
+            }).returning();
+            return created;
+          }
+        });
+      }
+      async deleteDraftEvent(userId) {
+        return executeWithRetry(async () => {
+          const draft = await this.getDraftEventByUser(userId);
+          if (draft) {
+            await db.delete(events).where(eq(events.id, draft.id));
+            eventCache.invalidate(`event:${draft.id}`);
+          }
+        });
+      }
+    };
+    storage = new DatabaseStorage();
   }
-}
-
-// server/routes.ts
-init_schema();
-import { eq as eq3 } from "drizzle-orm";
+});
 
 // server/supabaseAuth.ts
+var supabaseAuth_exports = {};
+__export(supabaseAuth_exports, {
+  generateDevToken: () => generateDevToken,
+  getEffectiveUserId: () => getEffectiveUserId,
+  getSession: () => getSession,
+  isAuthenticated: () => isAuthenticated,
+  setupSupabaseAuth: () => setupSupabaseAuth
+});
 import { createClient } from "@supabase/supabase-js";
 import session from "express-session";
 import memorystore from "memorystore";
-var emailToUserIdCache = /* @__PURE__ */ new Map();
-var CACHE_TTL = 5 * 60 * 1e3;
 async function getEffectiveUserId(email, supabaseUserId) {
+  if (!email) return supabaseUserId;
   const cached = emailToUserIdCache.get(email);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(`[Auth] getEffectiveUserId (CACHE): ${email} -> ${cached.userId}`);
     return cached.userId;
   }
-  const dbStorage = await storage;
-  const existingUser = await dbStorage.getUserByEmail(email);
-  if (existingUser) {
-    emailToUserIdCache.set(email, { userId: existingUser.id, timestamp: Date.now() });
-    return existingUser.id;
+  try {
+    const dbStorage = await storage;
+    const existingUser = await dbStorage.getUserByEmail(email);
+    if (existingUser) {
+      emailToUserIdCache.set(email, { userId: existingUser.id, timestamp: Date.now() });
+      console.log(`[Auth] getEffectiveUserId (DB MATCH): ${email} -> ${existingUser.id} (Original Supabase: ${supabaseUserId})`);
+      return existingUser.id;
+    }
+  } catch (error) {
+    console.error(`[Auth] getEffectiveUserId DB lookup FAILED for ${email}, returning supabaseUserId without caching:`, error);
+    return supabaseUserId;
   }
+  console.log(`[Auth] getEffectiveUserId (NO MATCH): ${email} -> returning new ID ${supabaseUserId}`);
   emailToUserIdCache.set(email, { userId: supabaseUserId, timestamp: Date.now() });
   return supabaseUserId;
 }
@@ -1407,86 +1363,163 @@ async function setupSupabaseAuth(app2) {
     });
   });
 }
-var DEV_TOKEN_PREFIX = "dev-token-";
-var isAuthenticated = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.log("[Auth] Token n\xE3o fornecido no header Authorization");
-    return res.status(401).json({ message: "Unauthorized - No token provided" });
-  }
-  const token = authHeader.substring(7);
-  if (token.startsWith(DEV_TOKEN_PREFIX)) {
-    if (process.env.NODE_ENV === "production") {
-      console.log("[Auth] Token de desenvolvimento rejeitado em produ\xE7\xE3o");
-      return res.status(401).json({ message: "Unauthorized - Dev tokens not allowed in production" });
-    }
-    try {
-      const payloadBase64 = token.substring(DEV_TOKEN_PREFIX.length);
-      const payload = JSON.parse(Buffer.from(payloadBase64, "base64").toString());
-      if (!payload.is_dev) {
-        return res.status(401).json({ message: "Unauthorized - Invalid dev token" });
+function generateDevToken() {
+  const payload = {
+    sub: DEV_USER_ID,
+    email: DEV_USER_EMAIL,
+    name: DEV_USER_NAME,
+    exp: Math.floor(Date.now() / 1e3) + 30 * 24 * 60 * 60,
+    // 30 dias
+    iat: Math.floor(Date.now() / 1e3),
+    is_dev: true
+  };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64");
+  return `${DEV_TOKEN_PREFIX}${payloadBase64}`;
+}
+var emailToUserIdCache, CACHE_TTL, DEV_TOKEN_PREFIX, DEV_USER_ID, DEV_USER_EMAIL, DEV_USER_NAME, isAuthenticated;
+var init_supabaseAuth = __esm({
+  "server/supabaseAuth.ts"() {
+    "use strict";
+    init_storage();
+    emailToUserIdCache = /* @__PURE__ */ new Map();
+    CACHE_TTL = 5 * 60 * 1e3;
+    DEV_TOKEN_PREFIX = "dev-token-";
+    DEV_USER_ID = "8650891";
+    DEV_USER_EMAIL = "dev@symera.test";
+    DEV_USER_NAME = "Usu\xE1rio de Teste";
+    isAuthenticated = async (req, res, next) => {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        console.log("[Auth] Token n\xE3o fornecido no header Authorization");
+        return res.status(401).json({ message: "Unauthorized - No token provided" });
       }
-      console.log("[Auth] \u{1F527} Token de DESENVOLVIMENTO aceito - UserId:", payload.sub);
-      req.user = {
-        claims: {
-          sub: payload.sub,
-          supabaseId: payload.sub,
-          email: payload.email,
-          name: payload.name,
-          picture: null
+      const token = authHeader.substring(7);
+      if (token.startsWith(DEV_TOKEN_PREFIX)) {
+        if (process.env.NODE_ENV === "production") {
+          console.log("[Auth] Token de desenvolvimento rejeitado em produ\xE7\xE3o");
+          return res.status(401).json({ message: "Unauthorized - Dev tokens not allowed in production" });
         }
-      };
-      return next();
-    } catch (error) {
-      console.log("[Auth] Token de desenvolvimento inv\xE1lido");
-      return res.status(401).json({ message: "Unauthorized - Invalid dev token format" });
-    }
-  }
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      console.log("[Auth] Token JWT inv\xE1lido - formato incorreto");
-      return res.status(401).json({ message: "Unauthorized - Invalid token format" });
-    }
-    const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
-    const now = Math.floor(Date.now() / 1e3);
-    if (payload.exp && payload.exp < now) {
-      console.log("[Auth] Token expirado");
-      return res.status(401).json({ message: "Unauthorized - Token expired" });
-    }
-    const supabaseUserId = payload.sub;
-    const email = payload.email;
-    const userMetadata = payload.user_metadata || {};
-    if (!supabaseUserId) {
-      console.log("[Auth] Token n\xE3o cont\xE9m user ID");
-      return res.status(401).json({ message: "Unauthorized - No user ID in token" });
-    }
-    if (!email) {
-      console.log("[Auth] Token n\xE3o cont\xE9m email");
-      return res.status(401).json({ message: "Unauthorized - No email in token" });
-    }
-    const effectiveUserId = await getEffectiveUserId(email, supabaseUserId);
-    console.log("[Auth] Resolu\xE7\xE3o de ID - Supabase UUID:", supabaseUserId, "-> ID efetivo:", effectiveUserId, "Email:", email);
-    req.user = {
-      claims: {
-        sub: effectiveUserId,
-        // Usar o ID efetivo (original do banco ou UUID)
-        supabaseId: supabaseUserId,
-        // Manter o UUID original caso precise
-        email,
-        name: userMetadata.full_name || userMetadata.name || email?.split("@")[0],
-        picture: userMetadata.avatar_url || userMetadata.picture
+        try {
+          const payloadBase64 = token.substring(DEV_TOKEN_PREFIX.length);
+          const payload = JSON.parse(Buffer.from(payloadBase64, "base64").toString());
+          if (!payload.is_dev) {
+            return res.status(401).json({ message: "Unauthorized - Invalid dev token" });
+          }
+          console.log("[Auth] \u{1F527} Token de DESENVOLVIMENTO aceito - UserId:", payload.sub);
+          req.user = {
+            claims: {
+              sub: payload.sub,
+              supabaseId: payload.sub,
+              email: payload.email,
+              name: payload.name,
+              picture: null
+            }
+          };
+          return next();
+        } catch (error) {
+          console.log("[Auth] Token de desenvolvimento inv\xE1lido");
+          return res.status(401).json({ message: "Unauthorized - Invalid dev token format" });
+        }
+      }
+      try {
+        const parts = token.split(".");
+        if (parts.length !== 3) {
+          console.log("[Auth] Token JWT inv\xE1lido - formato incorreto");
+          return res.status(401).json({ message: "Unauthorized - Invalid token format" });
+        }
+        const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
+        const now = Math.floor(Date.now() / 1e3);
+        if (payload.exp && payload.exp < now) {
+          console.log("[Auth] Token expirado");
+          return res.status(401).json({ message: "Unauthorized - Token expired" });
+        }
+        const supabaseUserId = payload.sub;
+        const email = payload.email;
+        const userMetadata = payload.user_metadata || {};
+        if (!supabaseUserId) {
+          console.log("[Auth] Token n\xE3o cont\xE9m user ID");
+          return res.status(401).json({ message: "Unauthorized - No user ID in token" });
+        }
+        if (!email) {
+          console.log("[Auth] Token n\xE3o cont\xE9m email");
+          return res.status(401).json({ message: "Unauthorized - No email in token" });
+        }
+        const effectiveUserId = await getEffectiveUserId(email, supabaseUserId);
+        console.log("[Auth] Resolu\xE7\xE3o de ID - Supabase UUID:", supabaseUserId, "-> ID efetivo:", effectiveUserId, "Email:", email);
+        req.user = {
+          claims: {
+            sub: effectiveUserId,
+            // Usar o ID efetivo (original do banco ou UUID)
+            supabaseId: supabaseUserId,
+            // Manter o UUID original caso precise
+            email,
+            name: userMetadata.full_name || userMetadata.name || email?.split("@")[0],
+            picture: userMetadata.avatar_url || userMetadata.picture
+          }
+        };
+        return next();
+      } catch (error) {
+        console.error("[Auth] Erro ao verificar token:", error.message);
+        return res.status(401).json({ message: "Unauthorized - Token verification failed" });
       }
     };
-    return next();
-  } catch (error) {
-    console.error("[Auth] Erro ao verificar token:", error.message);
-    return res.status(401).json({ message: "Unauthorized - Token verification failed" });
   }
-};
+});
+
+// api/_handler.ts
+import express2 from "express";
 
 // server/routes.ts
+init_storage();
+import { createServer } from "http";
+import express from "express";
+import path2 from "path";
+import multer from "multer";
+import fs2 from "fs";
+
+// server/utils/imageUpload.ts
+import fs from "fs";
+import path from "path";
+function saveBase64Image(base64Data, eventId) {
+  try {
+    const matches = base64Data.match(/^data:image\/([a-zA-Z]*);base64,(.+)$/);
+    if (!matches) {
+      throw new Error("Invalid base64 image format");
+    }
+    const imageType = matches[1];
+    const imageBuffer = Buffer.from(matches[2], "base64");
+    const uploadDir2 = path.join(process.cwd(), "public", "uploads", "events");
+    if (!fs.existsSync(uploadDir2)) {
+      fs.mkdirSync(uploadDir2, { recursive: true });
+    }
+    const fileName = `event-${eventId}-${Date.now()}.${imageType}`;
+    const filePath = path.join(uploadDir2, fileName);
+    fs.writeFileSync(filePath, imageBuffer);
+    return `/uploads/events/${fileName}`;
+  } catch (error) {
+    console.error("Erro ao salvar imagem:", error);
+    throw new Error("Falha ao processar upload da imagem");
+  }
+}
+function deleteImage(imageUrl) {
+  try {
+    if (imageUrl.startsWith("/uploads/")) {
+      const filePath = path.join(process.cwd(), "public", imageUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  } catch (error) {
+    console.error("Erro ao deletar imagem:", error);
+  }
+}
+
+// server/routes.ts
+init_db();
 init_schema();
+init_supabaseAuth();
+init_schema();
+import { eq as eq3 } from "drizzle-orm";
 import csvParser from "csv-parser";
 import * as XLSX from "xlsx";
 import { z as z3 } from "zod";
@@ -1657,16 +1690,24 @@ async function generateEventChecklist(eventData) {
 }
 
 // server/scheduleRoutes.ts
+init_db();
+init_schema();
+init_supabaseAuth();
+init_storage();
 import { Router } from "express";
 import { z as z2 } from "zod";
-init_schema();
 import { eq as eq2 } from "drizzle-orm";
 var router = Router();
-router.get("/events/:eventId/schedule", async (req, res) => {
+router.get("/events/:eventId/schedule", isAuthenticated, async (req, res) => {
   try {
+    const userId = req.user.claims.sub;
     const eventId = parseInt(req.params.eventId);
     if (isNaN(eventId)) {
       return res.status(400).json({ message: "ID de evento inv\xE1lido" });
+    }
+    const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+    if (!hasAccess) {
+      return res.status(403).json({ message: "Voc\xEA n\xE3o tem acesso a este evento" });
     }
     const items = await db.select().from(scheduleItems).where(eq2(scheduleItems.eventId, eventId)).orderBy(scheduleItems.startTime);
     res.json(items);
@@ -1675,8 +1716,9 @@ router.get("/events/:eventId/schedule", async (req, res) => {
     res.status(500).json({ message: "Erro ao buscar itens do cronograma" });
   }
 });
-router.get("/schedule/:id", async (req, res) => {
+router.get("/schedule/:id", isAuthenticated, async (req, res) => {
   try {
+    const userId = req.user.claims.sub;
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ message: "ID de item inv\xE1lido" });
@@ -1685,17 +1727,26 @@ router.get("/schedule/:id", async (req, res) => {
     if (item.length === 0) {
       return res.status(404).json({ message: "Item do cronograma n\xE3o encontrado" });
     }
+    const hasAccess = await storage.hasUserAccessToEvent(userId, item[0].eventId);
+    if (!hasAccess) {
+      return res.status(403).json({ message: "Voc\xEA n\xE3o tem acesso a este item" });
+    }
     res.json(item[0]);
   } catch (error) {
     console.error("Erro ao buscar item do cronograma:", error);
     res.status(500).json({ message: "Erro ao buscar item do cronograma" });
   }
 });
-router.post("/events/:eventId/schedule", async (req, res) => {
+router.post("/events/:eventId/schedule", isAuthenticated, async (req, res) => {
   try {
+    const userId = req.user.claims.sub;
     const eventId = parseInt(req.params.eventId);
     if (isNaN(eventId)) {
       return res.status(400).json({ message: "ID de evento inv\xE1lido" });
+    }
+    const hasAccess = await storage.hasUserAccessToEvent(userId, eventId);
+    if (!hasAccess) {
+      return res.status(403).json({ message: "Voc\xEA n\xE3o tem acesso a este evento" });
     }
     const validatedData = insertScheduleItemSchema.parse({
       ...req.body,
@@ -1714,20 +1765,26 @@ router.post("/events/:eventId/schedule", async (req, res) => {
     res.status(500).json({ message: "Erro ao criar item do cronograma" });
   }
 });
-router.put("/schedule/:id", async (req, res) => {
+router.put("/schedule/:id", isAuthenticated, async (req, res) => {
   try {
+    const userId = req.user.claims.sub;
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ message: "ID de item inv\xE1lido" });
+    }
+    const existingItem = await db.select().from(scheduleItems).where(eq2(scheduleItems.id, id));
+    if (existingItem.length === 0) {
+      return res.status(404).json({ message: "Item do cronograma n\xE3o encontrado" });
+    }
+    const hasAccess = await storage.hasUserAccessToEvent(userId, existingItem[0].eventId);
+    if (!hasAccess) {
+      return res.status(403).json({ message: "Voc\xEA n\xE3o tem acesso a este item" });
     }
     const validatedData = insertScheduleItemSchema.partial().parse(req.body);
     const updatedItem = await db.update(scheduleItems).set({
       ...validatedData,
       updatedAt: /* @__PURE__ */ new Date()
     }).where(eq2(scheduleItems.id, id)).returning();
-    if (updatedItem.length === 0) {
-      return res.status(404).json({ message: "Item do cronograma n\xE3o encontrado" });
-    }
     res.json(updatedItem[0]);
   } catch (error) {
     console.error("Erro ao atualizar item do cronograma:", error);
@@ -1740,16 +1797,22 @@ router.put("/schedule/:id", async (req, res) => {
     res.status(500).json({ message: "Erro ao atualizar item do cronograma" });
   }
 });
-router.delete("/schedule/:id", async (req, res) => {
+router.delete("/schedule/:id", isAuthenticated, async (req, res) => {
   try {
+    const userId = req.user.claims.sub;
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ message: "ID de item inv\xE1lido" });
     }
-    const deletedItem = await db.delete(scheduleItems).where(eq2(scheduleItems.id, id)).returning();
-    if (deletedItem.length === 0) {
+    const existingItem = await db.select().from(scheduleItems).where(eq2(scheduleItems.id, id));
+    if (existingItem.length === 0) {
       return res.status(404).json({ message: "Item do cronograma n\xE3o encontrado" });
     }
+    const hasAccess = await storage.hasUserAccessToEvent(userId, existingItem[0].eventId);
+    if (!hasAccess) {
+      return res.status(403).json({ message: "Voc\xEA n\xE3o tem acesso a este item" });
+    }
+    await db.delete(scheduleItems).where(eq2(scheduleItems.id, id));
     res.json({ success: true, message: "Item do cronograma exclu\xEDdo com sucesso" });
   } catch (error) {
     console.error("Erro ao excluir item do cronograma:", error);
@@ -1759,6 +1822,9 @@ router.delete("/schedule/:id", async (req, res) => {
 var scheduleRoutes_default = router;
 
 // server/cronogramaRoutes.ts
+init_supabaseAuth();
+init_db();
+init_storage();
 import { Router as Router2 } from "express";
 var debugMiddleware = (req, res, next) => {
   console.log(`[DEBUG CRONOGRAMA] Acessando rota: ${req.method} ${req.originalUrl}`);
@@ -1938,6 +2004,7 @@ router2.delete("/schedule/:id", isAuthenticated, async (req, res) => {
 var cronogramaRoutes_default = router2;
 
 // server/cronogramaDirectRoute.ts
+init_db();
 function setupCronogramaRoute(app2) {
   app2.get("/api/events/:eventId/cronograma", async (req, res) => {
     try {
@@ -2075,10 +2142,29 @@ async function registerRoutes(app2) {
     }
   });
   app2.get("/api/health", (req, res) => {
-    res.json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+    res.json({
+      status: "ok",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      env: process.env.NODE_ENV
+    });
   });
-  const { devModeAuth: devModeAuth2 } = await Promise.resolve().then(() => (init_devMode(), devMode_exports));
-  app2.use(devModeAuth2);
+  if (process.env.NODE_ENV !== "production") {
+    const { generateDevToken: generateDevToken2 } = await Promise.resolve().then(() => (init_supabaseAuth(), supabaseAuth_exports));
+    app2.get("/api/auth/dev-available", (req, res) => {
+      res.json({ available: true });
+    });
+    app2.post("/api/auth/dev-login", (req, res) => {
+      const token = generateDevToken2();
+      const payloadBase64 = token.split("-").pop() || "";
+      const payload = JSON.parse(Buffer.from(payloadBase64, "base64").toString());
+      res.json({
+        userId: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        accessToken: token
+      });
+    });
+  }
   app2.get("/api/auth/user", isAuthenticated, async (req, res) => {
     try {
       const supabaseUserId = req.user.claims.sub;
@@ -2114,6 +2200,7 @@ async function registerRoutes(app2) {
           });
           existingUserById.profileImageUrl = userPicture;
         }
+        console.log("[Auth] LOGIN SUCCESS: Returning user by ID:", existingUserById.id);
         return res.json(existingUserById);
       }
       console.log("[Auth] Usu\xE1rio novo! Criando com UUID do Supabase:", supabaseUserId);
@@ -2137,38 +2224,16 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/events", isAuthenticated, async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
       const userEmail = req.user.claims.email;
+      const userId = await getEffectiveUserId(userEmail, req.user.claims.sub);
       console.log("========================================");
       console.log("Buscando eventos para userId:", userId, "email:", userEmail);
-      debugLog(`EVENTS: req.user.claims.sub=${userId}, email=${userEmail}`);
+      debugLog(`EVENTS: req.user.claims.sub=${req.user.claims.sub}, email=${userEmail}, effectiveId=${userId}`);
       console.log("Claims completos:", JSON.stringify(req.user.claims));
       console.log("========================================");
-      if (userEmail) {
-        const oldUser = await storage.getUserByEmail(userEmail);
-        console.log("Usu\xE1rio encontrado por email:", oldUser?.id, "vs userId atual:", userId);
-        if (oldUser && oldUser.id !== userId) {
-          console.log("IDs diferentes! Migrando dados de", oldUser.id, "para", userId);
-          try {
-            await storage.migrateUserFromLocalToReplit(oldUser.id, userId);
-            console.log("Migra\xE7\xE3o conclu\xEDda com sucesso!");
-          } catch (migrationError) {
-            console.error("Erro na migra\xE7\xE3o:", migrationError.message);
-          }
-        }
-      }
-      let events2 = await storage.getEventsByUser(userId);
+      const events2 = await storage.getEventsByUser(userId);
       console.log("Eventos encontrados para userId", userId, ":", events2.length);
       debugLog(`EVENTS: found ${events2.length} events for userId=${userId}`);
-      if (events2.length === 0 && userEmail) {
-        console.log("Nenhum evento encontrado, tentando fallback por email");
-        const oldUser = await storage.getUserByEmail(userEmail);
-        if (oldUser && oldUser.id !== userId) {
-          console.log("Buscando eventos do usu\xE1rio antigo:", oldUser.id);
-          events2 = await storage.getEventsByUser(oldUser.id);
-          console.log("Eventos encontrados pelo ID antigo:", events2.length);
-        }
-      }
       for (const event of events2) {
         const eventVendors = await storage.getVendorsByEventId(event.id);
         event.vendorCount = eventVendors.length;
@@ -2181,8 +2246,13 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/events/:id", isAuthenticated, async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      console.log("Usando ID de autentica\xE7\xE3o Replit para acessar evento:", req.params.id);
+      const email = req.user.claims.email;
+      const supabaseId = req.user.claims.sub;
+      let userId = supabaseId;
+      if (email) {
+        userId = await getEffectiveUserId(email, supabaseId);
+      }
+      console.log("Usando ID resolvido:", userId, "(Original:", supabaseId, ")");
       const eventId = parseInt(req.params.id, 10);
       if (isNaN(eventId)) {
         console.log("ID de evento inv\xE1lido:", req.params.id);
@@ -3462,16 +3532,35 @@ async function registerRoutes(app2) {
         debugLog(`DASHBOARD: using DEV session userId=${userId}`);
         console.log(`Buscando dados do dashboard para o usu\xE1rio de desenvolvimento: ${userId}`);
       } else if (req.user?.claims?.sub) {
-        userId = req.user.claims.sub;
-        debugLog(`DASHBOARD: using claims.sub userId=${userId}, email=${req.user?.claims?.email}`);
-        console.log(`Buscando dados do dashboard para o usu\xE1rio autenticado: ${userId}`);
+        const supabaseId = req.user.claims.sub;
+        const email = req.user.claims.email;
+        debugLog(`DASHBOARD: using claims.sub userId=${supabaseId}, email=${email}`);
+        console.log(`[Dashboard] Buscando dados para userId: ${supabaseId} (Email: ${email})`);
+        if (email) {
+          userId = await getEffectiveUserId(email, supabaseId);
+          console.log(`[Dashboard] ID efetivo resolvido: ${userId} (Original: ${supabaseId})`);
+        } else {
+          userId = supabaseId;
+        }
       } else {
         debugLog(`DASHBOARD: NO USER ID FOUND - returning 401`);
         return res.status(401).json({ message: "Unauthorized" });
       }
       const events2 = await storage.getEventsByUser(userId);
       debugLog(`DASHBOARD: getEventsByUser(${userId}) returned ${events2.length} events`);
-      console.log(`Total de eventos encontrados: ${events2.length}`);
+      console.log(`[Dashboard] Total de eventos encontrados para ${userId}: ${events2.length}`);
+      if (events2.length === 0) {
+        console.log(`[Dashboard] AVISO: Nenhum evento encontrado para o usu\xE1rio ${userId}. Verificando se existem eventos \xF3rf\xE3os ou associados a outro ID.`);
+        if (req.user?.claims?.email) {
+          const userByEmail = await storage.getUserByEmail(req.user.claims.email);
+          if (userByEmail) {
+            console.log(`[Dashboard] Usu\xE1rio encontrado por email: ${userByEmail.id}. O ID do token \xE9 ${userId}. Eles conferem? ${userByEmail.id === userId ? "SIM" : "N\xC3O"}`);
+            if (userByEmail.id !== userId) {
+              console.log(`[Dashboard] POSS\xCDVEL CAUSA: O usu\xE1rio tem eventos no ID ${userByEmail.id} mas est\xE1 logado com ID ${userId}.`);
+            }
+          }
+        }
+      }
       const activeEvents = events2.filter(
         (event) => event.status === "planning" || event.status === "confirmed" || event.status === "in_progress" || event.status === "active"
       );
@@ -3504,9 +3593,11 @@ async function registerRoutes(app2) {
       let pendingTasks = [];
       for (const event of events2) {
         const tasks2 = await storage.getTasksByEventId(event.id);
-        pendingTasks = pendingTasks.concat(
-          tasks2.filter((task) => task.status !== "completed")
-        );
+        const tasksWithEventName = tasks2.filter((task) => task.status !== "completed").map((task) => ({
+          ...task,
+          eventName: event.name
+        }));
+        pendingTasks = pendingTasks.concat(tasksWithEventName);
       }
       let recentActivities = [];
       for (const event of events2) {
