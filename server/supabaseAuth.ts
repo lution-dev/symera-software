@@ -9,6 +9,9 @@ const emailToUserIdCache = new Map<string, { userId: string; timestamp: number }
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 export async function getEffectiveUserId(email: string, supabaseUserId: string): Promise<string> {
+  // If email is empty or undefined, always return supabaseUserId
+  if (!email) return supabaseUserId;
+
   // Verificar cache primeiro
   const cached = emailToUserIdCache.get(email);
   if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
@@ -16,15 +19,21 @@ export async function getEffectiveUserId(email: string, supabaseUserId: string):
     return cached.userId;
   }
 
-  // Buscar usuário pelo email no banco de dados
-  const dbStorage = await storage;
-  const existingUser = await dbStorage.getUserByEmail(email);
+  try {
+    // Buscar usuário pelo email no banco de dados
+    const dbStorage = await storage;
+    const existingUser = await dbStorage.getUserByEmail(email);
 
-  if (existingUser) {
-    // Usuário existente - usar ID original do banco
-    emailToUserIdCache.set(email, { userId: existingUser.id, timestamp: Date.now() });
-    console.log(`[Auth] getEffectiveUserId (DB MATCH): ${email} -> ${existingUser.id} (Original Supabase: ${supabaseUserId})`);
-    return existingUser.id;
+    if (existingUser) {
+      // Usuário existente - usar ID original do banco
+      emailToUserIdCache.set(email, { userId: existingUser.id, timestamp: Date.now() });
+      console.log(`[Auth] getEffectiveUserId (DB MATCH): ${email} -> ${existingUser.id} (Original Supabase: ${supabaseUserId})`);
+      return existingUser.id;
+    }
+  } catch (error) {
+    // If DB lookup fails, DON'T cache the supabaseUserId — let next request retry
+    console.error(`[Auth] getEffectiveUserId DB lookup FAILED for ${email}, returning supabaseUserId without caching:`, error);
+    return supabaseUserId;
   }
 
   // Usuário novo - usar UUID do Supabase
@@ -32,6 +41,7 @@ export async function getEffectiveUserId(email: string, supabaseUserId: string):
   emailToUserIdCache.set(email, { userId: supabaseUserId, timestamp: Date.now() });
   return supabaseUserId;
 }
+
 
 let supabaseInstance: SupabaseClient | null = null;
 
