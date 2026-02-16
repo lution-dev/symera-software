@@ -98,7 +98,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           paddingBottom: window.innerWidth < 768 ? '4rem' : '0'  // Espaço para a navbar inferior
         }}
       >
-        <div className="max-w-[1600px] mx-auto">
+        <div className="max-w-[1800px] mx-auto w-full">
           {children}
         </div>
       </main>

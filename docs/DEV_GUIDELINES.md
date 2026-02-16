@@ -158,6 +158,12 @@ try {
 3. Usar Tailwind CSS para estilização.
 4. Documentar props com TypeScript interface.
 
+### 6. Padrão de Modais Mobile (Bottom Sheets)
+Sempre que houver necessidade de modais ou diálogos, siga o padrão responsivo:
+- **Mobile (< 768px)**: Use o componente `Drawer` do shadcn/ui. O fundo deve ser `bg-purple-dark`.
+- **Desktop (>= 768px)**: Use o componente `Dialog` padrão centrado.
+- **Implementação**: Utilize o hook `useIsMobile` para alternar condicionalmente entre as tags de trigger e content.
+
 ## O Que NÃO Deve Ser Feito
 
 ❌ **Nunca** acessar `db` diretamente nas rotas — sempre usar `dbStorage`.

@@ -140,6 +140,11 @@ O backend **não** mantém sessões de autenticação ativas. Cada request cont�
 **Decisão**: O frontend envia imagens como base64 no JSON. O backend converte para arquivo em `public/uploads/`.
 **Justificativa**: Simplifica o fluxo do formulário (sem upload separado), mas **não escalável** em serverless (filesystem efêmero na Vercel).
 
+### ADR-007: Padrão de Modais Responsivos (Drawer vs Dialog)
+**Decisão**: Usar Bottom Sheets (`Drawer`) no mobile e Modais Centrais (`Dialog`) no desktop.
+**Justificativa**: Melhora a usabilidade em dispositivos móveis seguindo padrões nativos de apps (fácil alcance com o polegar). Mantém a experiência clássica de dashboard no desktop.
+**Estilo**: Drawers mobile devem usar o fundo da marca (`bg-purple-dark`) para reforçar a identidade visual.
+
 ## Dependências Externas
 
 | Serviço | Criticidade | Fallback |

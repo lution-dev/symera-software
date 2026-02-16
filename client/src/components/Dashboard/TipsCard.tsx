@@ -11,6 +11,16 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/ui/drawer";
+import {
   Lightbulb,
   X,
   ListTodo,
@@ -29,6 +39,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Define different tip sets for rotation
 const TIP_SETS = [
@@ -90,6 +101,8 @@ interface TipsCardProps {
 const TipsCard: React.FC<TipsCardProps> = ({ tipSetIndex: forcedTipSetIndex, isCreatingFirstEvent }) => {
   const [activeTipSetIndex, setActiveTipSetIndex] = useState<number>(0);
   const [showTipsCard, setShowTipsCard] = useState<boolean>(true);
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
 
   const STORAGE_KEY_SHOW = 'showTipsCard_v2';
 
@@ -124,39 +137,82 @@ const TipsCard: React.FC<TipsCardProps> = ({ tipSetIndex: forcedTipSetIndex, isC
               <p className="text-sm font-semibold text-foreground leading-tight">
                 {activeTipSet.mainTip.text}
               </p>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button className="text-[11px] font-medium text-primary hover:underline flex items-center gap-1 mt-0.5">
-                    Saiba mais <ArrowRight className="w-3 h-3" />
-                  </button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] rounded-2xl">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-primary" /> Dicas de Especialista
-                    </DialogTitle>
-                    <DialogDescription>
-                      Otimize sua gestão com estas práticas recomendadas.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    {activeTipSet.modalTips.map((tip, idx) => (
-                      <div key={idx} className="flex gap-4 p-3 rounded-xl bg-muted/50 border border-white/5">
-                        <div className="text-primary shrink-0 mt-1">{IconMap[tip.icon]}</div>
-                        <div>
-                          <h4 className="font-bold text-sm">{tip.title}</h4>
-                          <p className="text-xs text-muted-foreground">{tip.description}</p>
+              {isMobile ? (
+                <Drawer open={open} onOpenChange={setOpen}>
+                  <DrawerTrigger asChild>
+                    <button className="text-[11px] font-medium text-primary hover:underline flex items-center gap-1 mt-0.5">
+                      Saiba mais <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </DrawerTrigger>
+                  <DrawerContent className="bg-purple-dark border-white/10 pb-10 px-4">
+                    <DrawerHeader className="text-left px-2 mb-2">
+                      <DrawerTitle className="text-2xl font-black text-white flex items-center gap-2">
+                        <Sparkles className="w-6 h-6 text-primary" /> Dicas de Especialista
+                      </DrawerTitle>
+                      <DrawerDescription className="text-muted-foreground/80">
+                        Otimize sua gestão com estas práticas recomendadas.
+                      </DrawerDescription>
+                    </DrawerHeader>
+                    <div className="space-y-4 py-4">
+                      {activeTipSet.modalTips.map((tip, idx) => (
+                        <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="text-primary shrink-0 mt-1">{IconMap[tip.icon]}</div>
+                          <div>
+                            <h4 className="font-bold text-sm text-white">{tip.title}</h4>
+                            <p className="text-xs text-muted-foreground">{tip.description}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  <DialogFooter>
-                    <Link href={activeTipSet.ctaLink} className="w-full">
-                      <Button className="w-full rounded-xl font-bold">{activeTipSet.ctaText}</Button>
-                    </Link>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                      ))}
+                    </div>
+                    <DrawerFooter className="px-0 pt-2 flex flex-col gap-3">
+                      <Link href={activeTipSet.ctaLink} className="w-full">
+                        <Button className="w-full h-12 rounded-xl font-black tracking-tight gradient-primary">
+                          {activeTipSet.ctaText}
+                        </Button>
+                      </Link>
+                      <DrawerClose asChild>
+                        <Button variant="ghost" className="w-full h-12 rounded-xl text-muted-foreground font-bold active:scale-[0.98]">
+                          Voltar
+                        </Button>
+                      </DrawerClose>
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
+              ) : (
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <button className="text-[11px] font-medium text-primary hover:underline flex items-center gap-1 mt-0.5">
+                      Saiba mais <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px] rounded-2xl bg-purple-dark border-white/10">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2 text-white">
+                        <Sparkles className="w-5 h-5 text-primary" /> Dicas de Especialista
+                      </DialogTitle>
+                      <DialogDescription className="text-muted-foreground/80">
+                        Otimize sua gestão com estas práticas recomendadas.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      {activeTipSet.modalTips.map((tip, idx) => (
+                        <div key={idx} className="flex gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-left">
+                          <div className="text-primary shrink-0 mt-1">{IconMap[tip.icon]}</div>
+                          <div>
+                            <h4 className="font-bold text-sm text-white">{tip.title}</h4>
+                            <p className="text-xs text-muted-foreground">{tip.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <DialogFooter>
+                      <Link href={activeTipSet.ctaLink} className="w-full">
+                        <Button className="w-full rounded-xl font-bold gradient-primary">{activeTipSet.ctaText}</Button>
+                      </Link>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </div>
 
