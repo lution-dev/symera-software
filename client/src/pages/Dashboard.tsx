@@ -103,7 +103,10 @@ const Dashboard: React.FC = () => {
         const dateB = new Date(b.startDate || b.start_date || "2099-12-31");
         return dateA.getTime() - dateB.getTime();
       })
-      .filter(event => new Date(event.startDate || event.start_date || "2099-12-31") >= now);
+      .filter(event => {
+        const eventDate = new Date(event.startDate || event.start_date || "2099-12-31");
+        return eventDate >= now;
+      });
   }, [data?.activeEventsList]);
 
   const upcomingEventDays = useMemo(() => {
@@ -231,8 +234,8 @@ const Dashboard: React.FC = () => {
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[1, 2].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
               </div>
             ) : activeEventsList.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-white/10 rounded-2xl flex-1 flex flex-col items-center justify-center bg-card/30">
@@ -247,7 +250,7 @@ const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {activeEventsList.slice(0, 5).map(event => (
+                {activeEventsList.slice(0, 3).map(event => (
                   <EventCard key={event.id} {...event} />
                 ))}
 
