@@ -81,6 +81,7 @@ interface Task {
     firstName?: string;
     lastName?: string;
     profileImageUrl?: string;
+    phone?: string;
   }>;
   reminders?: Reminder[];
 }
@@ -142,7 +143,7 @@ const TaskList: React.FC<TaskListProps> = ({
   const { data: apiTasks, isLoading: apiLoading } = useQuery({
     queryKey: ['/api/dashboard'],
     enabled: !propTasks,
-    select: (data) => data.pendingTasks,
+    select: (data: any) => data.pendingTasks,
   });
 
   const tasks = propTasks || apiTasks || [];
@@ -165,6 +166,12 @@ const TaskList: React.FC<TaskListProps> = ({
 
   const displayTasks = (!showAllTasks && limitTasks) ? filteredTasks.slice(0, 5) : filteredTasks;
 
+  // DEBUG LOG
+  if (displayTasks.length > 0 && Math.random() > 0.9) {
+    console.log("[TaskList] Tasks received:", displayTasks);
+    console.log("[TaskList] First task eventName:", displayTasks[0].eventName);
+  }
+
   const enhancedTasks = displayTasks.map((task: Task) => ({
     ...task,
     reminders: getMockReminders(task.id)
@@ -173,7 +180,7 @@ const TaskList: React.FC<TaskListProps> = ({
   const handleStatusChange = async (taskId: number, newStatus: "todo" | "in_progress" | "completed") => {
     if (!onTaskUpdate) {
       try {
-        await apiRequest("PATCH", `/api/tasks/${taskId}`, { status: newStatus });
+        await apiRequest(`/api/tasks/${taskId}`, { method: "PATCH", body: { status: newStatus } as any });
         window.location.reload();
       } catch (error) {
         console.error("Error updating task status:", error);
@@ -186,7 +193,7 @@ const TaskList: React.FC<TaskListProps> = ({
   const handleDeleteTask = async (taskId: number) => {
     if (!onTaskDelete) {
       try {
-        await apiRequest("DELETE", `/api/tasks/${taskId}`);
+        await apiRequest(`/api/tasks/${taskId}`, { method: "DELETE" });
         window.location.reload();
       } catch (error) {
         console.error("Error deleting task:", error);
@@ -276,72 +283,80 @@ const TaskList: React.FC<TaskListProps> = ({
       )}
 
       {/* Desktop & Tablet Card View */}
-      <div className="hidden sm:flex flex-col gap-3">
+      <div className="hidden sm:flex flex-col gap-4">
         {enhancedTasks.map((task: any) => (
           <div
             key={task.id}
-            className="group relative bg-card/40 hover:bg-card/60 rounded-2xl p-4 border border-white/5 hover:border-primary/20 transition-all duration-300 shadow-lg backdrop-blur-sm"
+            className="group relative bg-card/40 hover:bg-card/60 rounded-3xl p-5 border border-white/5 hover:border-primary/30 transition-all duration-500 shadow-xl backdrop-blur-md hover:-translate-y-1"
           >
-            <div className="flex items-center justify-between gap-6">
+            {/* Subtle gloss effect */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+            <div className="flex items-center justify-between gap-8">
               {/* Task Title and Info */}
-              <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="flex items-center gap-5 flex-1 min-w-0">
                 <div className={cn(
-                  "w-3 h-3 rounded-full shrink-0 shadow-[0_0_12px_rgba(0,0,0,0.5)]",
-                  task.priority === 'high' ? 'bg-red-500 shadow-red-500/50' :
-                    task.priority === 'medium' ? 'bg-amber-500 shadow-amber-500/50' :
-                      'bg-blue-500 shadow-blue-500/50'
+                  "w-4 h-4 rounded-full shrink-0 shadow-[0_0_15px_rgba(0,0,0,0.5)] border-2 border-white/10 animate-pulse",
+                  task.priority === 'high' ? 'bg-red-500 shadow-red-500/40' :
+                    task.priority === 'medium' ? 'bg-amber-500 shadow-amber-500/40' :
+                      'bg-blue-500 shadow-blue-500/40'
                 )} />
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className={cn(
-                      "text-base font-bold truncate transition-all",
-                      task.status === 'completed' ? 'line-through opacity-40' : 'text-foreground'
-                    )}>
-                      {task.title}
-                    </p>
-                    {showEventName && (
-                      <span className="text-[10px] font-black uppercase text-primary/60 bg-primary/5 px-2 py-0.5 rounded-md whitespace-nowrap">
-                        {task.eventName}
-                      </span>
-                    )}
+                  <div
+                    className="cursor-pointer group/title"
+                    onClick={() => navigate(`/events/${task.eventId}/tasks`)}
+                  >
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
+                      <p className={cn(
+                        "text-lg font-black tracking-tight truncate transition-all group-hover/title:text-primary",
+                        task.status === 'completed' ? 'line-through opacity-30 text-muted-foreground' : 'text-white'
+                      )}>
+                        {task.title}
+                      </p>
+                      {showEventName && (
+                        <span className="text-[9px] font-black uppercase text-primary/90 bg-primary/10 px-2 py-0.5 rounded-md tracking-widest border border-primary/10 opacity-60 group-hover/title:opacity-100 transition-opacity">
+                          {task.eventName || "Evento"}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {task.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-1 opacity-70">
+                    <p className="text-sm text-muted-foreground/60 line-clamp-1 font-medium">
                       {task.description.split('\n')[0]}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Status and Meta */}
-              <div className="flex items-center gap-8 shrink-0">
-                <div className="flex flex-col items-center">
-                  <span className="text-[10px] font-black uppercase text-muted-foreground/50 mb-1 tracking-widest">Data</span>
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs font-bold">{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}</span>
+              {/* Status and Meta - More structured for desktop */}
+              <div className="flex items-center gap-10 shrink-0">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-black uppercase text-muted-foreground/40 mb-1 tracking-[0.2em]">Prazo</span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm font-black text-white/90">{task.dueDate ? new Date(task.dueDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'N/A'}</span>
                     {task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed' && (
-                      <span className="text-[9px] text-red-500 font-black uppercase">Atrasado</span>
+                      <span className="text-[9px] text-red-400 font-black uppercase mt-0.5 tracking-tighter bg-red-500/10 px-1.5 py-0.5 rounded">ATRASADO</span>
                     )}
                   </div>
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <span className="text-[10px] font-black uppercase text-muted-foreground/50 mb-1 tracking-widest">Status</span>
+                  <span className="text-[10px] font-black uppercase text-muted-foreground/40 mb-1 tracking-[0.2em]">Status</span>
                   <span className={cn(
-                    "px-3 py-1 text-[9px] font-black uppercase rounded-full border shadow-sm whitespace-nowrap",
+                    "px-4 py-1.5 text-[10px] font-black uppercase rounded-xl border-2 shadow-lg whitespace-nowrap transition-all duration-500",
                     task.status === 'completed'
                       ? "bg-green-500/10 text-green-400 border-green-500/20 shadow-green-500/10"
                       : task.status === 'in_progress'
                         ? "bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-blue-500/10"
                         : "bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-amber-500/10"
                   )}>
-                    {task.status === 'completed' ? 'Finalizada' : task.status === 'in_progress' ? 'Andamento' : 'Pendente'}
+                    {task.status === 'completed' ? 'Concluída' : task.status === 'in_progress' ? 'Em Curso' : 'Pendente'}
                   </span>
                 </div>
 
-                {/* Actions */}
-                <div className="flex justify-end gap-1 items-center bg-black/20 p-1 rounded-xl border border-white/5">
+                {/* Actions - Glassmorphism floating effect */}
+                <div className="flex justify-end gap-1.5 items-center bg-white/5 backdrop-blur-sm p-1.5 rounded-2xl border border-white/5 shadow-inner">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -349,18 +364,18 @@ const TaskList: React.FC<TaskListProps> = ({
                           variant="ghost"
                           size="icon"
                           className={cn(
-                            "h-8 w-8 rounded-lg transition-all duration-300",
+                            "h-9 w-9 rounded-xl transition-all duration-300",
                             task.status === 'completed'
-                              ? "hover:bg-blue-500/10 hover:text-blue-400"
-                              : "hover:bg-primary/10 hover:text-primary"
+                              ? "hover:bg-blue-500/20 hover:text-blue-400 hover:rotate-12"
+                              : "hover:bg-primary/20 hover:text-primary hover:scale-110"
                           )}
                           onClick={() => handleStatusChange(task.id, task.status === 'completed' ? 'todo' : 'completed')}
                         >
-                          {task.status === 'completed' ? <RotateCcw className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                          {task.status === 'completed' ? <RotateCcw className="w-5 h-5" /> : <Check className="w-5 h-5" />}
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-background border-white/10 text-[10px] font-bold">
-                        {task.status === 'completed' ? 'Reiniciar' : 'Finalizar'}
+                      <TooltipContent className="bg-purple-dark text-white border-white/10 text-[10px] font-black uppercase tracking-widest">
+                        {task.status === 'completed' ? 'Reiniciar' : 'Concluir'}
                       </TooltipContent>
                     </Tooltip>
 
@@ -369,14 +384,14 @@ const TaskList: React.FC<TaskListProps> = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-lg hover:bg-yellow-500/10 hover:text-yellow-500 transition-all duration-300"
+                          className="h-9 w-9 rounded-xl hover:bg-yellow-500/20 hover:text-yellow-400 transition-all duration-300 hover:rotate-12"
                           onClick={() => openReminderDialog(task)}
                         >
-                          <Bell className="w-4 h-4" />
+                          <Bell className="w-5 h-5" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-background border-white/10 text-[10px] font-bold">
-                        Avisos
+                      <TooltipContent className="bg-purple-dark text-white border-white/10 text-[10px] font-black uppercase tracking-widest">
+                        Lembretes
                       </TooltipContent>
                     </Tooltip>
 
@@ -385,13 +400,13 @@ const TaskList: React.FC<TaskListProps> = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-lg hover:bg-amber-500/10 hover:text-amber-500 transition-all duration-300"
+                          className="h-9 w-9 rounded-xl hover:bg-indigo-500/20 hover:text-indigo-400 transition-all duration-300 hover:rotate-12"
                           onClick={() => navigate(`/events/${task.eventId}/tasks/${task.id}/edit`)}
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="w-5 h-5" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-background border-white/10 text-[10px] font-bold">
+                      <TooltipContent className="bg-purple-dark text-white border-white/10 text-[10px] font-black uppercase tracking-widest">
                         Editar
                       </TooltipContent>
                     </Tooltip>
@@ -401,14 +416,14 @@ const TaskList: React.FC<TaskListProps> = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-all duration-300"
+                          className="h-9 w-9 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-all duration-300 hover:scale-110"
                           onClick={() => handleDeleteTask(task.id)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-background border-white/10 text-[10px] font-bold">
-                        Excluir
+                      <TooltipContent className="bg-purple-dark text-white border-white/10 text-[10px] font-black uppercase tracking-widest">
+                        Arquivar
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -430,12 +445,17 @@ const TaskList: React.FC<TaskListProps> = ({
                   task.priority === 'high' ? 'bg-red-500' :
                     task.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'
                 )} />
-                <p className={cn(
-                  "text-sm font-bold leading-tight",
-                  task.status === 'completed' && "line-through opacity-50"
-                )}>
-                  {task.title}
-                </p>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => navigate(`/events/${task.eventId}/tasks`)}
+                >
+                  <p className={cn(
+                    "text-sm font-bold leading-tight",
+                    task.status === 'completed' && "line-through opacity-50"
+                  )}>
+                    {task.title}
+                  </p>
+                </div>
               </div>
               <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap ml-4">
                 {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sem data'}

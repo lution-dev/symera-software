@@ -80,6 +80,8 @@ interface DashboardData {
   pendingTasks: DashboardTask[];
 }
 
+// ActivityFeed removed as per user request
+
 const Dashboard: React.FC = () => {
   const { user, isLoading: authLoading } = useAuth();
   const isMobile = useIsMobile();
@@ -113,129 +115,96 @@ const Dashboard: React.FC = () => {
     return 0;
   }, [data?.upcomingEvents, activeEventsList]);
 
-  // Activity related functions removed for simplicity
-
   return (
     <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Native-style Minimalist Header */}
-      <header className={cn(
-        "flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 relative",
-        "md:bg-gradient-to-br md:from-primary/10 md:via-background md:to-background md:p-6 md:rounded-3xl md:border md:border-white/5 md:shadow-2xl md:overflow-hidden md:group"
-      )}>
-        {/* Desktop-only decorative element */}
-        <div className="hidden md:block absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform">
-          <LayoutGrid className="w-32 h-32 text-primary" />
-        </div>
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center justify-between md:justify-start gap-4">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tighter">
+            Olá, {user?.firstName || "Organizador"}!
+          </h1>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full relative z-10">
-          <div className="flex flex-col gap-1 md:gap-2">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-primary animate-pulse" />
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-primary/80">Painel de Controle</span>
-            </div>
+          {/* Mobile Pill - Integrated next to name */}
+          <div className="md:hidden">
+            <Drawer>
+              <DrawerTrigger asChild>
+                <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-muted-foreground bg-white/5 active:bg-white/10 px-3.5 py-2 rounded-full border border-white/10 transition-colors cursor-pointer shadow-sm">
+                  <span className="text-white">{activeEventsList.length}</span> eventos
+                  <span className="mx-0.5 opacity-30">•</span>
+                  <span className="text-white">{data?.pendingTasks.length || 0}</span> tarefas
+                  <span className="mx-0.5 opacity-30">•</span>
+                  <CalendarDays className="w-3.5 h-3.5 text-primary/80" />
+                </div>
+              </DrawerTrigger>
+              <DrawerContent className="bg-purple-dark border-white/10 pb-10 px-4">
+                <DrawerHeader className="text-left px-2 mb-2">
+                  <DrawerTitle className="text-2xl font-black text-white flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-primary" /> Visão Geral
+                  </DrawerTitle>
+                </DrawerHeader>
 
-            <div className="flex items-center justify-between md:justify-start gap-4">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tighter">
-                Olá, {user?.firstName || "Organizador"}!
-              </h1>
-
-              {/* Mobile Pill - Integrated next to name */}
-              <div className="md:hidden">
-                <Drawer>
-                  <DrawerTrigger asChild>
-                    <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-muted-foreground bg-white/5 active:bg-white/10 px-3.5 py-2 rounded-full border border-white/10 transition-colors cursor-pointer shadow-sm">
-                      <span className="text-white">{data?.totalEvents || 0}</span> eventos
-                      <span className="mx-0.5 opacity-30">•</span>
-                      <span className="text-white">{data?.pendingTasks.length || 0}</span> tarefas
-                      <span className="mx-0.5 opacity-30">•</span>
-                      <CalendarDays className="w-3.5 h-3.5 text-primary/80" />
-                    </div>
-                  </DrawerTrigger>
-                  <DrawerContent className="bg-purple-dark border-white/10 pb-10 px-4">
-                    <DrawerHeader className="text-left px-2 mb-2">
-                      <DrawerTitle className="text-2xl font-black text-white flex items-center gap-2">
-                        <Sparkles className="w-6 h-6 text-primary" /> Visão Geral
-                      </DrawerTitle>
-                    </DrawerHeader>
-
-                    <div className="grid gap-4 mt-4">
-                      {/* Categorized Stats Selection */}
-                      <Link href="/events" onClick={() => document.dispatchEvent(new CustomEvent('closeDrawer'))}>
-                        <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group active:scale-[0.98] transition-all">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                              <CalendarCheck className="w-6 h-6" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Eventos Ativos</p>
-                              <p className="text-xl font-black text-white">{activeEventsList.length} <span className="text-xs text-muted-foreground font-normal ml-1">eventos de {data?.totalEvents || 0}</span></p>
-                            </div>
-                          </div>
-                          <ArrowUpRight className="w-5 h-5 text-muted-foreground opacity-50 group-hover:text-primary transition-colors" />
+                <div className="grid gap-4 mt-4">
+                  <Link href="/events" onClick={() => document.dispatchEvent(new CustomEvent('closeDrawer'))}>
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group active:scale-[0.98] transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                          <CalendarCheck className="w-6 h-6" />
                         </div>
-                      </Link>
-
-                      <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-                            <ClipboardList className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tarefas Pendentes</p>
-                            <p className="text-xl font-black text-white">
-                              {data?.pendingTasks.length || 0} <span className="text-xs text-muted-foreground font-normal ml-1">tarefas para hoje</span>
-                            </p>
-                          </div>
+                        <div>
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Eventos Ativos</p>
+                          <p className="text-xl font-black text-white">{activeEventsList.length} <span className="text-xs text-muted-foreground font-normal ml-1">eventos de {data?.totalEvents || 0}</span></p>
                         </div>
                       </div>
-
-                      <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                            <CalendarDays className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Próximos 30 dias</p>
-                            <p className="text-xl font-black text-white">{data?.upcomingEvents?.length || 0} <span className="text-xs text-muted-foreground font-normal ml-1">eventos marcados</span></p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <DrawerClose asChild>
-                        <Button variant="outline" className="mt-4 h-12 rounded-xl border-white/10 font-black tracking-tight active:scale-[0.98]">
-                          Fechar
-                        </Button>
-                      </DrawerClose>
+                      <ArrowUpRight className="w-5 h-5 text-muted-foreground opacity-50 group-hover:text-primary transition-colors" />
                     </div>
-                  </DrawerContent>
-                </Drawer>
-              </div>
-            </div>
+                  </Link>
 
-            <p className="hidden md:block text-muted-foreground mt-2 max-w-md font-medium">
-              Você tem <span className="text-white font-bold">{data?.totalEvents || 0} eventos</span> registrados e <span className="text-white font-bold">{data?.pendingTasks.length || 0} tarefas</span> aguardando sua ação.
-            </p>
-          </div>
+                  <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+                        <ClipboardList className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tarefas Pendentes</p>
+                        <p className="text-xl font-black text-white">
+                          {data?.pendingTasks.length || 0} <span className="text-xs text-muted-foreground font-normal ml-1">tarefas para hoje</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="flex gap-2">
-            <Link href="/vendors" className="hidden md:inline-flex">
-              <Button variant="outline" className="h-10 md:h-12 px-4 md:px-5 rounded-xl font-bold border-white/10 hover:bg-white/5 transition-all gap-2">
-                <Store className="w-4 h-4 md:w-5 md:h-5 text-primary" /> Fornecedores
-              </Button>
-            </Link>
-            <Link href="/events/new" className="hidden md:inline-flex">
-              <Button className="gradient-primary h-10 md:h-12 px-5 md:px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform gap-2 text-sm md:text-base">
-                <Plus className="w-4 h-4 md:w-5 md:h-5" /> <span className="md:inline">Novo Evento</span>
-              </Button>
-            </Link>
+                  <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                        <CalendarDays className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Próximos 30 dias</p>
+                        <p className="text-xl font-black text-white">{data?.upcomingEvents?.length || 0} <span className="text-xs text-muted-foreground font-normal ml-1">eventos marcados</span></p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <DrawerClose asChild>
+                    <Button variant="outline" className="mt-4 h-12 rounded-xl border-white/10 font-black tracking-tight active:scale-[0.98]">
+                      Fechar
+                    </Button>
+                  </DrawerClose>
+                </div>
+              </DrawerContent>
+            </Drawer>
           </div>
         </div>
+
+        <Link href="/events/new">
+          <Button className="gradient-primary h-10 md:h-12 px-5 md:px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform gap-2 text-sm md:text-base">
+            <Plus className="w-4 h-4 md:w-5 md:h-5" /> <span className="inline">Novo Evento</span>
+          </Button>
+        </Link>
       </header>
 
-      {/* Optimized Main Layout */}
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-
-        <div className="hidden md:block grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <DashboardMetrics
             totalEvents={data?.totalEvents || 0}
             activeEvents={activeEventsList.length}
@@ -246,41 +215,11 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* Tips Section - Moved to Top */}
-        <div className="w-full">
-          <TipsCard isCreatingFirstEvent={data?.totalEvents === 0} />
-        </div>
-
-        {/* Mobile-only Quick Access Area - Now above Events */}
-        <div className="lg:hidden grid grid-cols-3 gap-3">
-          <Link href="/vendors" className="group">
-            <div className="bg-card/40 active:bg-card/60 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1.5 shadow-lg active:scale-95 transition-all">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                <Store className="w-5 h-5" />
-              </div>
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Fornecedores</span>
-            </div>
-          </Link>
-          <Link href="/budget" className="group">
-            <div className="bg-card/40 active:bg-card/60 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1.5 shadow-lg active:scale-95 transition-all">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                <CircleDollarSign className="w-5 h-5" />
-              </div>
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Orçamento</span>
-            </div>
-          </Link>
-          <Link href="/team" className="group">
-            <div className="bg-card/40 active:bg-card/60 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1.5 shadow-lg active:scale-95 transition-all">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                <UserPlus className="w-5 h-5" />
-              </div>
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Equipe</span>
-            </div>
-          </Link>
-        </div>
+        {/* User hint below metrics */}
+        <TipsCard isCreatingFirstEvent={data?.totalEvents === 0} />
 
         <div className="flex flex-col gap-8">
-          {/* Upcoming Events Section - Background Container Removed */}
+          {/* Upcoming Events Section */}
           <section className="flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold flex items-center gap-2">
@@ -292,8 +231,8 @@ const Dashboard: React.FC = () => {
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[1, 2].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
               </div>
             ) : activeEventsList.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-white/10 rounded-2xl flex-1 flex flex-col items-center justify-center bg-card/30">
@@ -307,15 +246,28 @@ const Dashboard: React.FC = () => {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-                {activeEventsList.slice(0, 3).map(event => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeEventsList.slice(0, 5).map(event => (
                   <EventCard key={event.id} {...event} />
                 ))}
+
+                {/* Plus card - always visible for layout consistency */}
+                {!isLoading && (
+                  <Link href="/events/new">
+                    <div className="h-full min-h-[180px] border-2 border-dashed border-white/10 bg-card/40 backdrop-blur-sm hover:border-primary/50 hover:bg-primary/5 rounded-3xl flex flex-col items-center justify-center p-6 transition-all duration-500 group cursor-pointer shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary/80 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 mb-3 shadow-lg shadow-primary/5 group-hover:shadow-primary/20">
+                        <Plus className="w-7 h-7" />
+                      </div>
+                      <h4 className="font-black text-white/90 text-lg tracking-tight group-hover:text-white transition-colors">Novo Evento</h4>
+                      <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em] mt-1 group-hover:text-primary/80 transition-colors">Adicionar Festa</p>
+                    </div>
+                  </Link>
+                )}
               </div>
             )}
           </section>
 
-          {/* Task List Section - Full Width Stacking below Events */}
+          {/* Task List Section */}
           <section className="w-full">
             <TaskList
               title="Minha Lista de Tarefas"
@@ -328,7 +280,6 @@ const Dashboard: React.FC = () => {
           </section>
         </div>
       </div>
-
     </div>
   );
 };

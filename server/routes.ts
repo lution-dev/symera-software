@@ -2223,9 +2223,13 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
       let pendingTasks: any[] = [];
       for (const event of events) {
         const tasks = await dbStorage.getTasksByEventId(event.id);
-        pendingTasks = pendingTasks.concat(
-          tasks.filter(task => task.status !== "completed")
-        );
+        const tasksWithEventName = tasks
+          .filter(task => task.status !== "completed")
+          .map(task => ({
+            ...task,
+            eventName: event.name
+          }));
+        pendingTasks = pendingTasks.concat(tasksWithEventName);
       }
 
       // Get recent activities

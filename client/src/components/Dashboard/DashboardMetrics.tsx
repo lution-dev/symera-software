@@ -31,38 +31,45 @@ const MetricCard: React.FC<MetricCardProps> = ({
   isLoading = false,
 }) => {
   return (
-    <div className="relative overflow-hidden bg-card/60 backdrop-blur-sm rounded-2xl p-4 sm:p-5 shadow-xl border border-white/5 group hover:border-primary/30 transition-all duration-500">
-      {/* Subtle depth effect */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+    <div className="relative overflow-hidden bg-card/40 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-xl border border-white/5 group hover:border-primary/40 transition-all duration-500 hover:-translate-y-0.5">
+      {/* Glossy overlay effect */}
+      <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/5 to-transparent opacity-50 pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col justify-between h-full gap-3">
+      {/* Subtle depth effect */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+      <div className="relative z-10 flex flex-col justify-between h-full gap-2">
         <div className="flex items-start justify-between">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
-            <Icon className="w-4 h-4 sm:w-6 sm:h-6" />
+          <div className="p-2 bg-primary/10 rounded-2xl text-primary flex-shrink-0 group-hover:bg-primary group-hover:text-primary-foreground group-hover:rotate-6 transition-all duration-500 shadow-lg shadow-primary/5">
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           {change && !isLoading && (
             <div className={cn(
-              "flex items-center gap-0.5 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full",
-              change.trend === "up" ? "bg-green-500/10 text-green-400" :
-                change.trend === "down" ? "bg-red-500/10 text-red-400" :
-                  "bg-muted/30 text-muted-foreground"
+              "flex items-center gap-1 text-[10px] sm:text-xs font-black px-3 py-1 rounded-full shadow-inner",
+              change.trend === "up" ? "bg-green-500/20 text-green-400 border border-green-500/20" :
+                change.trend === "down" ? "bg-red-500/20 text-red-400 border border-red-500/20" :
+                  "bg-white/5 text-muted-foreground border border-white/10"
             )}>
-              {change.trend === "up" ? <TrendingUp className="w-2.5 h-2.5" /> :
-                change.trend === "down" ? <TrendingDown className="w-2.5 h-2.5" /> :
-                  <Minus className="w-2.5 h-2.5" />}
+              {change.trend === "up" ? <TrendingUp className="w-3 h-3" /> :
+                change.trend === "down" ? <TrendingDown className="w-3 h-3" /> :
+                  <Minus className="w-3 h-3" />}
               {change.value}
             </div>
           )}
         </div>
 
         <div className="space-y-1">
-          <p className="text-muted-foreground/60 text-[10px] sm:text-sm font-bold uppercase tracking-widest">{title}</p>
+          <p className="text-muted-foreground/40 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">{title}</p>
           {isLoading ? (
-            <Skeleton className="h-8 sm:h-10 w-16 sm:w-20" />
+            <Skeleton className="h-8 sm:h-10 w-20 sm:w-24 bg-white/5" />
           ) : (
-            <div className="flex items-baseline gap-1">
-              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tighter leading-none">{value}</h2>
-              {change?.trend === "neutral" && <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">{change.text}</span>}
+            <div className="flex items-baseline gap-2">
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tighter leading-none shadow-none drop-shadow-none [text-shadow:none]">{value}</h2>
+              {change?.trend === "neutral" && (
+                <span className="text-[10px] sm:text-xs text-muted-foreground font-bold bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
+                  {change.text}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -89,10 +96,10 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
   isLoading = false
 }) => {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-2 sm:mb-6">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-6">
       <MetricCard
-        title="Eventos"
-        value={totalEvents}
+        title="Eventos Ativos"
+        value={activeEvents}
         icon={CalendarCheck}
         change={{
           value: "+20%",
