@@ -10,7 +10,10 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 export async function getEffectiveUserId(email: string, supabaseUserId: string): Promise<string> {
   // If email is empty or undefined, always return supabaseUserId
-  if (!email) return supabaseUserId;
+  if (!email) {
+    console.warn(`[Auth] getEffectiveUserId: No email provided, returning UUID ${supabaseUserId}`);
+    return supabaseUserId;
+  }
 
   // Verificar cache primeiro
   const cached = emailToUserIdCache.get(email);
@@ -21,26 +24,30 @@ export async function getEffectiveUserId(email: string, supabaseUserId: string):
 
   try {
     // Buscar usuário pelo email no banco de dados
+    console.log(`[Auth] getEffectiveUserId: Searching DB for email: ${email}`);
     const dbStorage = await storage;
     const existingUser = await dbStorage.getUserByEmail(email);
 
     if (existingUser) {
       // Usuário existente - usar ID original do banco
       emailToUserIdCache.set(email, { userId: existingUser.id, timestamp: Date.now() });
-      console.log(`[Auth] getEffectiveUserId (DB MATCH): ${email} -> ${existingUser.id} (Original Supabase: ${supabaseUserId})`);
+      console.log(`[Auth] getEffectiveUserId (DB MATCH): ${email} -> ${existingUser.id} (Supabase UUID was: ${supabaseUserId})`);
       return existingUser.id;
     }
-  } catch (error) {
+
+    console.log(`[Auth] getEffectiveUserId: No user found in DB for ${email}. Will use UUID.`);
+  } catch (error: any) {
     // If DB lookup fails, DON'T cache the supabaseUserId — let next request retry
-    console.error(`[Auth] getEffectiveUserId DB lookup FAILED for ${email}, returning supabaseUserId without caching:`, error);
+    console.error(`[Auth] getEffectiveUserId DB lookup FAILED for ${email}. Error: ${error.message}`);
     return supabaseUserId;
   }
 
   // Usuário novo - usar UUID do Supabase
-  console.log(`[Auth] getEffectiveUserId (NO MATCH): ${email} -> returning new ID ${supabaseUserId}`);
+  console.log(`[Auth] getEffectiveUserId (NEW USER): ${email} -> caching UUID ${supabaseUserId}`);
   emailToUserIdCache.set(email, { userId: supabaseUserId, timestamp: Date.now() });
   return supabaseUserId;
 }
+
 
 
 let supabaseInstance: SupabaseClient | null = null;

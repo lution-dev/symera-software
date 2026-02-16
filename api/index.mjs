@@ -486,43 +486,8 @@ var init_storage = __esm({
         });
       }
       async migrateUserFromLocalToReplit(localUserId, replitUserId) {
-        return executeWithRetry(async () => {
-          console.log(`Migrando usu\xE1rio de ${localUserId} para ${replitUserId}`);
-          const existingNewUser = await db.select().from(users).where(eq(users.id, replitUserId));
-          if (existingNewUser.length > 0) {
-            console.log(`Usu\xE1rio com ID ${replitUserId} j\xE1 existe. Apenas migrando refer\xEAncias.`);
-            await Promise.all([
-              db.update(eventTeamMembers).set({ userId: replitUserId }).where(eq(eventTeamMembers.userId, localUserId)),
-              db.update(events).set({ ownerId: replitUserId }).where(eq(events.ownerId, localUserId)),
-              db.update(taskAssignees).set({ userId: replitUserId }).where(eq(taskAssignees.userId, localUserId)),
-              db.update(documents).set({ uploadedById: replitUserId }).where(eq(documents.uploadedById, localUserId)),
-              db.update(activityLogs).set({ userId: replitUserId }).where(eq(activityLogs.userId, localUserId))
-            ]);
-            try {
-              await db.delete(users).where(eq(users.id, localUserId));
-              console.log(`Usu\xE1rio antigo ${localUserId} removido.`);
-            } catch (deleteError) {
-              console.log(`N\xE3o foi poss\xEDvel deletar usu\xE1rio antigo ${localUserId}:`, deleteError);
-            }
-          } else {
-            console.log(`Atualizando ID do usu\xE1rio de ${localUserId} para ${replitUserId}`);
-            await Promise.all([
-              db.update(eventTeamMembers).set({ userId: replitUserId }).where(eq(eventTeamMembers.userId, localUserId)),
-              db.update(events).set({ ownerId: replitUserId }).where(eq(events.ownerId, localUserId)),
-              db.update(taskAssignees).set({ userId: replitUserId }).where(eq(taskAssignees.userId, localUserId)),
-              db.update(documents).set({ uploadedById: replitUserId }).where(eq(documents.uploadedById, localUserId)),
-              db.update(activityLogs).set({ userId: replitUserId }).where(eq(activityLogs.userId, localUserId))
-            ]);
-            await db.update(users).set({ id: replitUserId, updatedAt: /* @__PURE__ */ new Date() }).where(eq(users.id, localUserId));
-          }
-          userCache.invalidate(`user:${localUserId}`);
-          userCache.invalidate(`user:${replitUserId}`);
-          userCache.invalidate(`user:email:`);
-          eventCache.invalidate(`events:user:${localUserId}`);
-          eventCache.invalidate(`events:user:${replitUserId}`);
-          eventCache.invalidate(`events:`);
-          console.log(`Migra\xE7\xE3o conclu\xEDda de ${localUserId} para ${replitUserId}`);
-        });
+        console.log(`[MIGRATION BLOCKED] Tentativa de migrar ${localUserId} para ${replitUserId} bloqueada por seguran\xE7a.`);
+        return;
       }
       // Event operations
       async getEventsByUser(userId) {
@@ -625,12 +590,39 @@ var init_storage = __esm({
       async deleteEvent(id) {
         return executeWithRetry(async () => {
           const [event] = await db.select().from(events).where(eq(events.id, id));
-          await db.delete(events).where(eq(events.id, id));
-          eventCache.invalidate(`event:${id}`);
           if (event) {
+            console.log(`[Storage] Deletando evento ${id} e todos os dados relacionados...`);
+            const feedbacks = await db.select({ feedbackId: eventFeedbacks.feedbackId }).from(eventFeedbacks).where(eq(eventFeedbacks.eventId, id));
+            if (feedbacks.length > 0) {
+              for (const f of feedbacks) {
+                await db.delete(feedbackMetrics).where(eq(feedbackMetrics.feedbackId, f.feedbackId));
+              }
+            }
+            await db.delete(eventFeedbacks).where(eq(eventFeedbacks.eventId, id));
+            await db.delete(participants).where(eq(participants.eventId, id));
+            await db.delete(documents).where(eq(documents.eventId, id));
+            await db.delete(scheduleItems).where(eq(scheduleItems.eventId, id));
+            await db.delete(expenses).where(eq(expenses.eventId, id));
+            await db.delete(budgetItems).where(eq(budgetItems.eventId, id));
+            await db.delete(vendors).where(eq(vendors.eventId, id));
+            await db.delete(eventTeamMembers).where(eq(eventTeamMembers.eventId, id));
+            await db.delete(activityLogs).where(eq(activityLogs.eventId, id));
+            const eventTasks = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.eventId, id));
+            if (eventTasks.length > 0) {
+              for (const t of eventTasks) {
+                await db.delete(taskAssignees).where(eq(taskAssignees.taskId, t.id));
+              }
+            }
+            await db.delete(tasks).where(eq(tasks.eventId, id));
+            await db.delete(events).where(eq(events.id, id));
+            eventCache.invalidate(`event:${id}`);
             eventCache.invalidate(`events:user:${event.ownerId}`);
+            eventCache.invalidate(`events:user:`);
+            taskCache.invalidate(`tasks:event:${id}`);
+            documentCache.invalidate(`documents:event:${id}`);
+            participantCache.invalidate(`participants:event:${id}`);
+            console.log(`[Storage] Evento ${id} deletado com sucesso.`);
           }
-          eventCache.invalidate(`events:user:`);
         });
       }
       // Task operations
@@ -2547,14 +2539,7 @@ async function registerRoutes(app2) {
   });
   app2.delete("/api/events/:id", isAuthenticated, async (req, res) => {
     try {
-      let userId;
-      if (req.session.devIsAuthenticated && req.session.devUserId) {
-        userId = req.session.devUserId;
-      } else if (req.user?.claims?.sub) {
-        userId = req.user.claims.sub;
-      } else {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      const userId = req.user.claims.sub;
       const eventId = parseInt(req.params.id, 10);
       if (isNaN(eventId)) {
         return res.status(400).json({ message: "Invalid event ID" });

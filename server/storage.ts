@@ -312,89 +312,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async migrateUserFromLocalToReplit(localUserId: string, replitUserId: string): Promise<void> {
-    return executeWithRetry(async () => {
-      console.log(`Migrando usuário de ${localUserId} para ${replitUserId}`);
-
-      // Verificar se já existe um usuário com o novo ID (Supabase)
-      const existingNewUser = await db.select().from(users).where(eq(users.id, replitUserId));
-
-      if (existingNewUser.length > 0) {
-        console.log(`Usuário com ID ${replitUserId} já existe. Apenas migrando referências.`);
-
-        // Apenas atualizar as referências para o novo ID
-        await Promise.all([
-          db.update(eventTeamMembers)
-            .set({ userId: replitUserId })
-            .where(eq(eventTeamMembers.userId, localUserId)),
-
-          db.update(events)
-            .set({ ownerId: replitUserId })
-            .where(eq(events.ownerId, localUserId)),
-
-          db.update(taskAssignees)
-            .set({ userId: replitUserId })
-            .where(eq(taskAssignees.userId, localUserId)),
-
-          db.update(documents)
-            .set({ uploadedById: replitUserId })
-            .where(eq(documents.uploadedById, localUserId)),
-
-          db.update(activityLogs)
-            .set({ userId: replitUserId })
-            .where(eq(activityLogs.userId, localUserId))
-        ]);
-
-        // Deletar o usuário local antigo (não é mais necessário)
-        try {
-          await db.delete(users).where(eq(users.id, localUserId));
-          console.log(`Usuário antigo ${localUserId} removido.`);
-        } catch (deleteError) {
-          console.log(`Não foi possível deletar usuário antigo ${localUserId}:`, deleteError);
-        }
-      } else {
-        // Não existe usuário com o novo ID, atualizar o ID do usuário existente
-        console.log(`Atualizando ID do usuário de ${localUserId} para ${replitUserId}`);
-
-        // Primeiro atualizar todas as referências
-        await Promise.all([
-          db.update(eventTeamMembers)
-            .set({ userId: replitUserId })
-            .where(eq(eventTeamMembers.userId, localUserId)),
-
-          db.update(events)
-            .set({ ownerId: replitUserId })
-            .where(eq(events.ownerId, localUserId)),
-
-          db.update(taskAssignees)
-            .set({ userId: replitUserId })
-            .where(eq(taskAssignees.userId, localUserId)),
-
-          db.update(documents)
-            .set({ uploadedById: replitUserId })
-            .where(eq(documents.uploadedById, localUserId)),
-
-          db.update(activityLogs)
-            .set({ userId: replitUserId })
-            .where(eq(activityLogs.userId, localUserId))
-        ]);
-
-        // Atualizar o ID do próprio usuário
-        await db.update(users)
-          .set({ id: replitUserId, updatedAt: new Date() })
-          .where(eq(users.id, localUserId));
-      }
-
-      // Invalidar caches relacionados
-      userCache.invalidate(`user:${localUserId}`);
-      userCache.invalidate(`user:${replitUserId}`);
-      userCache.invalidate(`user:email:`);
-      eventCache.invalidate(`events:user:${localUserId}`);
-      eventCache.invalidate(`events:user:${replitUserId}`);
-      eventCache.invalidate(`events:`);
-
-      console.log(`Migração concluída de ${localUserId} para ${replitUserId}`);
-    });
+    // DESATIVADO: Esta função causava perda de dados em produção devido a cold starts
+    // Os dados agora são preservados usando o ID original via getEffectiveUserId
+    console.log(`[MIGRATION BLOCKED] Tentativa de migrar ${localUserId} para ${replitUserId} bloqueada por segurança.`);
+    return;
   }
+
 
   // Event operations
   async getEventsByUser(userId: string): Promise<Event[]> {
