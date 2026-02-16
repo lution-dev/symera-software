@@ -181,6 +181,37 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const [sortBy, setSortBy] = useState<string>("dueDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [search, setSearch] = useState(window.location.search);
+
+  // Sincronizar estado com a URL (search params)
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setSearch(window.location.search);
+    };
+
+    // Patch pushState para detectar mudanças de query params feitas pelo roteador
+    const originalPushState = window.history.pushState;
+    window.history.pushState = function (...args) {
+      originalPushState.apply(window.history, args);
+      handleLocationChange();
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => {
+      window.history.pushState = originalPushState;
+      window.removeEventListener('popstate', handleLocationChange);
+    };
+  }, []);
+
+  // Scroll ao topo quando a seção mudar (especialmente para mobile)
+  useEffect(() => {
+    if (window.innerWidth < 768 && activeSection !== 'resumo') {
+      const mainContent = document.querySelector('main');
+      if (mainContent) {
+        mainContent.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    }
+  }, [activeSection]);
 
   // Team member selection modal state
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -214,11 +245,13 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       // Mapear 'tarefas' para a seção correta se necessário, ou usar direto
       if (tab === 'tarefas' || tab === 'tasks') {
         setActiveSection('tarefas');
-      } else if (['resumo', 'equipe', 'participantes', 'cronograma', 'financeiro', 'documentos', 'atividades', 'feedback'].includes(tab)) {
+      } else if (['resumo', 'equipe', 'participantes', 'cronograma', 'financeiro', 'documentos', 'atividades', 'feedback', 'mobile_details'].includes(tab)) {
         setActiveSection(tab);
       }
+    } else {
+      setActiveSection('resumo');
     }
-  }, [eventId, refetch]);
+  }, [eventId, refetch, location, search]);
 
   // Fetch tasks
   const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
@@ -478,10 +511,228 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     navigate(`/events/${eventId}/edit`);
   };
 
+  const renderStrategicIndicators = () => (
+    <>
+      {/* Indicadores estratégicos do evento */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Total de tarefas e progresso */}
+        <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
+          <h3 className="text-sm font-medium mb-4 flex items-center">
+            <i className="fas fa-tasks text-primary mr-2"></i> Tarefas
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total:</span>
+              <span className="font-semibold">{totalTasks || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Concluídas:</span>
+              <span className="font-semibold text-[hsl(var(--event-completed))]">{completedTasks || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Em progresso:</span>
+              <span className="font-semibold text-[hsl(var(--event-in-progress))]">{inProgressTasks || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Pendentes:</span>
+              <span className="font-semibold text-[hsl(var(--event-planning))]">{todoTasks || 0}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Orçamento e gastos */}
+        <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
+          <h3 className="text-sm font-medium mb-4 flex items-center">
+            <i className="fas fa-coins text-primary mr-2"></i> Financeiro
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Orçamento total:</span>
+              <span className="font-semibold">{event.budget ? formatCurrency(event.budget) : "R$ 0,00"}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Gastos atuais:</span>
+              <span className="font-semibold">{formatCurrency(Math.abs(event.expenses || 0) / 100)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Saldo restante:</span>
+              <span className="font-semibold text-green-600">
+                {formatCurrency((event.budget || 0) - (Math.abs(event.expenses || 0) / 100))}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Gasto atual:</span>
+              <span className="font-semibold">
+                {event.budget && event.expenses && event.budget > 0
+                  ? `${Math.round(((Math.abs(event.expenses) / 100) / event.budget) * 100)}%`
+                  : "0%"
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Participantes */}
+        <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
+          <h3 className="text-sm font-medium mb-4 flex items-center">
+            <i className="fas fa-users text-primary mr-2"></i> Participantes
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total convidados:</span>
+              <span className="font-semibold">{event.attendees || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Confirmados:</span>
+              <span className="font-semibold text-[hsl(var(--event-confirmed))]">0</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Equipe do evento:</span>
+              <span className="font-semibold">{team?.length || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Fornecedores:</span>
+              <span className="font-semibold">0</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Duração e datas */}
+        <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
+          <h3 className="text-sm font-medium mb-4 flex items-center">
+            <i className="fas fa-clock text-primary mr-2"></i> Cronograma
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Data:</span>
+              <span className="font-semibold text-right">
+                {event.startDate ? (
+                  (() => {
+                    const startDate = new Date(event.startDate);
+                    const endDate = event.endDate ? new Date(event.endDate) : null;
+
+                    // Verifica se o evento dura mais de um dia
+                    if (endDate && startDate.toDateString() !== endDate.toDateString()) {
+                      // Formato para múltiplos dias: "26 Jun - 29 Jun"
+                      const startFormatted = startDate.toLocaleDateString('pt-BR', {
+                        day: 'numeric',
+                        month: 'short'
+                      });
+                      const endFormatted = endDate.toLocaleDateString('pt-BR', {
+                        day: 'numeric',
+                        month: 'short'
+                      });
+                      return `${startFormatted} - ${endFormatted}`;
+                    } else {
+                      // Formato para um dia: inclui o ano
+                      return formatDate(event.startDate);
+                    }
+                  })()
+                ) : "A definir"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Horário:</span>
+              <span className="font-semibold text-right">
+                {event.startTime && event.endTime
+                  ? `${event.startTime} - ${event.endTime}`
+                  : "A definir"
+                }
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Duração:</span>
+              <span className="font-semibold text-right">
+                {event.startDate ? (
+                  (() => {
+                    const startDate = new Date(event.startDate);
+                    const endDate = event.endDate ? new Date(event.endDate) : startDate;
+
+                    // Calcula diferença em dias
+                    const diffTime = endDate.getTime() - startDate.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays > 1) {
+                      return `${diffDays} dias`;
+                    } else if (event.startTime && event.endTime) {
+                      // Para eventos de um dia, calcula duração em horas
+                      const start = new Date(`2025-01-01T${event.startTime}`);
+                      const end = new Date(`2025-01-01T${event.endTime}`);
+                      const diffMs = end.getTime() - start.getTime();
+                      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                      return `${diffHours}h${diffMinutes > 0 ? `${diffMinutes}m` : ''}`;
+                    } else {
+                      return "1 dia";
+                    }
+                  })()
+                ) : "A definir"}
+              </span>
+            </div>
+            {event.startDate && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Faltam:</span>
+                <span className="font-semibold text-right">
+                  {(() => {
+                    const diffDays = calculateDaysRemaining(event.startDate);
+                    return diffDays > 0 ? `${diffDays} dias` : diffDays === 0 ? "Hoje" : "Finalizado";
+                  })()}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Insight da IA */}
+      <div className="bg-card rounded-xl shadow-sm p-5 border border-border mb-6">
+        <div className="flex items-start space-x-4">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <i className="fas fa-lightbulb text-primary"></i>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-medium mb-2">Insights do evento</h3>
+            <p className="text-sm text-muted-foreground">
+              {todoTasks > 0 ? (
+                <span>
+                  Você tem {todoTasks} {todoTasks === 1 ? 'tarefa pendente' : 'tarefas pendentes'} para este evento
+                  {event.startDate ? (
+                    (() => {
+                      const diffDays = calculateDaysRemaining(event.startDate);
+                      return diffDays > 0
+                        ? ` e faltam ${diffDays} dias para o evento acontecer.`
+                        : diffDays === 0
+                          ? `. O evento é hoje!`
+                          : `. O evento já passou.`;
+                    })()
+                  ) : '.'}
+                </span>
+              ) : (
+                <span>
+                  Todas as tarefas foram concluídas!
+                  {event.startDate ? (
+                    (() => {
+                      const diffDays = calculateDaysRemaining(event.startDate);
+                      return diffDays > 0
+                        ? ` Faltam ${diffDays} dias para o evento acontecer.`
+                        : diffDays === 0
+                          ? ` O evento é hoje!`
+                          : ` O evento já passou.`;
+                    })()
+                  ) : ''}
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
   return (
-    <div className="container mx-auto px-0 py-0 sm:py-4">
+    <div className="container mx-auto px-0 py-0">
       {/* Header bar fixo com breadcrumb - mantido visível durante rolagem */}
-      <div className="fixed top-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border w-full">
+      <div className="hidden sm:block fixed top-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border w-full">
         <div className="container mx-auto">
           {/* Breadcrumb Navigation - visível em desktop e tablet */}
           <nav className="hidden sm:flex py-3 px-4" aria-label="Breadcrumb">
@@ -510,19 +761,11 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </li>
             </ol>
           </nav>
-
-          {/* Breadcrumb para Mobile - simplificado como "Voltar" */}
-          <div className="sm:hidden flex items-center py-3 px-4">
-            <Link href="/events" className="flex items-center text-sm text-foreground font-medium">
-              <i className="fas fa-arrow-left mr-2"></i>
-              Voltar para Eventos
-            </Link>
-          </div>
         </div>
       </div>
 
       {/* Espaçamento para compensar o header fixo */}
-      <div className="h-12 sm:h-14"></div>
+      <div className="hidden md:block h-14"></div>
 
       {/* Layout principal com sidebar lateral e conteúdo */}
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
@@ -627,74 +870,15 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           </div>
         </div>
 
-        {/* Menu dropdown para mobile */}
-        <div className="md:hidden px-4 mb-4">
-          <Select value={activeSection} onValueChange={(value) => {
-            setActiveSection(value);
-          }}>
-            <SelectTrigger className="w-full" aria-label="Selecionar seção">
-              <SelectValue placeholder="Selecionar seção" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Navegação do Evento</SelectLabel>
-                <SelectItem value="resumo">
-                  <div className="flex items-center">
-                    <i className="fas fa-file-alt mr-2"></i> Resumo
-                  </div>
-                </SelectItem>
-                <SelectItem value="tarefas">
-                  <div className="flex items-center">
-                    <i className="fas fa-tasks mr-2"></i> Tarefas ({totalTasks})
-                  </div>
-                </SelectItem>
-                <SelectItem value="equipe">
-                  <div className="flex items-center">
-                    <i className="far fa-user-circle mr-2"></i> Equipe
-                  </div>
-                </SelectItem>
-                <SelectItem value="participantes">
-                  <div className="flex items-center">
-                    <i className="far fa-address-book mr-2"></i> Lista de Participantes
-                  </div>
-                </SelectItem>
-                <SelectItem value="cronograma">
-                  <div className="flex items-center">
-                    <i className="fas fa-calendar-alt mr-2"></i> Cronograma
-                  </div>
-                </SelectItem>
-                <SelectItem value="financeiro">
-                  <div className="flex items-center">
-                    <i className="far fa-money-bill-alt mr-2"></i> Financeiro
-                  </div>
-                </SelectItem>
-                <SelectItem value="documentos">
-                  <div className="flex items-center">
-                    <i className="fas fa-file-pdf mr-2"></i> Documentos
-                  </div>
-                </SelectItem>
-                <SelectItem value="atividades">
-                  <div className="flex items-center">
-                    <i className="fas fa-history mr-2"></i> Atividades
-                  </div>
-                </SelectItem>
-                <SelectItem value="feedback">
-                  <div className="flex items-center">
-                    <i className="fas fa-comment-alt mr-2"></i> Feedback pós-evento
-                  </div>
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+
 
         {/* Conteúdo principal */}
-        <div className="flex-1 px-4 md:px-6 overflow-x-hidden">
+        <div className="flex-1 p-4 md:px-6 md:py-0 overflow-x-hidden">
           {/* Conteúdo baseado na seção ativa */}
           {activeSection === "resumo" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Cabeçalho principal do evento */}
-              <div className="rounded-xl overflow-hidden shadow-md mb-6">
+              <div className="rounded-xl overflow-hidden shadow-md mb-4">
                 {/* Imagem de capa com informações do evento sobrepostas */}
                 <div className="relative h-48 sm:h-64 md:h-[220px]">
                   <img
@@ -769,7 +953,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 </div>
 
                 {/* Informações principais do evento em formato de grade abaixo da imagem */}
-                <div className="bg-card p-5 border-t border-border">
+                <div className="bg-card p-5 border-t border-border rounded-b-xl">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Data e Horário */}
                     <div className="flex items-center">
@@ -836,242 +1020,77 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     </div>
                   </div>
                 </div>
-
-                {/* Barra de Progresso - Completamente fora do card principal */}
-                <div className="bg-card mt-4 p-3 rounded-md border border-border">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-9 h-9 flex items-center justify-center text-primary">
-                      <i className="far fa-chart-bar text-sm"></i>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs text-muted-foreground">Progresso</p>
-                        <span className="text-xs font-medium">{progress}%</span>
-                      </div>
-                      <div className="w-full bg-primary/10 rounded-full h-2">
-                        <div
-                          className="bg-primary h-2 rounded-full"
-                          style={{ width: `${progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
-              {/* Indicadores estratégicos do evento */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {/* Total de tarefas e progresso */}
-                <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
-                  <h3 className="text-sm font-medium mb-4 flex items-center">
-                    <i className="fas fa-tasks text-primary mr-2"></i> Tarefas
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Total:</span>
-                      <span className="font-semibold">{totalTasks || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Concluídas:</span>
-                      <span className="font-semibold text-[hsl(var(--event-completed))]">{completedTasks || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Em progresso:</span>
-                      <span className="font-semibold text-[hsl(var(--event-in-progress))]">{inProgressTasks || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Pendentes:</span>
-                      <span className="font-semibold text-[hsl(var(--event-planning))]">{todoTasks || 0}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Orçamento e gastos */}
-                <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
-                  <h3 className="text-sm font-medium mb-4 flex items-center">
-                    <i className="fas fa-coins text-primary mr-2"></i> Financeiro
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Orçamento total:</span>
-                      <span className="font-semibold">{event.budget ? formatCurrency(event.budget) : "R$ 0,00"}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Gastos atuais:</span>
-                      <span className="font-semibold">{formatCurrency(Math.abs(event.expenses || 0) / 100)}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Saldo restante:</span>
-                      <span className="font-semibold text-green-600">
-                        {formatCurrency((event.budget || 0) - (Math.abs(event.expenses || 0) / 100))}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Gasto atual:</span>
-                      <span className="font-semibold">
-                        {event.budget && event.expenses && event.budget > 0
-                          ? `${Math.round(((Math.abs(event.expenses) / 100) / event.budget) * 100)}%`
-                          : "0%"
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Participantes */}
-                <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
-                  <h3 className="text-sm font-medium mb-4 flex items-center">
-                    <i className="fas fa-users text-primary mr-2"></i> Participantes
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Total convidados:</span>
-                      <span className="font-semibold">{event.attendees || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Confirmados:</span>
-                      <span className="font-semibold text-[hsl(var(--event-confirmed))]">0</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Equipe do evento:</span>
-                      <span className="font-semibold">{team?.length || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Fornecedores:</span>
-                      <span className="font-semibold">0</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Duração e datas */}
-                <div className="bg-card rounded-xl shadow-sm p-5 border border-border h-full">
-                  <h3 className="text-sm font-medium mb-4 flex items-center">
-                    <i className="fas fa-clock text-primary mr-2"></i> Cronograma
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Data:</span>
-                      <span className="font-semibold text-right">
-                        {event.startDate ? (
-                          (() => {
-                            const startDate = new Date(event.startDate);
-                            const endDate = event.endDate ? new Date(event.endDate) : null;
-
-                            // Verifica se o evento dura mais de um dia
-                            if (endDate && startDate.toDateString() !== endDate.toDateString()) {
-                              // Formato para múltiplos dias: "26 Jun - 29 Jun"
-                              const startFormatted = startDate.toLocaleDateString('pt-BR', {
-                                day: 'numeric',
-                                month: 'short'
-                              });
-                              const endFormatted = endDate.toLocaleDateString('pt-BR', {
-                                day: 'numeric',
-                                month: 'short'
-                              });
-                              return `${startFormatted} - ${endFormatted}`;
-                            } else {
-                              // Formato para um dia: inclui o ano
-                              return formatDate(event.startDate);
-                            }
-                          })()
-                        ) : "A definir"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Horário:</span>
-                      <span className="font-semibold text-right">
-                        {event.startTime && event.endTime
-                          ? `${event.startTime} - ${event.endTime}`
-                          : "A definir"
-                        }
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Duração:</span>
-                      <span className="font-semibold text-right">
-                        {event.startDate ? (
-                          (() => {
-                            const startDate = new Date(event.startDate);
-                            const endDate = event.endDate ? new Date(event.endDate) : startDate;
-
-                            // Calcula diferença em dias
-                            const diffTime = endDate.getTime() - startDate.getTime();
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                            if (diffDays > 1) {
-                              return `${diffDays} dias`;
-                            } else if (event.startTime && event.endTime) {
-                              // Para eventos de um dia, calcula duração em horas
-                              const start = new Date(`2025-01-01T${event.startTime}`);
-                              const end = new Date(`2025-01-01T${event.endTime}`);
-                              const diffMs = end.getTime() - start.getTime();
-                              const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                              const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                              return `${diffHours}h${diffMinutes > 0 ? `${diffMinutes}m` : ''}`;
-                            } else {
-                              return "1 dia";
-                            }
-                          })()
-                        ) : "A definir"}
-                      </span>
-                    </div>
-                    {event.startDate && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Faltam:</span>
-                        <span className="font-semibold text-right">
-                          {(() => {
-                            const diffDays = calculateDaysRemaining(event.startDate);
-                            return diffDays > 0 ? `${diffDays} dias` : diffDays === 0 ? "Hoje" : "Finalizado";
-                          })()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Insight da IA */}
-              <div className="bg-card rounded-xl shadow-sm p-5 border border-border mb-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <i className="fas fa-lightbulb text-primary"></i>
+              {/* Barra de Progresso - Completamente fora do card principal */}
+              <div className="bg-card mt-4 p-3 rounded-md border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-9 h-9 flex items-center justify-center text-primary">
+                    <i className="far fa-chart-bar text-sm"></i>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium mb-2">Insights do evento</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {todoTasks > 0 ? (
-                        <span>
-                          Você tem {todoTasks} {todoTasks === 1 ? 'tarefa pendente' : 'tarefas pendentes'} para este evento
-                          {event.startDate ? (
-                            (() => {
-                              const diffDays = calculateDaysRemaining(event.startDate);
-                              return diffDays > 0
-                                ? ` e faltam ${diffDays} dias para o evento acontecer.`
-                                : diffDays === 0
-                                  ? `. O evento é hoje!`
-                                  : `. O evento já passou.`;
-                            })()
-                          ) : '.'}
-                        </span>
-                      ) : (
-                        <span>
-                          Todas as tarefas foram concluídas!
-                          {event.startDate ? (
-                            (() => {
-                              const diffDays = calculateDaysRemaining(event.startDate);
-                              return diffDays > 0
-                                ? ` Faltam ${diffDays} dias para o evento acontecer.`
-                                : diffDays === 0
-                                  ? ` O evento é hoje!`
-                                  : ` O evento já passou.`;
-                            })()
-                          ) : ''}
-                        </span>
-                      )}
-                    </p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-muted-foreground">Progresso</p>
+                      <span className="text-xs font-medium">{progress}%</span>
+                    </div>
+                    <div className="w-full bg-primary/10 rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <div className="hidden md:block">
+                {renderStrategicIndicators()}
+              </div>
+              {/* Mobile Navigation Grid */}
+              <div className="md:hidden mt-4 mb-8">
+                <h3 className="text-sm font-medium mb-4 px-1">Menu do Evento</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { id: 'mobile_details', label: 'Detalhes', icon: 'fas fa-info-circle', color: 'bg-primary/10 text-primary' },
+                    { id: 'tarefas', label: 'Tarefas', count: totalTasks, icon: 'fas fa-tasks', color: 'bg-blue-500/10 text-blue-600' },
+                    { id: 'equipe', label: 'Equipe', count: team?.length, icon: 'far fa-user-circle', color: 'bg-indigo-500/10 text-indigo-600' },
+                    { id: 'participantes', label: 'Participantes', count: event.attendees, icon: 'far fa-address-book', color: 'bg-green-500/10 text-green-600' },
+                    { id: 'cronograma', label: 'Cronograma', icon: 'fas fa-calendar-alt', color: 'bg-orange-500/10 text-orange-600' },
+                    { id: 'financeiro', label: 'Financeiro', icon: 'far fa-money-bill-alt', color: 'bg-emerald-500/10 text-emerald-600' },
+                    { id: 'documentos', label: 'Documentos', icon: 'fas fa-file-pdf', color: 'bg-red-500/10 text-red-600' },
+                    { id: 'atividades', label: 'Atividades', icon: 'fas fa-history', color: 'bg-purple-500/10 text-purple-600' },
+                    { id: 'feedback', label: 'Feedback', icon: 'fas fa-comment-alt', color: 'bg-pink-500/10 text-pink-600' }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        const from = new URLSearchParams(search).get('from');
+                        const navigateUrl = `${location}?section=${item.id}${from ? `&from=${from}` : ''}`;
+                        setActiveSection(item.id);
+                        navigate(navigateUrl);
+                      }}
+                      className="bg-card border border-border p-4 rounded-xl flex flex-col items-center justify-center gap-3 hover:bg-muted/50 transition-colors shadow-sm"
+                    >
+                      <div className={`w-10 h-10 rounded-full ${item.color} flex items-center justify-center text-lg`}>
+                        <i className={item.icon}></i>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-sm font-medium block text-foreground">{item.label}</span>
+                        {item.count !== undefined && (
+                          <span className="text-xs text-muted-foreground">{item.count} itens</span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Detail Section */}
+          {activeSection === "mobile_details" && (
+            <div className="space-y-4">
+              {renderStrategicIndicators()}
             </div>
           )}
 
@@ -1193,21 +1212,27 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           )}
 
           {activeSection === "atividades" && (
-            <ActivityFeed
-              activities={activities || []}
-              loading={activitiesLoading}
-              limit={10}
-            />
+            <div className="space-y-4">
+              <ActivityFeed
+                activities={activities || []}
+                loading={activitiesLoading}
+                limit={10}
+              />
+            </div>
           )}
 
           {/* Lista de Participantes */}
           {activeSection === "participantes" && (
-            <ParticipantsList eventId={Number(eventId)} />
+            <div className="space-y-4">
+              <ParticipantsList eventId={Number(eventId)} />
+            </div>
           )}
 
           {/* Cronograma */}
           {activeSection === "cronograma" && (
-            <ScheduleList eventId={Number(eventId)} />
+            <div className="space-y-4">
+              <ScheduleList eventId={Number(eventId)} />
+            </div>
           )}
 
           {/* Financeiro */}
@@ -1278,7 +1303,9 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
           {/* Feedback pós-evento */}
           {activeSection === "feedback" && (
-            <FeedbackManager eventId={Number(eventId)} />
+            <div className="space-y-4">
+              <FeedbackManager eventId={Number(eventId)} />
+            </div>
           )}
         </div>
       </div>
@@ -1512,7 +1539,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </div >
   );
 };
 

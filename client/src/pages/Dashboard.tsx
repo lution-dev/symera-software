@@ -162,31 +162,37 @@ const Dashboard: React.FC = () => {
                     </div>
                   </Link>
 
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-                        <ClipboardList className="w-6 h-6" />
+                  <Link href="/events" onClick={() => document.dispatchEvent(new CustomEvent('closeDrawer'))}>
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group active:scale-[0.98] transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+                          <ClipboardList className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tarefas Pendentes</p>
+                          <p className="text-xl font-black text-white">
+                            {data?.pendingTasks.length || 0} <span className="text-xs text-muted-foreground font-normal ml-1">tarefas para hoje</span>
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tarefas Pendentes</p>
-                        <p className="text-xl font-black text-white">
-                          {data?.pendingTasks.length || 0} <span className="text-xs text-muted-foreground font-normal ml-1">tarefas para hoje</span>
-                        </p>
-                      </div>
+                      <ArrowUpRight className="w-5 h-5 text-muted-foreground opacity-50 group-hover:text-primary transition-colors" />
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                        <CalendarDays className="w-6 h-6" />
+                  <Link href="/events" onClick={() => document.dispatchEvent(new CustomEvent('closeDrawer'))}>
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between group active:scale-[0.98] transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                          <CalendarDays className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Próximos 30 dias</p>
+                          <p className="text-xl font-black text-white">{data?.upcomingEvents?.length || 0} <span className="text-xs text-muted-foreground font-normal ml-1">eventos marcados</span></p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Próximos 30 dias</p>
-                        <p className="text-xl font-black text-white">{data?.upcomingEvents?.length || 0} <span className="text-xs text-muted-foreground font-normal ml-1">eventos marcados</span></p>
-                      </div>
+                      <ArrowUpRight className="w-5 h-5 text-muted-foreground opacity-50 group-hover:text-primary transition-colors" />
                     </div>
-                  </div>
+                  </Link>
 
                   <DrawerClose asChild>
                     <Button variant="outline" className="mt-4 h-12 rounded-xl border-white/10 font-black tracking-tight active:scale-[0.98]">
@@ -252,7 +258,7 @@ const Dashboard: React.FC = () => {
               <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none]">
                 {activeEventsList.slice(0, 3).map(event => (
                   <div key={event.id} className={cn("snap-center md:min-w-0", activeEventsList.length === 1 ? "w-full min-w-full" : "min-w-[85vw]")}>
-                    <EventCard {...event} />
+                    <EventCard {...event} from="dashboard" />
                   </div>
                 ))}
 

@@ -64,6 +64,7 @@ interface EventCardProps {
   tasks?: Task[];
   coverImage?: string;
   lastUpdated?: string;
+  from?: string;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
@@ -82,6 +83,7 @@ const EventCard: React.FC<EventCardProps> = ({
   tasks = [],
   status,
   coverImage,
+  from,
 }) => {
   const teamData = React.useMemo(() => Array.isArray(team) ? team : [], [team]);
 
@@ -106,7 +108,7 @@ const EventCard: React.FC<EventCardProps> = ({
   const daysRemaining = startDate ? calculateDaysRemaining(startDate) : null;
 
   return (
-    <Link href={`/events/${id}`}>
+    <Link href={`/events/${id}${from ? `?from=${from}` : ''}`}>
       <div className="group relative bg-card rounded-2xl overflow-hidden border border-white/5 hover:border-primary/30 transition-all duration-500 shadow-lg hover:shadow-primary/5 h-full flex flex-col active:scale-[0.99]">
         {/* Header Image Section - Compact Height */}
         <div className="relative h-24 sm:h-32 overflow-hidden bg-muted">

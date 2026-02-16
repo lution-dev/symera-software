@@ -17,22 +17,22 @@ const Events: React.FC = () => {
   const [eventTypeFilter, setEventTypeFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("date");
 
-  const { data: events, isLoading } = useQuery({
+  const { data: events, isLoading } = useQuery<any[]>({
     queryKey: ["/api/events"],
   });
 
   const filteredEvents = React.useMemo(() => {
     if (!events) return [];
-    
+
     return events
       .filter((event: any) => {
         // Filter by search term
         const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (event.location && event.location.toLowerCase().includes(searchTerm.toLowerCase()));
-        
+
         // Filter by event type
         const matchesType = eventTypeFilter === "all" || event.type === eventTypeFilter;
-        
+
         return matchesSearch && matchesType;
       })
       .sort((a: any, b: any) => {
@@ -103,7 +103,7 @@ const Events: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Filters - Redesenhado para mobile */}
       <div className="bg-card rounded-lg mb-6 sm:mb-8 overflow-hidden">
         {/* Versão Mobile: Layout mais compacto apenas com filtros essenciais */}
@@ -124,7 +124,7 @@ const Events: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="flex-1">
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="h-9 text-sm">
@@ -138,7 +138,7 @@ const Events: React.FC = () => {
             </Select>
           </div>
         </div>
-        
+
         {/* Versão Desktop: Layout original */}
         <div className="hidden sm:block p-4">
           <div className="flex flex-col md:flex-row gap-4">
@@ -154,7 +154,7 @@ const Events: React.FC = () => {
                 <i className="fas fa-search absolute left-3 top-2.5 text-muted-foreground"></i>
               </div>
             </div>
-            
+
             <div className="w-full md:w-48">
               <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
                 <SelectTrigger>
@@ -171,7 +171,7 @@ const Events: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="w-full md:w-48">
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger>
@@ -231,6 +231,7 @@ const Events: React.FC = () => {
               team={event.team || []}
               tasks={event.tasks || []}
               coverImage={event.coverImageUrl || event.cover_image_url}
+              from="events"
             />
           ))}
         </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CalendarCheck,
@@ -97,45 +98,50 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
 }) => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-6">
-      <MetricCard
-        title="Eventos Ativos"
-        value={activeEvents}
-        icon={CalendarCheck}
-        change={{
-          value: "+20%",
-          trend: "up",
-          text: "mês"
-        }}
-        isLoading={isLoading}
-      />
-
-      <MetricCard
-        title="Tarefas"
-        value={pendingTasks}
-        icon={ClipboardList}
-        change={{
-          value: "+5%",
-          trend: "up",
-          text: "hoje"
-        }}
-        isLoading={isLoading}
-      />
-
-      <div className="col-span-2 lg:col-span-1">
+      <Link href="/events">
         <MetricCard
-          title="Próximos 30 dias"
-          value={upcomingEvents}
-          icon={CalendarDays}
+          title="Eventos Ativos"
+          value={activeEvents}
+          icon={CalendarCheck}
           change={{
-            value: upcomingEventDays > 0 ? `${upcomingEventDays}d` : "Nenhum",
-            trend: "neutral",
-            text: "para o próximo"
+            value: "+20%",
+            trend: "up",
+            text: "mês"
           }}
           isLoading={isLoading}
         />
+      </Link>
+
+      <Link href="/events">
+        <MetricCard
+          title="Tarefas"
+          value={pendingTasks}
+          icon={ClipboardList}
+          change={{
+            value: "+5%",
+            trend: "up",
+            text: "hoje"
+          }}
+          isLoading={isLoading}
+        />
+      </Link>
+
+      <div className="col-span-2 lg:col-span-1">
+        <Link href="/events">
+          <MetricCard
+            title="Próximos 30 dias"
+            value={upcomingEvents}
+            icon={CalendarDays}
+            change={{
+              value: upcomingEventDays > 0 ? `${upcomingEventDays}d` : "Nenhum",
+              trend: "neutral",
+              text: "para o próximo"
+            }}
+            isLoading={isLoading}
+          />
+        </Link>
       </div>
     </div>
   );
 };
-
 export default DashboardMetrics;

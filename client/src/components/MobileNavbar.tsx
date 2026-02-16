@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
-import { 
-  Sheet, 
-  SheetContent, 
+import {
+  Sheet,
+  SheetContent,
   SheetTrigger,
   SheetClose
 } from "@/components/ui/sheet";
@@ -30,19 +30,40 @@ const MobileNavbar: React.FC = () => {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [showNavbarTop, setShowNavbarTop] = useState(true);
   const [lastScrollTop, setLastScrollTop] = useState(0);
+  const [search, setSearch] = useState(window.location.search);
+
+  // Monitorar mudanças na URL (incluindo query params)
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setSearch(window.location.search);
+    };
+
+    // Patch pushState para detectar mudanças de query params
+    const originalPushState = window.history.pushState;
+    window.history.pushState = function (...args) {
+      originalPushState.apply(window.history, args);
+      handleLocationChange();
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => {
+      window.history.pushState = originalPushState;
+      window.removeEventListener('popstate', handleLocationChange);
+    };
+  }, []);
 
   // Monitorar rolagem para esconder/mostrar a navbar superior
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      
+
       // Determina se rolou para baixo
       if (scrollTop > lastScrollTop && scrollTop > 100) {
         setShowNavbarTop(false); // Esconder quando rolar para baixo
       } else {
         setShowNavbarTop(true); // Mostrar quando rolar para cima
       }
-      
+
       setHasScrolled(scrollTop > 20);
       setLastScrollTop(scrollTop);
     };
@@ -58,7 +79,7 @@ const MobileNavbar: React.FC = () => {
     { path: "/events/new", label: "Novo", icon: Plus, highlight: true },
     { path: "/schedule", label: "Agenda", icon: CalendarDays },
   ];
-  
+
   // Items adicionais que aparecerão no menu de hambúrguer
   const menuItems = [
     { path: "/vendors", label: "Fornecedores", icon: Truck },
@@ -66,7 +87,7 @@ const MobileNavbar: React.FC = () => {
     { path: "/team", label: "Equipe", icon: Users },
     { path: "/settings", label: "Configurações", icon: Settings },
   ];
-  
+
   const isActivePath = (path: string) => {
     if (path === '/') return location === '/';
     // Para /events, verificar se é exatamente /events ou detalhes de evento, mas não /events/new
@@ -79,7 +100,27 @@ const MobileNavbar: React.FC = () => {
     if (location === '/') return 'Symera'; // Mostrar Symera na home/dashboard
     if (location === '/events') return 'Meus Eventos';
     if (location === '/events/new') return 'Criar Evento';
-    if (location.startsWith('/events/')) return 'Detalhes do Evento';
+    if (location.startsWith('/events/')) {
+      const params = new URLSearchParams(search);
+      const section = params.get('section') || params.get('tab');
+
+      if (section) {
+        switch (section) {
+          case 'mobile_details': return 'Detalhes';
+          case 'tarefas':
+          case 'tasks': return 'Tarefas';
+          case 'equipe': return 'Equipe';
+          case 'participantes': return 'Participantes';
+          case 'cronograma': return 'Cronograma';
+          case 'financeiro': return 'Financeiro';
+          case 'documentos': return 'Documentos';
+          case 'atividades': return 'Atividades';
+          case 'feedback': return 'Feedback';
+          default: return 'Detalhes do Evento';
+        }
+      }
+      return 'Detalhes do Evento';
+    }
     if (location === '/schedule') return 'Agenda';
     if (location === '/settings') return 'Configurações';
     if (location === '/profile') return 'Meu Perfil';
@@ -90,30 +131,41 @@ const MobileNavbar: React.FC = () => {
     if (location === '/profile/configuracoes/seguranca') return 'Segurança';
     return 'Symera';
   };
-  
+
   // Determinar o destino do botão de voltar
   const getBackButtonDestination = () => {
     if (location === '/events/new') return '/events';
-    if (location.startsWith('/events/')) return '/events';
+    if (location.startsWith('/events/')) {
+      const params = new URLSearchParams(search);
+      const from = params.get('from');
+
+      if (params.get('section') || params.get('tab')) {
+        // Se estiver em uma seção, o botão deve voltar para o resumo (preservando o from)
+        return `${location}${from ? `?from=${from}` : ''}`;
+      }
+
+      // Se estiver no resumo, volta para de onde veio
+      return from === 'dashboard' ? '/' : '/events';
+    }
     if (location.startsWith('/profile/configuracoes/')) return '/profile/configuracoes';
     if (location === '/profile/configuracoes') return '/profile';
     if (location.startsWith('/settings/')) return '/settings';
     return '/';
   };
-  
+
   // Todas as páginas terão título na navbar, seguindo o padrão de apps profissionais
   const shouldShowNavbarTitle = () => {
     return true;
   };
-  
+
   // Função removida - lógica movida diretamente para o JSX
 
   return (
     <>
       {/* Topo do App (estilo iOS/Android) */}
-      <div 
+      <div
         className={cn(
-          "fixed top-0 inset-x-0 md:hidden z-40 transition-all duration-300 bg-card border-b border-border", 
+          "fixed top-0 inset-x-0 md:hidden z-40 transition-all duration-300 bg-card border-b border-border",
           showNavbarTop ? "translate-y-0" : "-translate-y-full",
           hasScrolled ? "shadow-md" : ""
         )}
@@ -122,7 +174,7 @@ const MobileNavbar: React.FC = () => {
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center w-12">
             {/* Verificamos se deve mostrar o menu hamburguer ou o botão de voltar */}
-            {!location.includes('/events/') && location !== '/events/new' && 
+            {!location.includes('/events/') && location !== '/events/new' &&
               !location.includes('/profile/configuracoes') && !location.includes('/settings/') ? (
               <>
                 {/* Menu toggle no estilo dos exemplos */}
@@ -135,15 +187,15 @@ const MobileNavbar: React.FC = () => {
                   <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
                     <div className="p-4 bg-card flex items-center border-b border-border">
                       <div className="flex items-center">
-                        <img 
+                        <img
                           src={symeraLogo}
-                          alt="Symera Logo" 
-                          className="h-8 w-auto" 
+                          alt="Symera Logo"
+                          className="h-8 w-auto"
                         />
                         <h1 className="text-xl font-bold gradient-text ml-3">Symera</h1>
                       </div>
                     </div>
-                    
+
                     <div className="p-5 pt-6">
                       <div className="space-y-1">
                         {mainNavItems.concat(menuItems).map((item) => (
@@ -162,7 +214,7 @@ const MobileNavbar: React.FC = () => {
                           </SheetClose>
                         ))}
                       </div>
-                      
+
                       <div className="mt-8 pt-5 border-t border-border">
                         <div className="flex items-center px-4 py-3">
                           <div className="flex-1">
@@ -176,147 +228,144 @@ const MobileNavbar: React.FC = () => {
                 </Sheet>
               </>
             ) : (
-              <Link href={location === '/events/new' 
-                  ? '/events' 
-                  : location.startsWith('/events/') 
-                  ? '/events'
-                  : location.startsWith('/profile/configuracoes/') 
-                  ? '/profile/configuracoes'
-                  : location === '/profile/configuracoes' 
-                  ? '/profile'
-                  : location.startsWith('/profile/configuracoes') 
-                  ? '/profile'
-                  : location.startsWith('/settings/') 
-                  ? '/settings'
-                  : '/'}>
+              <Link href={getBackButtonDestination()}>
                 <div className="flex items-center">
                   <ChevronLeft className="h-5 w-5 mr-2 text-primary" />
                 </div>
               </Link>
             )}
           </div>
-          
+
           {/* Título centralizado */}
           <div className="flex-1 text-center">
-            <h1 className="text-lg font-semibold truncate max-w-[200px] mx-auto">
-              {getPageTitle()}
-            </h1>
+            {!location.includes('/events/') && location !== '/events/new' &&
+              !location.includes('/profile/configuracoes') && !location.includes('/settings/') ? (
+              <Link href="/">
+                <h1 className="text-lg font-semibold truncate max-w-[200px] mx-auto active:opacity-70 transition-opacity">
+                  {getPageTitle()}
+                </h1>
+              </Link>
+            ) : (
+              <h1 className="text-lg font-semibold truncate max-w-[200px] mx-auto">
+                {getPageTitle()}
+              </h1>
+            )}
           </div>
-          
+
           {/* Espaço vazio à direita para manter o equilíbrio */}
           <div className="w-12"></div>
         </div>
       </div>
-      
+
       {/* Barra de navegação inferior - ocultada nas telas de edição e adição */}
-      {!(location === '/events/new' || 
-        location.includes('/add-') || 
-        location.includes('/edit') || 
-        location.match(/\/events\/\d+\/tasks\/new/) || 
-        location.match(/\/events\/\d+\/team\/add/) || 
-        location.match(/\/events\/\d+\/vendors\/new/) || 
+      {!(location === '/events/new' ||
+        location.includes('/add-') ||
+        location.includes('/edit') ||
+        location.match(/\/events\/\d+\/tasks\/new/) ||
+        location.match(/\/events\/\d+\/team\/add/) ||
+        location.match(/\/events\/\d+\/vendors\/new/) ||
         location.match(/\/events\/\d+\/budget\/new/)) && (
-        <div className="fixed inset-x-0 bottom-0 bg-card md:hidden z-40 shadow-lg border-t border-border">
-          <div className="h-16 flex items-center justify-around">
-            {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
-          <div className="flex-1 flex justify-center touch-action-manipulation">
-            <Link href="/" className="w-full flex justify-center">
-              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-                <Home className={cn(
-                  "h-6 w-6 mb-1",
-                  isActivePath('/') ? "text-primary" : "text-foreground"
-                )} />
-                <span className={cn(
-                  "text-xs text-center w-full",
-                  isActivePath('/') ? "text-primary" : "text-foreground"
-                )}>
-                  Início
-                </span>
-              </div>
-            </Link>
-          </div>
-          
-          <div className="flex-1 flex justify-center touch-action-manipulation">
-            <Link href="/events" className="w-full flex justify-center">
-              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-                <Calendar className={cn(
-                  "h-6 w-6 mb-1",
-                  isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
-                )} />
-                <span className={cn(
-                  "text-xs text-center w-full",
-                  isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
-                )}>
-                  Eventos
-                </span>
-              </div>
-            </Link>
-          </div>
-          
-          {/* Botão de adicionar no centro */}
-          <div className="flex-1 flex justify-center touch-action-manipulation">
-            <Link href="/events/new" className="w-full flex justify-center">
-              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-                <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
-                  <Plus className="h-5 w-5 text-white" />
-                </div>
-                <span className={cn(
-                  "text-xs mt-1 text-center w-full",
-                  isActivePath('/events/new') ? "text-primary" : "text-foreground"
-                )}>
-                  Novo
-                </span>
-              </div>
-            </Link>
-          </div>
-          
-          <div className="flex-1 flex justify-center touch-action-manipulation">
-            <Link href="/schedule" className="w-full flex justify-center">
-              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-                <CalendarDays className={cn(
-                  "h-6 w-6 mb-1",
-                  isActivePath('/schedule') ? "text-primary" : "text-foreground"
-                )} />
-                <span className={cn(
-                  "text-xs text-center w-full",
-                  isActivePath('/schedule') ? "text-primary" : "text-foreground"
-                )}>
-                  Agenda
-                </span>
-              </div>
-            </Link>
-          </div>
-          
-          <div className="flex-1 flex justify-center touch-action-manipulation">
-            <Link href="/profile" className="w-full flex justify-center">
-              <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
-                {user?.profileImageUrl ? (
-                  <div className={cn(
-                    "h-7 w-7 rounded-full overflow-hidden border-2",
-                    isActivePath('/profile') ? "border-primary" : "border-transparent"
-                  )}>
-                    <img src={user.profileImageUrl} alt="Perfil" className="h-full w-full object-cover" />
+          <div className="fixed inset-x-0 bottom-0 bg-card md:hidden z-40 shadow-lg border-t border-border">
+            <div className="h-16 flex items-center justify-around">
+              {/* Mudamos para apenas 4 itens principais, sem o menu duplicado */}
+              <div className="flex-1 flex justify-center touch-action-manipulation">
+                <Link href="/" className="w-full flex justify-center">
+                  <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                    <Home className={cn(
+                      "h-6 w-6 mb-1",
+                      isActivePath('/') ? "text-primary" : "text-foreground"
+                    )} />
+                    <span className={cn(
+                      "text-xs text-center w-full",
+                      isActivePath('/') ? "text-primary" : "text-foreground"
+                    )}>
+                      Início
+                    </span>
                   </div>
-                ) : (
-                  <User className={cn(
-                    "h-6 w-6 mb-1",
-                    isActivePath('/profile') ? "text-primary" : "text-foreground"
-                  )} />
-                )}
-                <span className={cn(
-                  "text-xs mt-1 text-center w-full",
-                  isActivePath('/profile') ? "text-primary" : "text-foreground"
-                )}>
-                  Perfil
-                </span>
+                </Link>
               </div>
-            </Link>
+
+              <div className="flex-1 flex justify-center touch-action-manipulation">
+                <Link href="/events" className="w-full flex justify-center">
+                  <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                    <Calendar className={cn(
+                      "h-6 w-6 mb-1",
+                      isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
+                    )} />
+                    <span className={cn(
+                      "text-xs text-center w-full",
+                      isActivePath('/events') || location.startsWith('/events/') ? "text-primary" : "text-foreground"
+                    )}>
+                      Eventos
+                    </span>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Botão de adicionar no centro */}
+              <div className="flex-1 flex justify-center touch-action-manipulation">
+                <Link href="/events/new" className="w-full flex justify-center">
+                  <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                    <div className="gradient-primary rounded-full p-3 shadow-lg -mt-6 w-12 h-12 flex items-center justify-center">
+                      <Plus className="h-5 w-5 text-white" />
+                    </div>
+                    <span className={cn(
+                      "text-xs mt-1 text-center w-full",
+                      isActivePath('/events/new') ? "text-primary" : "text-foreground"
+                    )}>
+                      Novo
+                    </span>
+                  </div>
+                </Link>
+              </div>
+
+              <div className="flex-1 flex justify-center touch-action-manipulation">
+                <Link href="/schedule" className="w-full flex justify-center">
+                  <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                    <CalendarDays className={cn(
+                      "h-6 w-6 mb-1",
+                      isActivePath('/schedule') ? "text-primary" : "text-foreground"
+                    )} />
+                    <span className={cn(
+                      "text-xs text-center w-full",
+                      isActivePath('/schedule') ? "text-primary" : "text-foreground"
+                    )}>
+                      Agenda
+                    </span>
+                  </div>
+                </Link>
+              </div>
+
+              <div className="flex-1 flex justify-center touch-action-manipulation">
+                <Link href="/profile" className="w-full flex justify-center">
+                  <div className="flex flex-col items-center cursor-pointer min-w-[56px] min-h-[48px] justify-center text-center">
+                    {user?.profileImageUrl ? (
+                      <div className={cn(
+                        "h-7 w-7 rounded-full overflow-hidden border-2",
+                        isActivePath('/profile') ? "border-primary" : "border-transparent"
+                      )}>
+                        <img src={user.profileImageUrl} alt="Perfil" className="h-full w-full object-cover" />
+                      </div>
+                    ) : (
+                      <User className={cn(
+                        "h-6 w-6 mb-1",
+                        isActivePath('/profile') ? "text-primary" : "text-foreground"
+                      )} />
+                    )}
+                    <span className={cn(
+                      "text-xs mt-1 text-center w-full",
+                      isActivePath('/profile') ? "text-primary" : "text-foreground"
+                    )}>
+                      Perfil
+                    </span>
+                  </div>
+                </Link>
+              </div>
+            </div>
+            {/* Safe area padding for web apps installed on mobile devices */}
+            <div className="h-4 bg-card"></div>
           </div>
-          </div>
-          {/* Safe area padding for web apps installed on mobile devices */}
-          <div className="h-4 bg-card"></div>
-        </div>
-      )}
+        )}
     </>
   );
 };
