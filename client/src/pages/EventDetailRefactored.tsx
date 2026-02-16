@@ -206,6 +206,18 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       // Pequeno atraso para garantir que a atualização do banco foi concluída
       setTimeout(() => refetch(), 500);
     }
+
+    // Verificar se existe um parâmetro de aba na URL
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab') || params.get('section');
+    if (tab) {
+      // Mapear 'tarefas' para a seção correta se necessário, ou usar direto
+      if (tab === 'tarefas' || tab === 'tasks') {
+        setActiveSection('tarefas');
+      } else if (['resumo', 'equipe', 'participantes', 'cronograma', 'financeiro', 'documentos', 'atividades', 'feedback'].includes(tab)) {
+        setActiveSection(tab);
+      }
+    }
   }, [eventId, refetch]);
 
   // Fetch tasks

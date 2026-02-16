@@ -113,10 +113,10 @@ const EventCard: React.FC<EventCardProps> = ({
           <img
             src={getImageUrl()}
             alt={name}
-            className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
+            className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out will-change-transform"
             onError={(e) => { (e.target as HTMLImageElement).src = getDefaultCover(); }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent opacity-90 group-hover:scale-105 transition-all duration-700 ease-out will-change-transform" />
 
           <div className="absolute top-3 left-3 flex gap-1.5">
             <span className={cn(

@@ -305,7 +305,7 @@ const TaskList: React.FC<TaskListProps> = ({
                 <div className="min-w-0 flex-1">
                   <div
                     className="cursor-pointer group/title"
-                    onClick={() => navigate(`/events/${task.eventId}/tasks`)}
+                    onClick={() => navigate(`/events/${task.eventId}?tab=tarefas`)}
                   >
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <p className={cn(
@@ -447,7 +447,7 @@ const TaskList: React.FC<TaskListProps> = ({
                 )} />
                 <div
                   className="cursor-pointer"
-                  onClick={() => navigate(`/events/${task.eventId}/tasks`)}
+                  onClick={() => navigate(`/events/${task.eventId}?tab=tarefas`)}
                 >
                   <p className={cn(
                     "text-sm font-bold leading-tight",

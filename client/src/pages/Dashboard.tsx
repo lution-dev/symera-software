@@ -196,7 +196,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <Link href="/events/new">
+        <Link href="/events/new" className="hidden md:block">
           <Button className="gradient-primary h-10 md:h-12 px-5 md:px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform gap-2 text-sm md:text-base">
             <Plus className="w-4 h-4 md:w-5 md:h-5" /> <span className="inline">Novo Evento</span>
           </Button>
@@ -204,7 +204,7 @@ const Dashboard: React.FC = () => {
       </header>
 
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-        <div className="grid grid-cols-1 gap-6">
+        <div className="hidden md:grid grid-cols-1 gap-6">
           <DashboardMetrics
             totalEvents={data?.totalEvents || 0}
             activeEvents={activeEventsList.length}
