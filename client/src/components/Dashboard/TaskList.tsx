@@ -136,7 +136,7 @@ const TaskList: React.FC<TaskListProps> = ({
   const [, navigate] = useLocation();
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'mine' | 'pending' | 'week'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'week'>('all');
   const [showAllTasks, setShowAllTasks] = useState(!limitTasks);
   const isMobile = useIsMobile();
 
@@ -151,15 +151,20 @@ const TaskList: React.FC<TaskListProps> = ({
 
   const filteredTasks = tasks.filter((task: Task) => {
     if (activeFilter === 'all') return true;
-    if (activeFilter === 'mine') return task.assignees?.some(a => a.userId === '8650891');
-    if (activeFilter === 'pending') return task.status !== 'completed';
+    if (activeFilter === 'pending') return task.status === 'todo';
     if (activeFilter === 'week') {
       const taskDate = task.dueDate ? new Date(task.dueDate) : null;
       if (!taskDate) return false;
+
       const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+
       const nextWeek = new Date(today);
       nextWeek.setDate(today.getDate() + 7);
-      return taskDate <= nextWeek;
+      nextWeek.setUTCHours(23, 59, 59, 999);
+
+      const tDate = new Date(taskDate);
+      return tDate >= today && tDate <= nextWeek;
     }
     return true;
   });
@@ -258,7 +263,7 @@ const TaskList: React.FC<TaskListProps> = ({
       {showFilters && (
         <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
           <div className="flex flex-wrap gap-2">
-            {(['all', 'mine', 'pending', 'week'] as const).map(filter => (
+            {(['all', 'pending', 'week'] as const).map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -270,7 +275,6 @@ const TaskList: React.FC<TaskListProps> = ({
                 )}
               >
                 {filter === 'all' && 'Todas'}
-                {filter === 'mine' && 'Minhas'}
                 {filter === 'pending' && 'Em aberto'}
                 {filter === 'week' && 'Semana'}
               </button>
