@@ -148,7 +148,7 @@ const TaskList: React.FC<TaskListProps> = ({
   const tasks = propTasks || apiTasks || [];
   const loading = propLoading || (apiLoading && !propTasks);
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task: Task) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'mine') return task.assignees?.some(a => a.userId === '8650891');
     if (activeFilter === 'pending') return task.status !== 'completed';
@@ -165,7 +165,7 @@ const TaskList: React.FC<TaskListProps> = ({
 
   const displayTasks = (!showAllTasks && limitTasks) ? filteredTasks.slice(0, 5) : filteredTasks;
 
-  const enhancedTasks = displayTasks.map(task => ({
+  const enhancedTasks = displayTasks.map((task: Task) => ({
     ...task,
     reminders: getMockReminders(task.id)
   }));
@@ -277,7 +277,7 @@ const TaskList: React.FC<TaskListProps> = ({
 
       {/* Desktop & Tablet Card View */}
       <div className="hidden sm:flex flex-col gap-3">
-        {enhancedTasks.map((task) => (
+        {enhancedTasks.map((task: any) => (
           <div
             key={task.id}
             className="group relative bg-card/40 hover:bg-card/60 rounded-2xl p-4 border border-white/5 hover:border-primary/20 transition-all duration-300 shadow-lg backdrop-blur-sm"
@@ -420,9 +420,9 @@ const TaskList: React.FC<TaskListProps> = ({
       </div>
 
       {/* Mobile View */}
-      <div className="sm:hidden divide-y divide-white/5">
-        {enhancedTasks.map((task) => (
-          <div key={task.id} className="p-4 bg-white/[0.01]">
+      <div className="sm:hidden flex flex-col gap-3">
+        {enhancedTasks.map((task: any) => (
+          <div key={task.id} className="p-4 bg-card/40 rounded-2xl border border-white/5 shadow-lg backdrop-blur-sm">
             <div className="flex justify-between items-start mb-2">
               <div className="flex gap-3">
                 <div className={cn(

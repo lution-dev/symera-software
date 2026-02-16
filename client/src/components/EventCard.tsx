@@ -3,19 +3,12 @@ import { Link } from "wouter";
 import { formatDate, calculateTaskProgress, calculateEventProgress, getEventTypeLabel, getInitials, generateProfileImageUrl } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Heart,
-  Briefcase,
-  Cake,
-  GlassWater,
   Calendar,
   Video,
-  Users2,
   Users,
   MapPin,
   Link as LinkIcon,
-  UserPlus,
   ListTodo,
-  LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -61,22 +54,6 @@ interface EventCardProps {
   lastUpdated?: string;
 }
 
-const TypeIconMap: Record<string, LucideIcon> = {
-  wedding: Heart,
-  corporate: Briefcase,
-  birthday: Cake,
-  social: GlassWater,
-  conference: Calendar
-};
-
-const TypeColorMap: Record<string, string> = {
-  wedding: 'bg-pink-100 text-pink-500',
-  corporate: 'bg-blue-100 text-blue-500',
-  birthday: 'bg-purple-100 text-purple-500',
-  social: 'bg-green-100 text-green-500',
-  conference: 'bg-amber-100 text-amber-500'
-};
-
 const EventCard: React.FC<EventCardProps> = ({
   id,
   name,
@@ -113,9 +90,8 @@ const EventCard: React.FC<EventCardProps> = ({
     return getDefaultCover();
   };
 
+
   const progressPercentage = calculateEventProgress(tasks, teamData);
-  const Icon = TypeIconMap[type] || Calendar;
-  const colorClass = TypeColorMap[type] || 'bg-gray-100 text-gray-500';
 
   return (
     <Link href={`/events/${id}`}>
@@ -143,14 +119,9 @@ const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         <div className="p-4 flex-1 flex flex-col gap-3">
-          <div className="flex items-start gap-3">
-            <div className={cn("w-10 h-10 rounded-xl shrink-0 flex items-center justify-center", colorClass)}>
-              <Icon className="w-5 h-5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-foreground text-sm sm:text-base truncate leading-tight">{name}</h3>
-              <p className="text-muted-foreground text-[11px] font-medium">{getEventTypeLabel(type)}</p>
-            </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-foreground text-sm sm:text-base truncate leading-tight">{name}</h3>
+            <p className="text-muted-foreground text-[11px] font-medium">{getEventTypeLabel(type)}</p>
           </div>
 
           <div className="space-y-2">
