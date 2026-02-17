@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { relations } from 'drizzle-orm'; // Cache buster: 2026-02-16-22-12
 import { text, integer, pgTable, timestamp, boolean, serial } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
