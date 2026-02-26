@@ -102,6 +102,12 @@ const Dashboard: React.FC = () => {
         const dateA = new Date(a.startDate || a.start_date || "2099-12-31");
         const dateB = new Date(b.startDate || b.start_date || "2099-12-31");
         return dateA.getTime() - dateB.getTime();
+      })
+      .filter(event => {
+        const eventDate = new Date(event.startDate || event.start_date || "2099-12-31");
+        // Mostrar eventos que ainda não terminaram ou que foram muito recentes (últimos 30 dias)
+        const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+        return eventDate >= thirtyDaysAgo;
       });
   }, [data?.activeEventsList]);
 
