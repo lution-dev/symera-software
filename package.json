@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "vite",
+    "dev": "tsx server/index.ts",
     "build": "vite build --mode production && esbuild api/_handler.ts --bundle --platform=node --target=node18 --format=esm --packages=external --outfile=api/index.mjs --minify",
     "preview": "vite preview",
     "start": "npm run preview",
