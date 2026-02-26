@@ -25,10 +25,9 @@ export class AuthManager {
   }
 
   async isDevLoginAvailable(): Promise<boolean> {
-    // Use Vite's build-time flag instead of server endpoint
-    // import.meta.env.DEV is true only during `npm run dev` (localhost)
-    // and false in production builds, regardless of server NODE_ENV
-    return import.meta.env.DEV;
+    // Only show dev login on localhost - bulletproof runtime check
+    const hostname = window.location.hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1';
   }
 
   async signInWithDevToken(): Promise<boolean> {
