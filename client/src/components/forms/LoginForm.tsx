@@ -15,13 +15,8 @@ import { useState, useEffect } from "react";
 
 const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isDevAvailable, setIsDevAvailable] = useState(false);
   const { toast } = useToast();
-  const { signInWithGoogle, signInWithDevToken, isDevLoginAvailable } = useAuth();
-
-  useEffect(() => {
-    isDevLoginAvailable().then(setIsDevAvailable);
-  }, [isDevLoginAvailable]);
+  const { signInWithGoogle } = useAuth();
 
   const handleGoogleLogin = async () => {
     try {
@@ -32,24 +27,6 @@ const LoginForm = () => {
       toast({
         title: "Erro no login",
         description: "Não foi possível fazer login. Tente novamente.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
-  };
-
-  const handleDevLogin = async () => {
-    try {
-      setIsLoading(true);
-      const success = await signInWithDevToken();
-      if (!success) {
-        throw new Error("Dev login failed");
-      }
-    } catch (error) {
-      console.error("Erro no dev login:", error);
-      toast({
-        title: "Erro no login de dev",
-        description: "Não foi possível entrar no modo desenvolvedor.",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -106,18 +83,6 @@ const LoginForm = () => {
             </svg>
             {isLoading ? "Conectando..." : "Continuar com Google"}
           </Button>
-
-          {isDevAvailable && (
-            <Button
-              onClick={handleDevLogin}
-              className="w-full h-12 flex items-center justify-center gap-3 border-orange-500/50 text-orange-500 hover:bg-orange-500/10"
-              disabled={isLoading}
-              variant="outline"
-            >
-              <Logo className="h-5 w-5 grayscale opacity-70" />
-              {isLoading ? "Entrando..." : "Entrar como Desenvolvedor"}
-            </Button>
-          )}
         </div>
 
 

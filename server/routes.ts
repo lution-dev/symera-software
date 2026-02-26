@@ -165,27 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
   });
 
 
-  // Habilitado: autenticação de desenvolvimento automática
-  if (process.env.NODE_ENV !== 'production') {
-    const { generateDevToken } = await import("./supabaseAuth");
 
-    app.get('/api/auth/dev-available', (req, res) => {
-      res.json({ available: true });
-    });
-
-    app.post('/api/auth/dev-login', (req, res) => {
-      const token = generateDevToken();
-      const payloadBase64 = token.split('-').pop() || '';
-      const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
-
-      res.json({
-        userId: payload.sub,
-        email: payload.email,
-        name: payload.name,
-        accessToken: token
-      });
-    });
-  }
 
 
   // Auth routes - Requer autenticação obrigatória

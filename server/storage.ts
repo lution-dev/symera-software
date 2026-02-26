@@ -44,43 +44,12 @@ import {
 import { db, executeWithRetry } from "./db";
 import { eq, and, or, desc, gte, lte, sql, isNotNull } from "drizzle-orm";
 
-// Sistema de cache em memória para reduzir consultas
+// Sistema de cache em memória desativado (incompatível com ambiente Serverless/Vercel)
 class MemoryCache {
-  private cache: Map<string, { data: any, timestamp: number }>;
-  private ttl: number; // Tempo de vida do cache em ms
-
-  constructor(ttlMs: number = 60000) { // Default: 1 minuto
-    this.cache = new Map();
-    this.ttl = ttlMs;
-  }
-
-  get<T>(key: string): T | undefined {
-    const entry = this.cache.get(key);
-    if (!entry) return undefined;
-
-    // Verificar se o cache está expirado
-    if (Date.now() - entry.timestamp > this.ttl) {
-      this.cache.delete(key);
-      return undefined;
-    }
-
-    return entry.data as T;
-  }
-
-  set<T>(key: string, data: T): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now()
-    });
-  }
-
-  invalidate(prefix: string): void {
-    Array.from(this.cache.keys()).forEach(key => {
-      if (key.startsWith(prefix)) {
-        this.cache.delete(key);
-      }
-    });
-  }
+  constructor(ttlMs: number = 60000) { }
+  get<T>(key: string): T | undefined { return undefined; }
+  set<T>(key: string, data: T): void { }
+  invalidate(prefix: string): void { }
 }
 
 // Criar instâncias de cache para diferentes tipos de dados

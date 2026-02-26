@@ -175,19 +175,7 @@ export function useAuth() {
     await authManager.signInWithGoogle();
   };
 
-  const signInWithDevToken = async (): Promise<boolean> => {
-    const success = await authManager.signInWithDevToken();
-    if (success) {
-      setHasValidAuthData(true);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      window.location.href = '/';
-    }
-    return success;
-  };
 
-  const isDevLoginAvailable = async (): Promise<boolean> => {
-    return authManager.isDevLoginAvailable();
-  };
 
   const logout = async () => {
     await authManager.signOut();
@@ -206,8 +194,6 @@ export function useAuth() {
     isAuthenticated,
     refetch,
     signInWithGoogle,
-    signInWithDevToken,
-    isDevLoginAvailable,
     logout
   };
 }
