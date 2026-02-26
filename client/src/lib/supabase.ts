@@ -1,58 +1,26 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-let supabaseInstance: SupabaseClient | null = null;
-let initPromise: Promise<SupabaseClient> | null = null;
-let supabaseConfig: { url: string; anonKey: string } | null = null;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-async function initSupabase(): Promise<SupabaseClient> {
-  if (supabaseInstance) return supabaseInstance;
-
-  if (initPromise) return initPromise;
-
-  initPromise = (async () => {
-    try {
-      const response = await fetch('/api/supabase-config');
-      const config = await response.json();
-
-      console.log('[Supabase] Config received:', {
-        hasUrl: !!config.url,
-        hasKey: !!config.anonKey,
-        urlStart: config.url?.substring(0, 20)
-      });
-
-      if (!config.url || !config.anonKey) {
-        throw new Error('Supabase configuration not available');
-      }
-
-      if (!config.url.startsWith('http')) {
-        throw new Error('Invalid Supabase URL');
-      }
-
-      supabaseConfig = { url: config.url, anonKey: config.anonKey };
-
-      supabaseInstance = createClient(config.url, config.anonKey, {
-        auth: {
-          persistSession: true,
-          detectSessionInUrl: true, // Supabase usa fluxo implícito: precisa auto-detectar tokens no hash da URL
-          autoRefreshToken: true,
-        }
-      });
-      return supabaseInstance;
-    } catch (error) {
-      console.error('Failed to initialize Supabase:', error);
-      throw error;
-    }
-  })();
-
-  return initPromise;
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY env vars');
 }
 
+const supabaseInstance: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    detectSessionInUrl: true,
+    autoRefreshToken: true,
+  }
+});
+
 export async function getSupabase(): Promise<SupabaseClient> {
-  return initSupabase();
+  return supabaseInstance;
 }
 
 export function getSupabaseConfig() {
-  return supabaseConfig;
+  return { url: supabaseUrl, anonKey: supabaseAnonKey };
 }
 
 export { supabaseInstance as supabase };
