@@ -16,7 +16,7 @@ interface AuthData {
 
 export class AuthManager {
   private static instance: AuthManager;
-  
+
   static getInstance(): AuthManager {
     if (!AuthManager.instance) {
       AuthManager.instance = new AuthManager();
@@ -25,13 +25,10 @@ export class AuthManager {
   }
 
   async isDevLoginAvailable(): Promise<boolean> {
-    try {
-      const response = await fetch('/api/auth/dev-available');
-      const data = await response.json();
-      return data.available === true;
-    } catch {
-      return false;
-    }
+    // Use Vite's build-time flag instead of server endpoint
+    // import.meta.env.DEV is true only during `npm run dev` (localhost)
+    // and false in production builds, regardless of server NODE_ENV
+    return import.meta.env.DEV;
   }
 
   async signInWithDevToken(): Promise<boolean> {
@@ -41,9 +38,9 @@ export class AuthManager {
         console.error('[Auth] Dev login falhou:', response.status);
         return false;
       }
-      
+
       const data = await response.json();
-      
+
       const authData: AuthData = {
         userId: data.userId,
         email: data.email,
@@ -52,7 +49,7 @@ export class AuthManager {
         name: data.name,
         picture: undefined,
       };
-      
+
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
       console.log('[Auth] 🔧 Login de desenvolvimento ativo');
       return true;
@@ -64,15 +61,15 @@ export class AuthManager {
 
   async signInWithGoogle(): Promise<void> {
     const supabase = await getSupabase();
-    
+
     // Determinar a URL de callback correta
     const origin = window.location.origin;
     const redirectUrl = origin + '/auth/callback';
-    
+
     console.log('[Auth] Iniciando login com Google');
     console.log('[Auth] Origin:', origin);
     console.log('[Auth] Redirect URL:', redirectUrl);
-    
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -144,13 +141,13 @@ export class AuthManager {
   async refreshToken(): Promise<boolean> {
     try {
       console.log('[Auth] Tentando renovar token...');
-      
+
       // Preservar o server ID existente antes de renovar
       const existingData = this.getAuthData();
       const existingServerId = existingData?.userId;
-      
+
       const supabase = await getSupabase();
-      
+
       // Primeiro tenta obter a sessão atual (pode ter refresh automático)
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData.session) {
@@ -163,15 +160,15 @@ export class AuthManager {
         }
         return true;
       }
-      
+
       // Se não tem sessão, tenta refresh explícito
       const { data, error } = await supabase.auth.refreshSession();
-      
+
       if (error || !data.session) {
         console.log('[Auth] Falha ao renovar token:', error?.message);
         return false;
       }
-      
+
       console.log('[Auth] Token renovado com sucesso via refreshSession');
       // Preservar o server ID se existir
       if (existingServerId && existingServerId !== data.session.user.id) {
@@ -199,7 +196,7 @@ export class AuthManager {
       return null;
     }
   }
-  
+
   async getAuthDataWithRefresh(): Promise<AuthData | null> {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -250,7 +247,7 @@ export class AuthManager {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[Auth] Estado mudou:', event, session ? 'com sessão' : 'sem sessão');
-        
+
         if (session) {
           this.saveAuthData(session);
           callback(session);
