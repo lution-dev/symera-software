@@ -164,8 +164,33 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
     });
   });
 
-
-
+  // TEMPORARY DIAGNOSTIC: Remove after debugging
+  app.get('/api/debug/user-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const supabaseUserId = req.user.claims.sub;
+      const userEmail = req.user.claims.email;
+      const userByEmail = await dbStorage.getUserByEmail(userEmail);
+      const userBySub = await dbStorage.getUser(supabaseUserId);
+      const effectiveId = await getEffectiveUserId(userEmail, supabaseUserId);
+      const eventsByEffective = await dbStorage.getEventsByUser(effectiveId);
+      const eventsBySub = await dbStorage.getEventsByUser(supabaseUserId);
+      let eventsByEmailId: any[] = [];
+      if (userByEmail && userByEmail.id !== effectiveId && userByEmail.id !== supabaseUserId) {
+        eventsByEmailId = await dbStorage.getEventsByUser(userByEmail.id);
+      }
+      const allEventsRaw = await db.select({ id: events.id, ownerId: events.ownerId, name: events.name }).from(events);
+      res.json({
+        claims: { sub: supabaseUserId, email: userEmail },
+        userByEmail: userByEmail ? { id: userByEmail.id, email: userByEmail.email } : null,
+        userBySub: userBySub ? { id: userBySub.id, email: userBySub.email } : null,
+        effectiveUserId: effectiveId,
+        eventCounts: { byEffectiveId: eventsByEffective.length, bySupabaseUUID: eventsBySub.length, byEmailUserId: eventsByEmailId.length },
+        allEventsInDB: allEventsRaw.map(e => ({ id: e.id, ownerId: e.ownerId, name: e.name })),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message, stack: error.stack });
+    }
+  });
 
 
   // Auth routes - Requer autenticação obrigatória
