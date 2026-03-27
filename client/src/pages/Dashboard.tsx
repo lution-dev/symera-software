@@ -183,7 +183,24 @@ const Dashboard: React.FC = () => {
               <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none]">
                 {activeEventsList.slice(0, 3).map(event => (
                   <div key={event.id} className={cn("snap-center md:min-w-0", activeEventsList.length === 1 ? "w-full min-w-full" : "min-w-[85vw]")}>
-                    <EventCard {...event} from="dashboard" />
+                    <EventCard
+                      key={event.id}
+                      id={event.id}
+                      name={event.name}
+                      type={event.type}
+                      format={(event as any).format}
+                      startDate={(event as any).start_date || event.startDate}
+                      endDate={(event as any).end_date || event.endDate}
+                      startTime={(event as any).start_time || (event as any).startTime}
+                      endTime={(event as any).end_time || (event as any).endTime}
+                      location={(event as any).location}
+                      status={event.status}
+                      attendees={(event as any).attendees}
+                      team={event.team || []}
+                      tasks={event.tasks || []}
+                      coverImage={event.coverImageUrl || (event as any).cover_image_url}
+                      from="dashboard"
+                    />
                   </div>
                 ))}
 

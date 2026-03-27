@@ -809,7 +809,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
     }
   });
 
-  // Endpoint para atualizar uma tarefa específica
+  // Endpoint para atualizar uma tarefa específica (completo)
   app.put('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -858,6 +858,88 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
       res.status(500).json({ message: "Falha ao atualizar tarefa" });
+    }
+  });
+
+  // Endpoint para atualização parcial de tarefa (PATCH)
+  app.patch('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const taskId = parseInt(req.params.id, 10);
+
+      if (isNaN(taskId)) {
+        return res.status(400).json({ message: "ID de tarefa inválido" });
+      }
+
+      const task = await dbStorage.getTaskById(taskId);
+      if (!task) {
+        return res.status(404).json({ message: "Tarefa não encontrada" });
+      }
+
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
+      }
+
+      const { assigneeIds, ...taskDataRest } = req.body;
+      const taskData = { ...taskDataRest };
+
+      if (req.body.dueDate) {
+        taskData.dueDate = new Date(req.body.dueDate);
+      }
+
+      const updatedTask = await dbStorage.updateTask(taskId, taskData, assigneeIds);
+
+      await dbStorage.createActivityLog({
+        eventId: task.eventId,
+        userId,
+        action: "updated_task",
+        details: JSON.stringify({
+          taskTitle: updatedTask.title,
+          status: req.body.status || undefined
+        })
+      });
+
+      res.json(updatedTask);
+    } catch (error) {
+      console.error("Erro ao atualizar status da tarefa:", error);
+      res.status(500).json({ message: "Falha ao atualizar tarefa" });
+    }
+  });
+
+  // Endpoint para excluir uma tarefa específica
+  app.delete('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const taskId = parseInt(req.params.id, 10);
+
+      if (isNaN(taskId)) {
+        return res.status(400).json({ message: "ID de tarefa inválido" });
+      }
+
+      const task = await dbStorage.getTaskById(taskId);
+      if (!task) {
+        return res.status(404).json({ message: "Tarefa não encontrada" });
+      }
+
+      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Você não tem acesso a esta tarefa" });
+      }
+
+      await dbStorage.deleteTask(taskId);
+
+      await dbStorage.createActivityLog({
+        eventId: task.eventId,
+        userId,
+        action: "deleted_task",
+        details: JSON.stringify({ taskTitle: task.title })
+      });
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao excluir tarefa:", error);
+      res.status(500).json({ message: "Falha ao excluir tarefa" });
     }
   });
 
@@ -1654,75 +1736,45 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
     }
   });
 
-  app.put('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
+  // Delete task
+  app.delete('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const taskId = parseInt(req.params.id, 10);
+      let userId;
+      if (req.session.devIsAuthenticated && req.session.devUserId) {
+        userId = req.session.devUserId;
+      } else if (req.user && req.user.id) {
+        userId = req.user.id;
+      } else {
+        return res.status(401).json({ message: "Unauthorized - User ID not found" });
+      }
 
+      const taskId = parseInt(req.params.id);
       if (isNaN(taskId)) {
         return res.status(400).json({ message: "Invalid task ID" });
       }
 
-      // Get task
       const task = await dbStorage.getTaskById(taskId);
-
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
 
-      // Check if user has access to the event
       const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
-
       if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to this task" });
       }
 
-      // Update task
-      const updatedTask = await dbStorage.updateTask(taskId, req.body);
+      await dbStorage.deleteTask(taskId);
 
       // Log activity
       await dbStorage.createActivityLog({
         eventId: task.eventId,
-        userId,
-        action: "updated_task",
+        userId: userId,
+        action: "deleted_task",
         details: JSON.stringify({
-          taskTitle: updatedTask.title,
-          changes: req.body.status ? { status: req.body.status } : {}
+          taskId: taskId,
+          taskName: task.title
         })
       });
-
-      res.json(updatedTask);
-    } catch (error) {
-      console.error("Error updating task:", error);
-      res.status(500).json({ message: "Failed to update task" });
-    }
-  });
-
-  app.delete('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const taskId = parseInt(req.params.id, 10);
-
-      if (isNaN(taskId)) {
-        return res.status(400).json({ message: "Invalid task ID" });
-      }
-
-      // Get task
-      const task = await dbStorage.getTaskById(taskId);
-
-      if (!task) {
-        return res.status(404).json({ message: "Task not found" });
-      }
-
-      // Check if user has access to the event
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
-
-      if (!hasAccess) {
-        return res.status(403).json({ message: "You don't have access to this task" });
-      }
-
-      // Delete task
-      await dbStorage.deleteTask(taskId);
 
       res.status(204).send();
     } catch (error) {

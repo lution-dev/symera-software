@@ -1,0 +1,50 @@
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation, Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import TaskList from "@/components/Dashboard/TaskList";
+import ActivityFeed from "@/components/Dashboard/ActivityFeed";
+import { ScheduleList } from "@/components/Schedule/ScheduleList";
+import { ExpenseManager } from "@/components/Finance/ExpenseManager";
+import { DocumentManager } from "@/components/Documents/DocumentManager";
+import { ParticipantsList } from "@/components/ParticipantsList";
+import { FeedbackManager } from "@/components/Feedback/FeedbackManager";
+import { formatDate, formatCurrency, calculateTaskProgress, getEventTypeLabel, getInitials, formatActivityTimestamp } from "@/lib/utils";
+
+interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+  phone?: string;
+}
+
+interface TeamMember {
+  id: number;
+  eventId: number;
+  userId: string;
+  role: string;
+  permissions: Record<string, any>;
+  createdAt: string;
+  user: User;
+}
+
+interface TaskAssignee {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl?: string;
+}
+
+interface Reminder {
+  id: number;
+  taskId: number;
+  userId: string;
+  scheduledTime: string;
+  channel: "whatsapp";
+  sent: boolean;
+}

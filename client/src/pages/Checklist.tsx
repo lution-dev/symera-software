@@ -49,28 +49,28 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   const [filterStatus, setFilterStatus] = React.useState("all");
   const [filterPriority, setFilterPriority] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
-  
+
   // Extract the event ID from the URL if not provided as a prop
   const eventId = id || location.split('/')[2];
-  
+
   console.log("[Debug] Checklist - ID do evento recebido como prop:", id);
   console.log("[Debug] Checklist - ID do evento extraído da URL:", eventId);
 
   // Get event details
-  const { data: event, isLoading: eventLoading } = useQuery({
+  const { data: event, isLoading: eventLoading } = useQuery<any>({
     queryKey: [`/api/events/${eventId}`],
     enabled: !!eventId && isAuthenticated,
     retry: 1
   });
 
   // Get tasks for the event
-  const { data: tasks, isLoading: tasksLoading } = useQuery({
+  const { data: tasks, isLoading: tasksLoading } = useQuery<any[]>({
     queryKey: [`/api/events/${eventId}/tasks`],
     enabled: !!eventId && !!event,
   });
 
   // Get team members for task assignment
-  const { data: team } = useQuery({
+  const { data: team } = useQuery<any[]>({
     queryKey: [`/api/events/${eventId}/team`],
     enabled: !!eventId && !!event,
   });
@@ -106,7 +106,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   // Create task mutation
   const createTaskMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest("POST", `/api/events/${eventId}/tasks`, data);
+      return apiRequest(`/api/events/${eventId}/tasks`, { method: "POST", body: data });
     },
     onSuccess: () => {
       setShowNewTaskDialog(false);
@@ -129,7 +129,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   // Update task mutation
   const updateTaskMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest("PUT", `/api/tasks/${currentTask.id}`, data);
+      return apiRequest(`/api/tasks/${currentTask.id}`, { method: "PUT", body: data });
     },
     onSuccess: () => {
       setShowEditTaskDialog(false);
@@ -153,7 +153,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   // Delete task mutation
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: number) => {
-      return apiRequest("DELETE", `/api/tasks/${taskId}`);
+      return apiRequest(`/api/tasks/${taskId}`, { method: "DELETE" });
     },
     onSuccess: () => {
       toast({
@@ -174,10 +174,10 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   // Update task status mutation
   const updateTaskStatusMutation = useMutation({
     mutationFn: async ({ taskId, status }: { taskId: number, status: string }) => {
-      return apiRequest("PUT", `/api/tasks/${taskId}`, { status });
+      return apiRequest(`/api/tasks/${taskId}`, { method: "PATCH", body: { status } });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/events/${id}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
     },
     onError: () => {
       toast({
@@ -191,7 +191,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   // Regenerate checklist mutation
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/events/${eventId}/generate-checklist`);
+      return apiRequest(`/api/events/${eventId}/generate-checklist`, { method: "POST" });
     },
     onSuccess: () => {
       toast({
@@ -247,15 +247,15 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
     return tasks.filter((task: any) => {
       // Filter by status
       const matchesStatus = filterStatus === "all" || task.status === filterStatus;
-      
+
       // Filter by priority
       const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
-      
+
       // Filter by search term
-      const matchesSearch = 
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch =
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+
       return matchesStatus && matchesPriority && matchesSearch;
     });
   }, [tasks, filterStatus, filterPriority, searchTerm]);
@@ -304,12 +304,12 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <Button 
-            variant="link" 
-            onClick={() => navigate(`/events/${eventId}`)} 
+          <Button
+            variant="link"
+            onClick={() => navigate(`/events/${eventId}`)}
             className="text-primary hover:underline flex items-center mb-2 p-0"
           >
-              <i className="fas fa-arrow-left mr-2"></i> Voltar para {event.name}
+            <i className="fas fa-arrow-left mr-2"></i> Voltar para {event.name}
           </Button>
           <h1 className="text-2xl md:text-3xl font-bold">Checklist do Evento</h1>
           <p className="text-muted-foreground mt-1">
@@ -349,7 +349,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
               <i className="fas fa-search absolute left-3 top-2.5 text-muted-foreground"></i>
             </div>
           </div>
-          
+
           <div className="w-full md:w-48">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger>
@@ -363,7 +363,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="w-full md:w-48">
             <Select value={filterPriority} onValueChange={setFilterPriority}>
               <SelectTrigger>
@@ -428,7 +428,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                 {filteredTasks.map((task: any) => {
                   // Find assignee if exists
                   const assignee = team?.find((member: any) => member.userId === task.assigneeId)?.user;
-                  
+
                   return (
                     <tr key={task.id} className="hover:bg-muted transition-colors">
                       <td className="px-6 py-4">
@@ -457,8 +457,8 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                         {assignee ? (
                           <div className="flex items-center">
                             {assignee.profileImageUrl ? (
-                              <img 
-                                src={assignee.profileImageUrl} 
+                              <img
+                                src={assignee.profileImageUrl}
                                 alt={`${assignee.firstName} ${assignee.lastName}`}
                                 className="w-6 h-6 rounded-full object-cover mr-2"
                               />
@@ -503,27 +503,25 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                             size="icon"
                             className="h-8 w-8"
                             onClick={() => handleUpdateTaskStatus(
-                              task.id, 
-                              task.status === 'todo' 
-                                ? 'in_progress' 
-                                : task.status === 'in_progress' 
-                                  ? 'completed' 
+                              task.id,
+                              task.status === 'todo'
+                                ? 'in_progress'
+                                : task.status === 'in_progress'
+                                  ? 'completed'
                                   : 'todo'
                             )}
                           >
-                            <i className={`fas fa-${
-                              task.status === 'todo' 
-                                ? 'play' 
-                                : task.status === 'in_progress' 
-                                  ? 'check' 
-                                  : 'redo'
-                            } text-${
-                              task.status === 'todo' 
-                                ? 'blue' 
-                                : task.status === 'in_progress' 
-                                  ? 'green' 
+                            <i className={`fas fa-${task.status === 'todo'
+                              ? 'play'
+                              : task.status === 'in_progress'
+                                ? 'check'
+                                : 'redo'
+                              } text-${task.status === 'todo'
+                                ? 'blue'
+                                : task.status === 'in_progress'
+                                  ? 'green'
                                   : 'yellow'
-                            }-400`}></i>
+                              }-400`}></i>
                           </Button>
                           <Button
                             variant="ghost"
@@ -553,7 +551,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
               Preencha os detalhes da tarefa para o evento {event.name}
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleCreateTask)} className="space-y-4">
               <FormField
@@ -569,7 +567,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="description"
@@ -583,7 +581,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -598,7 +596,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="priority"
@@ -622,7 +620,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="assigneeId"
@@ -648,7 +646,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter className="mt-6">
                 <Button type="button" variant="outline" onClick={() => setShowNewTaskDialog(false)}>
                   Cancelar
@@ -677,7 +675,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
               Editar detalhes da tarefa para o evento {event.name}
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(handleUpdateTask)} className="space-y-4">
               <FormField
@@ -693,7 +691,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={editForm.control}
                 name="description"
@@ -701,8 +699,8 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   <FormItem>
                     <FormLabel>Descrição (opcional)</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        {...field} 
+                      <Textarea
+                        {...field}
                         placeholder="Detalhes adicionais sobre a tarefa"
                         value={field.value || ""}
                       />
@@ -711,7 +709,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
@@ -720,8 +718,8 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                     <FormItem>
                       <FormLabel>Data limite</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="date" 
+                        <Input
+                          type="date"
                           {...field}
                           value={field.value || ""}
                         />
@@ -730,7 +728,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={editForm.control}
                   name="priority"
@@ -754,7 +752,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
@@ -778,7 +776,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={editForm.control}
                   name="assigneeId"
@@ -805,7 +803,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
                   )}
                 />
               </div>
-              
+
               <DialogFooter className="mt-6">
                 <Button type="button" variant="outline" onClick={() => setShowEditTaskDialog(false)}>
                   Cancelar

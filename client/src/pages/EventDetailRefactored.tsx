@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -108,7 +108,7 @@ const calculateDaysRemaining = (eventDate: string) => {
   return diffDays;
 };
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -161,6 +161,7 @@ interface EventProps {
 const EventDetail: React.FC<EventProps> = ({ id }) => {
   const [location] = useLocation();
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
 
@@ -257,18 +258,21 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: [`/api/events/${eventId}/tasks`],
     enabled: !!eventId && !!event,
+    staleTime: 0,
   });
 
   // Fetch team members
   const { data: team, isLoading: teamLoading } = useQuery<TeamMember[]>({
     queryKey: [`/api/events/${eventId}/team`],
     enabled: !!eventId && !!event,
+    staleTime: 0,
   });
 
   // Fetch activities
   const { data: activities, isLoading: activitiesLoading } = useQuery<Activity[]>({
     queryKey: [`/api/events/${eventId}/activities`],
     enabled: !!eventId && !!event,
+    staleTime: 0,
   });
 
   // Fetch all users available for adding to team
@@ -414,6 +418,57 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       toast({
         title: "Erro",
         description: "Não foi possível excluir o evento. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({ taskId, data }: { taskId: number, data: any }) => {
+      console.log(`[Mutation] Updating task ${taskId} with data:`, data);
+      return apiRequest(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        body: data
+      } as any);
+    },
+    onSuccess: () => {
+      console.log(`[Mutation] Task updated successfully`);
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
+    },
+    onError: (error: any) => {
+      console.error(`[Mutation] Error updating task:`, error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a tarefa.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      console.log(`[Mutation] Deleting task ${taskId}`);
+      return apiRequest(`/api/tasks/${taskId}`, {
+        method: "DELETE"
+      } as any);
+    },
+    onSuccess: () => {
+      console.log(`[Mutation] Task deleted successfully`);
+      toast({
+        title: "Tarefa excluída",
+        description: "A tarefa foi excluída com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
+    },
+    onError: (error: any) => {
+      console.error(`[Mutation] Error deleting task:`, error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a tarefa.",
         variant: "destructive",
       });
     },
@@ -611,16 +666,21 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                     const startDate = new Date(event.startDate);
                     const endDate = event.endDate ? new Date(event.endDate) : null;
 
-                    // Verifica se o evento dura mais de um dia
-                    if (endDate && startDate.toDateString() !== endDate.toDateString()) {
-                      // Formato para múltiplos dias: "26 Jun - 29 Jun"
+                    // Verifica se o evento dura mais de um dia (comparar em UTC para evitar timezone shift)
+                    const startUTCDate = startDate.toISOString().split('T')[0];
+                    const endUTCDate = endDate ? endDate.toISOString().split('T')[0] : null;
+
+                    if (endUTCDate && startUTCDate !== endUTCDate) {
+                      // Formato para múltiplos dias: "29 de mar. - 30 de mar."
                       const startFormatted = startDate.toLocaleDateString('pt-BR', {
                         day: 'numeric',
-                        month: 'short'
+                        month: 'short',
+                        timeZone: 'UTC'
                       });
-                      const endFormatted = endDate.toLocaleDateString('pt-BR', {
+                      const endFormatted = endDate!.toLocaleDateString('pt-BR', {
                         day: 'numeric',
-                        month: 'short'
+                        month: 'short',
+                        timeZone: 'UTC'
                       });
                       return `${startFormatted} - ${endFormatted}`;
                     } else {
@@ -635,7 +695,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               <span className="text-sm text-muted-foreground">Horário:</span>
               <span className="font-semibold text-right">
                 {event.startTime && event.endTime
-                  ? `${event.startTime} - ${event.endTime}`
+                  ? `${event.startTime.substring(0, 5)} – ${event.endTime.substring(0, 5)}`
                   : "A definir"
                 }
               </span>
@@ -731,14 +791,15 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
   return (
     <div className="container mx-auto px-0 py-0">
-      {/* Header bar fixo com breadcrumb - mantido visível durante rolagem */}
-      <div className="hidden sm:block fixed top-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border w-full">
-        <div className="container mx-auto">
-          {/* Breadcrumb Navigation - visível em desktop e tablet */}
-          <nav className="hidden sm:flex py-3 px-4" aria-label="Breadcrumb">
+      {/* Layout principal - coluna única sem sidebar */}
+      <div className="flex flex-col min-h-[calc(100vh-150px)]">
+        {/* Conteúdo principal */}
+        <div className="flex-1 p-4 md:px-6 md:py-0 overflow-x-hidden">
+          {/* Breadcrumb Navigation - dentro do fluxo normal do conteúdo */}
+          <nav className="hidden sm:flex py-3 mb-2" aria-label="Breadcrumb">
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
-                <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+                <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <i className="fas fa-home mr-2"></i>
                   Início
                 </Link>
@@ -746,7 +807,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               <li>
                 <div className="flex items-center">
                   <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-                  <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground">
+                  <Link href="/events" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Eventos
                   </Link>
                 </div>
@@ -754,348 +815,228 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               <li aria-current="page">
                 <div className="flex items-center">
                   <i className="fas fa-chevron-right text-muted-foreground text-xs mx-2"></i>
-                  <span className="text-sm font-medium text-primary truncate max-w-[150px]">
+                  <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
                     {event.name}
                   </span>
                 </div>
               </li>
             </ol>
           </nav>
-        </div>
-      </div>
+          {/* Cabeçalho do evento - sempre visível */}
+          <div className="space-y-4">
+            {/* Cabeçalho principal do evento */}
+            <div className="rounded-xl overflow-hidden shadow-md mb-4">
+              {/* Imagem de capa com informações do evento sobrepostas */}
+              <div className="relative h-48 sm:h-64 md:h-[220px]">
+                <img
+                  src={event.coverImageUrl || getDefaultCover()}
+                  alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
 
-      {/* Espaçamento para compensar o header fixo */}
-      <div className="hidden md:block h-14"></div>
+                {/* Botões de ação no canto superior direito */}
+                <div className="absolute top-4 right-4 z-10 flex gap-2">
+                  <Button
+                    onClick={handleEditClick}
+                    variant="secondary"
+                    className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-sm"
+                    size="sm"
+                  >
+                    <i className="fas fa-edit mr-2"></i> Editar Evento
+                  </Button>
 
-      {/* Layout principal com sidebar lateral e conteúdo */}
-      <div className="flex flex-col md:flex-row min-h-[calc(100vh-150px)]">
-        {/* Sidebar - Visível em desktop, escondida em mobile */}
-        <div className="hidden md:block w-64 bg-card rounded-lg shadow-md border border-border sticky top-14 overflow-y-auto h-fit">
-          {/* Cabeçalho do evento na sidebar */}
-          <div className="overflow-hidden">
-            {/* Imagem de capa */}
-            <div className="relative h-[100px]">
-              <img
-                src={event.coverImageUrl || getDefaultCover()}
-                alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
-                className="w-full h-full object-cover rounded-t-lg"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="secondary"
+                        className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-sm"
+                        size="sm"
+                      >
+                        <i className="fas fa-ellipsis-v"></i>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setIsDeleteEventDialogOpen(true)}
+                      >
+                        <i className="fas fa-trash mr-2"></i>
+                        Excluir Evento
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-black/60 backdrop-blur-md text-white border border-white/10">
+                      {getEventTypeLabel(event.type)}
+                    </span>
+                    <span className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md backdrop-blur-md border ${
+                      event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/80 text-white border-[hsl(var(--event-planning))]' :
+                      event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/80 text-white border-[hsl(var(--event-confirmed))]' :
+                      event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/80 text-white border-[hsl(var(--event-in-progress))]' :
+                      event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/80 text-white border-[hsl(var(--event-in-progress))]' :
+                      event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/80 text-white border-[hsl(var(--event-completed))]' :
+                      event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/80 text-white border-[hsl(var(--event-cancelled))]' :
+                      'bg-[hsl(var(--event-planning))]/80 text-white border-[hsl(var(--event-planning))]'
+                    }`}>
+                      {event.status === 'planning' ? 'Planejamento' :
+                        event.status === 'confirmed' ? 'Confirmado' :
+                          event.status === 'in_progress' ? 'Em andamento' :
+                            event.status === 'active' ? 'Ativo' :
+                              event.status === 'completed' ? 'Concluído' :
+                                event.status === 'cancelled' ? 'Cancelado' :
+                                  'Planejamento'}
+                    </span>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
+                  {event.description && (
+                    <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
+                      {event.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Informações principais do evento em formato de grade abaixo da imagem */}
+              <div className="bg-card p-5 border-t border-border rounded-b-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Data e Horário */}
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
+                      <i className="far fa-calendar-alt text-sm"></i>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground mb-1">Data e Horário</p>
+                      <p className="text-sm font-medium truncate">
+                        {event.startDate ? (
+                          event.endDate && new Date(event.startDate).toDateString() !== new Date(event.endDate).toDateString() ? (
+                            <span>
+                              {formatDate(event.startDate)}{event.startTime && ` às ${event.startTime.substring(0, 5)}`} até {formatDate(event.endDate)}{event.endTime && ` às ${event.endTime.substring(0, 5)}`}
+                            </span>
+                          ) : event.startTime && event.endTime && event.startTime !== event.endTime ? (
+                            <span>
+                              {formatDate(event.startDate)} de {event.startTime.substring(0, 5)} às {event.endTime.substring(0, 5)}
+                            </span>
+                          ) : (
+                            <span>
+                              {formatDate(event.startDate)}{event.startTime && ` às ${event.startTime.substring(0, 5)}`}
+                            </span>
+                          )
+                        ) : (
+                          "A definir"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Local do evento */}
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
+                      <i className="fas fa-map-marker-alt text-sm"></i>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground mb-1">Local</p>
+                      <p className="text-sm font-medium truncate">
+                        {event.location || "A definir"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Número de convidados */}
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
+                      <i className="fas fa-users text-sm"></i>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground mb-1">Convidados</p>
+                      <p className="text-sm font-medium">{event.attendees || 0}</p>
+                    </div>
+                  </div>
+
+                  {/* Orçamento */}
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
+                      <i className="fas fa-money-bill-alt text-sm"></i>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground mb-1">Orçamento</p>
+                      <p className="text-sm font-medium">{event.budget ? formatCurrency(event.budget) : "R$ 0,00"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            {/* Informações do evento */}
-            <div className="p-3">
-              <h3 className="font-medium text-base line-clamp-1">{event.name}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center">
-                <span>{getEventTypeLabel(event.type)}</span>
-                {event.location && (
-                  <>
-                    <span className="mx-1">•</span>
-                    <span className="truncate">{event.location}</span>
-                  </>
-                )}
-              </p>
+
+            {/* Barra de Progresso */}
+            <div className="bg-card mt-4 p-3 rounded-md border border-border">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-9 h-9 flex items-center justify-center text-primary">
+                  <i className="far fa-chart-bar text-sm"></i>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs text-muted-foreground">Progresso</p>
+                    <span className="text-xs font-medium">{progress}%</span>
+                  </div>
+                  <div className="w-full bg-primary/10 rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Horizontal Tab Navigation - Pill Style */}
+            <div className="mt-4 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div role="tablist" className="flex h-11 p-1 bg-card rounded-lg w-max border border-border/40 items-center gap-0.5">
+                {[
+                  { id: 'resumo', label: 'Resumo' },
+                  { id: 'tarefas', label: `Tarefas (${totalTasks})` },
+                  { id: 'equipe', label: 'Equipe' },
+                  { id: 'participantes', label: 'Participantes' },
+                  { id: 'cronograma', label: 'Cronograma' },
+                  { id: 'financeiro', label: 'Financeiro' },
+                  { id: 'documentos', label: 'Documentos' },
+                  { id: 'atividades', label: 'Atividades' },
+                  { id: 'feedback', label: 'Feedback' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    role="tab"
+                    aria-selected={activeSection === tab.id}
+                    onClick={() => {
+                      setActiveSection(tab.id);
+                      const from = new URLSearchParams(search).get('from');
+                      const navigateUrl = `${location}?section=${tab.id}${from ? `&from=${from}` : ''}`;
+                      navigate(navigateUrl);
+                    }}
+                    className={`rounded-md px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                      activeSection === tab.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Separador sutil */}
-          <div className="h-px bg-border mx-4"></div>
-
-          <div className="py-4 px-4">
-            {/* Menu lateral - apenas abas de navegação, sem título */}
-            <nav className="space-y-2">
-              <button
-                onClick={() => setActiveSection('resumo')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'resumo' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="far fa-file mr-2"></i> Resumo
-              </button>
-              <button
-                onClick={() => setActiveSection('tarefas')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'tarefas' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="fas fa-tasks mr-2"></i> Tarefas ({totalTasks})
-              </button>
-              <button
-                onClick={() => setActiveSection('equipe')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'equipe' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="far fa-user-circle mr-2"></i> Equipe
-              </button>
-              <button
-                onClick={() => setActiveSection('participantes')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'participantes' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="far fa-address-book mr-2"></i> Lista de Participantes
-              </button>
-              <button
-                onClick={() => setActiveSection('cronograma')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'cronograma' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="far fa-calendar-alt mr-2"></i> Cronograma
-              </button>
-              <button
-                onClick={() => setActiveSection('financeiro')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'financeiro' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="far fa-money-bill-alt mr-2"></i> Financeiro
-              </button>
-              <button
-                onClick={() => setActiveSection('documentos')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'documentos' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="far fa-file-pdf mr-2"></i> Documentos
-              </button>
-              <button
-                onClick={() => setActiveSection('atividades')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'atividades' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="fas fa-history mr-2"></i> Atividades
-              </button>
-              <button
-                onClick={() => setActiveSection('feedback')}
-                className={`w-full flex items-center px-3 py-2 rounded-md ${activeSection === 'feedback' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'
-                  }`}
-              >
-                <i className="far fa-comment-alt mr-2"></i> Feedback pós-evento
-              </button>
-            </nav>
-          </div>
-        </div>
-
-
-
-        {/* Conteúdo principal */}
-        <div className="flex-1 p-4 md:px-6 md:py-0 overflow-x-hidden">
           {/* Conteúdo baseado na seção ativa */}
           {activeSection === "resumo" && (
-            <div className="space-y-4">
-              {/* Cabeçalho principal do evento */}
-              <div className="rounded-xl overflow-hidden shadow-md mb-4">
-                {/* Imagem de capa com informações do evento sobrepostas */}
-                <div className="relative h-48 sm:h-64 md:h-[220px]">
-                  <img
-                    src={event.coverImageUrl || getDefaultCover()}
-                    alt={`${event.name} - ${getEventTypeLabel(event.type)}`}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background to-background/70 sm:from-background/95 sm:to-background/30"></div>
-
-                  {/* Botões de ação no canto superior direito */}
-                  <div className="absolute top-4 right-4 z-10 flex gap-2">
-                    <Button
-                      onClick={handleEditClick}
-                      variant="secondary"
-                      className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-sm"
-                      size="sm"
-                    >
-                      <i className="fas fa-edit mr-2"></i> Editar Evento
-                    </Button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="secondary"
-                          className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-sm"
-                          size="sm"
-                        >
-                          <i className="fas fa-ellipsis-v"></i>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => setIsDeleteEventDialogOpen(true)}
-                        >
-                          <i className="fas fa-trash mr-2"></i>
-                          Excluir Evento
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Badge className="px-2 py-1 text-xs font-medium" variant="secondary">
-                        {getEventTypeLabel(event.type)}
-                      </Badge>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${event.status === 'planning' ? 'bg-[hsl(var(--event-planning))]/25 text-[hsl(var(--event-planning))] border border-[hsl(var(--event-planning))]/30' :
-                        event.status === 'confirmed' ? 'bg-[hsl(var(--event-confirmed))]/25 text-[hsl(var(--event-confirmed))] border border-[hsl(var(--event-confirmed))]/30' :
-                          event.status === 'in_progress' ? 'bg-[hsl(var(--event-in-progress))]/25 text-[hsl(var(--event-in-progress))] border border-[hsl(var(--event-in-progress))]/30' :
-                            event.status === 'active' ? 'bg-[hsl(var(--event-in-progress))]/25 text-[hsl(var(--event-in-progress))] border border-[hsl(var(--event-in-progress))]/30' :
-                              event.status === 'completed' ? 'bg-[hsl(var(--event-completed))]/25 text-[hsl(var(--event-completed))] border border-[hsl(var(--event-completed))]/30' :
-                                event.status === 'cancelled' ? 'bg-[hsl(var(--event-cancelled))]/25 text-[hsl(var(--event-cancelled))] border border-[hsl(var(--event-cancelled))]/30' :
-                                  'bg-[hsl(var(--event-planning))]/25 text-[hsl(var(--event-planning))] border border-[hsl(var(--event-planning))]/30'
-                        }`}>
-                        {event.status === 'planning' ? 'Planejamento' :
-                          event.status === 'confirmed' ? 'Confirmado' :
-                            event.status === 'in_progress' ? 'Em andamento' :
-                              event.status === 'active' ? 'Ativo' :
-                                event.status === 'completed' ? 'Concluído' :
-                                  event.status === 'cancelled' ? 'Cancelado' :
-                                    'Planejamento'}
-                      </span>
-                    </div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-md line-clamp-2">{event.name}</h1>
-                    {event.description && (
-                      <p className="text-white/90 text-sm sm:text-base drop-shadow-md mt-2 line-clamp-3 max-w-xl">
-                        {event.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Informações principais do evento em formato de grade abaixo da imagem */}
-                <div className="bg-card p-5 border-t border-border rounded-b-xl">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Data e Horário */}
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="far fa-calendar-alt text-sm"></i>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Data e Horário</p>
-                        <p className="text-sm font-medium truncate">
-                          {event.startDate ? (
-                            event.endDate && new Date(event.startDate).toDateString() !== new Date(event.endDate).toDateString() ? (
-                              <span>
-                                {formatDate(event.startDate)}{event.startTime && ` às ${event.startTime.substring(0, 5)}`} até {formatDate(event.endDate)}{event.endTime && ` às ${event.endTime.substring(0, 5)}`}
-                              </span>
-                            ) : event.startTime && event.endTime && event.startTime !== event.endTime ? (
-                              <span>
-                                {formatDate(event.startDate)} de {event.startTime.substring(0, 5)} às {event.endTime.substring(0, 5)}
-                              </span>
-                            ) : (
-                              <span>
-                                {formatDate(event.startDate)}{event.startTime && ` às ${event.startTime.substring(0, 5)}`}
-                              </span>
-                            )
-                          ) : (
-                            "A definir"
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Local do evento */}
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-map-marker-alt text-sm"></i>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Local</p>
-                        <p className="text-sm font-medium truncate">
-                          {event.location || "A definir"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Número de convidados */}
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-users text-sm"></i>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Convidados</p>
-                        <p className="text-sm font-medium">{event.attendees || 0}</p>
-                      </div>
-                    </div>
-
-                    {/* Orçamento */}
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-10 h-10 flex items-center justify-center text-primary mr-3">
-                        <i className="fas fa-money-bill-alt text-sm"></i>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Orçamento</p>
-                        <p className="text-sm font-medium">{event.budget ? formatCurrency(event.budget) : "R$ 0,00"}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Barra de Progresso - Completamente fora do card principal */}
-              <div className="bg-card mt-4 p-3 rounded-md border border-border">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 rounded-full bg-primary/10 p-2 w-9 h-9 flex items-center justify-center text-primary">
-                    <i className="far fa-chart-bar text-sm"></i>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs text-muted-foreground">Progresso</p>
-                      <span className="text-xs font-medium">{progress}%</span>
-                    </div>
-                    <div className="w-full bg-primary/10 rounded-full h-2">
-                      <div
-                        className="bg-primary h-2 rounded-full"
-                        style={{ width: `${progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="hidden md:block">
-                {renderStrategicIndicators()}
-              </div>
-              {/* Mobile Navigation Grid */}
-              <div className="md:hidden mt-4 mb-8">
-                <h3 className="text-sm font-medium mb-4 px-1">Menu do Evento</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { id: 'mobile_details', label: 'Detalhes', icon: 'fas fa-info-circle', color: 'bg-primary/10 text-primary' },
-                    { id: 'tarefas', label: 'Tarefas', count: totalTasks, icon: 'fas fa-tasks', color: 'bg-blue-500/10 text-blue-600' },
-                    { id: 'equipe', label: 'Equipe', count: team?.length, icon: 'far fa-user-circle', color: 'bg-indigo-500/10 text-indigo-600' },
-                    { id: 'participantes', label: 'Participantes', count: event.attendees, icon: 'far fa-address-book', color: 'bg-green-500/10 text-green-600' },
-                    { id: 'cronograma', label: 'Cronograma', icon: 'fas fa-calendar-alt', color: 'bg-orange-500/10 text-orange-600' },
-                    { id: 'financeiro', label: 'Financeiro', icon: 'far fa-money-bill-alt', color: 'bg-emerald-500/10 text-emerald-600' },
-                    { id: 'documentos', label: 'Documentos', icon: 'fas fa-file-pdf', color: 'bg-red-500/10 text-red-600' },
-                    { id: 'atividades', label: 'Atividades', icon: 'fas fa-history', color: 'bg-purple-500/10 text-purple-600' },
-                    { id: 'feedback', label: 'Feedback', icon: 'fas fa-comment-alt', color: 'bg-pink-500/10 text-pink-600' }
-                  ].map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        const from = new URLSearchParams(search).get('from');
-                        const navigateUrl = `${location}?section=${item.id}${from ? `&from=${from}` : ''}`;
-                        setActiveSection(item.id);
-                        navigate(navigateUrl);
-                      }}
-                      className="bg-card border border-border p-4 rounded-xl flex flex-col items-center justify-center gap-3 hover:bg-muted/50 transition-colors shadow-sm"
-                    >
-                      <div className={`w-10 h-10 rounded-full ${item.color} flex items-center justify-center text-lg`}>
-                        <i className={item.icon}></i>
-                      </div>
-                      <div className="text-center">
-                        <span className="text-sm font-medium block text-foreground">{item.label}</span>
-                        {item.count !== undefined && (
-                          <span className="text-xs text-muted-foreground">{item.count} itens</span>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Mobile Detail Section */}
-          {activeSection === "mobile_details" && (
-            <div className="space-y-4">
+            <div className="mt-6">
               {renderStrategicIndicators()}
             </div>
           )}
 
           {activeSection === "tarefas" && (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
                 <h2 className="text-xl font-semibold">Checklist do Evento ({totalTasks})</h2>
                 <div className="flex flex-wrap w-full sm:w-auto gap-2">
@@ -1128,14 +1069,16 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               ) : (
                 <TaskList
                   tasks={tasks || []}
-                  loading={false}
+                  showFilters={true}
+                  onTaskUpdate={(taskId, data) => updateTaskMutation.mutate({ taskId, data })}
+                  onTaskDelete={(taskId) => deleteTaskMutation.mutate(taskId)}
                 />
               )}
             </div>
           )}
 
           {activeSection === "equipe" && (
-            <div className="bg-card rounded-lg p-6">
+            <div className="bg-card rounded-lg p-6 mt-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">Equipe do Evento</h2>
                 <Button onClick={() => setIsAddMemberModalOpen(true)} variant="default">
@@ -1212,7 +1155,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           )}
 
           {activeSection === "atividades" && (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <ActivityFeed
                 activities={activities || []}
                 loading={activitiesLoading}
@@ -1223,21 +1166,21 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
           {/* Lista de Participantes */}
           {activeSection === "participantes" && (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <ParticipantsList eventId={Number(eventId)} />
             </div>
           )}
 
           {/* Cronograma */}
           {activeSection === "cronograma" && (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <ScheduleList eventId={Number(eventId)} />
             </div>
           )}
 
           {/* Financeiro */}
           {activeSection === "financeiro" && (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
                 <h2 className="text-xl font-semibold">Financeiro</h2>
               </div>
@@ -1295,7 +1238,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
           {/* Documentos */}
           {activeSection === "documentos" && (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               {/* Componente de gerenciamento de documentos */}
               <DocumentManager eventId={Number(eventId)} />
             </div>
@@ -1303,7 +1246,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
           {/* Feedback pós-evento */}
           {activeSection === "feedback" && (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <FeedbackManager eventId={Number(eventId)} />
             </div>
           )}

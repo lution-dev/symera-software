@@ -1,7 +1,9 @@
+
+
 import React, { useState } from "react";
 import { formatTaskDueDate, getTaskPriorityColor, getTaskStatusColor, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import {
@@ -10,8 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Drawer,
   DrawerContent,
@@ -133,10 +145,13 @@ const TaskList: React.FC<TaskListProps> = ({
   limitTasks = false,
   showFilters = false
 }) => {
+  const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
+  const [isDeleteTaskDialogOpen, setIsDeleteTaskDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'week'>('all');
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'todo' | 'in_progress' | 'completed'>('all');
   const [showAllTasks, setShowAllTasks] = useState(!limitTasks);
   const isMobile = useIsMobile();
 
@@ -151,22 +166,7 @@ const TaskList: React.FC<TaskListProps> = ({
 
   const filteredTasks = tasks.filter((task: Task) => {
     if (activeFilter === 'all') return true;
-    if (activeFilter === 'pending') return task.status === 'todo';
-    if (activeFilter === 'week') {
-      const taskDate = task.dueDate ? new Date(task.dueDate) : null;
-      if (!taskDate) return false;
-
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
-
-      const nextWeek = new Date(today);
-      nextWeek.setDate(today.getDate() + 7);
-      nextWeek.setUTCHours(23, 59, 59, 999);
-
-      const tDate = new Date(taskDate);
-      return tDate >= today && tDate <= nextWeek;
-    }
-    return true;
+    return task.status === activeFilter;
   });
 
   const displayTasks = (!showAllTasks && limitTasks) ? filteredTasks.slice(0, 5) : filteredTasks;
@@ -185,8 +185,10 @@ const TaskList: React.FC<TaskListProps> = ({
   const handleStatusChange = async (taskId: number, newStatus: "todo" | "in_progress" | "completed") => {
     if (!onTaskUpdate) {
       try {
-        await apiRequest(`/api/tasks/${taskId}`, { method: "PATCH", body: { status: newStatus } as any });
-        window.location.reload();
+        await apiRequest(`/api/tasks/${taskId}`, { method: "PATCH", body: { status: newStatus } } as any);
+        // Invalidar queries de tarefas para garantir que a UI reflita a mudança
+        queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       } catch (error) {
         console.error("Error updating task status:", error);
       }
@@ -196,16 +198,28 @@ const TaskList: React.FC<TaskListProps> = ({
   };
 
   const handleDeleteTask = async (taskId: number) => {
+    setTaskToDelete(taskId);
+    setIsDeleteTaskDialogOpen(true);
+  };
+
+  const confirmDeleteTask = async () => {
+    if (!taskToDelete) return;
+
     if (!onTaskDelete) {
       try {
-        await apiRequest(`/api/tasks/${taskId}`, { method: "DELETE" });
-        window.location.reload();
+        await apiRequest(`/api/tasks/${taskToDelete}`, { method: "DELETE" } as any);
+        // Invalidar queries de tarefas para garantir que a UI reflita a exclusão
+        queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       } catch (error) {
         console.error("Error deleting task:", error);
       }
     } else {
-      onTaskDelete(taskId);
+      onTaskDelete(taskToDelete);
     }
+
+    setIsDeleteTaskDialogOpen(false);
+    setTaskToDelete(null);
   };
 
   const openReminderDialog = (task: Task) => {
@@ -263,7 +277,7 @@ const TaskList: React.FC<TaskListProps> = ({
       {showFilters && (
         <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
           <div className="flex flex-wrap gap-2">
-            {(['all', 'pending', 'week'] as const).map(filter => (
+            {(['all', 'todo', 'in_progress', 'completed'] as const).map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -275,8 +289,9 @@ const TaskList: React.FC<TaskListProps> = ({
                 )}
               >
                 {filter === 'all' && 'Todas'}
-                {filter === 'pending' && 'Em aberto'}
-                {filter === 'week' && 'Semana'}
+                {filter === 'todo' && 'A Fazer'}
+                {filter === 'in_progress' && 'Em Andamento'}
+                {filter === 'completed' && 'Concluídas'}
               </button>
             ))}
           </div>
@@ -484,6 +499,14 @@ const TaskList: React.FC<TaskListProps> = ({
                 >
                   <Pencil className="w-4 h-4" />
                 </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-9 w-9 bg-red-500/5 border-red-500/20 text-red-400"
+                  onClick={() => handleDeleteTask(task.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -682,6 +705,63 @@ const TaskList: React.FC<TaskListProps> = ({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {isMobile ? (
+        <Drawer open={isDeleteTaskDialogOpen} onOpenChange={setIsDeleteTaskDialogOpen}>
+          <DrawerContent className="bg-purple-dark border-white/10 pb-10 px-4">
+            <DrawerHeader className="text-left px-2 mb-2">
+              <DrawerTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                <AlertTriangle className="w-5 h-5 text-red-500" /> Excluir Tarefa
+              </DrawerTitle>
+              <DrawerDescription className="text-sm text-muted-foreground/80">
+                Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.
+              </DrawerDescription>
+            </DrawerHeader>
+            <DrawerFooter className="px-0 pt-4 flex flex-col gap-3">
+              <Button
+                variant="destructive"
+                className="w-full h-12 rounded-xl text-sm font-black tracking-tight shadow-lg gap-2"
+                onClick={confirmDeleteTask}
+              >
+                Excluir Permanentemente
+              </Button>
+              <DrawerClose asChild>
+                <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground">
+                  Cancelar
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <AlertDialog open={isDeleteTaskDialogOpen} onOpenChange={setIsDeleteTaskDialogOpen}>
+          <AlertDialogContent className="sm:max-w-md rounded-3xl bg-purple-dark border-white/10 shadow-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                <AlertTriangle className="w-5 h-5 text-red-500" /> Excluir Tarefa
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm text-muted-foreground/80">
+                Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita e removerá todos os dados relacionados.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row mt-4">
+              <AlertDialogCancel
+                className="rounded-xl border-white/10 hover:bg-white/5 text-muted-foreground"
+                onClick={() => setIsDeleteTaskDialogOpen(false)}
+              >
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="rounded-xl bg-red-500 hover:bg-red-600 text-white border-none"
+                onClick={confirmDeleteTask}
+              >
+                Confirmar Exclusão
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   );

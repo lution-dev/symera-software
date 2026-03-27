@@ -129,7 +129,7 @@ const EventCard: React.FC<EventCardProps> = ({
                     status === 'completed' ? 'bg-emerald-600/70' :
                       'bg-slate-600/70'
             )}>
-              {status === 'planning' ? 'Fila' : status === 'confirmed' ? 'Confirmado' : status === 'in_progress' ? 'No Ar' : 'Final'}
+              {status === 'planning' ? 'Planejamento' : status === 'confirmed' ? 'Confirmado' : status === 'in_progress' ? 'Em andamento' : status === 'completed' ? 'Concluído' : status === 'cancelled' ? 'Cancelado' : 'Planejamento'}
             </span>
           </div>
 
@@ -168,8 +168,8 @@ const EventCard: React.FC<EventCardProps> = ({
               <div className="min-w-0">
                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/30 leading-none mb-1">Data</p>
                 <p className="text-xs font-bold text-white tracking-tight truncate">
-                  {startDate ? new Date(startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : "A definir"}
-                  {startTime && <span className="text-primary font-black ml-1">• {startTime}</span>}
+                  {startDate ? new Date(startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: 'UTC' }) : "A definir"}
+                  {startTime && <span className="text-primary font-black ml-1">• {startTime.substring(0, 5)}</span>}
                 </p>
               </div>
             </div>
