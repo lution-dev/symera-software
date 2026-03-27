@@ -160,7 +160,7 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: 30000,
       retry: (failureCount, error) => {
         if (error instanceof AuthError) return false;
         if (isTransientError(error) && failureCount < 3) return true;

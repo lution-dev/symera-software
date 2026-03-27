@@ -122,7 +122,7 @@ const EventCard: React.FC<EventCardProps> = ({
 
           <div className="absolute top-3 left-3 flex gap-1.5">
             <span className={cn(
-              "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white backdrop-blur-md border border-white/10 shadow-lg",
+              "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white backdrop-blur-md border border-white/10 shadow-lg",
               status === 'planning' ? 'bg-blue-600/70' :
                 status === 'confirmed' ? 'bg-purple-600/70' :
                   status === 'in_progress' ? 'bg-orange-600/70' :
@@ -136,7 +136,7 @@ const EventCard: React.FC<EventCardProps> = ({
           {daysRemaining !== null && daysRemaining > 0 && (
             <div className="absolute top-3 right-3 flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-primary/20 backdrop-blur-md border border-primary/20 text-primary shadow-lg group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
               <span className="text-base font-black leading-none">{daysRemaining}</span>
-              <span className="text-[7px] font-black uppercase tracking-tighter">Dias</span>
+              <span className="text-[8px] font-black uppercase tracking-tighter">Dias</span>
             </div>
           )}
         </div>
@@ -145,12 +145,12 @@ const EventCard: React.FC<EventCardProps> = ({
         <div className="p-4 flex-1 flex flex-col gap-4">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[8px] font-black uppercase tracking-[0.15em] text-primary/90 bg-primary/5 px-1.5 py-0.5 rounded-md border border-primary/10">
+              <span className="text-[10px] font-black uppercase tracking-[0.12em] text-primary/90 bg-primary/5 px-2 py-0.5 rounded-md border border-primary/10">
                 {getEventTypeLabel(type)}
               </span>
               {format && (
-                <span className="text-[8px] font-black uppercase tracking-[0.1em] text-muted-foreground/50 bg-white/5 px-1.5 py-0.5 rounded-md border border-white/5 flex items-center gap-1">
-                  {format === 'online' ? <Video className="w-2.5 h-2.5" /> : <Users className="w-2.5 h-2.5" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.08em] text-muted-foreground/50 bg-white/5 px-2 py-0.5 rounded-md border border-white/5 flex items-center gap-1">
+                  {format === 'online' ? <Video className="w-3 h-3" /> : <Users className="w-3 h-3" />}
                   {format === 'online' ? 'Online' : 'Presencial'}
                 </span>
               )}
@@ -160,9 +160,9 @@ const EventCard: React.FC<EventCardProps> = ({
             </h3>
           </div>
 
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11px]">
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-xs">
             <div className="flex items-center gap-1.5 min-w-0">
-              <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
+              <Calendar className="w-4 h-4 text-primary shrink-0" />
               <span className="font-bold text-white truncate">
                 {startDate ? new Date(startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: 'UTC' }) : "A definir"}
                 {startTime && <span className="text-primary font-black ml-1">• {startTime.substring(0, 5)}</span>}
@@ -173,7 +173,7 @@ const EventCard: React.FC<EventCardProps> = ({
               <>
                 <span className="text-white/15 select-none">•</span>
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  {format === 'online' ? <LinkIcon className="w-3.5 h-3.5 text-primary shrink-0" /> : <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />}
+                  {format === 'online' ? <LinkIcon className="w-4 h-4 text-primary shrink-0" /> : <MapPin className="w-4 h-4 text-primary shrink-0" />}
                   <span className="font-semibold text-white/60 truncate">
                     {location || meetingUrl}
                   </span>
@@ -185,11 +185,11 @@ const EventCard: React.FC<EventCardProps> = ({
           <div className="mt-auto pt-4 border-t border-white/5 space-y-4">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground/50">
-                  <ListTodo className="w-3 h-3 text-primary/60" />
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                  <ListTodo className="w-3.5 h-3.5 text-primary/60" />
                   <span>{tasks.length} Tarefas</span>
                 </div>
-                <span className="text-[9px] font-black text-primary px-1.5 py-0.5 rounded-md bg-primary/10">
+                <span className="text-[11px] font-black text-primary px-1.5 py-0.5 rounded-md bg-primary/10">
                   {progressPercentage}%
                 </span>
               </div>

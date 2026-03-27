@@ -116,6 +116,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         description: "A tarefa foi criada com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
     },
     onError: () => {
       toast({
@@ -140,6 +141,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         description: "A tarefa foi atualizada com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
     },
     onError: () => {
       toast({
@@ -161,6 +163,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
         description: "A tarefa foi excluída com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
     },
     onError: () => {
       toast({
@@ -174,10 +177,11 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
   // Update task status mutation
   const updateTaskStatusMutation = useMutation({
     mutationFn: async ({ taskId, status }: { taskId: number, status: string }) => {
-      return apiRequest(`/api/tasks/${taskId}`, { method: "PATCH", body: { status } });
+      return apiRequest(`/api/tasks/${taskId}`, { method: "PATCH", body: { status } } as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
     },
     onError: () => {
       toast({
@@ -221,7 +225,7 @@ const Checklist: React.FC<ChecklistProps> = ({ id }) => {
       dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "",
       status: task.status,
       priority: task.priority,
-      eventId: Number(id),
+      eventId: Number(eventId),
       assigneeId: task.assigneeId || "",
     });
     setShowEditTaskDialog(true);

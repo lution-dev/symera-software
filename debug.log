@@ -3588,3 +3588,67 @@
 [2026-03-27T21:31:56.657Z] AUTH_USER: sub=8650891, email=applution@gmail.com
 [2026-03-27T21:31:56.707Z] AUTH_USER: existing user found id=8650891, returning this
 [2026-03-27T21:31:56.717Z] DASHBOARD: getEventsByUser(8650891) returned 9 events
+[2026-03-27T21:34:45.120Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:45.165Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:45.227Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:45.243Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:45.263Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:45.279Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:45.312Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:45.336Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:45.357Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:45.372Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:47.461Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:47.481Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:47.524Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:47.541Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:47.572Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:47.591Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:47.617Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:47.634Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:34:47.665Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:34:47.682Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:35:35.385Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:35:35.480Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:35:35.603Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:35:35.626Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:35:38.506Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:35:38.521Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:35:38.562Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:35:38.579Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:57:46.765Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:57:46.787Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:57:46.825Z] DASHBOARD: using claims.sub userId=8650891, email=applution@gmail.com
+[2026-03-27T21:57:46.991Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:57:47.006Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:57:47.207Z] DASHBOARD: getEventsByUser(8650891) returned 9 events
+[2026-03-27T21:58:42.140Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:58:42.159Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:58:42.183Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:58:42.208Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:58:50.863Z] DASHBOARD: using claims.sub userId=8650891, email=applution@gmail.com
+[2026-03-27T21:58:51.298Z] DASHBOARD: getEventsByUser(8650891) returned 9 events
+[2026-03-27T21:58:55.516Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:58:55.547Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:58:55.583Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:58:55.601Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T22:00:32.928Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T22:00:32.954Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T22:00:32.976Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T22:00:32.997Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T22:00:53.190Z] DASHBOARD: using claims.sub userId=8650891, email=applution@gmail.com
+[2026-03-27T22:00:53.202Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T22:00:53.222Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T22:00:53.317Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T22:00:53.342Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T22:00:53.627Z] DASHBOARD: getEventsByUser(8650891) returned 9 events
+[2026-03-27T22:00:57.422Z] DASHBOARD: using claims.sub userId=8650891, email=applution@gmail.com
+[2026-03-27T22:00:57.616Z] DASHBOARD: getEventsByUser(8650891) returned 9 events
+[2026-03-27T22:01:01.787Z] EVENTS: req.user.claims.sub=8650891, email=applution@gmail.com, effectiveId=8650891
+[2026-03-27T22:01:01.792Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T22:01:01.817Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T22:01:01.958Z] EVENTS: found 9 events for userId=8650891
+[2026-03-27T22:01:02.108Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T22:01:02.139Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T22:01:02.168Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T22:01:02.186Z] AUTH_USER: existing user found id=8650891, returning this

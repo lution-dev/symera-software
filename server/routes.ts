@@ -1736,53 +1736,6 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
     }
   });
 
-  // Delete task
-  app.delete('/api/tasks/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      let userId;
-      if (req.session.devIsAuthenticated && req.session.devUserId) {
-        userId = req.session.devUserId;
-      } else if (req.user && req.user.id) {
-        userId = req.user.id;
-      } else {
-        return res.status(401).json({ message: "Unauthorized - User ID not found" });
-      }
-
-      const taskId = parseInt(req.params.id);
-      if (isNaN(taskId)) {
-        return res.status(400).json({ message: "Invalid task ID" });
-      }
-
-      const task = await dbStorage.getTaskById(taskId);
-      if (!task) {
-        return res.status(404).json({ message: "Task not found" });
-      }
-
-      const hasAccess = await dbStorage.hasUserAccessToEvent(userId, task.eventId);
-      if (!hasAccess) {
-        return res.status(403).json({ message: "You don't have access to this task" });
-      }
-
-      await dbStorage.deleteTask(taskId);
-
-      // Log activity
-      await dbStorage.createActivityLog({
-        eventId: task.eventId,
-        userId: userId,
-        action: "deleted_task",
-        details: JSON.stringify({
-          taskId: taskId,
-          taskName: task.title
-        })
-      });
-
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting task:", error);
-      res.status(500).json({ message: "Failed to delete task" });
-    }
-  });
-
   // Team members routes
   app.get('/api/events/:eventId/team', isAuthenticated, async (req: any, res) => {
     try {

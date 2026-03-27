@@ -322,11 +322,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     mutationFn: async (userIds: string[]) => {
       return apiRequest(`/api/events/${eventId}/team`, {
         method: "POST",
-        body: JSON.stringify({ userIds }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+        body: { userIds },
+      } as any);
     },
     onSuccess: (data, variables) => {
       toast({
@@ -380,8 +377,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
     mutationFn: async (newStatus: string) => {
       return apiRequest(`/api/events/${eventId}`, {
         method: "PATCH",
-        body: JSON.stringify({ status: newStatus })
-      });
+        body: { status: newStatus }
+      } as any);
     },
     onSuccess: () => {
       toast({
@@ -436,6 +433,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
     },
     onError: (error: any) => {
       console.error(`[Mutation] Error updating task:`, error);
@@ -463,6 +461,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/activities`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
     },
     onError: (error: any) => {
       console.error(`[Mutation] Error deleting task:`, error);

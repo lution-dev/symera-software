@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -147,6 +148,7 @@ const TaskList: React.FC<TaskListProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [isDeleteTaskDialogOpen, setIsDeleteTaskDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
@@ -189,8 +191,19 @@ const TaskList: React.FC<TaskListProps> = ({
         // Invalidar queries de tarefas para garantir que a UI reflita a mudança
         queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
         queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+        const statusLabel = newStatus === 'completed' ? 'concluída' : newStatus === 'in_progress' ? 'em andamento' : 'pendente';
+        toast({
+          title: newStatus === 'completed' ? '✅ Tarefa concluída' : '🔄 Status atualizado',
+          description: `A tarefa foi marcada como ${statusLabel}.`,
+        });
       } catch (error) {
         console.error("Error updating task status:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível atualizar a tarefa. Tente novamente.",
+          variant: "destructive",
+        });
       }
     } else {
       onTaskUpdate(taskId, { status: newStatus });
@@ -211,8 +224,18 @@ const TaskList: React.FC<TaskListProps> = ({
         // Invalidar queries de tarefas para garantir que a UI reflita a exclusão
         queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
         queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+        toast({
+          title: "🗑️ Tarefa excluída",
+          description: "A tarefa foi excluída com sucesso.",
+        });
       } catch (error) {
         console.error("Error deleting task:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível excluir a tarefa. Tente novamente.",
+          variant: "destructive",
+        });
       }
     } else {
       onTaskDelete(taskToDelete);
