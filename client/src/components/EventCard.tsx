@@ -134,9 +134,9 @@ const EventCard: React.FC<EventCardProps> = ({
           </div>
 
           {daysRemaining !== null && daysRemaining > 0 && (
-            <div className="absolute top-3 right-3 hidden sm:flex flex-col items-center justify-center w-8 h-8 rounded-xl bg-primary/20 backdrop-blur-md border border-primary/20 text-primary shadow-lg group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
-              <span className="text-sm font-black leading-none">{daysRemaining}</span>
-              <span className="text-[6px] font-black uppercase tracking-tighter">Dias</span>
+            <div className="absolute top-3 right-3 flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-primary/20 backdrop-blur-md border border-primary/20 text-primary shadow-lg group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
+              <span className="text-base font-black leading-none">{daysRemaining}</span>
+              <span className="text-[7px] font-black uppercase tracking-tighter">Dias</span>
             </div>
           )}
         </div>
@@ -160,32 +160,25 @@ const EventCard: React.FC<EventCardProps> = ({
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
-            <div className="flex items-center gap-3 text-muted-foreground group-hover:text-white/80 transition-colors">
-              <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0">
-                <Calendar className="w-4 h-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/30 leading-none mb-1">Data</p>
-                <p className="text-xs font-bold text-white tracking-tight truncate">
-                  {startDate ? new Date(startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: 'UTC' }) : "A definir"}
-                  {startTime && <span className="text-primary font-black ml-1">• {startTime.substring(0, 5)}</span>}
-                </p>
-              </div>
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-[11px]">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="font-bold text-white truncate">
+                {startDate ? new Date(startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: 'UTC' }) : "A definir"}
+                {startTime && <span className="text-primary font-black ml-1">• {startTime.substring(0, 5)}</span>}
+              </span>
             </div>
 
             {(location || meetingUrl) && (
-              <div className="flex items-center gap-3 text-muted-foreground group-hover:text-white/80 transition-colors">
-                <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0">
-                  {format === 'online' ? <LinkIcon className="w-4 h-4 text-primary" /> : <MapPin className="w-4 h-4 text-primary" />}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/30 leading-none mb-1">Local</p>
-                  <p className="text-xs font-bold text-white tracking-tight truncate italic opacity-70">
+              <>
+                <span className="text-white/15 select-none">•</span>
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  {format === 'online' ? <LinkIcon className="w-3.5 h-3.5 text-primary shrink-0" /> : <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />}
+                  <span className="font-semibold text-white/60 truncate">
                     {location || meetingUrl}
-                  </p>
+                  </span>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
