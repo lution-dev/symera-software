@@ -3566,3 +3566,25 @@
 [2026-03-27T21:24:23.307Z] AUTH_USER: sub=8650891, email=applution@gmail.com
 [2026-03-27T21:24:23.326Z] AUTH_USER: existing user found id=8650891, returning this
 [2026-03-27T21:24:23.415Z] DASHBOARD: getEventsByUser(8650891) returned 9 events
+[2026-03-27T21:28:33.901Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:28:33.917Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:28:33.934Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:28:33.957Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:28:33.978Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:28:33.995Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:28:34.015Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:28:34.034Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:28:34.052Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:28:34.066Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:31:56.264Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:31:56.285Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:31:56.357Z] DASHBOARD: using claims.sub userId=8650891, email=applution@gmail.com
+[2026-03-27T21:31:56.499Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:31:56.514Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:31:56.537Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:31:56.554Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:31:56.590Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:31:56.613Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:31:56.657Z] AUTH_USER: sub=8650891, email=applution@gmail.com
+[2026-03-27T21:31:56.707Z] AUTH_USER: existing user found id=8650891, returning this
+[2026-03-27T21:31:56.717Z] DASHBOARD: getEventsByUser(8650891) returned 9 events
