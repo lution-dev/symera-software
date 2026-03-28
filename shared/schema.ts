@@ -240,7 +240,9 @@ export const eventFormSchema = z.object({
   generateAIChecklist: z.boolean().optional(),
 });
 
-export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true, updatedAt: true }).extend({
+  dueDate: z.union([z.string(), z.date(), z.null()]).optional(),
+});
 export const insertTaskAssigneeSchema = createInsertSchema(taskAssignees).omit({ id: true, createdAt: true });
 export const insertEventActivitySchema = createInsertSchema(activityLogs).omit({ id: true, createdAt: true });
 export const insertTeamMemberSchema = createInsertSchema(eventTeamMembers).omit({ id: true, createdAt: true });

@@ -3,7 +3,17 @@
 import React, { useState } from "react";
 import { formatTaskDueDate, getTaskPriorityColor, getTaskStatusColor, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -56,7 +66,9 @@ import {
   AlertTriangle,
   User,
   Send,
-  ChevronRight
+  ChevronRight,
+  Save,
+  Loader2
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -151,11 +163,52 @@ const TaskList: React.FC<TaskListProps> = ({
   const { toast } = useToast();
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [isDeleteTaskDialogOpen, setIsDeleteTaskDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'todo' | 'in_progress' | 'completed'>('all');
   const [showAllTasks, setShowAllTasks] = useState(!limitTasks);
   const isMobile = useIsMobile();
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    dueDate: "",
+    priority: "medium" as string,
+    status: "todo" as string,
+  });
+
+  const editTaskMutation = useMutation({
+    mutationFn: async ({ taskId, data }: { taskId: number; data: any }) => {
+      return apiRequest(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        body: data,
+      } as any);
+    },
+    onSuccess: () => {
+      toast({
+        title: "✅ Tarefa atualizada",
+        description: "As alterações foram salvas com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      // Invalidate specific event tasks if we know the eventId
+      if (currentTask?.eventId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${currentTask.eventId}/tasks`] });
+      }
+      setIsEditDialogOpen(false);
+      setCurrentTask(null);
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as alterações. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const { data: apiTasks, isLoading: apiLoading } = useQuery({
     queryKey: ['/api/dashboard'],
@@ -248,6 +301,45 @@ const TaskList: React.FC<TaskListProps> = ({
   const openReminderDialog = (task: Task) => {
     setCurrentTask(task);
     setIsReminderDialogOpen(true);
+  };
+
+  const openEditDialog = (task: Task) => {
+    setCurrentTask(task);
+    setEditForm({
+      title: task.title,
+      description: task.description || "",
+      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "",
+      priority: task.priority,
+      status: task.status,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!currentTask || !editForm.title.trim()) return;
+    
+    const payload: any = {
+      title: editForm.title,
+      description: editForm.description || null,
+      dueDate: editForm.dueDate || null,
+      priority: editForm.priority,
+      status: editForm.status,
+      eventId: currentTask.eventId,
+    };
+
+    if (onTaskUpdate) {
+      // When used inside EventDetailRefactored, use the parent's mutation
+      onTaskUpdate(currentTask.id, payload);
+      toast({
+        title: "✅ Tarefa atualizada",
+        description: "As alterações foram salvas com sucesso.",
+      });
+      setIsEditDialogOpen(false);
+      setCurrentTask(null);
+    } else {
+      // Direct API call (Dashboard context)
+      editTaskMutation.mutate({ taskId: currentTask.id, data: payload });
+    }
   };
 
   const handleSendReminderNow = () => {
@@ -443,7 +535,7 @@ const TaskList: React.FC<TaskListProps> = ({
                           variant="ghost"
                           size="icon"
                           className="h-9 w-9 rounded-xl hover:bg-indigo-500/20 hover:text-indigo-400 transition-all duration-300 hover:rotate-12"
-                          onClick={() => navigate(`/events/${task.eventId}/tasks/${task.id}/edit`)}
+                          onClick={() => openEditDialog(task)}
                         >
                           <Pencil className="w-5 h-5" />
                         </Button>
@@ -518,7 +610,7 @@ const TaskList: React.FC<TaskListProps> = ({
                   size="icon"
                   variant="outline"
                   className="h-9 w-9 bg-amber-500/5 border-amber-500/20 text-amber-500"
-                  onClick={() => navigate(`/events/${task.eventId}/tasks/${task.id}/edit`)}
+                  onClick={() => openEditDialog(task)}
                 >
                   <Pencil className="w-4 h-4" />
                 </Button>
@@ -785,6 +877,203 @@ const TaskList: React.FC<TaskListProps> = ({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      )}
+
+      {/* Edit Task Dialog (Desktop) / Drawer (Mobile) */}
+      {isMobile ? (
+        <Drawer open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DrawerContent className="bg-purple-dark border-white/10 pb-10 px-4">
+            <DrawerHeader className="text-left px-2 mb-2">
+              <DrawerTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                <Pencil className="w-5 h-5 text-primary" /> Editar Tarefa
+              </DrawerTitle>
+              <DrawerDescription className="text-sm text-muted-foreground/80">
+                Edite os detalhes da tarefa abaixo
+              </DrawerDescription>
+            </DrawerHeader>
+
+            <div className="space-y-4 py-2 px-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title-mobile" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Título</Label>
+                <Input
+                  id="edit-title-mobile"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="bg-white/5 border-white/10 rounded-xl h-12"
+                  placeholder="Nome da tarefa"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-desc-mobile" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Descrição</Label>
+                <Textarea
+                  id="edit-desc-mobile"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="bg-white/5 border-white/10 rounded-xl min-h-[80px] resize-none"
+                  placeholder="Descrição da tarefa (opcional)"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-date-mobile" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Vencimento</Label>
+                  <Input
+                    id="edit-date-mobile"
+                    type="date"
+                    value={editForm.dueDate}
+                    onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+                    className="bg-white/5 border-white/10 rounded-xl h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Prioridade</Label>
+                  <Select value={editForm.priority} onValueChange={(v) => setEditForm({ ...editForm, priority: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Status</Label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
+                  <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todo">Pendente</SelectItem>
+                    <SelectItem value="in_progress">Em Andamento</SelectItem>
+                    <SelectItem value="completed">Concluída</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DrawerFooter className="px-0 pt-4 flex flex-col gap-3">
+              <Button
+                className="w-full h-12 rounded-xl text-sm font-black tracking-tight gradient-primary shadow-lg shadow-primary/20 gap-2"
+                onClick={handleSaveEdit}
+                disabled={editTaskMutation.isPending || !editForm.title.trim()}
+              >
+                {editTaskMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+                ) : (
+                  <><Save className="w-4 h-4" /> Salvar Alterações</>
+                )}
+              </Button>
+              <DrawerClose asChild>
+                <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground active:scale-[0.98]">
+                  Cancelar
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-lg rounded-3xl bg-purple-dark border-white/10 shadow-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                <Pencil className="w-5 h-5 text-primary" /> Editar Tarefa
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground/80">
+                Edite os detalhes da tarefa abaixo
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Título</Label>
+                <Input
+                  id="edit-title"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="bg-white/5 border-white/10 rounded-xl h-11"
+                  placeholder="Nome da tarefa"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-desc" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Descrição</Label>
+                <Textarea
+                  id="edit-desc"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="bg-white/5 border-white/10 rounded-xl min-h-[80px] resize-none"
+                  placeholder="Descrição da tarefa (opcional)"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-date" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Vencimento</Label>
+                  <Input
+                    id="edit-date"
+                    type="date"
+                    value={editForm.dueDate}
+                    onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+                    className="bg-white/5 border-white/10 rounded-xl h-11"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Prioridade</Label>
+                  <Select value={editForm.priority} onValueChange={(v) => setEditForm({ ...editForm, priority: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Status</Label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
+                  <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todo">Pendente</SelectItem>
+                    <SelectItem value="in_progress">Em Andamento</SelectItem>
+                    <SelectItem value="completed">Concluída</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                variant="ghost"
+                className="rounded-xl text-muted-foreground"
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="rounded-xl gradient-primary shadow-lg shadow-primary/20 gap-2"
+                onClick={handleSaveEdit}
+                disabled={editTaskMutation.isPending || !editForm.title.trim()}
+              >
+                {editTaskMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+                ) : (
+                  <><Save className="w-4 h-4" /> Salvar Alterações</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

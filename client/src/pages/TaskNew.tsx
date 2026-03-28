@@ -91,7 +91,7 @@ const TaskNew: React.FC = () => {
         description: "A tarefa foi criada com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
-      navigate(`/events/${eventId}`);
+      navigate(`/events/${eventId}?tab=tarefas`);
     },
     onError: () => {
       toast({

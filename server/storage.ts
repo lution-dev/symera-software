@@ -611,6 +611,9 @@ export class DatabaseStorage implements IStorage {
       // Obter a tarefa antes de excluir para saber o eventId
       const task = await this.getTaskById(id);
 
+      // Excluir os responsáveis da tarefa primeiro para evitar erro de foreign key
+      await db.delete(taskAssignees).where(eq(taskAssignees.taskId, id));
+
       await db.delete(tasks).where(eq(tasks.id, id));
 
       // Invalidar caches

@@ -2295,7 +2295,11 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
         return res.status(404).json({ message: "Event not found" });
       }
 
-      // Generate AI checklist
+      // Obter tarefas existentes para passar ao gerador
+      const existingTasks = await dbStorage.getTasksByEventId(eventId);
+      const existingTitles = existingTasks.map((t: any) => t.title);
+
+      // Generate AI checklist (já recebe as tarefas existentes para nunca duplicar)
       const checklistItems = await generateEventChecklist({
         name: event.name,
         type: event.type,
@@ -2304,13 +2308,11 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
         description: event.description || undefined,
         budget: event.budget || undefined,
         attendees: event.attendees || undefined,
-        generateAIChecklist: true
-      });
+      }, existingTitles);
 
-      // Create tasks from checklist
+      // Create tasks from checklist (todas são tarefas novas)
       const tasks = [];
       for (const item of checklistItems) {
-        // Criar tarefa com o proprietário como único responsável
         const task = await dbStorage.createTask({
           title: item.title,
           description: item.description,
@@ -2318,7 +2320,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
           priority: item.priority as any || 'medium',
           eventId: event.id,
           assigneeId: userId,
-        }, [userId]); // Adicionamos o userId como o único responsável na tabela de assignees
+        }, [userId]);
         tasks.push(task);
       }
 
@@ -2330,7 +2332,7 @@ export async function registerRoutes(app: Express): Promise<Server | null> {
         details: JSON.stringify({ taskCount: tasks.length })
       });
 
-      res.status(201).json(tasks);
+      res.status(201).json({ tasks, created: tasks.length, skipped: 0 });
     } catch (error) {
       console.error("Error generating AI checklist:", error);
       res.status(500).json({ message: "Failed to generate AI checklist" });

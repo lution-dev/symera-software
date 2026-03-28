@@ -153,6 +153,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AlertTriangle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EventProps {
   id?: string;
@@ -173,6 +184,18 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
   const [memberToRemove, setMemberToRemove] = useState<any>(null);
   const [isDeleteEventDialogOpen, setIsDeleteEventDialogOpen] = useState(false);
   const [isGenerateChecklistDialogOpen, setIsGenerateChecklistDialogOpen] = useState(false);
+  const [isCreateTaskDialogOpen, setIsCreateTaskDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Create task form state
+  const [createTaskForm, setCreateTaskForm] = useState({
+    title: "",
+    description: "",
+    dueDate: "",
+    priority: "medium",
+    status: "todo",
+    assigneeIds: [] as string[],
+  });
 
   // Filtering and sorting state
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -297,15 +320,31 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
 
   const regenerateChecklistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/events/${eventId}/generate-checklist`, {
+      const res = await apiRequest(`/api/events/${eventId}/generate-checklist`, {
         method: "POST"
       });
+      return res.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Checklist regenerado",
-        description: "O checklist foi regenerado com sucesso usando IA",
-      });
+    onSuccess: (data: any) => {
+      const created = data?.created ?? 0;
+      const skipped = data?.skipped ?? 0;
+
+      if (created === 0 && skipped > 0) {
+        toast({
+          title: "Nenhuma tarefa nova",
+          description: `Todas as ${skipped} tarefas sugeridas já existem neste evento.`,
+        });
+      } else if (created > 0 && skipped > 0) {
+        toast({
+          title: `✅ ${created} tarefa(s) criada(s)`,
+          description: `${skipped} tarefa(s) já existiam e foram ignoradas.`,
+        });
+      } else {
+        toast({
+          title: "✅ Checklist gerado",
+          description: `${created} tarefa(s) criada(s) com sucesso usando IA.`,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
     },
     onError: () => {
@@ -316,6 +355,68 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
       });
     },
   });
+
+  // Mutation para criar tarefa inline
+  const createTaskMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest(`/api/events/${eventId}/tasks`, {
+        method: "POST",
+        body: data,
+      } as any);
+    },
+    onSuccess: () => {
+      toast({
+        title: "✅ Tarefa criada",
+        description: "A tarefa foi criada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      setIsCreateTaskDialogOpen(false);
+      setCreateTaskForm({
+        title: "",
+        description: "",
+        dueDate: "",
+        priority: "medium",
+        status: "todo",
+        assigneeIds: [],
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar a tarefa. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateTask = () => {
+    if (!createTaskForm.title.trim()) return;
+    const payload: any = {
+      title: createTaskForm.title,
+      description: createTaskForm.description || null,
+      dueDate: createTaskForm.dueDate || null,
+      priority: createTaskForm.priority,
+      status: createTaskForm.status,
+      eventId: Number(eventId),
+      assigneeId: createTaskForm.assigneeIds.length > 0 ? createTaskForm.assigneeIds[0] : "",
+      assigneeIds: createTaskForm.assigneeIds,
+    };
+    createTaskMutation.mutate(payload);
+  };
+
+  const openCreateTaskDialog = () => {
+    setCreateTaskForm({
+      title: "",
+      description: "",
+      dueDate: "",
+      priority: "medium",
+      status: "todo",
+      assigneeIds: [],
+    });
+    setIsCreateTaskDialogOpen(true);
+  };
 
   // Mutation para adicionar múltiplos membros à equipe
   const addTeamMembersMutation = useMutation({
@@ -990,8 +1091,8 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
               </div>
             </div>
 
-            {/* Horizontal Tab Navigation - Pill Style */}
-            <div className="mt-4 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {/* Horizontal Tab Navigation - Desktop only */}
+            <div className="hidden md:block mt-4 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <div role="tablist" className="flex h-11 p-1 bg-card rounded-lg w-max border border-border/40 items-center gap-0.5">
                 {[
                   { id: 'resumo', label: 'Resumo' },
@@ -1025,11 +1126,63 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                 ))}
               </div>
             </div>
+
+            {/* Desktop: Resumo indicators */}
+            <div className="hidden md:block">
+              {activeSection === 'resumo' && (
+                <div className="mt-6">
+                  {renderStrategicIndicators()}
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Navigation Grid - only visible on mobile when on resumo */}
+            {activeSection === 'resumo' && (
+              <div className="md:hidden mt-4 mb-8">
+                <h3 className="text-sm font-medium mb-4 px-1">Menu do Evento</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { id: 'mobile_details', label: 'Detalhes', icon: 'fas fa-info-circle', color: 'bg-primary/10 text-primary' },
+                    { id: 'tarefas', label: 'Tarefas', count: totalTasks, icon: 'fas fa-tasks', color: 'bg-blue-500/10 text-blue-600' },
+                    { id: 'equipe', label: 'Equipe', count: team?.length, icon: 'far fa-user-circle', color: 'bg-indigo-500/10 text-indigo-600' },
+                    { id: 'participantes', label: 'Participantes', count: event.attendees, icon: 'far fa-address-book', color: 'bg-green-500/10 text-green-600' },
+                    { id: 'cronograma', label: 'Cronograma', icon: 'fas fa-calendar-alt', color: 'bg-orange-500/10 text-orange-600' },
+                    { id: 'financeiro', label: 'Financeiro', icon: 'far fa-money-bill-alt', color: 'bg-emerald-500/10 text-emerald-600' },
+                    { id: 'documentos', label: 'Documentos', icon: 'fas fa-file-pdf', color: 'bg-red-500/10 text-red-600' },
+                    { id: 'atividades', label: 'Atividades', icon: 'fas fa-history', color: 'bg-teal-500/10 text-teal-600' },
+                    { id: 'feedback', label: 'Feedback', icon: 'fas fa-comment-alt', color: 'bg-pink-500/10 text-pink-600' }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        const from = new URLSearchParams(search).get('from');
+                        const navigateUrl = `${location}?section=${item.id}${from ? `&from=${from}` : ''}`;
+                        setActiveSection(item.id);
+                        navigate(navigateUrl);
+                      }}
+                      className="bg-card border border-border p-4 rounded-xl flex flex-col items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className={`w-10 h-10 rounded-full ${item.color} flex items-center justify-center text-lg`}>
+                        <i className={item.icon}></i>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-sm font-medium block text-foreground">{item.label}</span>
+                        {item.count !== undefined && (
+                          <span className="text-xs text-muted-foreground">{item.count} itens</span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Conteúdo baseado na seção ativa */}
-          {activeSection === "resumo" && (
-            <div className="mt-6">
+
+          {/* Mobile Detail Section */}
+          {activeSection === "mobile_details" && (
+            <div className="space-y-4 mt-6">
               {renderStrategicIndicators()}
             </div>
           )}
@@ -1055,7 +1208,7 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
                       </>
                     )}
                   </Button>
-                  <Button onClick={() => navigate(`/events/${eventId}/tasks/new`)} variant="default" className="flex-1 sm:flex-auto">
+                  <Button onClick={openCreateTaskDialog} variant="default" className="flex-1 sm:flex-auto">
                     <i className="fas fa-plus mr-2"></i> Nova Tarefa
                   </Button>
                 </div>
@@ -1481,6 +1634,265 @@ const EventDetail: React.FC<EventProps> = ({ id }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create Task Modal - Dialog (Desktop) / Drawer (Mobile) */}
+      {isMobile ? (
+        <Drawer open={isCreateTaskDialogOpen} onOpenChange={setIsCreateTaskDialogOpen}>
+          <DrawerContent className="bg-purple-dark border-white/10 pb-10 px-4 max-h-[90vh]">
+            <DrawerHeader className="text-left px-2 mb-2">
+              <DrawerTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                <i className="fas fa-plus text-primary"></i> Nova Tarefa
+              </DrawerTitle>
+              <DrawerDescription className="text-sm text-muted-foreground/80">
+                Adicione uma nova tarefa ao evento
+              </DrawerDescription>
+            </DrawerHeader>
+
+            <div className="space-y-4 py-2 px-2 overflow-y-auto max-h-[60vh] custom-scrollbar">
+              <div className="space-y-2">
+                <Label htmlFor="create-title-mobile" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Título da tarefa *</Label>
+                <Input
+                  id="create-title-mobile"
+                  value={createTaskForm.title}
+                  onChange={(e) => setCreateTaskForm({ ...createTaskForm, title: e.target.value })}
+                  className="bg-white/5 border-white/10 rounded-xl h-12"
+                  placeholder="Ex: Confirmar fornecedores"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="create-desc-mobile" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Descrição (opcional)</Label>
+                <Textarea
+                  id="create-desc-mobile"
+                  value={createTaskForm.description}
+                  onChange={(e) => setCreateTaskForm({ ...createTaskForm, description: e.target.value })}
+                  className="bg-white/5 border-white/10 rounded-xl min-h-[80px] resize-none"
+                  placeholder="Detalhes adicionais sobre a tarefa"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="create-date-mobile" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Vencimento</Label>
+                  <Input
+                    id="create-date-mobile"
+                    type="date"
+                    value={createTaskForm.dueDate}
+                    onChange={(e) => setCreateTaskForm({ ...createTaskForm, dueDate: e.target.value })}
+                    className="bg-white/5 border-white/10 rounded-xl h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Prioridade</Label>
+                  <Select value={createTaskForm.priority} onValueChange={(v) => setCreateTaskForm({ ...createTaskForm, priority: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Status</Label>
+                <Select value={createTaskForm.status} onValueChange={(v) => setCreateTaskForm({ ...createTaskForm, status: v })}>
+                  <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todo">A fazer</SelectItem>
+                    <SelectItem value="in_progress">Em andamento</SelectItem>
+                    <SelectItem value="completed">Concluída</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Responsáveis (opcional)</Label>
+                <div className="border border-white/10 rounded-xl p-3 space-y-2 bg-white/5">
+                  {Array.isArray(team) && team.length > 0 ? team.map((member: any) => {
+                    const isSelected = createTaskForm.assigneeIds.includes(member.userId);
+                    return (
+                      <div key={member.userId} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer" onClick={() => {
+                        const newIds = isSelected
+                          ? createTaskForm.assigneeIds.filter((id: string) => id !== member.userId)
+                          : [...createTaskForm.assigneeIds, member.userId];
+                        setCreateTaskForm({ ...createTaskForm, assigneeIds: newIds });
+                      }}>
+                        <Checkbox checked={isSelected} className="border-white/20" />
+                        <div className="flex items-center gap-2">
+                          {member.user?.profileImageUrl ? (
+                            <img src={member.user.profileImageUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                              {(member.user?.firstName?.[0] || '') + (member.user?.lastName?.[0] || '')}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium">{member.user?.firstName} {member.user?.lastName}</span>
+                        </div>
+                      </div>
+                    );
+                  }) : (
+                    <p className="text-sm text-muted-foreground p-2 italic">Nenhum membro da equipe disponível</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <DrawerFooter className="px-0 pt-4 flex flex-col gap-3">
+              <Button
+                className="w-full h-12 rounded-xl text-sm font-black tracking-tight gradient-primary shadow-lg shadow-primary/20 gap-2"
+                onClick={handleCreateTask}
+                disabled={createTaskMutation.isPending || !createTaskForm.title.trim()}
+              >
+                {createTaskMutation.isPending ? (
+                  <><i className="fas fa-spinner fa-spin mr-1"></i> Criando...</>
+                ) : (
+                  <><i className="fas fa-plus mr-1"></i> Criar Tarefa</>
+                )}
+              </Button>
+              <DrawerClose asChild>
+                <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground active:scale-[0.98]">
+                  Cancelar
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={isCreateTaskDialogOpen} onOpenChange={setIsCreateTaskDialogOpen}>
+          <DialogContent className="sm:max-w-lg rounded-3xl bg-purple-dark border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                <i className="fas fa-plus text-primary"></i> Nova Tarefa
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground/80">
+                Adicione uma nova tarefa ao evento {event?.name}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-title" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Título da tarefa *</Label>
+                <Input
+                  id="create-title"
+                  value={createTaskForm.title}
+                  onChange={(e) => setCreateTaskForm({ ...createTaskForm, title: e.target.value })}
+                  className="bg-white/5 border-white/10 rounded-xl h-11"
+                  placeholder="Ex: Confirmar fornecedores"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="create-desc" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Descrição (opcional)</Label>
+                <Textarea
+                  id="create-desc"
+                  value={createTaskForm.description}
+                  onChange={(e) => setCreateTaskForm({ ...createTaskForm, description: e.target.value })}
+                  className="bg-white/5 border-white/10 rounded-xl min-h-[80px] resize-none"
+                  placeholder="Detalhes adicionais sobre a tarefa"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="create-date" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Data de vencimento</Label>
+                  <Input
+                    id="create-date"
+                    type="date"
+                    value={createTaskForm.dueDate}
+                    onChange={(e) => setCreateTaskForm({ ...createTaskForm, dueDate: e.target.value })}
+                    className="bg-white/5 border-white/10 rounded-xl h-11"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Prioridade</Label>
+                  <Select value={createTaskForm.priority} onValueChange={(v) => setCreateTaskForm({ ...createTaskForm, priority: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Status</Label>
+                <Select value={createTaskForm.status} onValueChange={(v) => setCreateTaskForm({ ...createTaskForm, status: v })}>
+                  <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todo">A fazer</SelectItem>
+                    <SelectItem value="in_progress">Em andamento</SelectItem>
+                    <SelectItem value="completed">Concluída</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Responsáveis (opcional)</Label>
+                <div className="border border-white/10 rounded-xl p-3 space-y-1 bg-white/5 max-h-48 overflow-y-auto custom-scrollbar">
+                  {Array.isArray(team) && team.length > 0 ? team.map((member: any) => {
+                    const isSelected = createTaskForm.assigneeIds.includes(member.userId);
+                    return (
+                      <div key={member.userId} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors" onClick={() => {
+                        const newIds = isSelected
+                          ? createTaskForm.assigneeIds.filter((id: string) => id !== member.userId)
+                          : [...createTaskForm.assigneeIds, member.userId];
+                        setCreateTaskForm({ ...createTaskForm, assigneeIds: newIds });
+                      }}>
+                        <Checkbox checked={isSelected} className="border-white/20" />
+                        <div className="flex items-center gap-2">
+                          {member.user?.profileImageUrl ? (
+                            <img src={member.user.profileImageUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                              {(member.user?.firstName?.[0] || '') + (member.user?.lastName?.[0] || '')}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium">{member.user?.firstName} {member.user?.lastName}</span>
+                        </div>
+                      </div>
+                    );
+                  }) : (
+                    <p className="text-sm text-muted-foreground p-2 italic">Nenhum membro da equipe disponível</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                variant="ghost"
+                className="rounded-xl text-muted-foreground"
+                onClick={() => setIsCreateTaskDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="rounded-xl gradient-primary shadow-lg shadow-primary/20 gap-2"
+                onClick={handleCreateTask}
+                disabled={createTaskMutation.isPending || !createTaskForm.title.trim()}
+              >
+                {createTaskMutation.isPending ? (
+                  <><i className="fas fa-spinner fa-spin mr-1"></i> Criando...</>
+                ) : (
+                  <><i className="fas fa-plus mr-1"></i> Criar Tarefa</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div >
   );
 };

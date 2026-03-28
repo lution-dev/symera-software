@@ -132,7 +132,7 @@ const TaskEdit: React.FC<TaskEditProps> = ({ eventId: propsEventId, taskId: prop
       });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${eventId}/tasks`] });
       queryClient.invalidateQueries({ queryKey: [`/api/tasks/${taskId}`] });
-      navigate(`/events/${eventId}`);
+      navigate(`/events/${eventId}?tab=tarefas`);
     },
     onError: () => {
       toast({
