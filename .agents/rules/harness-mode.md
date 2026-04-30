@@ -1,4 +1,5 @@
-# Rule: Harness Engineering
-Sempre ativo. Leia harness/HARNESS.md antes de agir.
-Fluxo: registrar task em BACKLOG.md → implementar → rodar sensor → commit.
-Modos: QUICK (1-2 itens), BATCH (3+ itens com inventário), SPRINT (10+ itens).
+﻿# Rule: Harness Engineering — MANDATORY
+## Priority: CRITICAL
+Before ANY action: read harness/HARNESS.md, run Step 0, read CONTEXT.md + BACKLOG.md.
+For UI: read DESIGN.md. Register task BEFORE coding. Run sensors AFTER each task.
+NEVER skip. NEVER assume too simple for protocol.
