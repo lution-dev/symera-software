@@ -5,7 +5,7 @@
 
 **ANTES de qualquer outra ação**, rode o hook de entrada para carregar contexto da memória global:
 ```powershell
-node "c:\Users\Lucas\OneDrive\Documentos\Projetos\lidtek-memoria\hooks\entrada.js" "[descreva a task aqui]" "Symera" | Out-File harness\MEMORY_CONTEXT.md -Encoding utf8
+node "c:\Users\Lucas\OneDrive\Documentos\Projetos\lidtek-memoria\hooks\entrada.js" "[descreva a task aqui]" "Symera"
 ```
 Depois leia o `harness/MEMORY_CONTEXT.md` gerado.
 

@@ -11,7 +11,7 @@ Read file: harness/HARNESS.md (ENTIRE file)
 
 ### Step 2: Run the memory hook (Step 0 in HARNESS.md)
 ```powershell
-node "c:\Users\Lucas\OneDrive\Documentos\Projetos\lidtek-memoria\hooks\entrada.js" "[describe the task]" "Symera" | Out-File harness\MEMORY_CONTEXT.md -Encoding utf8
+node "c:\Users\Lucas\OneDrive\Documentos\Projetos\lidtek-memoria\hooks\entrada.js" "[describe the task]" "Symera"
 ```
 Then read harness/MEMORY_CONTEXT.md.
 
